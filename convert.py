@@ -34,7 +34,7 @@ for thisline in text:
         if m:
             thisline = '%'+m.groups()[0]
         else:
-            m = jupyter_magic_re.match(thisline)
+            m = jupyter_cellmagic_re.match(thisline)
             if m:
                 thisline = '%%'+m.groups()[0]
         newtext.append(thisline)
