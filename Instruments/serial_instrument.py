@@ -61,7 +61,7 @@ class SerialInstrument (object):
         self.connection.timeout = old_timeout
         return
     def respond(self,*args, **kwargs):
-        """Same a write, but also returns the result
+        """Same a write, but also sets the timeout to infinite and returns the result.
         
         Parameters
         ----------
@@ -96,6 +96,14 @@ class SerialInstrument (object):
     # {{{ common commands
     def reset(self):
         self.write('*RST')
+        old_timeout = self.connection.timeout
+        self.connection.timeout = 0.1
+        response = None
+        while response is None or len(response) == 0:
+            self.write('*IDN?') # to make sure it's done resetting
+            response = self.connection.readline()
+        self.connection.timeout = old_timeout
+        return
     def save(self,fileno=1):
         """Save current setup to setup file number ``fileno``
         
