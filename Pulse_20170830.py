@@ -1,4 +1,7 @@
-#  coding: utf-8
+
+# coding: utf-8
+
+# In[ ]:
 
 get_ipython().magic(u'pylab inline')
 from serial.tools.list_ports import comports
@@ -6,8 +9,11 @@ import serial
 
 [j for j in comports()]
 
+
 #  Rather than doing the following, we should just 
 #  use the serial class that we previously created
+
+# In[ ]:
 
 port_id = j[0]
 with serial.Serial(port_id) as s:
@@ -15,18 +21,29 @@ with serial.Serial(port_id) as s:
     result = s.readline()
 result
 
+
 # OUTPUT TEST WAVE
 
+# In[ ]:
+
 with serial.Serial(port_id) as s:
-    s.write('SOUR1:APPL:SIN 2KHZ,MAX,MAX\n')
+    s.write('SOUR1:APPL:SIN 2KHZ,1,0\n')
     
+
+
 # RESET INSTRUMENT
+
+# In[ ]:
 
 with serial.Serial(port_id) as s:
     s.write('*rst\n')
     
+
+
 # Communicating with GDS
-#  *here, there were some unnecessary repeats from above
+#  *here, there were some unnecessary repeats from above*
+
+# In[ ]:
 
 def id_instrument(textidn):
     for j in comports():
@@ -38,10 +55,16 @@ def id_instrument(textidn):
         if textidn in result:
             return port_id
 
+
 # Checking id_instrument runs
+
+# In[ ]:
 
 idn = id_instrument('GDS-3254')
 print idn
+
+
+# In[ ]:
 
 def instrument_instance(textidn):
     return serial.Serial(id_instrument(textidn))
@@ -130,5 +153,9 @@ x_axis,data,param = retrieve_waveform()
 title(param['Source'])
 plot(x_axis/1e-6,data)
 xlabel(r'$t$ / $\mu s$')
+
+
+# In[ ]:
+
 
 
