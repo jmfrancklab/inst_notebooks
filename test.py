@@ -4,7 +4,9 @@ from pyspecdata import *
 # set the sine wave
 
 with AFG() as a:
-    a.sin(f=15e6, ch=1)
+    a.reset()
+    x = r_[-6:6:200j]
+    a.digital_ndarray(exp(-x**2))
 
 # grab it on the scope
 

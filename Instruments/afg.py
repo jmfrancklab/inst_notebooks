@@ -40,3 +40,17 @@ class AFG (SerialInstrument):
         cmd = 'SOUR%d:APPL:SIN %0.3f%s,1,0'%(ch,f/f_chosen,unit_chosen)
         print cmd
         self.write(cmd)
+    def binary_block(self,data):
+        assert all(abs(data)<1), "all data must have absolute value less than 1"
+        data = int16(data*511).tostring()
+        data_len = len(data)
+        data_len = str(data_len)
+        assert (len(data_len) < 10), "the number describing the data length must be less than ten digits long, but your data length is "+data_len
+        initialization = '#'+str(len(data_len))+data_len
+        return initialization+data
+    def digital_ndarray(self,data,ch=1):
+        cmd = 'SOUR%d:DATA:DAC VOLATILE, '%ch
+        cmd += self.binary_block(data)
+        self.write(cmd)
+        self.write('SOUR%d:ARB:OUTP'%ch)
+        return
