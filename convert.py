@@ -1,5 +1,8 @@
 from nbformat import v3, v4
 import sys
+import re
+
+jupyter_magic_re = re.compile("^get_ipython\(\).magic\(u'(.*)'\)")
 
 assert sys.argv[1].endswith('.py'),"this is supposed to be called with a .py file argument!"
 with open(sys.argv[1]) as fpin:
@@ -26,6 +29,9 @@ for thisline in text:
     else:
         if not last_had_code:
             newtext.append('# <codecell>')
+        m = jupyter_magic_re.match(thisline)
+        if m:
+            thisline = '%'+m.groups()[0]
         newtext.append(thisline)
         last_had_hash = False
         last_had_code = True
