@@ -93,6 +93,31 @@ class SerialInstrument (object):
                 s.write('*idn?\n')
                 result = s.readline()
                 print result
+    # {{{ common commands
+    def reset(self):
+        self.write('*RST')
+    def save(self,fileno=1):
+        """Save current setup to setup file number ``fileno``
+        
+        Parameters
+        ----------
+
+        fileno : int
+
+            A number of the file -- typically between 1 and 20.
+        """
+        self.write('*SAV %d'%fileno)
+    def recall(self,fileno=1):
+        """Recall a set of panel settings that were previously saved:
+            
+        see :func:`save`
+        """
+        self.write('*RCL %d'%fileno)
+        return
+    def learn(self):
+        "Returns the settings as a data string."
+        return self.respond('*LRN?')
+    # }}}
     def id_instrument(self,textidn):
         """A helper function for :func:`init` Identify the instrument that returns an ID string containing ``textidn``
 

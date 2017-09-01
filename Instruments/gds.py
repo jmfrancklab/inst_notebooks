@@ -12,7 +12,9 @@ class GDS_scope (SerialInstrument):
         logger.debug(strm("identify from within GDS",super(self.__class__,self).respond('*idn?')))
         logger.debug("I should have just opened the serial connection")
         return
-    def waveform(self,instname='GDS-3254',ch=1):
+    def autoset(self):
+        self.write(':AUTOS')
+    def waveform(self,ch=1):
         """Retrieve waveform and associated parameters form the scope.
 
         Comprises the following steps:
@@ -24,11 +26,6 @@ class GDS_scope (SerialInstrument):
         Parameters
         ==========
 
-        instname : str
-
-            The instrument name.  Specifically, a string that's returned as
-            part of the response to the ``*idn?`` command.
-        
         ch : int
             
             Which channel do you want?
@@ -36,17 +33,10 @@ class GDS_scope (SerialInstrument):
         Returns
         =======
 
-        x_axis : ndarray
+        data : nddata
 
-            The *x*-axis (time-base) of the data.
-
-        data : ndarray
-
-            A 1-d array containing the scope data.
-
-        params : dict
-
-            A dictionary of the parameters returned by the scope.
+            The scope data, as a pyspecdata nddata, with the
+            extra information stored as nddata properties
         """
         self.write(':ACQ%d:MEM?'%ch)
         def upto_hashtag():
