@@ -1,30 +1,29 @@
+
 # coding: utf-8
 
-
-%load_ext pyspecdata.ipy
+#get_ipython().magic(u'load_ext pyspecdata.ipy')
 from pyspecdata import *
-
-
-
 from serial.tools.list_ports import comports
 import serial
-import logging,os
-init_logging() # from pyspecdata --> goes to ~/pyspecdata.log
 
 # the following just sets up a log file -- ignore
 # (copy of pyspecdata init_logging)
+
+
+import logging,os
+init_logging() # from pyspecdata --> goes to ~/pyspecdata.log
 def strm(*args):
     return ' '.join([str(j) for j in args])
 FORMAT = "--> %(filename)s(%(lineno)s):%(name)s %(funcName)20s %(asctime)20s\n%(levelname)s: %(message)s"
-log_filename = os.path.join(os.path.expanduser('~'),'pyspecdata.log')
-if os.path.exists(log_filename):
-    # manually remove, and then use append -- otherwise, it won't write to
-    # file immediately
-    os.remove(log_filename)
-logging.basicConfig(format=FORMAT,
-        filename=log_filename,
-        filemode='a',
-        )
+#log_filename = os.path.join(os.path.expanduser('~'),'pyspecdata.log')
+#if os.path.exists(log_filename):
+#    # manually remove, and then use append -- otherwise, it won't write to
+#    # file immediately
+#    os.remove(log_filename)
+#logging.basicConfig(format=FORMAT,
+#        filename=log_filename,
+#        filemode='a',
+#        )
 logger = logging.getLogger('GDS_scope')
 logger.setLevel(logging.DEBUG)
 
@@ -52,7 +51,10 @@ class SerialInstrument (object):
             A string used to identify the instrument.
             Specifically, the instrument responds to the ``*idn?`` command
             with a string that includes ``textidn``.
+            If textidn is set to None, just show the available instruments.
         """
+        if textidn is None:
+            self.show_instruments()
         self.connection = serial.Serial(self.id_instrument(textidn), **kwargs)
         assert self.connection.isOpen(), "For some reason, I couldn't open the connection!"
         logger.debug('opened serial connection, and set to connection attribute')
@@ -107,9 +109,24 @@ class SerialInstrument (object):
             retval = self.connection.read(message_len)
         self.connection.timeout = old_timeout
         return retval
+    def show_instruments(self):
+        """For testing.  Same as :func:`id_instrument`, except that it just prints the idn result from all com ports.
+        """
+        old_timeout = self.connection.timeout
+        self.connection.timeout = 0.1
+        for j in comports():
+            port_id = j[0] # based on the previous, this is the port number
+            with serial.Serial(port_id) as s:
+                assert s.isOpen(), "For some reason, I couldn't open the connection for %s!"%str(port_id)
+                s.write('*idn?\n')
+                result = s.readline()
+                print result
+        self.connection.timeout = old_timeout
     def id_instrument(self,textidn):
         """A helper function for :func:`init` Identify the instrument that returns an ID string containing ``textidn``
         """
+        old_timeout = self.connection.timeout
+        self.connection.timeout = 0.1
         for j in comports():
             port_id = j[0] # based on the previous, this is the port number
             with serial.Serial(port_id) as s:
@@ -117,17 +134,26 @@ class SerialInstrument (object):
                 s.write('*idn?\n')
                 result = s.readline()
                 if textidn in result:
+                    self.connection.timeout = old_timeout
                     return port_id
+        self.connection.timeout = old_timeout
+        raise RuntimeError("I looped through all the com ports and didn't find "+textidn)
 
 
 # Note that I can now use ``SerialInstrument`` in place of ``serial.Serial``, except that ``SerialInstrument`` accepts a string identifying the instrument, and adds and changes various functions inside the class to make them more convenient.
 
 
-with SerialInstrument('GDS-3254') as s:
-    logger.debug("running identify using the SerialInstrument class")
-    logger.debug(strm("SerialInstrument instance looks like this:",s))
-    print s.respond('*idn?')
-    logger.debug("done running identify")
+s = SerialInstrument(None)
+
+
+
+#with SerialInstrument('GDS-3254') as s:
+s = SerialInstrument('GDS-3254')
+logger.debug("running identify using the SerialInstrument class")
+logger.debug(strm("SerialInstrument instance looks like this:",s))
+print s.respond('*idn?')
+logger.debug("done running identify")
+s.close()
 
 
 # Next, we can define a class for the scope, based on `pyspecdata`
@@ -238,6 +264,7 @@ class GDS_scope (SerialInstrument):
 
 
 # The previous cell only ***defines*** the function ``retrieve_waveform``.  Now I have to actually call (run) it!:
+
 
 with GDS_scope() as g:
     data = g.waveform()
