@@ -1,5 +1,6 @@
 import serial
 from serial.tools.list_ports import comports
+from serial import SerialException
 from pyspecdata import strm
 
 import logging
@@ -25,6 +26,7 @@ class SerialInstrument (object):
             with a string that includes ``textidn``.
             If textidn is set to None, just show the available instruments.
         """
+        self._textidn = textidn
         if textidn is None:
             self.show_instruments()
         else:
@@ -75,8 +77,8 @@ class SerialInstrument (object):
             message_len = kwargs.pop('message_len')
         self.write(*args)
         old_timeout = self.connection.timeout
-        self.connection.timeout = None
         if message_len is None:
+            self.connection.timeout = 5
             retval = self.connection.readline()
         else:
             retval = self.connection.read(message_len)
@@ -87,22 +89,33 @@ class SerialInstrument (object):
         """
         for j in comports():
             port_id = j[0] # based on the previous, this is the port number
-            with serial.Serial(port_id) as s:
-                s.timeout = 0.1
-                assert s.isOpen(), "For some reason, I couldn't open the connection for %s!"%str(port_id)
-                s.write('*idn?\n')
-                result = s.readline()
-                print result
+            try:
+                with serial.Serial(port_id) as s:
+                    s.timeout = 0.1
+                    assert s.isOpen(), "For some reason, I couldn't open the connection for %s!"%str(port_id)
+                    s.write('*idn?\n')
+                    result = s.readline()
+                    print result
+            except SerialException:
+                pass
     # {{{ common commands
-    def reset(self):
-        self.write('*RST')
+    def check_idn(self):
+        """Check IDN and wait a while for a reponse.  This should be called at
+        the end of any commands that take a while to execute."""
         old_timeout = self.connection.timeout
         self.connection.timeout = 0.1
         response = None
-        while response is None or len(response) == 0:
+        j = 0
+        while response is None or len(response) == 0 and j<200:
+            j += 1
             self.write('*IDN?') # to make sure it's done resetting
             response = self.connection.readline()
         self.connection.timeout = old_timeout
+        assert self._textidn in response
+        return response
+    def reset(self):
+        self.write('*RST')
+        self.check_idn() # wait until it's done
         return
     def save(self,fileno=1):
         """Save current setup to setup file number ``fileno``
@@ -135,11 +148,14 @@ class SerialInstrument (object):
         """
         for j in comports():
             port_id = j[0] # based on the previous, this is the port number
-            with serial.Serial(port_id) as s:
-                s.timeout = 0.1
-                assert s.isOpen(), "For some reason, I couldn't open the connection for %s!"%str(port_id)
-                s.write('*idn?\n')
-                result = s.readline()
-                if textidn in result:
-                    return port_id
+            try:
+                with serial.Serial(port_id) as s:
+                    s.timeout = 0.1
+                    assert s.isOpen(), "For some reason, I couldn't open the connection for %s!"%str(port_id)
+                    s.write('*idn?\n')
+                    result = s.readline()
+                    if textidn in result:
+                        return port_id
+            except SerialException:
+                pass # on windows this is triggered if the port is already open
         raise RuntimeError("I looped through all the com ports and didn't find "+textidn)

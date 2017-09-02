@@ -5,6 +5,53 @@ from .serial_instrument import SerialInstrument
 import logging
 logger = logging.getLogger('AFG Scope Class')
 
+class AFG_Channel_Properties (object):
+    """This class controls the channel properties (burst, output, etc.).
+    
+    By setting these up as properties, we allow tab completion, and for sensible manipulation of parameters.
+    """
+    def __init__(self,ch,afg):
+        """initialize a new `AFG_Channel_Properties` class
+        
+        Properties
+        ----------
+
+        ch : int
+
+            the AFG channel you are manipulating or learning about
+
+        afg : AFG
+
+            the AFG instance that initialized this
+        """
+        self.ch = ch
+        self.afg = afg
+        return
+    @property
+    def burst(self):
+        cmd = 'SOUR%d:BURS:STAT?'%self.ch
+        return bool(int(self.afg.respond(cmd)))
+    @burst.setter
+    def burst(self,onoff):
+        if onoff:
+            self.afg.write('SOUR%d:BURS:STAT ON'%self.ch)
+        else:
+            self.afg.write('SOUR%d:BURS:STAT OFF'%self.ch)
+        self.afg.check_idn()
+        return
+    @property
+    def output(self):
+        cmd = 'OUTP%d?'%self.ch
+        return bool(int(self.afg.respond(cmd)))
+    @output.setter
+    def output(self,onoff):
+        if onoff:
+            self.afg.write('OUTP%d ON'%self.ch)
+        else:
+            self.afg.write('OUTP%d OFF'%self.ch)
+        self.afg.check_idn()
+        return
+
 class AFG (SerialInstrument):
     """Next, we can define a class for the scope, based on `pyspecdata`"""
     def __init__(self,model='2225'):
@@ -53,4 +100,28 @@ class AFG (SerialInstrument):
         cmd += self.binary_block(data)
         self.write(cmd)
         self.write('SOUR%d:ARB:OUTP'%ch)
+        self.check_idn()
         return
+    @property
+    def CH1(self):
+        "Properties of channel 1 (on, burst, etc.) -- given as a :class:`AFG_Channel_Properties` object"
+        if hasattr(self,'_ch1_class'):
+            return self._ch1_class
+        else:
+            self._ch1_class = AFG_Channel_Properties(1,self)
+        return self._ch1_class
+    @CH1.deleter
+    def CH1(self):
+        del self._ch1_class
+    @property
+    def CH2(self):
+        "Properties of channel 2 (on, burst, etc.) -- given as a :class:`AFG_Channel_Properties` object"
+        if hasattr(self,'_ch2_class'):
+            return self._ch2_class
+        else:
+            self._ch2_class = AFG_Channel_Properties(2,self)
+        return self._ch2_class
+    @CH2.deleter
+    def CH2(self):
+        del self._ch2_class
+
