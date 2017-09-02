@@ -15,13 +15,14 @@ with AFG() as a:
     print "now, I turn on the output"
     a.CH1.output = True
     print "now, capture the data"
+    # grab it on the scope
     with GDS_scope() as g:
         g.autoset()
         data = g.waveform(ch=2)
     print "turn off the output again"
     a.CH1.output = False
 
-# grab it on the scope
+# plot the result
 
 plot(data.human_units())
 
