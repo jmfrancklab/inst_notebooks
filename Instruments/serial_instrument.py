@@ -99,7 +99,26 @@ class SerialInstrument (object):
             except SerialException:
                 pass
     # {{{ common commands
-    def check_idn(self):
+    def check_idn(self, cmd, value, tries=200):
+        """Demand that the result of cmd contains `value`.
+        Keep trying until the instrument is ready to respond, and then flush
+        the buffer.
+        (Set to a relatively short timeout, and keep sending the command over
+        and over.)
+        """
+        old_timeout = self.connection.timeout
+        self.connection.timeout = 0.1
+        response = None
+        j = 0
+        while response is None or len(response) == 0 and j<tries:
+            j += 1
+            self.write(cmd) # to make sure it's done resetting
+            response = self.connection.readline()
+        assert self._textidn in response
+        self.flush(timeout=0.1)
+        self.connection.timeout = old_timeout
+        return response
+    def check_idn(self, tries=200):
         """Check IDN and wait a while for a reponse.  This is a bit of a hack,
         used to make sure the instrument is ready, and can be called at the end
         of any commands that take a while to execute.  It also executes a flush
@@ -108,13 +127,13 @@ class SerialInstrument (object):
         self.connection.timeout = 0.1
         response = None
         j = 0
-        while response is None or len(response) == 0 and j<200:
+        while response is None or len(response) == 0 and j<tries:
             j += 1
             self.write('*IDN?') # to make sure it's done resetting
             response = self.connection.readline()
-        self.connection.timeout = old_timeout
         assert self._textidn in response
         self.flush(timeout=0.1)
+        self.connection.timeout = old_timeout
         return response
     def reset(self):
         self.write('*RST')
