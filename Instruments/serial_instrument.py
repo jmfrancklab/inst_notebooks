@@ -124,8 +124,8 @@ class SerialInstrument (object):
             response = self.connection.readline()
         m = re.match(value,response)
         if not m:
-            raise RuntimeError(strm("I got a reponse from", cmd,
-               "but it doesn't match the regular expression'", value,
+            raise RuntimeError(strm("I got a reponse (",response,") from", cmd,
+               "but it doesn't match the regular expression'"+value+
                "'"))
         self.flush(timeout=0.1)
         self.connection.timeout = old_timeout
