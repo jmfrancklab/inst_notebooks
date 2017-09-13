@@ -51,7 +51,20 @@ class AFG_Channel_Properties (object):
             self.afg.write('OUTP%d OFF'%self.ch)
         self.afg.check_idn()
         return
-
+    #ADDED AAB 171309 ***
+    @property
+    def sweep(self):
+        cmd = 'SOUR%d:SWE:STAT?'%self.ch
+        return bool(int(self.afg.respond(cmd)))
+    @sweep.setter
+    def sweep(self,onoff):
+        if onoff:
+            self.afg.write('SOUR%d:SWE:STAT ON'%self.ch)
+        else:
+            self.afg.write('SOUR%d:SWE:STAT OFF'%self.ch)
+        self.afg.check_idn()
+        return
+    
 class AFG (SerialInstrument):
     """Next, we can define a class for the scope, based on `pyspecdata`"""
     def __init__(self,model='2225'):
@@ -101,6 +114,13 @@ class AFG (SerialInstrument):
         self.write(cmd)
         self.write('SOUR%d:ARB:OUTP'%ch)
         self.check_idn()
+        return
+    def set_sweep(self,ch=1):
+        self.write = 'SOUR%d:SWE:STAT ON'%ch
+        self.write = 'SOUR%d:APPL:SIN'%ch
+        self.write = 'SOUR%d:FREQ:STAR +1.0000E+0'%ch
+        self.write = 'SOUR%d:FREQ:STOP +2.0000E+3'%ch
+        self.write = 'SOUR%d:SWE:TIME+5.0000E+00'%ch
         return
     @property
     def CH1(self):
