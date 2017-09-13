@@ -49,14 +49,14 @@ class SerialInstrument (object):
         return
     def read(self, *args, **kwargs):
         return self.connection.read(*args, **kwargs)
-    def flush(self):
+    def flush(self, timeout=1):
         """Flush the input (say we didn't read all of it, *etc.*)
         
         Note that there are routines called "flush" in serial, but these
         seem to not be useful.
         """
         old_timeout = self.connection.timeout
-        self.connection.timeout = 1
+        self.connection.timeout = timeout
         result = 'blah'
         while len(result)>0:
             result = self.connection.read(2000)
@@ -100,8 +100,10 @@ class SerialInstrument (object):
                 pass
     # {{{ common commands
     def check_idn(self):
-        """Check IDN and wait a while for a reponse.  This should be called at
-        the end of any commands that take a while to execute."""
+        """Check IDN and wait a while for a reponse.  This is a bit of a hack,
+        used to make sure the instrument is ready, and can be called at the end
+        of any commands that take a while to execute.  It also executes a flush
+        at the end, to make sure that there's nothing stuck in the buffer."""
         old_timeout = self.connection.timeout
         self.connection.timeout = 0.1
         response = None
@@ -112,6 +114,7 @@ class SerialInstrument (object):
             response = self.connection.readline()
         self.connection.timeout = old_timeout
         assert self._textidn in response
+        self.flush(timeout=0.1)
         return response
     def reset(self):
         self.write('*RST')
