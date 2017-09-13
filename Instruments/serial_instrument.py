@@ -2,6 +2,7 @@ import serial
 from serial.tools.list_ports import comports
 from serial import SerialException
 from pyspecdata import strm
+import re
 
 import logging
 logger = logging.getLogger('Base Serial Class')
@@ -99,12 +100,19 @@ class SerialInstrument (object):
             except SerialException:
                 pass
     # {{{ common commands
-    def check_idn(self, cmd, value, tries=200):
+    def demand(self, cmd, value, tries=200):
         """Demand that the result of cmd contains `value`.
         Keep trying until the instrument is ready to respond, and then flush
         the buffer.
         (Set to a relatively short timeout, and keep sending the command over
         and over.)
+
+        Parameters
+        ----------
+        cmd : str
+            The command to issue.
+        value : str
+            A regular expression that should match to the command
         """
         old_timeout = self.connection.timeout
         self.connection.timeout = 0.1
@@ -114,7 +122,11 @@ class SerialInstrument (object):
             j += 1
             self.write(cmd) # to make sure it's done resetting
             response = self.connection.readline()
-        assert self._textidn in response
+        m = re.match(value,response)
+        if not m:
+            raise RuntimeError(strm("I got a reponse from", cmd,
+               "but it doesn't match the regular expression'", value,
+               "'"))
         self.flush(timeout=0.1)
         self.connection.timeout = old_timeout
         return response

@@ -115,17 +115,17 @@ class AFG (SerialInstrument):
         self.write('SOUR%d:ARB:OUTP'%ch)
         self.check_idn()
         return
-    def set_sweep(self,ch=1):
+    def set_sweep(self, start=3e3, stop=5e3, ch=1):
         #self.write('SOUR%d:APPL:SIN'%ch)
         self.write('SOUR%d:FREQ:STAR +3.0000E+03'%ch)
-        self.check_idn()
+        self.demand('SOUR%d:FREQ:STAR?'%ch,
+                r'\+3\.0.*E\+03')
         self.write('SOUR%d:FREQ:STOP +4.0000E+03'%ch)
-        self.check_idn()
+        self.demand('SOUR%d:FREQ:STOP?'%ch,
+                r'\+4\.0.*E\+03')
         self.write('SOUR%d:SWE:TIME +1.0000E+00'%ch)
-        self.check_idn()
-        print 'confirm start:',self.respond('SOUR%d:FREQ:STAR?'%ch)
-        print 'confirm stop:',self.respond('SOUR%d:FREQ:STOP?'%ch)
-        print 'confirm time:',self.respond('SOUR%d:SWE:TIME?'%ch)
+        self.demand('SOUR%d:SWE:TIME?'%ch,
+                r'\+1\.0.*E\+00')
         return
     @property
     def CH1(self):
