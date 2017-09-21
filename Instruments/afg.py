@@ -116,26 +116,13 @@ class AFG (SerialInstrument):
         return
     def set_sweep(self, start=3e3, stop=5e3, time=1, ch=1):
         assert time>=1e-3, "It seems like the AFG will only allow time values set to 1ms or higher"
-        def make_regexp(x):
-            '''generate the appropriate search string for the number x'''
-            # generate the scientific notation representation we want
-            x = '%+0.3E'%x
-            # escape dots and plusses, which have a special meaning
-            x = x.replace('.',r'\.').replace('+',r'\+')
-            # ditch the last digit before the E, and allow anything to go there
-            e_idx = x.find('E')
-            x = x[:e_idx-1] + '.*' + x[e_idx:]
-            return x
         f_str = '%+0.4E'%start
         self.write('SOUR%d:FREQ:STAR %+0.4E'%(ch,start))
-        self.demand('SOUR%d:FREQ:STAR?'%ch,
-                make_regexp(start))
+        self.demand('SOUR%d:FREQ:STAR?'%ch, start)
         self.write('SOUR%d:FREQ:STOP %+0.4E'%(ch,stop))
-        self.demand('SOUR%d:FREQ:STOP?'%ch,
-                make_regexp(stop))
+        self.demand('SOUR%d:FREQ:STOP?'%ch, stop)
         self.write('SOUR%d:SWE:TIME %+0.4E'%(ch,time))
-        self.demand('SOUR%d:SWE:TIME?'%ch,
-                make_regexp(time))
+        self.demand('SOUR%d:SWE:TIME?'%ch, time)
         return
     @property
     def CH1(self):

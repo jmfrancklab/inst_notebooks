@@ -100,7 +100,7 @@ class SerialInstrument (object):
             except SerialException:
                 pass
     # {{{ common commands
-    def demand(self, cmd, value, tries=200):
+    def demand(self, cmd, value, tries=200, error=1e-2):
         """Demand that the result of cmd contains `value`.
         Keep trying until the instrument is ready to respond, and then flush
         the buffer.
@@ -111,8 +111,12 @@ class SerialInstrument (object):
         ----------
         cmd : str
             The command to issue.
-        value : str
-            A regular expression that should match to the command
+        value : str or float or int
+            :if str:
+                A regular expression that should match to the command
+            :if a number:
+                When I convert the response to a number, the number matches to
+                within `error` (relative error).
         """
         old_timeout = self.connection.timeout
         self.connection.timeout = 0.1
@@ -122,14 +126,22 @@ class SerialInstrument (object):
             j += 1
             self.write(cmd) # to make sure it's done resetting
             response = self.connection.readline()
-        m = re.match(value,response)
-        if not m:
-            raise RuntimeError(strm("I got a reponse (",response,") from", cmd,
-               "but it doesn't match the regular expression'"+value+
-               "'"))
-        self.flush(timeout=0.1)
-        self.connection.timeout = old_timeout
-        return response
+        if type(value) is str:
+            m = re.match(value,response)
+            if not m:
+                raise RuntimeError(strm("I got a reponse (",response,") from", cmd,
+                    "but it doesn't match the regular expression'"+value+
+                    "'"))
+            self.flush(timeout=0.1)
+            self.connection.timeout = old_timeout
+            return response
+        else:
+            response = float(response)
+            if abs((value - response)/response) < error:
+                return response
+            else:
+                raise RuntimeError(strm("I got a reponse (",response,") from", cmd,
+                    "but it doesn't match the the value of",value))
     def check_idn(self, tries=200):
         """Check IDN and wait a while for a reponse.  This is a bit of a hack,
         used to make sure the instrument is ready, and can be called at the end
