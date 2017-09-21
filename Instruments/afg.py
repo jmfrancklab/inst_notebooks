@@ -51,7 +51,6 @@ class AFG_Channel_Properties (object):
             self.afg.write('OUTP%d OFF'%self.ch)
         self.afg.check_idn()
         return
-    #ADDED AAB 171309 ***
     @property
     def sweep(self):
         cmd = 'SOUR%d:SWE:STAT?'%self.ch
@@ -117,7 +116,6 @@ class AFG (SerialInstrument):
         return
     def set_sweep(self, start=3e3, stop=5e3, time=1, ch=1):
         assert time>=1e-3, "It seems like the AFG will only allow time values set to 1ms or higher"
-        #self.write('SOUR%d:APPL:SIN'%ch)
         def make_regexp(x):
             '''generate the appropriate search string for the number x'''
             # generate the scientific notation representation we want
