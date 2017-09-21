@@ -27,6 +27,7 @@ class AFG_Channel_Properties (object):
         self.ch = ch
         self.afg = afg
         return
+
     @property
     def burst(self):
         cmd = 'SOUR%d:BURS:STAT?'%self.ch
