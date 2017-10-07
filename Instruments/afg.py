@@ -64,6 +64,18 @@ class AFG_Channel_Properties (object):
             self.afg.write('SOUR%d:SWE:STAT OFF'%self.ch)
         self.afg.check_idn()
         return
+    @property
+    def burst(self):
+        cmd = 'SOUR%d:BURS:STAT?'%self.ch
+        return bool(int(self.afg.respond(cmd)))
+    @burst.setter
+    def burst(self,onoff):
+        if onoff:
+            self.afg.write('SOUR%d:BURS:STAT ON'%self.ch)
+        else:
+            self.afg.write('SOUR%d:BURS:STAT OFF'%self.ch)
+        self.afg.check_idn()
+        return
     
 class AFG (SerialInstrument):
     """Next, we can define a class for the scope, based on `pyspecdata`"""
@@ -100,6 +112,53 @@ class AFG (SerialInstrument):
         cmd = 'SOUR%d:APPL:SIN %0.3f%s,1,0'%(ch,f/f_chosen,unit_chosen)
         print cmd
         self.write(cmd)
+        
+        ###ALEC 2017-10-06
+    def appl_squ(self,ch=1,f='15000KHZ'):
+        """Outputs a square wave at specified frequency
+        
+        Parameters
+        ==========
+        
+        ch : int
+            Number to indicate channel that outputs square wave
+            
+        f : str
+            Frequency of square wave as string including units in HZ
+            with no spaces all caps. To specify MHz must enter as
+            equivalent numebr in KHZ (15MHZ=15000KHZ).
+        """
+        self.write('SOUR%d:APPL:SQU %s'%(ch,f))
+        levels = self.respond('SOUR%d:APPL:SQU?'%(ch))
+        return levels
+    
+    def set_burst(self,ncyc,per,ch=1):
+        """Outputs a burst of a previously identified waveform
+            at time interval specified by per in seconds.
+        
+        Parameters
+        ==========
+        
+        ncyc : int
+            Burst cycle or burst count; the number of repeated cycles
+            of the waveform per burst. range 1 to 65535.
+            Condition: ncyc < (per*f)
+            where f is frequenecy of previously identified waveform.
+        per : int
+            Time between start of one burst and start of the next burst.
+            Units of seconds. Only for internal triggering. Range of 1ms
+            to 500 s. per will adjust if ncyc is too large such that
+            ncyc < (per*f) condition is met.
+        """
+        self.write('SOUR%d:BURS:NCYC %+0.4E'%(ch,ncyc))
+        self.demand('SOUR%d:BURS:NCYC?'%ch, ncyc)
+        self.write('SOUR%d:BURS:INT:PER %+0.4E'%(ch,per))
+        self.demand('SOUR%d:BURS:INT:PER?'%ch, per)
+        self.respond('SOUR%d:BURS:TRIG:SOUR?'%ch)
+        self.respond('OUTP%d:TRIG?'%ch)
+        return      
+        ###ALEC 2017-10-06
+        
     def binary_block(self,data):
         assert all(abs(data)<1), "all data must have absolute value less than 1"
         data = int16(data*511).tostring()
