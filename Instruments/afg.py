@@ -160,7 +160,7 @@ class AFG (SerialInstrument):
         ###ALEC 2017-10-06
         
     def binary_block(self,data):
-        assert all(abs(data)<1), "all data must have absolute value less than 1"
+        assert all(abs(data)<1.1), "all data must have absolute value less than 1"
         data = int16(data*511).tostring()
         data_len = len(data)
         data_len = str(data_len)
