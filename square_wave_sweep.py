@@ -29,31 +29,18 @@ with AFG() as a:
     y[3::4]=-1
     y[-1]=0
     #in the new array container, now assign 3 and -3 to each alternating index
-    a.CH1.digital_ndarray(y)
-    print "The frequency is",a.CH1.freq
+    a.CH1.digital_ndarray(y, rate=60e6)
     print "CH1 burst set to",a.CH1.burst
     print "now, burst on"
     a.CH1.burst = True
     print "CH1 burst set to",a.CH1.burst
+    print "The frequency is",a.CH1.freq
     print "now, output on"
     a.CH1.output = True
+
+print "If this doesn't work, you want to set your trigger level to 100 mV and set time/div to ~1us"
 with GDS_scope() as g:
     data = g.waveform(ch=2)
-
 fl.plot(data)
-with GDS_scope() as g:
-    data2 = g.waveform(ch=2)
-
-fl.plot(data2)
-ylim(-1,1)
-xlim(0.000003,0.000007)
-
-with GDS_scope() as g:
-    data3 = g.waveform(ch=2)
-data3
-fl.plot(data3)
-ylim(-1,1)
-xlim(0.000004,0.0000045)
-
 fl.show()
 

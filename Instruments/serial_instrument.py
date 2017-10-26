@@ -134,10 +134,15 @@ class SerialInstrument (object):
                     "'"))
             self.flush(timeout=0.1)
             self.connection.timeout = old_timeout
+            self.flush()
             return response
         else:
-            response = float(response)
+            try:
+                response = float(response)
+            except ValueError:
+                raise ValueError("I got a response that I couln't convert to a floating point number:\n\t"+response)
             if abs((value - response)/response) < error:
+                self.flush()
                 return response
             else:
                 raise RuntimeError(strm("I got a reponse (",response,") from", cmd,
@@ -192,7 +197,7 @@ class SerialInstrument (object):
             instrument that I'm interested in.  This (or something like this)
             should work on either Windows or Mac/Linux.
         """
-        for j in range(5):
+        for k in range(5):
             for j in comports():
                 port_id = j[0] # based on the previous, this is the port number
                 try:
