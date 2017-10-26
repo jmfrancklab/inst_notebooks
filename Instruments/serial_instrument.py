@@ -2,6 +2,7 @@ import serial
 from serial.tools.list_ports import comports
 from serial import SerialException
 from pyspecdata import strm
+import re
 
 import logging
 logger = logging.getLogger('Base Serial Class')
@@ -49,14 +50,14 @@ class SerialInstrument (object):
         return
     def read(self, *args, **kwargs):
         return self.connection.read(*args, **kwargs)
-    def flush(self):
+    def flush(self, timeout=1):
         """Flush the input (say we didn't read all of it, *etc.*)
         
         Note that there are routines called "flush" in serial, but these
         seem to not be useful.
         """
         old_timeout = self.connection.timeout
-        self.connection.timeout = 1
+        self.connection.timeout = timeout
         result = 'blah'
         while len(result)>0:
             result = self.connection.read(2000)
@@ -99,19 +100,69 @@ class SerialInstrument (object):
             except SerialException:
                 pass
     # {{{ common commands
-    def check_idn(self):
-        """Check IDN and wait a while for a reponse.  This should be called at
-        the end of any commands that take a while to execute."""
+    def demand(self, cmd, value, tries=200, error=1e-2):
+        """Demand that the result of cmd contains `value`.
+        Keep trying until the instrument is ready to respond, and then flush
+        the buffer.
+        (Set to a relatively short timeout, and keep sending the command over
+        and over.)
+
+        Parameters
+        ----------
+        cmd : str
+            The command to issue.
+        value : str or float or int
+            :if str:
+                A regular expression that should match to the command
+            :if a number:
+                When I convert the response to a number, the number matches to
+                within `error` (relative error).
+        """
         old_timeout = self.connection.timeout
         self.connection.timeout = 0.1
         response = None
         j = 0
-        while response is None or len(response) == 0 and j<200:
+        while response is None or len(response) == 0 and j<tries:
+            j += 1
+            self.write(cmd) # to make sure it's done resetting
+            response = self.connection.readline()
+        if type(value) is str:
+            m = re.match(value,response)
+            if not m:
+                raise RuntimeError(strm("I got a reponse (",response,") from", cmd,
+                    "but it doesn't match the regular expression'"+value+
+                    "'"))
+            self.flush(timeout=0.1)
+            self.connection.timeout = old_timeout
+            self.flush()
+            return response
+        else:
+            try:
+                response = float(response)
+            except ValueError:
+                raise ValueError("I got a response that I couln't convert to a floating point number:\n\t"+response)
+            if abs((value - response)/response) < error:
+                self.flush()
+                return response
+            else:
+                raise RuntimeError(strm("I got a reponse (",response,") from", cmd,
+                    "but it doesn't match the the value of",value))
+    def check_idn(self, tries=200):
+        """Check IDN and wait a while for a reponse.  This is a bit of a hack,
+        used to make sure the instrument is ready, and can be called at the end
+        of any commands that take a while to execute.  It also executes a flush
+        at the end, to make sure that there's nothing stuck in the buffer."""
+        old_timeout = self.connection.timeout
+        self.connection.timeout = 0.1
+        response = None
+        j = 0
+        while response is None or len(response) == 0 and j<tries:
             j += 1
             self.write('*IDN?') # to make sure it's done resetting
             response = self.connection.readline()
-        self.connection.timeout = old_timeout
         assert self._textidn in response
+        self.flush(timeout=0.1)
+        self.connection.timeout = old_timeout
         return response
     def reset(self):
         self.write('*RST')
@@ -146,16 +197,18 @@ class SerialInstrument (object):
             instrument that I'm interested in.  This (or something like this)
             should work on either Windows or Mac/Linux.
         """
-        for j in comports():
-            port_id = j[0] # based on the previous, this is the port number
-            try:
-                with serial.Serial(port_id) as s:
-                    s.timeout = 0.1
-                    assert s.isOpen(), "For some reason, I couldn't open the connection for %s!"%str(port_id)
-                    s.write('*idn?\n')
-                    result = s.readline()
-                    if textidn in result:
-                        return port_id
-            except SerialException:
-                pass # on windows this is triggered if the port is already open
+        for k in range(5):
+            for j in comports():
+                port_id = j[0] # based on the previous, this is the port number
+                try:
+                    with serial.Serial(port_id) as s:
+                        s.timeout = 0.1
+                        assert s.isOpen(), "For some reason, I couldn't open the connection for %s!"%str(port_id)
+                        s.write('*idn?\n')
+                        result = s.readline()
+                        if textidn in result:
+                            return port_id
+                except SerialException:
+                    pass # on windows this is triggered if the port is already open
+            print "Warning -- not able to find "+textidn+" on pass "+str(k)+" trying again..."
         raise RuntimeError("I looped through all the com ports and didn't find "+textidn)
