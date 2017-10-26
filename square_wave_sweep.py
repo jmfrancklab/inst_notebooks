@@ -29,7 +29,7 @@ with AFG() as a:
     y[3::4]=-1
     y[-1]=0
     #in the new array container, now assign 3 and -3 to each alternating index
-    a.digital_ndarray(y)
+    a.CH1.digital_ndarray(y)
     print "The frequency is",a.CH1.freq
     print "CH1 burst set to",a.CH1.burst
     print "now, burst on"
