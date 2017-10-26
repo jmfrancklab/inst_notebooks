@@ -27,14 +27,21 @@ class AFG_Channel_Properties (object):
         self.ch = ch
         self.afg = afg
         return
-
-    def rate(self):
-        r"""Rate is the product of number of points * :attr:`freq`"""
+    def digital_ndarray(self,data):
+        cmd = 'SOUR%d:DATA:DAC VOLATILE, '%self.ch
+        self.freq = rate/len(data)
+        cmd += self.afg.binary_block(data)
+        self.afg.write(cmd)
+        self.afg.write('SOUR%d:ARB:OUTP'%self.ch)
+        self.afg.check_idn()
+        return
     @property
     def freq(self):
         r"""The frequency (what this means depends on the current mode)
 
-        For AWG, this corresponds to the rate at which samples are played out.
+        For AWG, this corresponds to :math:`R/N` where :math:`R` is
+        the rate at which samples are played out and :math:`N` is the
+        number of points.
         """
         cmd = 'SOUR%d:FREQ?'%self.ch
         return float(self.afg.respond(cmd))
@@ -175,6 +182,9 @@ class AFG (SerialInstrument):
         ###ALEC 2017-10-06
         
     def binary_block(self,data):
+        """Converts array `data` into a binary string of IEE488.2 format
+        
+        (data is sent as a 16 bit integer)"""
         assert all(abs(data)<1.1), "all data must have absolute value less than 1"
         data = int16(data*511).tostring()
         data_len = len(data)
@@ -182,13 +192,6 @@ class AFG (SerialInstrument):
         assert (len(data_len) < 10), "the number describing the data length must be less than ten digits long, but your data length is "+data_len
         initialization = '#'+str(len(data_len))+data_len
         return initialization+data
-    def digital_ndarray(self,data,ch=1):
-        cmd = 'SOUR%d:DATA:DAC VOLATILE, '%ch
-        cmd += self.binary_block(data)
-        self.write(cmd)
-        self.write('SOUR%d:ARB:OUTP'%ch)
-        self.check_idn()
-        return
     def set_sweep(self, start=3e3, stop=5e3, time=1, ch=1):
         assert time>=1e-3, "It seems like the AFG will only allow time values set to 1ms or higher"
         f_str = '%+0.4E'%start
