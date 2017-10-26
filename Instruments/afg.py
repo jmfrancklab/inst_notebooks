@@ -28,6 +28,21 @@ class AFG_Channel_Properties (object):
         self.afg = afg
         return
 
+    def rate(self):
+        r"""Rate is the product of number of points * :attr:`freq`"""
+    @property
+    def freq(self):
+        r"""The frequency (what this means depends on the current mode)
+
+        For AWG, this corresponds to the rate at which samples are played out.
+        """
+        cmd = 'SOUR%d:FREQ?'%self.ch
+        return float(self.afg.respond(cmd))
+    @freq.setter
+    def freq(self,f):
+        self.afg.write('SOUR%d:FREQ %+0.7E'%(self.ch, f))
+        self.afg.demand('SOUR%d:FREQ?',f)
+        return
     @property
     def burst(self):
         cmd = 'SOUR%d:BURS:STAT?'%self.ch

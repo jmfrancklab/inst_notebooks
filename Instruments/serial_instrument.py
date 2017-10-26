@@ -192,16 +192,18 @@ class SerialInstrument (object):
             instrument that I'm interested in.  This (or something like this)
             should work on either Windows or Mac/Linux.
         """
-        for j in comports():
-            port_id = j[0] # based on the previous, this is the port number
-            try:
-                with serial.Serial(port_id) as s:
-                    s.timeout = 0.1
-                    assert s.isOpen(), "For some reason, I couldn't open the connection for %s!"%str(port_id)
-                    s.write('*idn?\n')
-                    result = s.readline()
-                    if textidn in result:
-                        return port_id
-            except SerialException:
-                pass # on windows this is triggered if the port is already open
+        for j in range(5):
+            for j in comports():
+                port_id = j[0] # based on the previous, this is the port number
+                try:
+                    with serial.Serial(port_id) as s:
+                        s.timeout = 0.1
+                        assert s.isOpen(), "For some reason, I couldn't open the connection for %s!"%str(port_id)
+                        s.write('*idn?\n')
+                        result = s.readline()
+                        if textidn in result:
+                            return port_id
+                except SerialException:
+                    pass # on windows this is triggered if the port is already open
+            print "Warning -- not able to find "+textidn+" on pass "+str(k)+" trying again..."
         raise RuntimeError("I looped through all the com ports and didn't find "+textidn)
