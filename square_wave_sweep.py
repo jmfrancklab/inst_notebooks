@@ -31,27 +31,25 @@ with AFG() as a:
     #in the new array container, now assign 3 and -3 to each alternating index
     for this_ch in range(2):
         a[this_ch].digital_ndarray(y, rate=60e6)
-        print "CH%d burst set to"%(this_ch+1),a[this_ch].burst
-        print "The frequency is",a[this_ch].freq
+        #print "CH%d burst set to"%(this_ch+1),a[this_ch].burst
+        #print "The frequency is",a[this_ch].freq
         print "now, output on"
         a[this_ch].output = True
     for this_ch in range(2):
         a[this_ch].burst = True
-    #    print "setting burst on ch %d"%(this_ch+1)
-    #    print "CH%d burst set to"%(this_ch+1),a[this_ch].burst
-    #a.CH1.burst = True
-    ##a.write('SOUR1:BURS:STAT ON')
-    ##a.demand("SOUR1:BURS:STAT?",1)
-    #a.CH2.burst = True
-    #time.sleep(2)
-    ##a.write('SOUR2:BURS:STAT ON')
-    ##a.demand("SOUR2:BURS:STAT?",1)
-exit()
+    # if we run a.check_idn() here, it pops out of burst mode
 
-
-print "If this doesn't work, you want to set your trigger level to 100 mV and set time/div to ~1us"
+#print "If this doesn't work, you want to set your trigger level to 100 mV and set time/div to ~1us"
+datalist = []
+print "about to load GDS"
 with GDS_scope() as g:
-    data = g.waveform(ch=2)
+    print "loaded GDS"
+    for j in range(1,3):
+        print "trying to grab data from channel",j
+        datalist.append(g.waveform(ch=j))
+data = concat(datalist,'ch').reorder('t')
+print "shape of data",ndshape(data)
+fl.next('Dual-channel data')
 fl.plot(data)
 fl.show()
-
+#

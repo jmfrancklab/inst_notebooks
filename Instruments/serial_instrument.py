@@ -7,6 +7,8 @@ import re
 import logging
 logger = logging.getLogger('Base Serial Class')
 
+port_dict = {}
+
 class SerialInstrument (object):
     """Class to describe an instrument connected using pyserial.
     Provides initialization (:func:`__init__`) to start the connection,
@@ -197,7 +199,8 @@ class SerialInstrument (object):
             instrument that I'm interested in.  This (or something like this)
             should work on either Windows or Mac/Linux.
         """
-        for k in range(5):
+        if len(port_dict) == 0:
+            print "port dict has no results, so searching for instruments"
             for j in comports():
                 port_id = j[0] # based on the previous, this is the port number
                 try:
@@ -206,9 +209,13 @@ class SerialInstrument (object):
                         assert s.isOpen(), "For some reason, I couldn't open the connection for %s!"%str(port_id)
                         s.write('*idn?\n')
                         result = s.readline()
-                        if textidn in result:
-                            return port_id
+                        port_dict[port_id] = result
                 except SerialException:
                     pass # on windows this is triggered if the port is already open
-            print "Warning -- not able to find "+textidn+" on pass "+str(k)+" trying again..."
-        raise RuntimeError("I looped through all the com ports and didn't find "+textidn)
+        for port_id, result in port_dict.iteritems():
+            if textidn in result:
+                return port_id
+        print "I looped through all the com ports and didn't find ",textidn,"resetting port_dict, and trying again"
+        for j in port_dict.keys():
+            port_dict.pop(j)
+        return self.id_instrument(textidn)
