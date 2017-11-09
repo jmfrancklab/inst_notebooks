@@ -69,9 +69,12 @@ class AFG_Channel_Properties (object):
     def burst(self,onoff):
         if onoff:
             self.afg.write('SOUR%d:BURS:STAT ON'%self.ch)
+            self.afg.demand("SOUR%d:BURS:STAT?"%self.ch,1)
+            cmd = 'SOUR%d:BURS:STAT?'%self.ch
+            print "burst is",bool(int(self.afg.respond(cmd)))
         else:
             self.afg.write('SOUR%d:BURS:STAT OFF'%self.ch)
-        self.afg.check_idn()
+            self.afg.demand("SOUR%d:BURS:STAT?"%self.ch,0)
         return
     @property
     def output(self):
@@ -81,9 +84,10 @@ class AFG_Channel_Properties (object):
     def output(self,onoff):
         if onoff:
             self.afg.write('OUTP%d ON'%self.ch)
+            self.afg.demand('OUTP%d?'%self.ch,1)
         else:
             self.afg.write('OUTP%d OFF'%self.ch)
-        self.afg.check_idn()
+            self.afg.demand('OUTP%d?'%self.ch,0)
         return
     @property
     def sweep(self):
@@ -95,18 +99,6 @@ class AFG_Channel_Properties (object):
             self.afg.write('SOUR%d:SWE:STAT ON'%self.ch)
         else:
             self.afg.write('SOUR%d:SWE:STAT OFF'%self.ch)
-        self.afg.check_idn()
-        return
-    @property
-    def burst(self):
-        cmd = 'SOUR%d:BURS:STAT?'%self.ch
-        return bool(int(self.afg.respond(cmd)))
-    @burst.setter
-    def burst(self,onoff):
-        if onoff:
-            self.afg.write('SOUR%d:BURS:STAT ON'%self.ch)
-        else:
-            self.afg.write('SOUR%d:BURS:STAT OFF'%self.ch)
         self.afg.check_idn()
         return
     

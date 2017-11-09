@@ -29,22 +29,24 @@ with AFG() as a:
     y[3::4]=-1
     y[-1]=0
     #in the new array container, now assign 3 and -3 to each alternating index
-    a.CH1.digital_ndarray(y, rate=60e6)
-    a.CH2.digital_ndarray(y, rate=60e6)
-    print "CH1 burst set to",a.CH1.burst
-    print "now, burst 1 on"
-    a.CH1.burst = True
-    print "CH2 burst set to",a.CH2.burst
-    print "now, burst 2 on"
-    a.CH2.burst = True
-    print "CH1 burst set to",a.CH1.burst
-    print "The CH1 frequency is",a.CH1.freq
-    print "now, output 1 on"
-    a.CH1.output = True
-    print "CH2 burst set to",a.CH2.burst
-    print "The CH2 frequency is",a.CH2.freq
-    print "now output 2 on"
-    a.CH2.output = True
+    for this_ch in range(2):
+        a[this_ch].digital_ndarray(y, rate=60e6)
+        print "CH%d burst set to"%(this_ch+1),a[this_ch].burst
+        print "The frequency is",a[this_ch].freq
+        print "now, output on"
+        a[this_ch].output = True
+    for this_ch in range(2):
+        a[this_ch].burst = True
+    #    print "setting burst on ch %d"%(this_ch+1)
+    #    print "CH%d burst set to"%(this_ch+1),a[this_ch].burst
+    #a.CH1.burst = True
+    ##a.write('SOUR1:BURS:STAT ON')
+    ##a.demand("SOUR1:BURS:STAT?",1)
+    #a.CH2.burst = True
+    #time.sleep(2)
+    ##a.write('SOUR2:BURS:STAT ON')
+    ##a.demand("SOUR2:BURS:STAT?",1)
+exit()
 
 
 print "If this doesn't work, you want to set your trigger level to 100 mV and set time/div to ~1us"
