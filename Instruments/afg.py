@@ -111,12 +111,24 @@ class AFG_Channel_Properties (object):
         return
     
 class AFG (SerialInstrument):
-    """Next, we can define a class for the scope, based on `pyspecdata`"""
+    """Class for the AFG-2225
+
+    The CH1 and CH2 attribute allow access to channel-specific functions.
+    
+    `self[0]` will return self.CH1 and `self[1]` will return self.CH2
+    """
     def __init__(self,model='2225'):
         super(self.__class__,self).__init__('AFG-'+model)
         logger.debug(strm("identify from within AFG",super(self.__class__,self).respond('*idn?')))
         logger.debug("I should have just opened the serial connection")
         return
+    def __getitem__(self,arg):
+        if arg == 0:
+            return self.CH1
+        if arg == 1:
+            return self.CH2
+        else:
+            raise ValueError("There is no channel "+str(arg))
     def sin(self,ch=1,V=1,f=1e6):
         """Outputs a sine wave of a particular frequency
 

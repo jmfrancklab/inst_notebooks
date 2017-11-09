@@ -30,13 +30,22 @@ with AFG() as a:
     y[-1]=0
     #in the new array container, now assign 3 and -3 to each alternating index
     a.CH1.digital_ndarray(y, rate=60e6)
+    a.CH2.digital_ndarray(y, rate=60e6)
     print "CH1 burst set to",a.CH1.burst
-    print "now, burst on"
+    print "now, burst 1 on"
     a.CH1.burst = True
+    print "CH2 burst set to",a.CH2.burst
+    print "now, burst 2 on"
+    a.CH2.burst = True
     print "CH1 burst set to",a.CH1.burst
-    print "The frequency is",a.CH1.freq
-    print "now, output on"
+    print "The CH1 frequency is",a.CH1.freq
+    print "now, output 1 on"
     a.CH1.output = True
+    print "CH2 burst set to",a.CH2.burst
+    print "The CH2 frequency is",a.CH2.freq
+    print "now output 2 on"
+    a.CH2.output = True
+
 
 print "If this doesn't work, you want to set your trigger level to 100 mV and set time/div to ~1us"
 with GDS_scope() as g:
