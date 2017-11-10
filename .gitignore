@@ -4,3 +4,4 @@
 *.py~
 *.un~
 .gitignore~
+*.h5

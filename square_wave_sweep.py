@@ -48,6 +48,20 @@ with GDS_scope() as g:
         print "trying to grab data from channel",j
         datalist.append(g.waveform(ch=j))
 data = concat(datalist,'ch').reorder('t')
+j = 1
+try_again = True
+while try_again:
+    data_name = 'capture%d_171109'%j
+    data.name(data_name)
+    try:
+        data.hdf5_write('scope_data.h5')
+        try_again = False
+    except:
+        print "name taken, trying again..."
+        j += 1
+        try_again = True
+print "name of data",data.name()
+print "units should be",data.get_units('t')
 print "shape of data",ndshape(data)
 fl.next('Dual-channel data')
 fl.plot(data)
