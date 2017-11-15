@@ -12,6 +12,17 @@ class GDS_scope (SerialInstrument):
         logger.debug(strm("identify from within GDS",super(self.__class__,self).respond('*idn?')))
         logger.debug("I should have just opened the serial connection")
         return
+    def timscal(self,ts):
+        print "Query time scale in sec/div"
+        print self.respond(':TIM:SCAL?')
+        ts_str = ' %0.6e'%ts
+        print "Setting time scale to %s sec/div"%ts_str
+        self.write(':TIM:SCAL ',ts)
+        #self.demand(':TIM:SCAL?',ts_str+"\n ")
+        #Running into matching error here, but command does work
+        print "Time scale (sec/div) is set to"
+        print self.respond(':TIM:SCAL?')
+        return
     def autoset(self):
         self.write(':AUTOS')
     def waveform(self,ch=1):
