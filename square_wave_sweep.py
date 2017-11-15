@@ -43,6 +43,8 @@ with AFG() as a:
 datalist = []
 print "about to load GDS"
 with GDS_scope() as g:
+    g.timscal(500e-9)  #setting time scale to 500 ns/div
+    g.voltscal(1,500e-3) #setting volt scale on channel 1 to 500 mV/div
     print "loaded GDS"
     for j in range(1,3):
         print "trying to grab data from channel",j
