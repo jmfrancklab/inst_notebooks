@@ -39,7 +39,7 @@ class GDS_Channel_Properties (object):
             self.gds.write(':CHAN%d:DISP ON'%self.ch)
             self.gds.demand(":CHAN%d:DISP?"%self.ch,'ON')
             cmd = ':CHAN%d:DISP?'%self.ch
-            print "display is",bool(str(self.gds.respond(cmd)))
+            print "CH",self.ch," display is",bool(str(self.gds.respond(cmd)))
         else:
             self.gds.write(':CHAN%d:DISP OFF'%self.ch)
             self.gds.demand("CHAN%d:DISP?"%self.ch,'OFF')
@@ -59,7 +59,7 @@ class GDS_Channel_Properties (object):
         vs_str = '%0.3E'%vs
         cmd = ':CHAN%d:SCAL %f'%(self.ch,vs)
         #self.demand(':CHAN1:SCAL 100e-9',vs_str)
-        print "Setting volt scale to %s volt/div"%vs_str
+        print "Setting CH",self.ch," volt scale to %s volt/div"%vs_str
         self.gds.write(cmd)
         return
 #        @property

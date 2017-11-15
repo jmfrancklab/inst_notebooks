@@ -27,6 +27,13 @@ with GDS_scope() as g:
      g.CH1.voltscal=5E-3
      g.CH2.voltscal=100E-3
      g.timscal(500e-9)
+     print "Trigger response"
+     print g.respond(':TRIG:MOD?')
+     print "Trigger frequency"
+     print g.respond(':TRIG:FREQ?')
+     print "Trigger source"
+     print g.respond(':TRIG:SOUR?')
+             
 
 #commented code below I anticipate will help me write code for more setting features
 
