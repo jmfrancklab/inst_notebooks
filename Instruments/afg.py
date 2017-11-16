@@ -27,11 +27,10 @@ class AFG_Channel_Properties (object):
         self.ch = ch
         self.afg = afg
         return
-    def digital_ndarray(self, data, rate=80e6):
+    def digital_ndarray(self, data, rate):
         """Take a numpy ndarray `data`, and set it up for AWG output
         """
         print "about to output the ndarray"
-        print "current frequency is",self.freq
         cmd = 'SOUR%d:DATA:DAC VOLATILE, '%self.ch
         cmd += self.afg.binary_block(data)
         self.afg.write(cmd)
@@ -40,6 +39,7 @@ class AFG_Channel_Properties (object):
         self.afg.check_idn()
         self.afg.write('SOUR%d:ARB:OUTP'%self.ch)
         self.afg.check_idn()
+        print "current frequency is",self.freq
         #self.afg.write('SOUR%d:FUNC USER'%self.ch)
         self.freq = rate/len(data)
         self.afg.check_idn()

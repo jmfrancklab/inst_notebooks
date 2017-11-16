@@ -32,9 +32,11 @@ with GDS_scope() as g:
      print "Trigger frequency"
      print g.respond(':TRIG:FREQ?')
      print "Trigger source"
+     print g.respond(':TRIG:SOUR?') 
+     print "Set trig source to ch2"
+     g.write('TRIG:SOUR CH2')
+     print "Trigger source"
      print g.respond(':TRIG:SOUR?')
-             
-
 #commented code below I anticipate will help me write code for more setting features
 
 # with GDS_scope() as g:
