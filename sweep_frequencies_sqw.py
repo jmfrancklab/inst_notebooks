@@ -20,28 +20,26 @@ with SerialInstrument('AFG-2225') as s:
 
 with AFG() as a:
     a.reset()
-    pts = 5j
-    x = r_[-6:6:pts]
+    x = r_[-6:6:200j]
     y = zeros_like(x)
-    #create duplicate of x as an array container and fill each index with 0
     y[0::4]=0
     y[1::4]=1
     y[2::4]=0
     y[3::4]=-1
     y[-1]=0
-    #in the new array container, now assign 3 and -3 to each alternating index
-    for this_ch in range(2):
-        rate=25e6
-        a[this_ch].digital_ndarray(y, rate)
-        print "rate is",rate,"Hz and # points is",pts
-        freqr = rate/pts
-        print "thus ch",(this_ch+1),"freq is",freqr,"Hz"
-        #print "CH%d burst set to"%(this_ch+1),a[this_ch].burst
-        #print "The frequency is",a[this_ch].freq
-        print "now ch",(this_ch+1),"output on"
-        a[this_ch].output = True
-    for this_ch in range(2):
-        a[this_ch].burst = True
+    for set_f in linspace(100e3,500e3,2):
+        for this_ch in range(2):
+            print "Sending CH",(this_ch+1),"arbitrary waveform to AFG"
+            a[this_ch].digital_ndarray(y)
+            print "Now setting frequency to ",(set_f)
+            a[this_ch].freq=set_f
+            print "Thus CH",(this_ch+1),"freq is",set_f,"Hz"
+            print "CH%d burst set to"%(this_ch+1),a[this_ch].burst
+    #        print "The frequency is",a[this_ch].freq
+            print "Now CH",(this_ch+1),"output on"
+            a[this_ch].output = True
+        for this_ch in range(2):
+            a[this_ch].burst = True
     # if we run a.check_idn() here, it pops out of burst mode
 
 #print "If this doesn't work, you want to set your trigger level to 100 mV and set time/div to ~1us"
