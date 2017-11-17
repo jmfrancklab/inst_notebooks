@@ -1,28 +1,32 @@
 from pyspecdata import *
 
-with figlist_var(filename='sweep_171116.pdf') as fl:
-    d = nddata_hdf5('scope_data.h5/capture3_171109')
-    d.set_units('t','s')
-    fl.next('Dual-channel d')
-    fl.plot(d, alpha=0.5)
-    fl.next('Fourier transform',figsize=(12,6))
+mixdown = 15e6
+capture_num = 1
+f_axis = linspace(100e3,500e3,100) # must match sweep_frequencies_sqw
+
+for j,thisfreq in enumerate(f_axis):
+    data_name = 'capture%d_F%04.3fMHz'%(capture_num,(thisfreq*50)/1e6)
+    d = nddata_hdf5(
+            '171116_100fsweep.h5/%s'%data_name,
+            directory=getDATADIR(exp_type='test_equip')
+            ).set_units('t','s') # why are units not already set?
     d.ft('t',shift=True)
-    fl.plot(d, alpha=0.5)
-    fl.next('Zoom In',figsize=(12,6))
-    d = d['t':(0,40e6)]
-    fl.plot(abs(d), alpha=0.5)
-    fl.next('Analytic Signal Magnitude',
-            figsize=(12,6))
+    d = d['t':(0,40e6)] # analytic signal and low-pass
     d.ift('t')
-    fl.plot(abs(d),
-            alpha=0.5)
-    fl.next('Analytic Signal Phase -- mixed down 15 MHz',
-            figsize=(12,6))
     d *= d.fromaxis('t',
-            lambda x: exp(-1j*2*pi*15e6*x))
-    fl.plot(d.angle, '.')
-    fl.next('Analytic Signal Phase Difference',
-            figsize=(12,6))
-    d_diff = d['ch',1]/d['ch',0]
-    d_diff.set_units(r'rad/$\pi$')
-    fl.plot(d_diff.angle/pi, '.')
+            lambda x: exp(-1j*2*pi*mixdown*x))
+    if j == 0:
+        collated = ndshape(d)
+        collated += ('f_pulse',len(f_axis))
+        collated = collated.alloc(format=None)
+        # {{{ note to self: this should NOT be required
+        #     need to add/move labels to ndshape
+        collated.setaxis('t', d.getaxis('t')).setaxis(
+                        'ch', d.getaxis('t')).setaxis(
+                        'f_pulse', f_axis)
+        # }}}
+    collated['f_pulse',j] = d
+with figlist_var(filename='sweep_171116.pdf') as fl:
+    collated.reorder('ch') # move ch first (outside)
+    fl.next('analytic signal, raw')
+    fl.image(collated)
