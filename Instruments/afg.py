@@ -27,15 +27,15 @@ class AFG_Channel_Properties (object):
         self.ch = ch
         self.afg = afg
         return
-    def digital_ndarray(self, data, rate=80e6):
+    def digital_ndarray(self, data, rate=50e6):
         """Take a numpy ndarray `data`, and set it up for AWG output
+        Default rate set to 50 MHz
         """
-        print "about to output the ndarray"
-        print "current frequency is",self.freq
+        print "About to output the ndarray..."
         cmd = 'SOUR%d:DATA:DAC VOLATILE, '%self.ch
         cmd += self.afg.binary_block(data)
         self.afg.write(cmd)
-        #print "I set my frequency to",rate/len(data)
+        print "Initial ndArray frequency set to",rate/len(data)
         self.afg.write('SOUR%d:APPL:USER %+0.7E'%(self.ch, rate/len(data)))
         self.afg.check_idn()
         self.afg.write('SOUR%d:ARB:OUTP'%self.ch)
@@ -57,7 +57,7 @@ class AFG_Channel_Properties (object):
     @freq.setter
     def freq(self,f):
         cmd = 'SOUR%d:FREQ %+0.7E'%(self.ch, f)
-        print "about to call:",cmd
+        print "About to call:",cmd
         self.afg.write(cmd)
         self.afg.demand('SOUR%d:FREQ?'%(self.ch), f)
         return
@@ -69,9 +69,12 @@ class AFG_Channel_Properties (object):
     def burst(self,onoff):
         if onoff:
             self.afg.write('SOUR%d:BURS:STAT ON'%self.ch)
+            self.afg.demand("SOUR%d:BURS:STAT?"%self.ch,1)
+            cmd = 'SOUR%d:BURS:STAT?'%self.ch
+            print "burst is",bool(int(self.afg.respond(cmd)))
         else:
             self.afg.write('SOUR%d:BURS:STAT OFF'%self.ch)
-        self.afg.check_idn()
+            self.afg.demand("SOUR%d:BURS:STAT?"%self.ch,0)
         return
     @property
     def output(self):
@@ -81,9 +84,10 @@ class AFG_Channel_Properties (object):
     def output(self,onoff):
         if onoff:
             self.afg.write('OUTP%d ON'%self.ch)
+            self.afg.demand('OUTP%d?'%self.ch,1)
         else:
             self.afg.write('OUTP%d OFF'%self.ch)
-        self.afg.check_idn()
+            self.afg.demand('OUTP%d?'%self.ch,0)
         return
     @property
     def sweep(self):
@@ -97,26 +101,26 @@ class AFG_Channel_Properties (object):
             self.afg.write('SOUR%d:SWE:STAT OFF'%self.ch)
         self.afg.check_idn()
         return
-    @property
-    def burst(self):
-        cmd = 'SOUR%d:BURS:STAT?'%self.ch
-        return bool(int(self.afg.respond(cmd)))
-    @burst.setter
-    def burst(self,onoff):
-        if onoff:
-            self.afg.write('SOUR%d:BURS:STAT ON'%self.ch)
-        else:
-            self.afg.write('SOUR%d:BURS:STAT OFF'%self.ch)
-        self.afg.check_idn()
-        return
     
 class AFG (SerialInstrument):
-    """Next, we can define a class for the scope, based on `pyspecdata`"""
+    """Class for the AFG-2225
+
+    The CH1 and CH2 attribute allow access to channel-specific functions.
+    
+    `self[0]` will return self.CH1 and `self[1]` will return self.CH2
+    """
     def __init__(self,model='2225'):
         super(self.__class__,self).__init__('AFG-'+model)
         logger.debug(strm("identify from within AFG",super(self.__class__,self).respond('*idn?')))
         logger.debug("I should have just opened the serial connection")
         return
+    def __getitem__(self,arg):
+        if arg == 0:
+            return self.CH1
+        if arg == 1:
+            return self.CH2
+        else:
+            raise ValueError("There is no channel "+str(arg))
     def sin(self,ch=1,V=1,f=1e6):
         """Outputs a sine wave of a particular frequency
 

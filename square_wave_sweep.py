@@ -29,18 +29,43 @@ with AFG() as a:
     y[3::4]=-1
     y[-1]=0
     #in the new array container, now assign 3 and -3 to each alternating index
-    a.CH1.digital_ndarray(y, rate=60e6)
-    print "CH1 burst set to",a.CH1.burst
-    print "now, burst on"
-    a.CH1.burst = True
-    print "CH1 burst set to",a.CH1.burst
-    print "The frequency is",a.CH1.freq
-    print "now, output on"
-    a.CH1.output = True
+    for this_ch in range(2):
+        a[this_ch].digital_ndarray(y, rate=60e6)
+        #print "CH%d burst set to"%(this_ch+1),a[this_ch].burst
+        #print "The frequency is",a[this_ch].freq
+        print "now, output on"
+        a[this_ch].output = True
+    for this_ch in range(2):
+        a[this_ch].burst = True
+    # if we run a.check_idn() here, it pops out of burst mode
 
-print "If this doesn't work, you want to set your trigger level to 100 mV and set time/div to ~1us"
+#print "If this doesn't work, you want to set your trigger level to 100 mV and set time/div to ~1us"
+datalist = []
+print "about to load GDS"
 with GDS_scope() as g:
-    data = g.waveform(ch=2)
+    g.timscal(500e-9)  #setting time scale to 500 ns/div
+    g.voltscal(1,500e-3) #setting volt scale on channel 1 to 500 mV/div
+    print "loaded GDS"
+    for j in range(1,3):
+        print "trying to grab data from channel",j
+        datalist.append(g.waveform(ch=j))
+data = concat(datalist,'ch').reorder('t')
+j = 1
+try_again = True
+while try_again:
+    data_name = 'capture%d_171109'%j
+    data.name(data_name)
+    try:
+        data.hdf5_write('scope_data.h5')
+        try_again = False
+    except:
+        print "name taken, trying again..."
+        j += 1
+        try_again = True
+print "name of data",data.name()
+print "units should be",data.get_units('t')
+print "shape of data",ndshape(data)
+fl.next('Dual-channel data')
 fl.plot(data)
 fl.show()
-
+#
