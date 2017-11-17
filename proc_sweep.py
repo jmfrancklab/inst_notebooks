@@ -8,7 +8,7 @@ for j,thisfreq in enumerate(f_axis):
     data_name = 'capture%d_F%04.3fMHz'%(capture_num,(thisfreq*50)/1e6)
     d = nddata_hdf5(
             '171116_100fsweep.h5/%s'%data_name,
-            directory=getDATADIR(exp_type='test_equip')
+            directory=getDATADIR(exp_type='test_equip_shared')
             ).set_units('t','s') # why are units not already set?
     d.ft('t',shift=True)
     d = d['t':(0,40e6)] # throw out negative frequencies and low-pass
