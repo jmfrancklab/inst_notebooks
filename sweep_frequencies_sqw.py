@@ -26,24 +26,26 @@ with AFG() as a:
     y[2::4]=0
     y[3::4]=-1
     y[-1]=0
+    for this_ch in range(2):
+        print "Sending CH%d arbitrary waveform to AFG"%(this_ch+1)
+        a[this_ch].digital_ndarray(y)
     for set_f in linspace(100e3,500e3,2):
         for this_ch in range(2):
-            print "Sending CH",(this_ch+1),"arbitrary waveform to AFG"
-            a[this_ch].digital_ndarray(y)
             print "Now setting frequency to ",(set_f)
             a[this_ch].freq=set_f
-            print "Thus CH",(this_ch+1),"freq is",set_f,"Hz"
-            print "CH%d burst set to"%(this_ch+1),a[this_ch].burst
-            print "Now CH",(this_ch+1),"output on"
+            print "Thus CH",(this_ch+1),"array freq is",set_f,"Hz"
+            #print "CH%d burst set to"%(this_ch+1),a[this_ch].burst
+            print "Now turning CH%d output on..."%(this_ch+1)
             a[this_ch].output = True
         for this_ch in range(2):
             a[this_ch].burst = True
             #if we run a.check_idn() here, it pops out of burst mode
             datalist = []
-        print "about to load GDS"
+        print "Now loading GDS..."
         with GDS_scope() as g:
-            g.timscal(2e-6)  #setting time scale to 500 ns/div
-            #g.voltscal(1,500e-3) #setting volt scale on channel 1 to 500 mV/div
+            g.timscal(2e-6)  
+            g.CH1.voltscal=(set_f/(1e6)) 
+            g.CH2.voltscal=(set_f/(2.5e6))
             print "loaded GDS"
             for j in range(1,3):
                 print "trying to grab data from channel",j
@@ -53,7 +55,7 @@ with AFG() as a:
         j = 1
         try_again = True
         while try_again:
-            data_name = 'capture%d_F%04.0fkHz'%(j,set_f/1e3)
+            data_name = 'capture%d_F%04.0fMHz'%(j,(set_f*50)/1e6)
             data.name(data_name)
             try:
                 data.hdf5_write('scope_data_171116.h5')
@@ -66,37 +68,7 @@ with AFG() as a:
         print "name of data",data.name()
         print "units should be",data.get_units('t')
         print "shape of data",ndshape(data)
-        fl.next('Dual-channel data %4.0fkHz'%(set_f/1e3))
+        fl.next('Dual-channel data %4.0fMHz'%((set_f*50)/1e6))
         fl.plot(data, alpha=0.5)
     fl.show()
 
-#print "If this doesn't work, you want to set your trigger level to 100 mV and set time/div to ~1us"
-datalist = []
-# print "about to load GDS"
-# with GDS_scope() as g:
-#     g.timscal(500e-9)  #setting time scale to 500 ns/div
-#     g.voltscal(1,500e-3) #setting volt scale on channel 1 to 500 mV/div
-#     print "loaded GDS"
-#     for j in range(1,3):
-#         print "trying to grab data from channel",j
-#         datalist.append(g.waveform(ch=j))
-# data = concat(datalist,'ch').reorder('t')
-# j = 1
-# try_again = True
-# while try_again:
-#     data_name = 'capture%d_171109'%j
-#     data.name(data_name)
-#     try:
-#         data.hdf5_write('scope_data.h5')
-#         try_again = False
-#     except:
-#         print "name taken, trying again..."
-#         j += 1
-#         try_again = True
-# print "name of data",data.name()
-# print "units should be",data.get_units('t')
-# print "shape of data",ndshape(data)
-# fl.next('Dual-channel data')
-# fl.plot(data)
-# fl.show()
-#

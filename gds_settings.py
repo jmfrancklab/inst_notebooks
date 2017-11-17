@@ -20,23 +20,23 @@ with SerialInstrument('AFG-2225') as s:
 
 with GDS_scope() as g:
      #print "attempting to call volt scale f'n" 
-     g.CH1.disp=True
-     g.CH2.disp=True
+     #g.CH1.disp=True
+     #g.CH2.disp=True
      #g.write(':CHAN1:DISP OFF')
      #g.write(':CHAN2:DISP OFF')
-     g.CH1.voltscal=5E-3
-     g.CH2.voltscal=100E-3
-     g.timscal(500e-9)
-     print "Trigger response"
-     print g.respond(':TRIG:MOD?')
-     print "Trigger frequency"
-     print g.respond(':TRIG:FREQ?')
-     print "Trigger source"
-     print g.respond(':TRIG:SOUR?') 
-     print "Set trig source to ch2"
-     g.write('TRIG:SOUR CH2')
-     print "Trigger source"
-     print g.respond(':TRIG:SOUR?')
+     g.CH1.voltscal=100E-3
+     g.CH2.voltscal=40E-3
+#      g.timscal(500e-9)
+#      print "Trigger response"
+#      print g.respond(':TRIG:MOD?')
+#      print "Trigger frequency"
+#      print g.respond(':TRIG:FREQ?')
+#      print "Trigger source"
+#      print g.respond(':TRIG:SOUR?') 
+#      print "Set trig source to ch2"
+#      g.write('TRIG:SOUR CH2')
+#      print "Trigger source"
+#      print g.respond(':TRIG:SOUR?')
 #commented code below I anticipate will help me write code for more setting features
 
 # with GDS_scope() as g:
