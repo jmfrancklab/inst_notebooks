@@ -29,7 +29,7 @@ with AFG() as a:
     for this_ch in range(2):
         print "Sending CH%d arbitrary waveform to AFG"%(this_ch+1)
         a[this_ch].digital_ndarray(y)
-    for set_f in linspace(100e3,500e3,2):
+    for set_f in linspace(100e3,500e3,10):
         for this_ch in range(2):
             print "Now setting frequency to ",(set_f)
             a[this_ch].freq=set_f
@@ -44,8 +44,20 @@ with AFG() as a:
         print "Now loading GDS..."
         with GDS_scope() as g:
             g.timscal(2e-6)  
-            g.CH1.voltscal=(set_f/(1e6)) 
-            g.CH2.voltscal=(set_f/(2.5e6))
+            if set_f < 101e3:
+                ch1vs = 2E0
+            elif set_f < 366e3:
+                ch1vs = 1E0
+            else:
+                ch1vs = 500E-3
+            if set_f < 101e3:
+                ch2vs = 2E0
+            elif set_f < 322e3:
+                ch2vs = 1E0
+            else:
+                ch2vs = 500E-3
+            g.CH1.voltscal=ch1vs
+            g.CH2.voltscal=ch2vs
             print "loaded GDS"
             for j in range(1,3):
                 print "trying to grab data from channel",j
