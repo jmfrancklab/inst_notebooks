@@ -29,7 +29,7 @@ with AFG() as a:
     for this_ch in range(2):
         print "Sending CH%d arbitrary waveform to AFG"%(this_ch+1)
         a[this_ch].digital_ndarray(y)
-    for set_f in linspace(100e3,500e3,10):
+    for set_f in linspace(100e3,500e3,100):
         for this_ch in range(2):
             print "Now setting frequency to ",(set_f)
             a[this_ch].freq=set_f
@@ -44,15 +44,11 @@ with AFG() as a:
         print "Now loading GDS..."
         with GDS_scope() as g:
             g.timscal(2e-6)  
-            if set_f < 101e3:
-                ch1vs = 2E0
-            elif set_f < 366e3:
+            if set_f < 350e3:
                 ch1vs = 1E0
             else:
                 ch1vs = 500E-3
-            if set_f < 101e3:
-                ch2vs = 2E0
-            elif set_f < 322e3:
+            if set_f < 320e3:
                 ch2vs = 1E0
             else:
                 ch2vs = 500E-3
@@ -67,10 +63,10 @@ with AFG() as a:
         j = 1
         try_again = True
         while try_again:
-            data_name = 'capture%d_F%04.0fMHz'%(j,(set_f*50)/1e6)
+            data_name = 'capture%d_F%04.3fMHz'%(j,(set_f*50)/1e6)
             data.name(data_name)
             try:
-                data.hdf5_write('scope_data_171116.h5')
+                data.hdf5_write('171116_100fsweep.h5')
                 try_again = False
             except:
                 print "name taken, trying again..."
@@ -80,7 +76,7 @@ with AFG() as a:
         print "name of data",data.name()
         print "units should be",data.get_units('t')
         print "shape of data",ndshape(data)
-        fl.next('Dual-channel data %4.0fMHz'%((set_f*50)/1e6))
+        fl.next('Dual-channel data %4.3fMHz'%((set_f*50)/1e6))
         fl.plot(data, alpha=0.5)
     fl.show()
 
