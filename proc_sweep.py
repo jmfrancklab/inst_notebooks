@@ -8,10 +8,10 @@ for j,thisfreq in enumerate(f_axis):
     data_name = 'capture%d_F%04.3fMHz'%(capture_num,(thisfreq*50)/1e6)
     d = nddata_hdf5(
             '171116_100fsweep.h5/%s'%data_name,
-            directory=getDATADIR(exp_type='test_equip_shared')
+            directory=getDATADIR(exp_type='test_equip')
             ).set_units('t','s') # why are units not already set?
     d.ft('t',shift=True)
-    d = d['t':(0,40e6)] # throw out negative frequencies and low-pass
+    d = d['t':(0,25e6)] # throw out negative frequencies and low-pass
     if j == 0:
         collated = ndshape(d)
         collated += ('f_pulse',len(f_axis))
@@ -20,7 +20,7 @@ for j,thisfreq in enumerate(f_axis):
         #     need to add/move labels to ndshape
         collated.setaxis('t', d.getaxis('t')).setaxis(
                 'ch', d.getaxis('t')).setaxis(
-                        'f_pulse', f_axis)
+                        'f_pulse', f_axis*50.)
         collated.set_units('t','Hz').set_units('f_pulse','Hz')
         #collated.set_ft_prop('t') #shouldn't be required
         # }}}
@@ -29,6 +29,7 @@ for j,thisfreq in enumerate(f_axis):
 with figlist_var(filename='sweep_171116.pdf') as fl:
     collated.reorder('ch') # move ch first (outside)
     collated.ift('t')
+    collated_unmixed = collated.copy()
     collated *= collated.fromaxis('t',
             lambda x: exp(-1j*2*pi*mixdown*x))
     fl.next('analytic signal, raw')
@@ -53,3 +54,6 @@ with figlist_var(filename='sweep_171116.pdf') as fl:
     # }}}
     fl.next('phase difference ch2 to ch1')
     fl.image(ratio)
+    fl.next('phase difference ch2 to ch1, frequency domain')
+    collated_unmixed.ft('t')
+    fl.image(collated_unmixed['ch',1]/collated_unmixed['ch',0]*abs(collated_unmixed['ch',0]))
