@@ -37,7 +37,15 @@ with figlist_var(filename='sweep_171116.pdf') as fl:
     fl.next('ratio ch2 to ch1')
     fl.image(ratio)
     fl.next('ratio, abs over safe range')
-    fl.image(abs(ratio['t':(11e-6,13e-6)]))
+    fl.image(abs(ratio['t':(11.6e-6,13e-6)]))
+    fl.next('ratio, sum over safe range')
+    avg_over_t = ratio['t':(11.6e-6,13e-6)].runcopy(mean,'t')
+    fl.plot(abs(avg_over_t))
+    ylim(0,1)
+    ylabel('amplitude (solid line)')
+    fl.next('ratio, sum over safe range', twinx=1)
+    fl.plot(avg_over_t.angle/pi,'.')
+    ylabel('phase (dots)')
     # {{{ because I have amplitudes that blow up, do the following:
     #     (maybe I should be dividing in the frequency domain?
     ratio /= abs(ratio)
