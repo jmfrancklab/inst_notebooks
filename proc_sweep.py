@@ -30,9 +30,9 @@ with figlist_var(filename='sweep_171116.pdf') as fl:
     collated.reorder('ch') # move ch first (outside)
     collated.ift('t')
     collated_unmixed = collated.copy()
-    collated *= collated.fromaxis('t',
-            lambda x: exp(-1j*2*pi*mixdown*x))
-    fl.next('analytic signal, raw')
+    collated *= collated.fromaxis(['t','f_pulse'],
+            lambda t,f: exp(-1j*2*pi*f*t))
+    fl.next('analytic signal, mixed down')
     fl.image(collated)
     ratio = collated['ch',1]/collated['ch',0]
     fl.next('ratio ch2 to ch1')
@@ -57,3 +57,13 @@ with figlist_var(filename='sweep_171116.pdf') as fl:
     fl.next('phase difference ch2 to ch1, frequency domain')
     collated_unmixed.ft('t')
     fl.image(collated_unmixed['ch',1]/collated_unmixed['ch',0]*abs(collated_unmixed['ch',0]))
+    fl.next('ratio in frequency domain -- mixed down')
+    collated.set_ft_prop('t',['time','not','aliased'], True)
+    collated.ft_clear_startpoints('t',f=-12.5e6,t='current')
+    collated.ft('t')
+    fdomain_ratio = collated['ch',1]/collated['ch',0]*abs(collated['ch',1])
+    fl.image(fdomain_ratio['t':(-5e6,5e6)])
+    fl.next('ratio in frequency domain -- mixed down, error')
+    collated.set_error(ones_like(collated.data))
+    fdomain_ratio = collated['ch',1]/collated['ch',0]
+    fl.image(abs(fdomain_ratio['t':(-5e6,5e6)].get_error()))
