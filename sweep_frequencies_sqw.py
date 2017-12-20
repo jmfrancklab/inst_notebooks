@@ -67,7 +67,7 @@ with AFG() as a:
             data_name = 'capture%d_F%04.3fMHz'%(j,(set_f*50)/1e6)
             data.name(data_name)
             try:
-                data.hdf5_write('171121_match_20pf_sweep3.h5',
+                data.hdf5_write('171229_series.h5',
                         directory=getDATADIR(exp_type='test_equip'))
                 try_again = False
             except:

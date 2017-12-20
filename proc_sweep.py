@@ -7,7 +7,7 @@ f_axis = linspace(100e3,500e3,100) # must match sweep_frequencies_sqw
 for j,thisfreq in enumerate(f_axis):
     data_name = 'capture%d_F%04.3fMHz'%(capture_num,(thisfreq*50)/1e6)
     d = nddata_hdf5(
-            '171121_match_20pf_sweep3.h5/%s'%data_name,
+            '171220_series_chirp.h5/%s'%data_name,
             directory=getDATADIR(exp_type='test_equip')
             ).set_units('t','s') # why are units not already set?
     d.ft('t',shift=True)
