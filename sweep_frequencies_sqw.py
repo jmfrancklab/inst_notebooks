@@ -1,6 +1,7 @@
 from Instruments import *
 from pyspecdata import *
 import time
+import os
 from serial.tools.list_ports import comports
 import serial
 from scipy import signal
@@ -33,9 +34,9 @@ with AFG() as a:
         for this_ch in range(2):
             print "Now setting frequency to ",(set_f)
             a[this_ch].freq=set_f
-            print "Thus CH",(this_ch+1),"array freq is",set_f,"Hz"
+            #print "Thus CH",(this_ch+1),"array freq is",set_f,"Hz"
             #print "CH%d burst set to"%(this_ch+1),a[this_ch].burst
-            print "Now turning CH%d output on..."%(this_ch+1)
+            #print "Now turning CH%d output on..."%(this_ch+1)
             a[this_ch].output = True
         for this_ch in range(2):
             a[this_ch].burst = True
@@ -66,7 +67,8 @@ with AFG() as a:
             data_name = 'capture%d_F%04.3fMHz'%(j,(set_f*50)/1e6)
             data.name(data_name)
             try:
-                data.hdf5_write('171116_100fsweep.h5')
+                data.hdf5_write('171121_match_20pf_sweep3.h5',
+                        directory=getDATADIR(exp_type='test_equip'))
                 try_again = False
             except:
                 print "name taken, trying again..."

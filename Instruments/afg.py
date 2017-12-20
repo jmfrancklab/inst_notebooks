@@ -71,7 +71,7 @@ class AFG_Channel_Properties (object):
             self.afg.write('SOUR%d:BURS:STAT ON'%self.ch)
             self.afg.demand("SOUR%d:BURS:STAT?"%self.ch,1)
             cmd = 'SOUR%d:BURS:STAT?'%self.ch
-            print "burst is",bool(int(self.afg.respond(cmd)))
+            #print "burst is",bool(int(self.afg.respond(cmd)))
         else:
             self.afg.write('SOUR%d:BURS:STAT OFF'%self.ch)
             self.afg.demand("SOUR%d:BURS:STAT?"%self.ch,0)
