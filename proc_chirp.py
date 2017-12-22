@@ -3,7 +3,7 @@ from pyspecdata import *
 mixdown = 15e6
 capture_num = 1
 f_axis = linspace(100e3,500e3,100) # must match sweep_frequencies_sqw
-d = nddata_hdf5('171127_chirp.h5/capture1_171127',
+d = nddata_hdf5('171222_chirp_brown.h5/capture2_171222',
             directory=getDATADIR(exp_type='test_equip_shared'))
 with figlist_var(filename='chirp_171129.pdf') as fl:
     # {{{ CDF the values of the data to see if it's really digitizing with 14 bit
