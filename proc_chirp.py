@@ -3,9 +3,9 @@ from pyspecdata import *
 mixdown = 15e6
 capture_num = 1
 f_axis = linspace(100e3,500e3,100) # must match sweep_frequencies_sqw
-d = nddata_hdf5('171223_chirp_LCs.h5/capture2_171223',
+d = nddata_hdf5('180102_chirp_LCs.h5/capture1_180102',
             directory=getDATADIR(exp_type='test_equip'))
-with figlist_var(filename='chirp_171223.pdf') as fl:
+with figlist_var(filename='chirp_180102.pdf') as fl:
     # {{{ CDF the values of the data to see if it's really digitizing with 14 bit
     vals = d.data.flatten()
     myhist = nddata(linspace(-3,3,1000),'val')
@@ -34,4 +34,8 @@ with figlist_var(filename='chirp_171223.pdf') as fl:
     fl.plot(d.angle)
     fl.next('analytic signal, compared')
     fl.plot(abs(d['ch',1]/d['ch',0]), label='ratio')
-    fl.plot((d['ch',1]/d['ch',0]*exp(-1j*pi)).angle/pi, '.', label='phase diff.')
+    fl.plot((d['ch',1]/d['ch',0]).angle/2./pi, '.', label='phase diff.')
+    fl.next('check for phase roll')
+    fl.plot(abs(d['ch',1]/d['ch',0]), label='ratio')
+    fl.plot((d['ch',1]/d['ch',0]).angle/2./pi, '.', label='phase diff.')
+    fl.plot((d['ch',1]/d['ch',0]*exp(-1j*pi)).angle/pi, '.', label='subtracted-phase diff.')
