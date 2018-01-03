@@ -47,13 +47,24 @@ title('phase of impedance')
 
 reflection = lambda R: (Z(R)-50.)/(Z(R)+50)
 for R in linspace(1e-3,60,10):
-    plot(nu,angle(reflection(R))/pi,label='%0.2f $\\Omega$'%R,
+    plot(nu,angle(reflection(R))/pi,'.',
+        label='%0.2f $\\Omega$'%R,
         alpha=0.5)
 ylabel('phase angle / (rad/$\pi$)')
 ylim(-1,1)
 legend(**dict(bbox_to_anchor=(1.05,1),loc = 2,borderaxespad=0.))
 title('phase of reflection')
 
+# What should the amplitude ratio of the reflection look like?
+
+reflection = lambda R: (Z(R)-50.)/(Z(R)+50)
+for R in linspace(1e-3,60,10):
+    plot(nu,abs(reflection(R)),label='%0.2f $\\Omega$'%R,
+        alpha=0.5)
+ylabel('phase angle / (rad/$\pi$)')
+ylim(-1,1)
+legend(**dict(bbox_to_anchor=(1.05,1),loc = 2,borderaxespad=0.))
+title('phase of reflection')
 
 # Above, I'm showing that the peak to peak amplitude of the inflection isn't really affected by the resistance of the circuit, until we exceed the characteristic impedance.  This is good, because it means that we have a very robust method for identifying our impedance.  On the other hand, it means this is not the best way to identify the $Q$ of our circuit.
 # 
