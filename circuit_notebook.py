@@ -45,7 +45,7 @@ title('phase of impedance')
 # Now we show the phase of the reflection, which is what we actually observe.
 # Here, I'm verifying that **with the series circuit, we should definitely see a nice phase inflection**.
 
-reflection = lambda R: (Z(R)-50.)/(Z(R)+50)
+reflection = lambda R: (Z(R)-50.)/(Z(R)+50.)
 for R in linspace(1e-3,60,10):
     plot(nu,angle(reflection(R))/pi,'.',
         label='%0.2f $\\Omega$'%R,
@@ -62,7 +62,7 @@ for R in linspace(1e-3,60,10):
     plot(nu,abs(reflection(R)),label='%0.2f $\\Omega$'%R,
         alpha=0.5)
 ylabel('phase angle / (rad/$\pi$)')
-ylim(-1,1)
+ylim(0,1)
 legend(**dict(bbox_to_anchor=(1.05,1),loc = 2,borderaxespad=0.))
 title('phase of reflection')
 
