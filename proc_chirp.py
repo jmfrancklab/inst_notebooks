@@ -6,14 +6,19 @@ f_axis = linspace(100e3,500e3,100) # must match sweep_frequencies_sqw
 with figlist_var(filename='chirp_180101.pdf') as fl:
     j=0
     for date, id_string in [
-            ('180102','1000_LCs'),
-            ('180102','820_LCs'),
-            ('180102','680_LCs'),
-            ('180102','560_LCs'),
-            ('180101','chirp_LCs'),
+            ('180104','820_LCs'),
+            ('180104','cable'),
+            ('180104','Lw'),
+            ('180104','wC'),
+            ('180104','ww'),
             ]:
-        d = nddata_hdf5(date+'_'+id_string+'.h5/capture1_'+date,
-                    directory=getDATADIR(exp_type='test_equip'))
+        try:
+            # capture2 only present when capture1 was bad
+            d = nddata_hdf5(date+'_'+id_string+'.h5/capture2_'+date,
+                        directory=getDATADIR(exp_type='test_equip'))
+        except:
+            d = nddata_hdf5(date+'_'+id_string+'.h5/capture1_'+date,
+                        directory=getDATADIR(exp_type='test_equip'))
         if j == 0:
             # {{{ CDF the values of the data to see if it's really digitizing with 14 bit
             vals = d.data.flatten()
@@ -44,7 +49,11 @@ with figlist_var(filename='chirp_180101.pdf') as fl:
             fl.next('analytic signal, phase')
             fl.plot(d.angle)
         fl.next('analytic signal, ratio', legend=True)
-        fl.plot(abs(d['ch',1]/d['ch',0]), label=id_string)
+        fl.plot(abs(2*d['ch',1]/d['ch',0]), label=id_string)
+        fl.next('ratio, real', legend=True)
+        fl.plot((2*d['ch',1]/d['ch',0]), label=id_string)
+        fl.next('ratio, imag', legend=True)
+        fl.plot((2*d['ch',1]/d['ch',0]).imag, label=id_string)
         fl.next('analytic signal, phase difference', legend=True)
         fl.plot((d['ch',1]/d['ch',0]).angle/pi, '.', label=id_string)
         j += 1

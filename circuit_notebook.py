@@ -13,7 +13,7 @@ get_ipython().magic(u'load_ext pyspecdata.ipy')
 
 C_tune = 12.5e-12
 C_match = 6e-13
-L = 9.026e-6
+L = 0.322e-6
 R = 2.0
 
 
@@ -25,8 +25,8 @@ print C_resonant/1e-12,'pF'
 
 # Now, pick a reasonable capacitance, and simulate the result that we expect.  I define $Z$ as a function, so that I can set the resistance easily.
 
-C = 12e-12
-nu = r_[10:20:5000j]*1e6
+C = round(C_resonant/1e-12)*1e-12
+nu = r_[0:20:5000j]*1e6
 omega = 2*pi*nu
 f_expect = 1/sqrt(L*C)/2/pi/1e6
 print "expected resonance",f_expect,'MHz'
@@ -42,11 +42,14 @@ ylim(-1,1)
 title('phase of impedance')
 
 
+R_series = r_[0.1,3,25,75,50,51,53]
+
+
 # Now we show the phase of the reflection, which is what we actually observe.
-# Here, I'm verifying that **with the series circuit, we should definitely see a nice phase inflection**.
+# Here, I'm verifying that **To see a nice inflection, we need to add a 50 $\Omega$ resistor in series!!**.
 
 reflection = lambda R: (Z(R)-50.)/(Z(R)+50.)
-for R in linspace(1e-3,60,10):
+for R in R_series:
     plot(nu,angle(reflection(R))/pi,'.',
         label='%0.2f $\\Omega$'%R,
         alpha=0.5)
@@ -55,22 +58,24 @@ ylim(-1,1)
 legend(**dict(bbox_to_anchor=(1.05,1),loc = 2,borderaxespad=0.))
 title('phase of reflection')
 
+
 # What should the amplitude ratio of the reflection look like?
 
 reflection = lambda R: (Z(R)-50.)/(Z(R)+50)
-for R in linspace(1e-3,60,10):
+for R in R_series:
     plot(nu,abs(reflection(R)),label='%0.2f $\\Omega$'%R,
         alpha=0.5)
-ylabel('phase angle / (rad/$\pi$)')
+ylabel('ratio')
 ylim(0,1)
 legend(**dict(bbox_to_anchor=(1.05,1),loc = 2,borderaxespad=0.))
-title('phase of reflection')
+title('amplitude of reflection')
+
 
 # Above, I'm showing that the peak to peak amplitude of the inflection isn't really affected by the resistance of the circuit, until we exceed the characteristic impedance.  This is good, because it means that we have a very robust method for identifying our impedance.  On the other hand, it means this is not the best way to identify the $Q$ of our circuit.
 # 
 # In the following, I use resistance over reactancce to calculate the $Q$ of the circuit, and note that I have at least a qualitative idea of the $Q$ from the peak-to-peak height and width of the imaginary part of the reflection.  Unfortunately, the peak-to-peak width doesn't seem to relate in a straightforward way to $Q=\frac{f_0}{\Delta f}$ the way that I would like.
 
-for R in linspace(1e-2,60,10):
+for R in R_series:
     plot(nu/1e6,reflection(R).imag,label='%0.2f $\\Omega$'%R,
         alpha=0.5)
     Q = (2*pi*f_expect*1e6*L)/R
@@ -92,13 +97,63 @@ r.setaxis('f',nu)
 # I show this on a scale of 0 to 1, because if the blip looks small on this scale, we *probably can't see it*.
 # As I would expect, unless I artificially add in a lot of resistance, I'm not really going to see a dip here.
 
-for R in linspace(1e-3,60,10):
+for R in R_series:
     plot(nu,abs(reflection(R)),label='%0.2f $\\Omega$'%R,
         alpha=0.5)
 ylabel('fraction')
 legend(**dict(bbox_to_anchor=(1.05,1),loc = 2,borderaxespad=0.))
 ylim(0,1.1)
 title('magnitude of reflection')
+
+
+# ### Show the reflection profiles for an inductor
+
+Z = lambda R: R + 1j*omega*L
+reflection = lambda R: (Z(R)-50.)/(Z(R)+50.)
+figure(1)
+for R in R_series:
+    figure(1)
+    plot(nu,angle(reflection(R))/pi,'.',
+        label='%0.2f $\\Omega$'%R,
+        alpha=0.5)
+    figure(2)
+    plot(nu,abs(reflection(R)),label='%0.2f $\\Omega$'%R,
+        alpha=0.5)
+figure(1)
+ylabel('phase angle / (rad/$\pi$)')
+ylim(-1,1)
+legend(**dict(bbox_to_anchor=(1.05,1),loc = 2,borderaxespad=0.))
+title('phase of reflection')
+figure(2)
+ylabel('ratio')
+ylim(-0.1,1.1)
+legend(**dict(bbox_to_anchor=(1.05,1),loc = 2,borderaxespad=0.))
+title('amplitude of reflection')
+
+
+# ### Show the reflection profiles for a capacitor
+
+Z = lambda R: 1./(1j*omega*C) + R 
+reflection = lambda R: (Z(R)-50.)/(Z(R)+50.)
+figure(1)
+for R in R_series:
+    figure(1)
+    plot(nu,angle(reflection(R))/pi,'.',
+        label='%0.2f $\\Omega$'%R,
+        alpha=0.5)
+    figure(2)
+    plot(nu,abs(reflection(R)),label='%0.2f $\\Omega$'%R,
+        alpha=0.5)
+figure(1)
+ylabel('phase angle / (rad/$\pi$)')
+ylim(-1,1)
+legend(**dict(bbox_to_anchor=(1.05,1),loc = 2,borderaxespad=0.))
+title('phase of reflection')
+figure(2)
+ylabel('ratio')
+ylim(-0.1,1.1)
+legend(**dict(bbox_to_anchor=(1.05,1),loc = 2,borderaxespad=0.))
+title('amplitude of reflection')
 
 
 # ### Verify that I can determine the resonance frequency from the phase
@@ -256,7 +311,3 @@ s.solve(s.Eq(taylor_exp.subs(Ct,Cs/(1+Cr))-Cr,0))
 # again, this is just the rule that the sum controls the resonance frequency
 
 soln.subs(Ct,Cs/(1+Cr)).simplify()
-
-
-
-
