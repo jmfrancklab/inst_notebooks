@@ -49,13 +49,14 @@ with figlist_var(filename='chirp.pdf') as fl:
         ranges = tuple(ranges[0,:].tolist())
         d = d['t':ranges]
         d.setaxis('t', lambda x: x-d.getaxis('t')[0])
-        collated_unmixed = d.copy()
-        d *= d.fromaxis('t', lambda t: exp(-1j*2*pi*mixdown*t))
+        d.setaxis('t', lambda x: 25e6-x*25e6/4096e-8).set_units('t','Hz')
         if expno == 0:
             fl.next('analytic signal, phase')
             fl.plot(d.angle)
         fl.next('analytic signal, ratio', legend=True)
+        #d.setaxis('t', lambda x: x-d.getaxis('t')[0])
         fl.plot(abs(2*d['ch',1]/d['ch',0]), label=id_string)
         fl.next('analytic signal, phase difference', legend=True)
+        #d.setaxis('t', lambda x: x-d.getaxis('t')[0])
         fl.plot((d['ch',1]/d['ch',0]).angle/pi, '.', label=id_string)
         expno += 1
