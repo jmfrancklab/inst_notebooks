@@ -3,7 +3,7 @@ from pyspecdata import *
 mixdown = 15e6
 capture_num = 1
 f_axis = linspace(100e3,500e3,100) # must match sweep_frequencies_sqw
-with figlist_var(filename='chirp_180101.pdf') as fl:
+with figlist_var(filename='chirp.pdf') as fl:
     j=0
     for date, id_string in [
             ('180104','820_LCs'),
@@ -11,6 +11,8 @@ with figlist_var(filename='chirp_180101.pdf') as fl:
             ('180104','Lw'),
             ('180104','wC'),
             ('180104','ww'),
+            ('180108','LCR')
+            
             ]:
         try:
             # capture2 only present when capture1 was bad
