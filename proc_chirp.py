@@ -11,8 +11,7 @@ with figlist_var(filename='chirp.pdf') as fl:
             ('180104','Lw'),
             ('180104','wC'),
             ('180104','ww'),
-            ('180108','LCR')
-            
+            ('180108','LCR'),
             ]:
         try:
             # capture2 only present when capture1 was bad
