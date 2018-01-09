@@ -1,5 +1,6 @@
 from pyspecdata import *
-
+#import logging
+#init_logging(level=logging.DEBUG)
 mixdown = 15e6
 capture_num = 1
 f_axis = linspace(100e3,500e3,100) # must match sweep_frequencies_sqw
@@ -12,14 +13,26 @@ with figlist_var(filename='chirp.pdf') as fl:
             ('180104','wC'),
             ('180104','ww'),
             ('180108','LCR'),
+            ('180108','680_LCR'),
+            ('180108','330_LCR'),
+            ('180108','220_LCR')
             ]:
         try:
-            # capture2 only present when capture1 was bad
-            d = nddata_hdf5(date+'_'+id_string+'.h5/capture2_'+date,
-                        directory=getDATADIR(exp_type='test_equip'))
+            try:
+                # capture2 only present when capture1 was bad
+                d = nddata_hdf5(date+'_'+id_string+'.h5/capture2_'+date,
+                            directory=getDATADIR(exp_type='test_equip'))
+            except:
+                d = nddata_hdf5(date+'_'+id_string+'.h5/capture1_'+date,
+                            directory=getDATADIR(exp_type='test_equip'))
         except:
-            d = nddata_hdf5(date+'_'+id_string+'.h5/capture1_'+date,
-                        directory=getDATADIR(exp_type='test_equip'))
+            try:
+                # capture2 only present when capture1 was bad
+                d = nddata_hdf5(date+'_'+id_string+'.h5/capture2',
+                            directory=getDATADIR(exp_type='test_equip'))
+            except:
+                d = nddata_hdf5(date+'_'+id_string+'.h5/capture1',
+                            directory=getDATADIR(exp_type='test_equip'))
         d.set_units('t','s')
         if expno == 0:
             # {{{ CDF the values of the data to see if it's really digitizing with 14 bit

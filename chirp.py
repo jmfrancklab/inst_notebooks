@@ -41,12 +41,13 @@ data = concat(datalist,'ch').reorder('t')
 j = 1
 try_again = True
 while try_again:
-    data_name = 'capture%d_180108'%j
+    data_name = 'capture%d'%j
     data.name(data_name)
     try:
-        data.hdf5_write('180108_LCR.h5')
+        data.hdf5_write('180108_220_LCR.h5')
         try_again = False
-    except:
+    except Exception as e:
+        print e
         print "name taken, trying again..."
         j += 1
         try_again = True
