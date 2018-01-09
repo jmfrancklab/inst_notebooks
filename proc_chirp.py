@@ -15,7 +15,8 @@ with figlist_var(filename='chirp.pdf') as fl:
             ('180108','LCR'),
             ('180108','680_LCR'),
             ('180108','330_LCR'),
-            ('180108','220_LCR')
+            ('180108','220_LCR'),
+            ('180109','probe')
             ]:
         try:
             try:
