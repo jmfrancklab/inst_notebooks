@@ -7,18 +7,15 @@ f_axis = linspace(100e3,500e3,100) # must match sweep_frequencies_sqw
 with figlist_var(filename='chirp.pdf') as fl:
     expno=0
     for date, id_string in [
-            ('180104','820_LCs'),
-            ('180104','cable'),
-            ('180104','Lw'),
-            ('180104','wC'),
-            ('180104','ww'),
-            ('180108','LCR'),
-            ('180108','680_LCR'),
-            ('180108','330_LCR'),
-            ('180108','220_LCR'),
-            ('180109','probe'),
-            ('180109','adj1'),
-            ('180109','adj2')
+            ('180109','tm2probe'),
+            ('180109','tm3probe'),
+            ('180109','tm4probe'),
+            ('180109','tm4adj1'),
+            ('180109','tm5probe'),
+            ('180109','tm6probe'),
+            ('180109','tm7probe'),
+            ('180110','tm8probe'),
+            ('180110','tm9probe')
             ]:
         try:
             try:
