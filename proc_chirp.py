@@ -10,7 +10,9 @@ with figlist_var(filename='chirp.pdf') as fl:
             ('180120','open_control'),
             ('180120','open_pi'),
             ('180120','short_control'),
-            ('180120','short_pi')
+            ('180120','short_pi'),
+            ('180120','open_pi150'),
+            ('180120','short_pi150')
             ]:
         try:
             try:
