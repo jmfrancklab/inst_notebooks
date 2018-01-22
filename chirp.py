@@ -44,7 +44,7 @@ while try_again:
     data_name = 'capture%d'%j
     data.name(data_name)
     try:
-        data.hdf5_write('180110_tm9probe.h5')
+        data.hdf5_write('180120_open_pi150.h5')
         try_again = False
     except Exception as e:
         print e

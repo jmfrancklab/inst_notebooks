@@ -1,8 +1,8 @@
 from pylab import *
 f = r_[5:20:5000j]*1e6
-C_tune = 12.5e-12
-C_match = 6e-13
-L = 9.026e-6
+C_tune = 220e-12
+C_match = 1 
+L = 0.455e-6 
 R = 5.0
 for C_match in r_[2e-12:40e-12:5j]:
     Z = 1./(1/(1j*2*pi*f*L+R) + 1./(1./(1j*2*pi*f*C_tune)+R)) +1./(1j*2*pi*f*C_match)+R
