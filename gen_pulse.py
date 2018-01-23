@@ -35,10 +35,10 @@ def acquire():
     j = 1
     try_again = True
     while try_again:
-        data_name = 'capture%d_171109'%j
+        data_name = 'capture%d_180122'%j
         data.name(data_name)
         try:
-            data.hdf5_write('scope_data.h5')
+            data.hdf5_write('amp_test.h5')
             try_again = False
         except:
             print "name taken, trying again..."
@@ -49,8 +49,7 @@ def acquire():
     print "shape of data",ndshape(data)
     fl.next('Dual-channel data')
     fl.plot(data)
-    fl.show()
-    #
+    
 # else:
 #    with GDS_scope() as g:
 #        g.timscal(5e-6)  #setting time scale to 500 ns/div
@@ -78,11 +77,10 @@ def gen_pulse(freq=15e6, width=4e-6, ch1_only=True):
             a[this_ch].output = True
         for this_ch in range(1):
             a[this_ch].burst = True
-            a[this_ch].ampl=1e0
-            acquire() 
-            a[this_ch].ampl=2e0
-            a[this_ch].ampl=0.5e0
-            a[this_ch].ampl=3.0e-1
+            raw_input("Turn on RF amplifier")
+            for set_amp in linspace(4e-1,7e0,50):
+                a[this_ch].ampl=set_amp
+                acquire() 
         # if we run a.check_idn() here, it pops out of burst mode
 gen_pulse()
 
