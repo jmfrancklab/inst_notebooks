@@ -21,35 +21,7 @@ with SerialInstrument('GDS-3254') as s:
 with SerialInstrument('AFG-2225') as s:
     print s.respond('*idn?')
 
-def gen_pulse(freq=15e6, width=4e-6, ch1_only=True):
-    with AFG() as a:
-        a.reset()
-        rate = freq*4
-        total_samples = width*rate
-        total_samples = int(total_samples/4 + 0.5)*4 # convert to multiple of 4
-        assert total_samples < 4097, "Your pattern length (%d) exceeds the max (4096 samples at %g MHz)"%(total_samples,rate)
-        y = zeros(total_samples)
-        y[0::4]=0
-        y[1::4]=1
-        y[2::4]=0
-        y[3::4]=-1
-        y[-1]=0
-        if ch1_only:
-            ch_list = [0]
-        else:
-            ch_list = [0,1]
-        for this_ch in ch_list:
-            a[this_ch].digital_ndarray(y, rate=rate)
-           # a[this_ch].ampl=1e0
-            print "now, output on"
-            a[this_ch].output = True
-        for this_ch in range(2):
-            a[this_ch].burst = True
-        # if we run a.check_idn() here, it pops out of burst mode
-gen_pulse()
-
-if acquire:
-    #print "If this doesn't work, you want to set your trigger level to 100 mV and set time/div to ~1us"
+def acquire():
     datalist = []
     print "about to load GDS"
     with GDS_scope() as g:
@@ -82,3 +54,35 @@ if acquire:
 # else:
 #    with GDS_scope() as g:
 #        g.timscal(5e-6)  #setting time scale to 500 ns/div
+
+def gen_pulse(freq=15e6, width=4e-6, ch1_only=True):
+    with AFG() as a:
+        a.reset()
+        rate = freq*4
+        total_samples = width*rate
+        total_samples = int(total_samples/4 + 0.5)*4 # convert to multiple of 4
+        assert total_samples < 4097, "Your pattern length (%d) exceeds the max (4096 samples at %g MHz)"%(total_samples,rate)
+        y = zeros(total_samples)
+        y[0::4]=0
+        y[1::4]=1
+        y[2::4]=0
+        y[3::4]=-1
+        y[-1]=0
+        if ch1_only:
+            ch_list = [0]
+        else:
+            ch_list = [0,1]
+        for this_ch in ch_list:
+            a[this_ch].digital_ndarray(y, rate=rate)
+            print "now, output on"
+            a[this_ch].output = True
+        for this_ch in range(1):
+            a[this_ch].burst = True
+            a[this_ch].ampl=1e0
+            acquire() 
+            a[this_ch].ampl=2e0
+            a[this_ch].ampl=0.5e0
+            a[this_ch].ampl=3.0e-1
+        # if we run a.check_idn() here, it pops out of burst mode
+gen_pulse()
+
