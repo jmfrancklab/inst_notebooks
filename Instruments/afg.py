@@ -62,6 +62,19 @@ class AFG_Channel_Properties (object):
         self.afg.demand('SOUR%d:FREQ?'%(self.ch), f)
         return
     @property
+    def ampl(self):
+        """The amplitude setting in VPP by default. 
+        """
+        cmd = 'SOUR%d:AMP?'%self.ch
+        return float(self.afg.demand(cmd))
+    @ampl.setter
+    def ampl(self,amp):
+        cmd = 'SOUR%d:AMP %+0.7E'%(self.ch, amp)
+        print "About to call:",cmd
+        self.afg.write(cmd)
+        self.afg.demand('SOUR%d:AMP?'%(self.ch), amp)
+        return
+    @property
     def burst(self):
         cmd = 'SOUR%d:BURS:STAT?'%self.ch
         return bool(int(self.afg.respond(cmd)))
