@@ -6,7 +6,10 @@ id_string = 'amp'
 #for j in r_[1,30,50]:
 V_AFG = linspace(0.4,7,50)
 V_calib = 0.5*V_AFG
-list_of_captures = [8]
+list_of_captures = [9] # capture 9 should be 1.50-1.51 Vpp
+if len(V_calib) != len(list_of_captures):
+    print "WARNING -- length of voltage array doesn't match number of captures!!!!!"
+    print "FIX THIS!!"
 fl.next('Channel 1',
         figsize=(12,6),legend=True)
 fl.next('Fourier transform',figsize=(12,6))
@@ -16,6 +19,11 @@ for j in list_of_captures:
     d = nddata_hdf5(date+'_'+id_string+'.h5/capture'+j_str+'_'+date)
     print d
     d.set_units('t','s')
+    if j == list_of_captures[0]:
+        raw_signal = (ndshape(d) + ('power',len(list_of_captures))).alloc()
+        raw_signal.setaxis('t',d.getaxis('t')).set_units('t','s')
+        raw_signal.setaxis('power',(V_calib/2/sqrt(2))**2/50.)
+    raw_signal['power',list_of_captures.index(j)] = d
     fl.next('Channel 1')
     fl.plot(d['ch',0], alpha=0.5,label='raw data')
     d.ft('t',shift=True)
@@ -53,11 +61,17 @@ pulse_slice = abs(
 assert pulse_slice.shape[0] == 1, strm("found more than one (or none) region rising about 0.6 max amplitude:",tuple(pulse_slice))
 pulse_slice = pulse_slice[0,:]
 pulse_slice += r_[0.1e-6,-0.1e-6]
-V_anal = abs(analytic_signal['ch',0]['t':tuple(pulse_slice)]).mean('t')*sqrt(2)
+V_anal = abs(analytic_signal['ch',0]['t':tuple(pulse_slice)]).mean('t')
+pulse_slice += r_[0.5e-6,-0.5e-6]
+V_pp = raw_signal['ch',0]['t':tuple(pulse_slice)].run(max,'t')
+V_pp -= raw_signal['ch',0]['t':tuple(pulse_slice)].run(min,'t')
+print "V_pp",V_pp
+print "V_anal",V_anal
 if len(list_of_captures) > 1:
     fl.next('power plot')
     atten = 10**(-40./10)
-    fl.plot((V_anal/sqrt(2))**2/50./atten)
+    fl.plot((V_anal/sqrt(2))**2/50./atten, label='analytic')
+    fl.plot((V_pp/sqrt(2)/2.0)**2/50./atten, label='pp')
 fl.show()
 
 #    d.ft('t',shift=True)
