@@ -1,12 +1,12 @@
 from pyspecdata import *
 fl = figlist_var()
 
-date = '180122'
-id_string = 'amp_test'
+date = '180124'
+id_string = 'amp'
 #for j in r_[1,30,50]:
 V_AFG = linspace(0.4,7,50)
 V_calib = 0.5*V_AFG
-for j in range(1,51):
+for j=1:
     j_str = str(j)
     d = nddata_hdf5(date+'_'+id_string+'.h5/capture'+j_str+'_'+date)
     d.set_units('t','s')
