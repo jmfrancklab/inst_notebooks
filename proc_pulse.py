@@ -2,9 +2,9 @@ from pyspecdata import *
 fl = figlist_var()
 
 date = '180124'
-id_string = 'amp_test'
+id_string = 'amp_test3'
 #for j in r_[1,30,50]:
-V_AFG = linspace(0.4,3,50)
+V_AFG = linspace(0.4,2.2,50)
 V_calib = 0.5*V_AFG
 #list_of_captures = [9] # capture 9 should be 1.50-1.51 Vpp
 #if len(V_calib) != len(list_of_captures):
