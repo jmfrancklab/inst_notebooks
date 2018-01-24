@@ -6,7 +6,7 @@ id_string = 'amp'
 #for j in r_[1,30,50]:
 V_AFG = linspace(0.4,7,50)
 V_calib = 0.5*V_AFG
-list_of_captures = [5]
+list_of_captures = [8]
 fl.next('Channel 1',
         figsize=(12,6),legend=True)
 fl.next('Fourier transform',figsize=(12,6))
@@ -49,15 +49,15 @@ print "analytic",id(gcf())
 fl.plot(abs(analytic_signal['ch',0]),alpha=0.2)
 pulse_slice = abs(
         analytic_signal['ch',0]['power',-1]).contiguous(lambda x:
-                x>0.6*x.data.max())
-#assert pulse_slice.shape[0] == 1, strm("found more than one (or none) region rising about 0.6 max amplitude:",tuple(pulse_slice))
-#pulse_slice = pulse_slice[0,:]
-#pulse_slice += r_[0.1e-6,-0.1e-6]
-#Vrms = abs(analytic_signal['ch',0]['t':tuple(pulse_slice)]).mean('t')*sqrt(2)
-#if len(list_of_captures) > 1:
-#    fl.next('power plot')
-#    atten = 10**(-40./10)
-#    fl.plot((Vrms)**2/50./atten)
+                x>0.4*x.data.max())
+assert pulse_slice.shape[0] == 1, strm("found more than one (or none) region rising about 0.6 max amplitude:",tuple(pulse_slice))
+pulse_slice = pulse_slice[0,:]
+pulse_slice += r_[0.1e-6,-0.1e-6]
+V_anal = abs(analytic_signal['ch',0]['t':tuple(pulse_slice)]).mean('t')*sqrt(2)
+if len(list_of_captures) > 1:
+    fl.next('power plot')
+    atten = 10**(-40./10)
+    fl.plot((V_anal/sqrt(2))**2/50./atten)
 fl.show()
 
 #    d.ft('t',shift=True)

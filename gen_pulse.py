@@ -24,14 +24,19 @@ with SerialInstrument('AFG-2225') as s:
 def acquire():
     datalist = []
     print "about to load GDS"
+    num_averages = 16
     with GDS_scope() as g:
     #    g.timscal(5e-6)  #setting time scale to 500 ns/div
     #    g.voltscal(1,500e-3) #setting volt scale on channel 1 to 500 mV/div
         print "loaded GDS"
-        for j in range(1,3):
-            print "trying to grab data from channel",j
-            datalist.append(g.waveform(ch=j))
-    data = concat(datalist,'ch').reorder('t')
+        ch1_waveform = g.waveform(ch=1)
+        ch2_waveform = g.waveform(ch=1)
+        for j in range(num_averages-1):
+            print "average #",j
+            ch1_waveform += g.waveform(ch=1)
+            ch2_waveform += g.waveform(ch=1)
+    data = concat([ch1_waveform,ch2_waveform],'ch').reorder('t')
+    data /= num_averages
     # {{{ in case it pulled from an inactive channel
     if not isfinite(data.getaxis('t')[0]):
         j = 0
@@ -49,6 +54,7 @@ def acquire():
         try:
             data.hdf5_write('180124_amp.h5')
             try_again = False
+            print "capture number",j
         except:
             print "name taken, trying again..."
             j += 1
