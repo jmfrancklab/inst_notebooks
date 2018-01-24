@@ -32,6 +32,15 @@ def acquire():
             print "trying to grab data from channel",j
             datalist.append(g.waveform(ch=j))
     data = concat(datalist,'ch').reorder('t')
+    # {{{ in case it pulled from an inactive channel
+    if not isfinite(data.getaxis('t')[0]):
+        j = 0
+        while not isfinite(data.getaxis('t')[0]):
+            data.setaxis('t',datalist[j].getaxis('t'))
+            j+=1
+            if j == len(datalist):
+                raise ValueError("None of the time axes returned by the scope are finite, which probably means no traces are active??")
+    # }}}
     j = 1
     try_again = True
     while try_again:
