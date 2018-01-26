@@ -2,7 +2,7 @@ from pyspecdata import *
 fl = figlist_var()
 
 date = '180125'
-id_string = 'noamp3'
+id_string = 'amptest'
 #for j in r_[1,30,50]:
 V_AFG = linspace(0.5,2.2,50)
 V_calib = 0.5*V_AFG
@@ -96,7 +96,7 @@ atten = 10**(-40./10)
 fl.next('power plot Vrms analytic')
 fl.plot((V_anal/sqrt(2))**2/50./atten) #this is the true power plot, using analytic signal Vrms
 #fl.next('power plot Vpp raw')
-#fl.plot((V_pp/sqrt(2)/2.0)**2/50./atten)
+fl.plot((V_pp/sqrt(2)/2.0)**2/50./atten, label='$V_{pp}$')
 fl.show()
 
 #    d.ft('t',shift=True)
