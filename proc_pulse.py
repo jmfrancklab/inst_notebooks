@@ -1,10 +1,10 @@
 from pyspecdata import *
 fl = figlist_var()
 
-date = '180124'
-id_string = 'amp_test3'
+date = '180125'
+id_string = 'noamp3'
 #for j in r_[1,30,50]:
-V_AFG = linspace(0.4,2.2,50)
+V_AFG = linspace(0.5,2.2,50)
 V_calib = 0.5*V_AFG
 #list_of_captures = [9] # capture 9 should be 1.50-1.51 Vpp
 #if len(V_calib) != len(list_of_captures):
@@ -92,8 +92,8 @@ V_pp -= raw_signal['ch',0]['t':tuple(pulse_slice)].run(min,'t')
 atten = 10**(-40./10)
 fl.next('power plot Vrms analytic')
 fl.plot((V_anal/sqrt(2))**2/50./atten) #this is the true power plot, using analytic signal Vrms
-fl.next('power plot Vpp raw')
-fl.plot((V_pp/sqrt(2)/2.0)**2/50./atten)
+#fl.next('power plot Vpp raw')
+#fl.plot((V_pp/sqrt(2)/2.0)**2/50./atten)
 fl.show()
 
 #    d.ft('t',shift=True)
