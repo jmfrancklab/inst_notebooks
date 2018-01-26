@@ -19,7 +19,7 @@ fl.next('Fourier transform',
         figsize=(12,6))
 fl.next('Analytic signal mag')# for some strange reason, things get messed up if I don't do this here -- can't figure it out -- return to later
 #for j in list_of_captures:
-for j in range(1,51):
+for j in range(1,len(V_AFG)+1):
     print "loading signal",j
     j_str = str(j)
     d = nddata_hdf5(date+'_'+id_string+'.h5/capture'+j_str+'_'+date,
@@ -94,7 +94,7 @@ V_pp = raw_signal['ch',0]['t':tuple(pulse_slice)].run(max,'t')
 V_pp -= raw_signal['ch',0]['t':tuple(pulse_slice)].run(min,'t')
 atten = 10**(-40./10)
 fl.next('power plot Vrms analytic')
-fl.plot((V_anal/sqrt(2))**2/50./atten) #this is the true power plot, using analytic signal Vrms
+fl.plot((V_anal/sqrt(2))**2/50./atten, label='$V_{analytic}$') #this is the true power plot, using analytic signal Vrms
 #fl.next('power plot Vpp raw')
 fl.plot((V_pp/sqrt(2)/2.0)**2/50./atten, label='$V_{pp}$')
 fl.show()
