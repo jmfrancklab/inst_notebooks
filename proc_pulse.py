@@ -20,8 +20,10 @@ fl.next('Fourier transform',
 fl.next('Analytic signal mag')# for some strange reason, things get messed up if I don't do this here -- can't figure it out -- return to later
 #for j in list_of_captures:
 for j in range(1,51):
+    print "loading signal",j
     j_str = str(j)
-    d = nddata_hdf5(date+'_'+id_string+'.h5/capture'+j_str+'_'+date)
+    d = nddata_hdf5(date+'_'+id_string+'.h5/capture'+j_str+'_'+date,
+            directory=getDATADIR(exp_type='test_equip'))
     d.set_units('t','s')
     if j == 1:
         raw_signal = (ndshape(d) + ('power',50)).alloc()
@@ -82,6 +84,7 @@ for j in range(1,51):
 pulse_slice = abs(
         analytic_signal['ch',0]['power',-1]).contiguous(lambda x:
                 x>0.4*x.data.max())
+print "done loading all signals"
 assert pulse_slice.shape[0] == 1, strm("found more than one (or none) region rising about 0.6 max amplitude:",tuple(pulse_slice))
 pulse_slice = pulse_slice[0,:]
 pulse_slice += r_[0.1e-6,-0.1e-6]
