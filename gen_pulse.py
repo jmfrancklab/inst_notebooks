@@ -49,10 +49,10 @@ def acquire():
     j = 1
     try_again = True
     while try_again:
-        data_name = 'capture%d_180125'%j
+        data_name = 'capture%d_180126'%j
         data.name(data_name)
         try:
-            data.hdf5_write('180125_testamp.h5')
+            data.hdf5_write('180126_testamp3.h5')
             try_again = False
             print "capture number",j
         except:
@@ -92,8 +92,8 @@ def gen_pulse(freq=15e6, width=4e-6, ch1_only=True):
             a[this_ch].output = True
         for this_ch in range(1):
             a[this_ch].burst = True
-            raw_input("Turn on RF amplifier")
-            for set_amp in linspace(5e-1,2.2e0,50):
+            raw_input("Turn on RF amplifier and set period to 1 sec if testing circuit")
+            for set_amp in linspace(5e-1,7.9e-1,50):
                 a[this_ch].ampl=set_amp
                 acquire() 
         # if we run a.check_idn() here, it pops out of burst mode
