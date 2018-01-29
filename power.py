@@ -1,6 +1,7 @@
 from pyspecdata import *
 
-V = linspace(5e-1,1.5,50)
+V = linspace(5e-1,1.3,10)
+
 
 W = (V/4/sqrt(2))**2/50.
 

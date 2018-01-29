@@ -8,11 +8,9 @@ with figlist_var(filename='chirp.pdf') as fl:
     expno=0
     for date, id_string in [
             ('180120','open_control'),
-            ('180120','open_pi'),
-            ('180120','short_control'),
             ('180120','short_pi'),
-            ('180120','open_pi150'),
-            ('180120','short_pi150')
+            ('180120','short_control'),
+            ('180120','open_pi'),
             ]:
         try:
             try:
@@ -63,10 +61,22 @@ with figlist_var(filename='chirp.pdf') as fl:
         if expno == 0:
             fl.next('analytic signal, phase')
             fl.plot(d.angle)
+#        if id_string == 'open_control':
+#            fl.next('ratio analytic, pi short', legend=True)
+#            fl.plot(abs(2*d['ch',1]/d['ch',0]), alpha=0.8, label=id_string)
+#        if id_string == 'short_pi':
+#            fl.next('ratio analytic, pi short', legend=True)
+#            fl.plot(abs(2*d['ch',1]/d['ch',0]), alpha=0.8, label=id_string)
+#        if id_string == 'short_control':
+#            fl.next('ratio analytic, pi open', legend=True)
+#            fl.plot(abs(2*d['ch',1]/d['ch',0]), alpha=0.8, label=id_string)
+#        if id_string == 'open_pi':
+#            fl.next('ratio analytic, pi open', legend=True)
+#            fl.plot(abs(2*d['ch',1]/d['ch',0]), alpha=0.8, label=id_string)
         fl.next('analytic signal, ratio', legend=True)
         #d.setaxis('t', lambda x: x-d.getaxis('t')[0])
-        fl.plot(abs(2*d['ch',1]/d['ch',0]), label=id_string)
+        fl.plot(abs(2*d['ch',1]/d['ch',0]), alpha=0.38, label=id_string)
         fl.next('analytic signal, phase difference', legend=True)
         #d.setaxis('t', lambda x: x-d.getaxis('t')[0])
-        fl.plot((d['ch',1]/d['ch',0]).angle/pi, '.', label=id_string)
+        fl.plot((d['ch',1]/d['ch',0]).angle/pi, '.', alpha=0.38, label=id_string)
         expno += 1

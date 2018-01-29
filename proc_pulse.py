@@ -1,19 +1,20 @@
 from pyspecdata import *
 fl = figlist_var()
 
-date = '180126'
-id_string = 'testamp3'
+date = '180124'
+id_string = 'amp_test2'
 #for j in r_[1,30,50]:
-V_AFG = linspace(0.5,7.9e-1,50)
+V_AFG = linspace(0.4,1.5,50)
 V_calib = 0.5*V_AFG
+p_len = len(V_AFG)
 #list_of_captures = [9] # capture 9 should be 1.50-1.51 Vpp
-#if len(V_calib) != len(list_of_captures):
+#if len(V50_calib) != len(list_of_captures):
 #    print "WARNING -- length of voltage array doesn't match number of captures!!!!!"
 #    print "FIX THIS!!"
 ### from previous version, needed to specify plot dimensions, labels, etc. beforehand
 fl.next('Channel 1, 1',
         figsize=(12,6),legend=True)
-fl.next('Channel 1, 50',
+fl.next('Channel 1, %d'%p_len,
         figsize=(12,6),legend=True)
 fl.next('Fourier transform -- low power',
         figsize=(12,6))
@@ -21,7 +22,6 @@ fl.next('Fourier transform -- high power',
         figsize=(12,6))
 fl.next('Analytic signal mag')# for some strange reason, things get messed up if I don't do this here -- can't figure it out -- return to later
 #for j in list_of_captures:
-p_len = len(V_AFG)
 for j in range(1,p_len+1):
     print "loading signal",j
     j_str = str(j)
