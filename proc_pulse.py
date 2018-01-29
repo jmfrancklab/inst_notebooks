@@ -1,10 +1,11 @@
 from pyspecdata import *
 fl = figlist_var()
 
-date = '180124'
-id_string = 'amp_test2'
+date = '180129'
+id_string = 'amptest'
 #for j in r_[1,30,50]:
-V_AFG = linspace(0.4,1.5,50)
+V_AFG = linspace(0.5,1.28,20)
+p_len = len(V_AFG)
 V_calib = 0.5*V_AFG
 p_len = len(V_AFG)
 #list_of_captures = [9] # capture 9 should be 1.50-1.51 Vpp
@@ -98,11 +99,15 @@ pulse_slice += r_[0.5e-6,-0.5e-6]
 V_pp = raw_signal['ch',0]['t':tuple(pulse_slice)].run(max,'t')
 V_pp -= raw_signal['ch',0]['t':tuple(pulse_slice)].run(min,'t')
 atten = 10**(-40./10)
-fl.next('power plot Vrms analytic')
+fl.next('power vs. power')
 fl.plot((V_anal/sqrt(2))**2/50./atten, label='$V_{analytic}$') #this is the true power plot, using analytic signal Vrms
 fl.plot((V_harmonic/sqrt(2))**2/50./atten, label='$V_{harmonic}$') #this is the true power plot, using analytic signal Vrms
 #fl.next('power plot Vpp raw')
 fl.plot((V_pp/sqrt(2)/2.0)**2/50./atten, label='$V_{pp}$')
+fl.next('power vs. AFG setting')
+val = (V_pp/sqrt(2)/2.0)**2/50./atten
+val.rename('power','setting').setaxis('setting',V_AFG).set_units('setting','V')
+fl.plot(val, label='$V_{pp}$')
 fl.show()
 
 #    d.ft('t',shift=True)
