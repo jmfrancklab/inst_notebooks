@@ -4,7 +4,8 @@ fl = figlist_var()
 date = '180129'
 id_string = 'amptest'
 #for j in r_[1,30,50]:
-V_AFG = linspace(0.5,7.9e-1,50)
+V_AFG = linspace(0.5,1.28,20)
+p_len = len(V_AFG)
 V_calib = 0.5*V_AFG
 #list_of_captures = [9] # capture 9 should be 1.50-1.51 Vpp
 #if len(V_calib) != len(list_of_captures):
@@ -13,7 +14,7 @@ V_calib = 0.5*V_AFG
 ### from previous version, needed to specify plot dimensions, labels, etc. beforehand
 fl.next('Channel 1, 1',
         figsize=(12,6),legend=True)
-fl.next('Channel 1, 50',
+fl.next('Channel 1, %d'%p_len,
         figsize=(12,6),legend=True)
 fl.next('Fourier transform -- low power',
         figsize=(12,6))
@@ -21,7 +22,6 @@ fl.next('Fourier transform -- high power',
         figsize=(12,6))
 fl.next('Analytic signal mag')# for some strange reason, things get messed up if I don't do this here -- can't figure it out -- return to later
 #for j in list_of_captures:
-p_len = len(V_AFG)
 for j in range(1,p_len+1):
     print "loading signal",j
     j_str = str(j)
@@ -98,11 +98,15 @@ pulse_slice += r_[0.5e-6,-0.5e-6]
 V_pp = raw_signal['ch',0]['t':tuple(pulse_slice)].run(max,'t')
 V_pp -= raw_signal['ch',0]['t':tuple(pulse_slice)].run(min,'t')
 atten = 10**(-40./10)
-fl.next('power plot Vrms analytic')
+fl.next('power vs. power')
 fl.plot((V_anal/sqrt(2))**2/50./atten, label='$V_{analytic}$') #this is the true power plot, using analytic signal Vrms
 fl.plot((V_harmonic/sqrt(2))**2/50./atten, label='$V_{harmonic}$') #this is the true power plot, using analytic signal Vrms
 #fl.next('power plot Vpp raw')
 fl.plot((V_pp/sqrt(2)/2.0)**2/50./atten, label='$V_{pp}$')
+fl.next('power vs. AFG setting')
+val = (V_pp/sqrt(2)/2.0)**2/50./atten
+val.rename('power','setting').setaxis('setting',V_AFG).set_units('setting','V')
+fl.plot(val, label='$V_{pp}$')
 fl.show()
 
 #    d.ft('t',shift=True)
