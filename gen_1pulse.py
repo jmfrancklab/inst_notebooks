@@ -49,10 +49,10 @@ def acquire():
     j = 1
     try_again = True
     while try_again:
-        data_name = 'capture%d_180130'%j
+        data_name = 'capture%d_180131'%j
         data.name(data_name)
         try:
-            data.hdf5_write('180130_1amp.h5')
+            data.hdf5_write('180131_p23piamp.h5')
             try_again = False
             print "capture number",j
         except:
@@ -69,7 +69,7 @@ def acquire():
 #    with GDS_scope() as g:
 #        g.timscal(5e-6)  #setting time scale to 500 ns/div
 
-def gen_pulse(freq=15e6, width=4e-6, ch1_only=True):
+def gen_pulse(freq=23e6, width=4e-6, ch1_only=True):
     with AFG() as a:
         a.reset()
         rate = freq*4
