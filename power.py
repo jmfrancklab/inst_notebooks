@@ -1,11 +1,12 @@
 from pyspecdata import *
+atten = 10**(-40./10)
+Vpp = raw_input('Enter Vpp from scope: ')
+print ''+Vpp+' Vpp'
+Vpp = float(Vpp)
+Vpp = Vpp/2.
+W = (Vpp/2./sqrt(2))**2/50.
+print 'Corresponding power is:'
+W = str(W)
+print ''+W+' Watts'
 
-V = linspace(5e-1,1.3,10)
 
-
-W = (V/4/sqrt(2))**2/50.
-
-print "Vpp:"
-print V
-print "Power:"
-print W

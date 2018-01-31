@@ -1,10 +1,10 @@
 from pyspecdata import *
 fl = figlist_var()
 
-date = '180129'
-id_string = 'amptest'
+date = '180130'
+id_string = 'amp5'
 #for j in r_[1,30,50]:
-V_AFG = linspace(0.5,1.28,20)
+V_AFG = linspace(0.5,7,50)
 p_len = len(V_AFG)
 V_calib = 0.5*V_AFG
 p_len = len(V_AFG)
