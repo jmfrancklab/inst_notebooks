@@ -7,10 +7,8 @@ f_axis = linspace(100e3,500e3,100) # must match sweep_frequencies_sqw
 with figlist_var(filename='chirp.pdf') as fl:
     expno=0
     for date, id_string in [
-            ('180120','open_control'),
-            ('180120','short_pi'),
-            ('180120','short_control'),
-            ('180120','open_pi'),
+            ('180131','inductor1'),
+            ('180131','inductor2'),
             ]:
         try:
             try:
@@ -74,9 +72,9 @@ with figlist_var(filename='chirp.pdf') as fl:
 #            fl.next('ratio analytic, pi open', legend=True)
 #            fl.plot(abs(2*d['ch',1]/d['ch',0]), alpha=0.8, label=id_string)
         fl.next('analytic signal, ratio', legend=True)
-        #d.setaxis('t', lambda x: x-d.getaxis('t')[0])
+#        d.setaxis('t', lambda x: x-d.getaxis('t')[0])
         fl.plot(abs(2*d['ch',1]/d['ch',0]), alpha=0.38, label=id_string)
         fl.next('analytic signal, phase difference', legend=True)
-        #d.setaxis('t', lambda x: x-d.getaxis('t')[0])
+#        d.setaxis('t', lambda x: x-d.getaxis('t')[0])
         fl.plot((d['ch',1]/d['ch',0]).angle/pi, '.', alpha=0.38, label=id_string)
         expno += 1
