@@ -2,7 +2,7 @@ from pyspecdata import *
 fl = figlist_var()
 
 date = '180130'
-id_string = 'amp5'
+id_string = 'amp6'
 #for j in r_[1,30,50]:
 V_AFG = linspace(0.5,7,50)
 p_len = len(V_AFG)
@@ -103,30 +103,11 @@ fl.next('power vs. power')
 fl.plot((V_anal/sqrt(2))**2/50./atten, label='$V_{analytic}$') #this is the true power plot, using analytic signal Vrms
 fl.plot((V_harmonic/sqrt(2))**2/50./atten, label='$V_{harmonic}$') #this is the true power plot, using analytic signal Vrms
 #fl.next('power plot Vpp raw')
-fl.plot((V_pp/sqrt(2)/2.0)**2/50./atten, label='$V_{pp}$')
+fl.plot((V_pp/sqrt(2)/2.0)**2/50./atten,'.', label='$V_{pp}$')
 fl.next('power vs. AFG setting')
 val = (V_pp/sqrt(2)/2.0)**2/50./atten
 val.rename('power','setting').setaxis('setting',V_AFG).set_units('setting','V')
-fl.plot(val, label='$V_{pp}$')
+fl.plot(val,'.', label='$V_{pp}$')
 fl.show()
-
-#    d.ft('t',shift=True)
-#    d = d['t':(0,25e6)]
-#    collated = ndshape(d)
-#with figlist_var(filename='amp.pdf') as fl:
-#    collated.reorder('ch')
-#    collated.ift('t')
-#    fl.next('idk')
-#    fl.image(collated)
-    
-    
-
-
-
-        
-
-        
-
-
 
 
