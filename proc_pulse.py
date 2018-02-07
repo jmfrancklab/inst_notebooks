@@ -1,10 +1,10 @@
 from pyspecdata import *
 fl = figlist_var()
 
-date = '180201'
-id_string = 'amptest2'
+date = '180207'
+id_string = '2dio'
 #for j in r_[1,30,50]:
-V_AFG = linspace(0.5,5,50)
+V_AFG = linspace(0.5,7,50)
 p_len = len(V_AFG)
 V_calib = 0.5*V_AFG
 p_len = len(V_AFG)
@@ -88,7 +88,7 @@ for j in range(1,p_len+1):
     fl.plot(abs(analytic_signal['ch',0]),alpha=0.2)
 pulse_slice = abs(
         analytic_signal['ch',0]['power',-1]).contiguous(lambda x:
-                x>0.4*x.data.max())
+                x>0.2*x.data.max())
 print "done loading all signals"
 assert pulse_slice.shape[0] == 1, strm("found more than one (or none) region rising about 0.6 max amplitude:",tuple(pulse_slice))
 pulse_slice = pulse_slice[0,:]
@@ -98,14 +98,13 @@ V_harmonic = abs(harmonic_signal['ch',0]['t':tuple(pulse_slice)]).mean('t')
 pulse_slice += r_[0.5e-6,-0.5e-6]
 V_pp = raw_signal['ch',0]['t':tuple(pulse_slice)].run(max,'t')
 V_pp -= raw_signal['ch',0]['t':tuple(pulse_slice)].run(min,'t')
-atten = 10**(-40./10)
 fl.next('power vs. power')
-fl.plot((V_anal/sqrt(2))**2/50./atten, label='$V_{analytic}$') #this is the true power plot, using analytic signal Vrms
-fl.plot((V_harmonic/sqrt(2))**2/50./atten, label='$V_{harmonic}$') #this is the true power plot, using analytic signal Vrms
+fl.plot((V_anal/sqrt(2))**2/50., label='$V_{analytic}$') #this is the true power plot, using analytic signal Vrms
+fl.plot((V_harmonic/sqrt(2))**2/50., label='$V_{harmonic}$') #this is the true power plot, using analytic signal Vrms
 #fl.next('power plot Vpp raw')
-fl.plot((V_pp/sqrt(2)/2.0)**2/50./atten,'.', label='$V_{pp}$')
+fl.plot((V_pp/sqrt(2)/2.0)**2/50.,'.', label='$V_{pp}$')
 fl.next('power vs. AFG setting')
-val = (V_pp/sqrt(2)/2.0)**2/50./atten
+val = (V_pp/sqrt(2)/2.0)**2/50.
 val.rename('power','setting').setaxis('setting',V_AFG).set_units('setting','V')
 fl.plot(val,'.', label='$V_{pp}$')
 fl.show()
