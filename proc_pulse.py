@@ -3,7 +3,7 @@ import logging
 init_logging(level=logging.DEBUG)
 fl = figlist_var()
 
-def process_series(date,id_string,V_AFG):
+def process_series(date,id_string,V_AFG, pulse_threshold=0.4):
     """Process a series of pulse data.
     
     Lumping this as a function so we can do things like divide series, etc.
@@ -104,7 +104,7 @@ def process_series(date,id_string,V_AFG):
         fl.plot(abs(analytic_signal['ch',0]),alpha=0.2)
     pulse_slice = abs(
             analytic_signal['ch',0]['power',-1]).contiguous(lambda x:
-                    x>0.2*x.data.max())
+                    x>pulse_threshold*x.data.max())
     print "done loading all signals"
     assert pulse_slice.shape[0] == 1, strm("found more than one (or none) region rising about 0.6 max amplitude:",tuple(pulse_slice))
     pulse_slice = pulse_slice[0,:]
@@ -120,7 +120,7 @@ date = '180207'
 id_string = '2dio'
 V_AFG = linspace(0.5,7,50)
 atten = 1 # means no attenuation
-V_anal, V_harmonic, V_pp = process_series(date,id_string,V_AFG)
+V_anal, V_harmonic, V_pp = process_series(date,id_string,V_AFG, pulse_threshold=0.2)
 
 fl.basename = '(summary plot)'
 fl.next('power vs. power')
