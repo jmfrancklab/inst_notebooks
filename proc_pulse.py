@@ -104,7 +104,7 @@ def process_series(date,id_string,V_AFG):
         fl.plot(abs(analytic_signal['ch',0]),alpha=0.2)
     pulse_slice = abs(
             analytic_signal['ch',0]['power',-1]).contiguous(lambda x:
-                    x>0.4*x.data.max())
+                    x>0.2*x.data.max())
     print "done loading all signals"
     assert pulse_slice.shape[0] == 1, strm("found more than one (or none) region rising about 0.6 max amplitude:",tuple(pulse_slice))
     pulse_slice = pulse_slice[0,:]
@@ -116,20 +116,18 @@ def process_series(date,id_string,V_AFG):
     V_pp -= raw_signal['ch',0]['t':tuple(pulse_slice)].run(min,'t')
     return V_anal, V_harmonic, V_pp
 
-date = '180206'
-id_string = 'pi'
-V_AFG = linspace(0.5,3,50)
-atten = 10**(-40./10)
+date = '180207'
+id_string = '1dio'
+V_AFG = linspace(0.5,7,50)
 V_anal, V_harmonic, V_pp = process_series(date,id_string,V_AFG)
-
 fl.basename = '(summary plot)'
 fl.next('power vs. power')
-fl.plot((V_anal/sqrt(2))**2/50./atten, label='$V_{analytic}$') #this is the true power plot, using analytic signal Vrms
-fl.plot((V_harmonic/sqrt(2))**2/50./atten, label='$V_{harmonic}$') #this is the true power plot, using analytic signal Vrms
+fl.plot((V_anal/sqrt(2))**2/50., label='$V_{analytic}$') #this is the true power plot, using analytic signal Vrms
+fl.plot((V_harmonic/sqrt(2))**2/50., label='$V_{harmonic}$') #this is the true power plot, using analytic signal Vrms
 #fl.next('power plot Vpp raw')
-fl.plot((V_pp/sqrt(2)/2.0)**2/50./atten,'.', label='$V_{pp}$')
+fl.plot((V_pp/sqrt(2)/2.0)**2/50.,'.', label='$V_{pp}$')
 fl.next('power vs. AFG setting')
-val = (V_pp/sqrt(2)/2.0)**2/50./atten
+val = (V_pp/sqrt(2)/2.0)**2/50.
 val.rename('power','setting').setaxis('setting',V_AFG).set_units('setting','V')
 fl.plot(val,'.', label='$V_{pp}$')
 fl.show()
