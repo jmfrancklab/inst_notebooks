@@ -116,10 +116,10 @@ def process_series(date,id_string,V_AFG, pulse_threshold=0.4):
     V_pp -= raw_signal['ch',0]['t':tuple(pulse_slice)].run(min,'t')
     return V_anal, V_harmonic, V_pp
 
-date = '180207'
-id_string = 'pi'
-V_AFG = linspace(0.5,3,50)
-atten = 10**(-40/10) 
+date = '180216'
+id_string = 'SB140'
+V_AFG = linspace(0.5,5,50)
+atten = 1 
 V_anal, V_harmonic, V_pp = process_series(date,id_string,V_AFG, pulse_threshold=0.2)
 
 fl.basename = '(summary plot)'
