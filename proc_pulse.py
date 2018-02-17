@@ -1,6 +1,6 @@
 from pyspecdata import *
 import logging
-init_logging(level=logging.DEBUG)
+#init_logging(level=logging.DEBUG)
 fl = figlist_var()
 
 def process_series(date,id_string,V_AFG, pulse_threshold=0.4):
@@ -117,9 +117,9 @@ def process_series(date,id_string,V_AFG, pulse_threshold=0.4):
     return V_anal, V_harmonic, V_pp
 
 date = '180207'
-id_string = '2dio'
-V_AFG = linspace(0.5,7,50)
-atten = 1 # means no attenuation
+id_string = 'pi'
+V_AFG = linspace(0.5,3,50)
+atten = 10**(-40/10) 
 V_anal, V_harmonic, V_pp = process_series(date,id_string,V_AFG, pulse_threshold=0.2)
 
 fl.basename = '(summary plot)'
