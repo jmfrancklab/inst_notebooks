@@ -7,8 +7,7 @@ f_axis = linspace(100e3,500e3,100) # must match sweep_frequencies_sqw
 with figlist_var(filename='chirp.pdf') as fl:
     expno=0
     for date, id_string in [
-            ('180131','inductor1'),
-            ('180131','inductor2'),
+            ('180219','findingQ'),
             ]:
         try:
             try:
@@ -49,9 +48,9 @@ with figlist_var(filename='chirp.pdf') as fl:
         if expno == 0:
             fl.next('analytic signal, abs')
             fl.plot(abs(d))
-        ranges = abs(d)['ch',0].contiguous(lambda x: x > 0.09*x.data.max())
-        if ranges.shape[0] > 1:
-            raise ValueError("When I try to pull out the waveform, I get more than one range that's greater than 9%")
+        ranges = abs(d)['ch',0].contiguous(lambda x: x > 0.2*x.data.max())
+        #if ranges.shape[0] > 1:
+        #    raise ValueError("When I try to pull out the waveform, I get more than one range that's greater than 9%")
         ranges = tuple(ranges[0,:].tolist())
         d = d['t':ranges]
         d.setaxis('t', lambda x: x-d.getaxis('t')[0])
