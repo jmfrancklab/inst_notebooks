@@ -6,11 +6,12 @@ portlist = [j.device for j in comports() if j.description==u'Arduino Due Program
 assert len(portlist)==1
 thisport = portlist[0]
 with serial.Serial(thisport, timeout=1) as s:
-    time.sleep(20)
-    print "done"
+    time.sleep(20) # allow the instrument time to reset after the connection is initiated above
+    print "done" # so that we see it's done sleeping
     s.write("freq 9505.0\r")
     s.write("help\r")
     print s.read_all()
-    
+    s.write("freq?\r")
+    print s.read_all()
    
 
