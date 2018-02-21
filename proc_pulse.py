@@ -25,7 +25,7 @@ def process_series(date,id_string,V_AFG, pulse_threshold=0.4):
     V_harmonic: nddata
         The analytic signal, filtered to set the second harmonic (this is manually set)
     V_pp: nddata
-        After using the analytic signal to determi ne the extent of the pulse, find the min and max.
+        After using the analytic signal to determine the extent of the pulse, find the min and max.
     """
     p_len = len(V_AFG)
     V_calib = 0.5*V_AFG
@@ -42,10 +42,15 @@ def process_series(date,id_string,V_AFG, pulse_threshold=0.4):
     for j in range(1,p_len+1):
         print "loading signal",j
         j_str = str(j)
+        #NOTE: The following data 'd' will be loaded as a 2 lattices/axes/arrays -- one is 'ch' (y-axis), one is 't' by default (x-axis)
         d = nddata_hdf5(date+'_'+id_string+'.h5/capture'+j_str+'_'+date,
                 directory=getDATADIR(exp_type='test_equip'))
+        #NOTE: The following statement sets the units of the 't' axis of the 2D lattice 'd' to seconds
         d.set_units('t','s')
         if j == 1:
+            #NOTE: The following line creates a new data set called 'raw_signal'
+            #Data set 'raw_signal' takes the shape of the 2d lattice 'd', but we also add here the structure for a third lattice, making 'raw_signal" a 3 dimensional lattice.
+            #The third lattice is titled 'power'
             raw_signal = (ndshape(d) + ('power',p_len)).alloc()
             raw_signal.setaxis('t',d.getaxis('t')).set_units('t','s')
             raw_signal.setaxis('power',(V_calib/2/sqrt(2))**2/50.)
@@ -73,6 +78,7 @@ def process_series(date,id_string,V_AFG, pulse_threshold=0.4):
         d.ft('t')
         d = d['t':(0,None)]
         d_harmonic = d.copy()
+
         d['t':(33e6,None)] = 0
         d_harmonic['t':(0,33e6)] = 0
         d_harmonic['t':(60e6,None)] = 0
@@ -102,17 +108,21 @@ def process_series(date,id_string,V_AFG, pulse_threshold=0.4):
         harmonic_signal['power',j-1] = d_harmonic
 #        fl.next('Analytic signal mag')
 #        fl.plot(abs(analytic_signal['ch',0]),alpha=0.2)
+    #NOTE: pulse_slice here is joining the scope data of the y-axis (['ch',0]) with the new x-axis we generated in the beginning (['power',-1]) 
     pulse_slice = abs(
             analytic_signal['ch',0]['power',-1]).contiguous(lambda x:
                     x>pulse_threshold*x.data.max())
 
-    winsound.Beep(1300, 500)        
+    winsound.Beep(1010,890)        
     print "done loading all signals for %s"%id_string
     assert pulse_slice.shape[0] == 1, strm("found more than one (or none) region rising about 0.6 max amplitude:",tuple(pulse_slice))
+    #NOTE: Now we are about to create the 'lattice' of the data from pulse_slice
     pulse_slice = pulse_slice[0,:]
+    #NOTE: We are about to perform an averaging of the signals for the analytic and harmonic sets of data over the time range specified by pulse_slice 
     pulse_slice += r_[0.1e-6,-0.1e-6]
     V_anal = abs(analytic_signal['ch',0]['t':tuple(pulse_slice)]).mean('t')
     V_harmonic = abs(harmonic_signal['ch',0]['t':tuple(pulse_slice)]).mean('t')
+    #NOTE: We are about to find the Vpp for the raw data over the time range specified by pulse_slice 
     pulse_slice += r_[0.5e-6,-0.5e-6]
     V_pp = raw_signal['ch',0]['t':tuple(pulse_slice)].run(max,'t')
     V_pp -= raw_signal['ch',0]['t':tuple(pulse_slice)].run(min,'t')
@@ -122,34 +132,31 @@ V_AFG = linspace(0.5,5,50)
 atten = 1 
 
 for date,id_string in [
-        ('180216','control'),
-        ('180216','SB120'),
-        ('180216','SB130'),
-        ('180216','SB140'),
-        ('180220','SB150_54'),
-        ('180220','SB150_73'),
-        ('180220','SB160'),
-        ('180220','SB530')
+       ('180216','control'),
+       ('180216','SB120'),
+       ('180216','SB130'),
+       ('180216','SB140'),
+       ('180220','SB150_54'),
+       ('180220','SB150_73'),
+       ('180220','SB160'),
+       ('180220','SB530')
         ]:
     V_anal, V_harmonic, V_pp = process_series(date,id_string,V_AFG, pulse_threshold=0.2)
-    fl.basename = '(compare)'
-    fl.next('V_analytic: P vs P')
-    fl.plot((V_anal/sqrt(2))**2/50./atten, label='%s $V_{analytic}$'%id_string) #this is the true power plot, using analytic signal Vrms
-    fl.next('V_harmonic: P vs P')
-    fl.plot((V_harmonic/sqrt(2))**2/50./atten, label='%s $V_{harmonic}$'%id_string) #this is the true power plot, using analytic signal Vrms
-    #fl.next('power plot Vpp raw')
-    fl.next('V_pp: P vs P')
+    fl.basename = '(raw)'
+#    fl.next('V_analytic: P vs P')
+#    fl.plot((V_anal/sqrt(2))**2/50./atten, label='%s $V_{analytic}$'%id_string) 
+#    fl.next('V_harmonic: P vs P')
+#    fl.plot((V_harmonic/sqrt(2))**2/50./atten, label='%s $V_{harmonic}$'%id_string) 
+    fl.next('Power(W) vs Power(W)')
     fl.plot((V_pp/sqrt(2)/2.0)**2/50./atten,'.', label='%s $V_{pp}$'%id_string)
-    fl.next('power vs. AFG setting')
+    fl.next('Power(W) vs. AFG signal(Vpp)')
     val = (V_pp/sqrt(2)/2.0)**2/50./atten
     val.rename('power','setting').setaxis('setting',V_AFG).set_units('setting','Vpp')
     fl.plot(val,'.', label='%s $V_{pp}$'%id_string)
-    fl.next('Vpp_GDS vs Vpp_AFG')
+    fl.next('GDS signal(Vpp) vs AFG signal(Vpp)')
     val = V_pp
     val.rename('power','setting').setaxis('setting',V_AFG).set_units('setting','Vpp')
     fl.plot(val,'.', label='%s $V{pp}$'%id_string)
-    fl.next('Vf plot: (Vpp_GDS)*0.5  vs (Vpp_AFG)')
-    fl.plot(val*0.5,'.', label='%s $V{pp}$'%id_string)
 fl.show()
 
 
