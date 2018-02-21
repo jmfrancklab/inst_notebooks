@@ -25,11 +25,10 @@ def process_series(date,id_string,V_AFG, pulse_threshold=0.4):
     V_harmonic: nddata
         The analytic signal, filtered to set the second harmonic (this is manually set)
     V_pp: nddata
-        After using the analytic signal to determine the extent of the pulse, find the min and max.
+        After using the analytic signal to determi ne the extent of the pulse, find the min and max.
     """
     p_len = len(V_AFG)
     V_calib = 0.5*V_AFG
-    p_len = len(V_AFG)
     fl.basename = "(%s diagnostic)"%id_string
     fl.next('Channel 1, 1',
             figsize=(12,6),legend=True)
@@ -107,8 +106,8 @@ def process_series(date,id_string,V_AFG, pulse_threshold=0.4):
             analytic_signal['ch',0]['power',-1]).contiguous(lambda x:
                     x>pulse_threshold*x.data.max())
 
-    winsound.Beep(1500, 800)        
-    print "done loading all signals"
+    winsound.Beep(1300, 500)        
+    print "done loading all signals for %s"%id_string
     assert pulse_slice.shape[0] == 1, strm("found more than one (or none) region rising about 0.6 max amplitude:",tuple(pulse_slice))
     pulse_slice = pulse_slice[0,:]
     pulse_slice += r_[0.1e-6,-0.1e-6]
@@ -123,11 +122,14 @@ V_AFG = linspace(0.5,5,50)
 atten = 1 
 
 for date,id_string in [
+        ('180216','control'),
         ('180216','SB120'),
         ('180216','SB130'),
         ('180216','SB140'),
-        ('180220','SB150_54')
-        ('180220','SB150_73')
+        ('180220','SB150_54'),
+        ('180220','SB150_73'),
+        ('180220','SB160'),
+        ('180220','SB530')
         ]:
     V_anal, V_harmonic, V_pp = process_series(date,id_string,V_AFG, pulse_threshold=0.2)
     fl.basename = '(compare)'
@@ -140,8 +142,14 @@ for date,id_string in [
     fl.plot((V_pp/sqrt(2)/2.0)**2/50./atten,'.', label='%s $V_{pp}$'%id_string)
     fl.next('power vs. AFG setting')
     val = (V_pp/sqrt(2)/2.0)**2/50./atten
-    val.rename('power','setting').setaxis('setting',V_AFG).set_units('setting','V')
+    val.rename('power','setting').setaxis('setting',V_AFG).set_units('setting','Vpp')
     fl.plot(val,'.', label='%s $V_{pp}$'%id_string)
+    fl.next('Vpp_GDS vs Vpp_AFG')
+    val = V_pp
+    val.rename('power','setting').setaxis('setting',V_AFG).set_units('setting','Vpp')
+    fl.plot(val,'.', label='%s $V{pp}$'%id_string)
+    fl.next('Vf plot: (Vpp_GDS)*0.5  vs (Vpp_AFG)')
+    fl.plot(val*0.5,'.', label='%s $V{pp}$'%id_string)
 fl.show()
 
 
