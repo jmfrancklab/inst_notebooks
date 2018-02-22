@@ -3,6 +3,9 @@
 
 # initialization
 
+# In[17]:
+
+
 get_ipython().magic(u'pylab inline')
 from serial.tools.list_ports import comports, grep
 import serial
@@ -13,36 +16,86 @@ print serial.VERSION
 def generate_beep(freq,duration):
     "Generates a beep -- used winsound.Beep under windows -- use pygame under linux"
     return
+def bridge12_wait(s):
+    #time.sleep(5)
+    def look_for(this_str):
+        for j in range(1000):
+            a = s.read_until(this_str+'\r\n')
+            time.sleep(0.1)
+            #print "a is",repr(a)
+            print "look for",this_str,"try",j+1
+            if this_str in a:
+                print "found: ",this_str
+                break
+    look_for('MPS Started')
+    look_for('System Ready')
+    return
 
 
 # print out the com ports, so we know what we're looking for
 
+# In[14]:
+
+
 [(j.device, j.hwid, j.vid, j.description, j.manufacturer) for j in comports()] #list comprehension
 
+
 # Grab the port labeled as Arduino (since the Bridge12 microcontroller is an Arduino)
+
+# In[15]:
+
 
 portlist = [j.device for j in comports() if u'Arduino Due' in j.description]
 assert len(portlist)==1
 thisport = portlist[0]
 
 
-# try the help command
+# try the help command -- start with the simplest way possible, which uses very long wait times:
+
+# In[8]:
+
 
 with serial.Serial(thisport, timeout=1, baudrate=115200) as s:
-    time.sleep(10) #give it time to start
+    time.sleep(20)
     print "done"
-    print "initial:",s.readline() #Bridge 12 MPS Started
+    print "initial:",repr(s.read_all()) #Bridge 12 MPS Started
     s.write("help\r") #command for "help"
-    time.sleep(4) #time to process
-    print "after help:",s.read_all() #read help 
+    time.sleep(10)
+    print "after help:",repr(s.read_all()) #read help 
 
 
+# Here, I play with minimal wait times.  Note the timeout=3, which causes readline and read_until to wait longer.  Though there are many lines of code to grab the help response, this should work for any multiline response.
+# 
+# Note that the read_all only reads what's in the buffer *right now* -- with the laptop we were able to call this once, because the bufer fills up so fast.  The USB on the pi seems to be slower.
+
+# In[23]:
+
+
+with serial.Serial(thisport, timeout=3, baudrate=115200) as s:
+    bridge12_wait(s) #give it time to start
+    s.write("help\r") #command for "help"
+    print "after help:"
+    entire_response = ''
+    start = time.time()
+    entire_response += s.readline()
+    time_to_read_a_line = time.time()-start
+    grab_more_lines = True
+    while grab_more_lines:
+        time.sleep(3*time_to_read_a_line)
+        more = s.read_all()
+        entire_response += more
+        if len(more) == 0:
+            grab_more_lines = False
+    print repr(entire_response)
 
 
 # freq query test
 
-with serial.Serial(thisport, timeout=1, baudrate=115200) as s:
-    time.sleep(10)
+# In[24]:
+
+
+with serial.Serial(thisport, timeout=3, baudrate=115200) as s:
+    bridge12_wait(s)
     print "done"
     generate_beep(1000,300)
     s.write('freq?\r')
@@ -50,12 +103,16 @@ with serial.Serial(thisport, timeout=1, baudrate=115200) as s:
 print "final"
 
 
-
-
 # frequency test
 
-with serial.Serial(thisport, timeout=1, baudrate=115200) as s:
-    time.sleep(10)
+# In[25]:
+
+
+with serial.Serial(thisport, timeout=3, baudrate=115200) as s:
+    bridge12_wait(s)
+    #time.sleep(10)
+    tmp = s.read_all()
+    print repr(tmp)
     print "done"
     generate_beep(1000,300)
     for freq in linspace(9.45e9,9.51e9,11):
@@ -67,12 +124,13 @@ with serial.Serial(thisport, timeout=1, baudrate=115200) as s:
     print "final:", s.read_all()
 
 
-
-
 # preliminary code for ampstatus and freq (no need to run):
 
-with serial.Serial(thisport, timeout=1, baudrate=115200) as s:
-    time.sleep(10) 
+# In[ ]:
+
+
+with serial.Serial(thisport, timeout=3, baudrate=115200) as s:
+    bridge12_wait(s)
     print "done"
     print "initial:",s.readline()
     s.write('ampstatus 0\r') #command amp to be OFF
@@ -89,16 +147,20 @@ with serial.Serial(thisport, timeout=1, baudrate=115200) as s:
     print "final:",s.read_all() #print any values coming out from "with" loop
 
 
-
 # playing with loops
+
+# In[ ]:
+
 
 for mw_freq in linspace(9.5e9,9.51e9,11):
     print 'freq %.1f\r'%(mw_freq/1e3) #printing
 
 
-
-
 # just checking to see if sounds work
+
+# In[ ]:
+
+
 import winsound
 duration = 1000  # millisecond
 freq = 440  # Hz
@@ -107,9 +169,12 @@ generate_beep(880, 300)
 
 # use this block for the tuning curve:
 
+# In[ ]:
+
+
 freq = linspace(9.4e9,9.9e9, 50)
 rxvalues = zeros(len(freq))
-with serial.Serial(thisport, timeout=1, baudrate=115200) as s:
+with serial.Serial(thisport, timeout=3, baudrate=115200) as s:
     time.sleep(10)
     print "initial:",s.readline()
     #ampstatus commands
@@ -135,14 +200,15 @@ print "j",j, "freq",f, "rxpower", rxvalues #'table' of values
 plot(freq, rxvalues) #tuning curve
 
 
-
-
 # another option for tuning curve (with sound):
+
+# In[ ]:
+
 
 freq = linspace(9.4e9,9.9e9, 50)
 rxvalues = zeros(len(freq))
 txvalues = zeros(len(freq))
-with serial.Serial(thisport, timeout=1, baudrate=115200) as s:
+with serial.Serial(thisport, timeout=3, baudrate=115200) as s:
     time.sleep(10) 
     print "done."
     print "initial:",s.readline()
@@ -188,10 +254,12 @@ plot(freq, txvalues, alpha=0.5, label='Tx')
 legend()
 
 
-
 # testing the power
 
-with serial.Serial(thisport, timeout=1, baudrate=115200) as s:
+# In[ ]:
+
+
+with serial.Serial(thisport, timeout=3, baudrate=115200) as s:
     s.read_until('Started\r\n') #read this instead of time sleep
     s.write('power 0\r')
     time.sleep(10)
@@ -199,7 +267,10 @@ with serial.Serial(thisport, timeout=1, baudrate=115200) as s:
 
 # testing the waveguide switch
 
-with serial.Serial(thisport, timeout=1, baudrate=115200) as s:
+# In[ ]:
+
+
+with serial.Serial(thisport, timeout=3, baudrate=115200) as s:
     s.read_until('Started\r\n')
     #s.write('power 100\r')
     for j in range(10):
@@ -209,11 +280,12 @@ with serial.Serial(thisport, timeout=1, baudrate=115200) as s:
     #print "power:", int(s.readline())
 
 
-
-
 # testing frequency
 
-with serial.Serial(thisport, timeout=1, baudrate=115200) as s:
+# In[ ]:
+
+
+with serial.Serial(thisport, timeout=3, baudrate=115200) as s:
     s.read_until('Started\r\n')
     time.sleep(10)
     generate_beep(700,300)
@@ -222,10 +294,12 @@ with serial.Serial(thisport, timeout=1, baudrate=115200) as s:
 print "done"
 
 
-
 # testing both power and rfstatus
 
-with serial.Serial(thisport, timeout=1, baudrate=115200) as s:
+# In[ ]:
+
+
+with serial.Serial(thisport, timeout=3, baudrate=115200) as s:
     s.read_until('Started\r\n')
     s.write('power 0\r')
     s.write('power?\r')
@@ -241,7 +315,10 @@ print "done"
 
 # messing with lots of on/off commands at once
 
-with serial.Serial(thisport, timeout=1, baudrate=115200) as s:
+# In[ ]:
+
+
+with serial.Serial(thisport, timeout=3, baudrate=115200) as s:
     s.read_until('Started\r\n')
     s.write('power 0\r')
     s.write('power?\r')
@@ -274,9 +351,12 @@ print "done"
 
 # will be a fully operational tuning curve with power on/off
 
+# In[ ]:
+
+
 freq = linspace(9.845e9,9.855e9, 50)
 rxvalues = zeros(len(freq))
-with serial.Serial(thisport, timeout=1, baudrate=115200) as s:
+with serial.Serial(thisport, timeout=3, baudrate=115200) as s:
     s.read_untill('Started\r\n')
     s.write('power 100\r')
     s.write('power?\r')
