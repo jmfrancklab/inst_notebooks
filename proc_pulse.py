@@ -4,7 +4,7 @@ import logging
 #init_logging(level=logging.DEBUG)
 fl = figlist_var()
 
-def process_series(date,id_string,V_AFG, pulse_threshold=0.4):
+def process_series(date,id_string,V_AFG, pulse_threshold=0.6):
     """Process a series of pulse data.
     
     Lumping this as a function so we can do things like divide series, etc.
@@ -34,11 +34,11 @@ def process_series(date,id_string,V_AFG, pulse_threshold=0.4):
             figsize=(12,6),legend=True)
     fl.next('Channel 1, %d'%p_len,
             figsize=(12,6),legend=True)
-#    fl.next('Fourier transform -- low power',
-#            figsize=(12,6))
-#    fl.next('Fourier transform -- high power',
-#            figsize=(12,6))
-#    fl.next('Analytic signal mag')# for some strange reason, things get messed up if I don't do this here after setting up other plots -- can't figure it out -- return to later
+    fl.next('Fourier transform -- low power',
+            figsize=(12,6))
+    fl.next('Fourier transform -- high power',
+            figsize=(12,6))
+    fl.next('Analytic signal mag')# for some strange reason, things get messed up if I don't do this here after setting up other plots -- can't figure it out -- return to later
     for j in range(1,p_len+1):
         print "loading signal",j
         j_str = str(j)
@@ -56,11 +56,11 @@ def process_series(date,id_string,V_AFG, pulse_threshold=0.4):
             raw_signal.setaxis('power',(V_calib/2/sqrt(2))**2/50.)
         raw_signal['power',j-1] = d
         if j == 1:
-            fl.next('Channel 1, 1')
-            fl.plot(d['ch',0], alpha=0.5,label='%s raw data'%id_string)
-        if j == p_len:
-            fl.next('Channel 1, %d'%p_len)
-            fl.plot(d['ch',0], alpha=0.5,label='%s raw data'%id_string)
+#            fl.next('Channel 1, 1')
+#            fl.plot(d['ch',0], alpha=0.5,label='%s raw data'%id_string)
+#        if j == p_len:
+#            fl.next('Channel 1, %d'%p_len)
+#            fl.plot(d['ch',0], alpha=0.5,label='%s raw data'%id_string)
         d.ft('t',shift=True)
 #        plotdict = {1:"Fourier transform -- low power",
 #                p_len:"Fourier transform -- high power"}
@@ -72,7 +72,7 @@ def process_series(date,id_string,V_AFG, pulse_threshold=0.4):
 #        for whichp in [1,p_len]:
 #            if j == whichp:
 #                fl.next('Channel 1, %d'%whichp)
-##                fl.plot(d['ch',0], alpha=0.5, label='FT and IFT')
+#                fl.plot(d['ch',0], alpha=0.5, label='FT and IFT')
 #                fl.plot(d['ch',0], alpha=0.5,label='raw data')
         # calculate the analytic signal
         d.ft('t')
@@ -115,7 +115,7 @@ def process_series(date,id_string,V_AFG, pulse_threshold=0.4):
 
     winsound.Beep(1010,890)        
     print "done loading all signals for %s"%id_string
-    assert pulse_slice.shape[0] == 1, strm("found more than one (or none) region rising about 0.6 max amplitude:",tuple(pulse_slice))
+#    assert pulse_slice.shape[0] == 1, strm("found more than one (or none) region rising about 0.6 max amplitude:",tuple(pulse_slice))
     #NOTE: Now we are about to create the 'lattice' of the data from pulse_slice
     pulse_slice = pulse_slice[0,:]
     #NOTE: We are about to perform an averaging of the signals for the analytic and harmonic sets of data over the time range specified by pulse_slice 
@@ -128,25 +128,20 @@ def process_series(date,id_string,V_AFG, pulse_threshold=0.4):
     V_pp -= raw_signal['ch',0]['t':tuple(pulse_slice)].run(min,'t')
     return V_anal, V_harmonic, V_pp
 
-V_AFG = linspace(0.5,5,50)
+V_AFG = linspace(0.5,7,50)
 atten = 1 
 
 for date,id_string in [
-       ('180216','control'),
-       ('180216','SB120'),
-       ('180216','SB130'),
-       ('180216','SB140'),
-       ('180220','SB150_54'),
-       ('180220','SB150_73'),
-       ('180220','SB160'),
-       ('180220','SB530')
+        ('180221','control_PCB'),
+       ('180222','1N4151'),
+       ('180305','TL2')
         ]:
     V_anal, V_harmonic, V_pp = process_series(date,id_string,V_AFG, pulse_threshold=0.2)
     fl.basename = '(raw)'
-#    fl.next('V_analytic: P vs P')
-#    fl.plot((V_anal/sqrt(2))**2/50./atten, label='%s $V_{analytic}$'%id_string) 
-#    fl.next('V_harmonic: P vs P')
-#    fl.plot((V_harmonic/sqrt(2))**2/50./atten, label='%s $V_{harmonic}$'%id_string) 
+    fl.next('V_analytic: P vs P')
+    fl.plot((V_anal/sqrt(2))**2/50./atten, label='%s $V_{analytic}$'%id_string) 
+    fl.next('V_harmonic: P vs P')
+    fl.plot((V_harmonic/sqrt(2))**2/50./atten, label='%s $V_{harmonic}$'%id_string) 
     fl.next('Power(W) vs Power(W)')
     fl.plot((V_pp/sqrt(2)/2.0)**2/50./atten,'.', label='%s $V_{pp}$'%id_string)
     fl.next('Power(W) vs. AFG signal(Vpp)')

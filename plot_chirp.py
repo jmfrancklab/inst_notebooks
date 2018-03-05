@@ -7,7 +7,7 @@ f_axis = linspace(100e3,500e3,100) # must match sweep_frequencies_sqw
 with figlist_var(filename='chirp.pdf') as fl:
     expno=0
     for date, id_string in [
-            ('180110','tm9probe'),
+            ('180227','controlchirp'),
             ]:
         try:
             try:
@@ -40,6 +40,8 @@ with figlist_var(filename='chirp.pdf') as fl:
             print "number of values along dynamic range",num_values,"log_2 ->",log(num_values)/log(2),"bits"
             fl.plot(myhist, label='Diversity of data matches %0.3f bits'%(log(num_values)/log(2)))
             # }}}
+        fl.next('chirp')
+        fl.plot(d['ch',0],color='violet')
         d -= d['t':(0,3.5e-6)].runcopy(mean,'t')
         d.ft('t',shift=True)
         d = d['t':(0,100e6)] # throw out negative frequencies and low-pass
@@ -70,17 +72,10 @@ with figlist_var(filename='chirp.pdf') as fl:
 #        if id_string == 'open_pi':
 #            fl.next('ratio analytic, pi open', legend=True)
 #            fl.plot(abs(2*d['ch',1]/d['ch',0]), alpha=0.8, label=id_string)
-        fl.next('chirp')
-        fl.plot(d['ch',0])
-        d.ft
-        fl.next('FT(chirp)')
-        fl.plot(d['ch',0])
-        fl.next('which ch1')
-        fl.plot(d['ch',1])
-        fl.next('analytic signal, ratio')
+        fl.next('analytic signal, ratio', legend=True)
 #        d.setaxis('t', lambda x: x-d.getaxis('t')[0])
-        fl.plot(abs(2*d['ch',1]/d['ch',0]), alpha=0.38, color='cyan')
-        fl.next('analytic signal, phase difference')
+        fl.plot(abs(2*d['ch',1]/d['ch',0]), alpha=0.38, label=id_string)
+        fl.next('analytic signal, phase difference', legend=True)
 #        d.setaxis('t', lambda x: x-d.getaxis('t')[0])
-        fl.plot((d['ch',1]/d['ch',0]).angle/pi, '.', alpha=0.38, color='violet')
+        fl.plot((d['ch',1]/d['ch',0]).angle/pi, '.', alpha=0.38, label=id_string)
         expno += 1

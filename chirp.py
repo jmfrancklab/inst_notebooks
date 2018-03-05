@@ -42,11 +42,12 @@ with GDS_scope() as g:
 data = concat(datalist,'ch').reorder('t')
 j = 1
 try_again = True
+raw_input("Enter to continue:")
 while try_again:
     data_name = 'capture%d'%j
     data.name(data_name)
     try:
-        data.hdf5_write('180219_findingQ.h5')
+        data.hdf5_write('180305_TL.h5')
         try_again = False
     except Exception as e:
         print e
