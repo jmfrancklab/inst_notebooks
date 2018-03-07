@@ -30,10 +30,10 @@ def process_series(date,id_string,V_AFG, pulse_threshold=0.6):
     p_len = len(V_AFG)
     V_calib = 0.5*V_AFG
     fl.basename = "(%s diagnostic)"%id_string
-    fl.next('Channel 1, 1',
-            figsize=(12,6),legend=True)
-    fl.next('Channel 1, %d'%p_len,
-            figsize=(12,6),legend=True)
+    #fl.next('Channel 1, 1',
+    #        figsize=(12,6),legend=True)
+    #fl.next('Channel 1, %d'%p_len,
+    #        figsize=(12,6),legend=True)
     fl.next('Fourier transform -- low power',
             figsize=(12,6))
     fl.next('Fourier transform -- high power',
@@ -55,7 +55,7 @@ def process_series(date,id_string,V_AFG, pulse_threshold=0.6):
             raw_signal.setaxis('t',d.getaxis('t')).set_units('t','s')
             raw_signal.setaxis('power',(V_calib/2/sqrt(2))**2/50.)
         raw_signal['power',j-1] = d
-        if j == 1:
+#        if j == 1:
 #            fl.next('Channel 1, 1')
 #            fl.plot(d['ch',0], alpha=0.5,label='%s raw data'%id_string)
 #        if j == p_len:
