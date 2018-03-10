@@ -98,8 +98,8 @@ def process_series(date,id_string,V_AFG, pulse_threshold=0.6):
         analytic_signal['power',j-1] = d
         harmonic_signal['power',j-1] = d_harmonic
         #NOTE: process file will not run without the following plot -- need to figure out why
-        fl.next('analytic signal magnitude')
-        fl.plot(abs(analytic_signal['ch',0]),alpha=0.2)
+#        fl.next('analytic signal magnitude')
+#        fl.plot(abs(analytic_signal['ch',0]),alpha=0.2)
     pulse_slice = abs(
             analytic_signal['ch',0]['power',-1]).contiguous(lambda x:
                     x>pulse_threshold*x.data.max())
@@ -121,8 +121,9 @@ atten = 1
 
 for date,id_string in [
        ('180309','PCB'),
-       ('180309','CD'),
-       ('180309','TL2')
+       ('180309','1N4151'),
+       ('180309','TL2'),
+       ('180309','TL3')
         ]:
     V_anal, V_harmonic, V_pp = process_series(date,id_string,V_AFG, pulse_threshold=0.2)
     fl.basename = '(raw)'
