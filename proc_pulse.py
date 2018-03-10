@@ -116,14 +116,13 @@ def process_series(date,id_string,V_AFG, pulse_threshold=0.6):
     V_pp -= raw_signal['ch',0]['t':tuple(pulse_slice)].run(min,'t')
     return V_anal, V_harmonic, V_pp
 
-V_AFG = linspace(0.5,7,50)
+V_AFG = linspace(0.11,1,50)
 atten = 1 
 
 for date,id_string in [
-       ('180221','control_PCB'),
-       ('180222','1N4151'),
-       ('180305','TL2'),
-       ('180306','TL_M10118_1')
+       ('180309','PCB'),
+       ('180309','CD'),
+       ('180309','TL2')
         ]:
     V_anal, V_harmonic, V_pp = process_series(date,id_string,V_AFG, pulse_threshold=0.2)
     fl.basename = '(raw)'

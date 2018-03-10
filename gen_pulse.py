@@ -49,10 +49,10 @@ def acquire():
     j = 1
     try_again = True
     while try_again:
-        data_name = 'capture%d_180306'%j
+        data_name = 'capture%d_180309'%j
         data.name(data_name)
         try:
-            data.hdf5_write('180306_TL_M10118_1.h5')
+            data.hdf5_write('180309_TL2.h5')
             try_again = False
             print "capture number",j
         except:
@@ -93,7 +93,7 @@ def gen_pulse(freq=15e6, width=4e-6, ch1_only=True):
         for this_ch in range(1):
             a[this_ch].burst = True
             raw_input("Any key to continue.")
-            for set_amp in linspace(0.5,5,50):
+            for set_amp in linspace(0.11,1,50):
                 a[this_ch].ampl=set_amp
                 acquire() 
         # if we run a.check_idn() here, it pops out of burst mode
