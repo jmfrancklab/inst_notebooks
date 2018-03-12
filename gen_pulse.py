@@ -49,10 +49,10 @@ def acquire():
     j = 1
     try_again = True
     while try_again:
-        data_name = 'capture%d_180309'%j
+        data_name = 'capture%d_180310'%j
         data.name(data_name)
         try:
-            data.hdf5_write('180309_TL3.h5')
+            data.hdf5_write('180310_TL_PCB.h5')
             try_again = False
             print "capture number",j
         except:
@@ -65,10 +65,6 @@ def acquire():
     fl.next('Dual-channel data')
     fl.plot(data)
     
-# else:
-#    with GDS_scope() as g:
-#        g.timscal(5e-6)  #setting time scale to 500 ns/div
-
 def gen_pulse(freq=15e6, width=4e-6, ch1_only=True):
     with AFG() as a:
         a.reset()
@@ -93,9 +89,8 @@ def gen_pulse(freq=15e6, width=4e-6, ch1_only=True):
         for this_ch in range(1):
             a[this_ch].burst = True
             raw_input("Any key to continue.")
-            for set_amp in linspace(0.11,1,50):
+            for set_amp in linspace(50e-3,200e-3,50):
                 a[this_ch].ampl=set_amp
                 acquire() 
-        # if we run a.check_idn() here, it pops out of burst mode
 gen_pulse()
 
