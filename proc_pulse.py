@@ -43,7 +43,7 @@ def process_series(date,id_string,V_AFG, pulse_threshold=0.6):
         if j == 1:
             raw_signal = (ndshape(d) + ('power',p_len)).alloc()
             raw_signal.setaxis('t',d.getaxis('t')).set_units('t','s')
-            raw_signal.setaxis('power',(V_calib/2/sqrt(2))**2/50.)
+            raw_signal.setaxis('power',(V_calib/sqrt(2))**2/50.)
         raw_signal['power',j-1] = d
 #        if j == 1:
             #NOTE: process file will not run without the following graph -- need to figure out why
@@ -115,12 +115,12 @@ def process_series(date,id_string,V_AFG, pulse_threshold=0.6):
     V_pp -= raw_signal['ch',0]['t':tuple(pulse_slice)].run(min,'t')
     return V_anal, V_harmonic, V_pp
 
-V_AFG = linspace(10e-3,100e-3,20)
+V_AFG = linspace(10e-3,510e-3,50)
 atten = 1 
 
 for date,id_string in [
-       ('180312','control_lineartest'),
-       ('180312','TL_lineartest')
+       ('180312','control'),
+       ('180312','TL')
         ]:
     V_anal, V_harmonic, V_pp = process_series(date,id_string,V_AFG, pulse_threshold=0.2)
     fl.basename = '(raw)'
