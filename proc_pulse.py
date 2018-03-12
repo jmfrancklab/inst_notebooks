@@ -122,7 +122,8 @@ for date,id_string in [
        ('180310','control'),
        ('180310','TL_PCB'),
        ('180310','TL_PCB_1N4151'),
-       ('180310','TL')
+       ('180310','TL'),
+       ('180312','TL_M8653_1')
         ]:
     V_anal, V_harmonic, V_pp = process_series(date,id_string,V_AFG, pulse_threshold=0.2)
     fl.basename = '(raw)'
