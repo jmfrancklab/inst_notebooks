@@ -197,15 +197,15 @@ class Bridge12 (Serial):
 # check that all the ``set_`` functions work correctly:
 
 with Bridge12() as b:
-    print "initial wg status:", self.wgstatus_int()
-    self.set_wg(True)
-    print "initial amp status:", self.ampstatus_int()
-    self.set_amp(True)
-    print "initial rf status:", self.rfstatus_int()
-    self.set_rf(True)
-    print "initial power:",self.power_int()
-    self.set_power(10)
-    print "up power:",self.power_int()
+    print "initial wg status:", b.wgstatus_int()
+    b.set_wg(True)
+    print "initial amp status:", b.ampstatus_int()
+    b.set_amp(True)
+    print "initial rf status:", b.rfstatus_int()
+    b.set_rf(True)
+    print "initial power:",b.power_int()
+    b.set_power(10)
+    print "up power:",b.power_int()
     time.sleep(10)
 
 # # Stop here -- need to read, understand, and use the previous before proceeding
