@@ -52,7 +52,7 @@ def acquire():
         data_name = 'capture%d_180313'%j
         data.name(data_name)
         try:
-            data.hdf5_write('180313_LNA.h5')
+            data.hdf5_write('180313_LNA_noise.h5')
             try_again = False
             print "capture number",j
         except:
@@ -88,10 +88,8 @@ def gen_pulse(freq=15e6, width=4e-6, ch1_only=True):
             a[this_ch].output = True
         for this_ch in range(1):
             a[this_ch].burst = True
-            #for set_amp in linspace(10.e-3,510.e-3,50):
-            set_amp = 11.3e-3
-            a[this_ch].ampl=set_amp
-            raw_input("any key to continue.")
-            acquire() 
+            for set_amp in linspace(10.e-3,3,100):
+                a[this_ch].ampl=set_amp
+                acquire() 
 gen_pulse()
 
