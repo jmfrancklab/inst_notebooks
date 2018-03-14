@@ -30,7 +30,7 @@ with AFG() as a:
 
 datalist = []
 print "about to load GDS"
-raw_input("Turn on RF amp") 
+#raw_input("Turn on RF amp") 
 
 with GDS_scope() as g:
 #     g.timscal(500e-9)  #setting time scale to 500 ns/div
@@ -47,7 +47,7 @@ while try_again:
     data_name = 'capture%d'%j
     data.name(data_name)
     try:
-        data.hdf5_write('180309_test.h5')
+        data.hdf5_write('180314_testL1_2.h5')
         try_again = False
     except Exception as e:
         print e
