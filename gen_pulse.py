@@ -49,10 +49,10 @@ def acquire():
     j = 1
     try_again = True
     while try_again:
-        data_name = 'capture%d_180313'%j
+        data_name = 'capture%d_180314'%j
         data.name(data_name)
         try:
-            data.hdf5_write('180313_LNA_noise.h5')
+            data.hdf5_write('180314_test.h5')
             try_again = False
             print "capture number",j
         except:
@@ -65,7 +65,7 @@ def acquire():
     fl.next('Dual-channel data')
     fl.plot(data)
     
-def gen_pulse(freq=15e6, width=4e-6, ch1_only=True):
+def gen_pulse(freq=14.5e6, width=4e-6, ch1_only=True):
     with AFG() as a:
         a.reset()
         rate = freq*4
@@ -88,8 +88,9 @@ def gen_pulse(freq=15e6, width=4e-6, ch1_only=True):
             a[this_ch].output = True
         for this_ch in range(1):
             a[this_ch].burst = True
-            for set_amp in linspace(10.e-3,3,100):
-                a[this_ch].ampl=set_amp
-                acquire() 
+#            for set_amp in linspace(1,3,50):
+            set_amp=800e-3
+            a[this_ch].ampl=set_amp
+            acquire() 
 gen_pulse()
 
