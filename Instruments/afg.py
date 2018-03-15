@@ -182,7 +182,7 @@ class AFG (SerialInstrument):
         levels = self.respond('SOUR%d:APPL:SQU?'%(ch))
         return levels
     
-    def set_burst(self,ncyc,per,ch=1):
+    def set_burst(self,per,ncyc=1,ch=1):
         """Outputs a burst of a previously identified waveform
             at time interval specified by per in seconds.
         
