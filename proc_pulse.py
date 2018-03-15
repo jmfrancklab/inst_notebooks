@@ -30,9 +30,9 @@ def process_series(date,id_string,V_AFG, pulse_threshold=0.6):
     p_len = len(V_AFG)
     V_calib = 0.5*V_AFG
 #    fl.basename = "(%s diagnostic)"%id_string
-    fl.next('Channel 1, 1')
-    fl.next('Channel 1, %d'%p_len)
-    fl.next('Fourier transform -- low power')
+#    fl.next('Channel 1, 1')
+#    fl.next('Channel 1, %d'%p_len)
+#    fl.next('Fourier transform -- low power')
 #    fl.next('Fourier transform -- high power')
     for j in range(1,p_len+1):
         print "loading signal",j
@@ -45,22 +45,21 @@ def process_series(date,id_string,V_AFG, pulse_threshold=0.6):
             raw_signal.setaxis('t',d.getaxis('t')).set_units('t','s')
             raw_signal.setaxis('power',(V_calib/2/sqrt(2))**2/50.)
         raw_signal['power',j-1] = d
-        if j == 1:
-            #NOTE: process file will not run without the following graph -- need to figure out why
-            fl.next('Channel 1, ,1')
-            fl.plot(d['ch',0], alpha=0.5)
-            fl.show()
+#        if j == 1:
+#            #NOTE: process file will not run without the following graph -- need to figure out why
+#            fl.next('Channel 1, ,1')
+#            fl.plot(d['ch',0], alpha=0.5)
+#            fl.show()
 #        if j == p_len:
 #            fl.next('Channel 1, %d'%p_len)
 #            fl.plot(d['ch',0], alpha=0.5)
         d.ft('t',shift=True)
-        plotdict = {1:"Fourier transform -- low power",
-                p_len:"Fourier transform -- high power"}
-        for whichp in [1,p_len]:
-            fl.next(plotdict[whichp])
-            if j == whichp:
-                fl.plot(abs(d)['ch',0],alpha=0.2,label='FT')
-                fl.show()
+#        plotdict = {1:"Fourier transform -- low power",
+#                p_len:"Fourier transform -- high power"}
+#        for whichp in [1,p_len]:
+#            fl.next(plotdict[whichp])
+#            if j == whichp:
+#                fl.plot(abs(d)['ch',0],alpha=0.2,label='FT')
         d.ift('t')
 #        for whichp in [1,p_len]:
 #            if j == whichp:
@@ -117,11 +116,11 @@ def process_series(date,id_string,V_AFG, pulse_threshold=0.6):
     V_pp -= raw_signal['ch',0]['t':tuple(pulse_slice)].run(min,'t')
     return V_anal, V_harmonic, V_pp
 
-V_AFG = linspace(10e-3,510e-3,50)
+V_AFG = linspace(80e-3,10,100)
 atten = 1 
 
 for date,id_string in [
-       ('180313','LNA_signal'),
+       ('180314','duplexer'),
         ]:
     V_anal, V_harmonic, V_pp = process_series(date,id_string,V_AFG, pulse_threshold=0.2)
     fl.basename = '(raw)'
