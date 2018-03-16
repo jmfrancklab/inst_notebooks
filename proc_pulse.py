@@ -118,6 +118,7 @@ V_AFG = linspace(25e-3,2.5,50)
 atten = 10**(-40./10) 
 
 for date,id_string in [
+       ('180316','amp_control1'),
        ('180316','amp_control2')
         ]:
     #fl.basename = "(%s diagnostic)"%id_string
