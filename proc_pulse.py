@@ -1,6 +1,6 @@
 from pyspecdata import *
-import winsound
-import logging
+#import winsound
+#import logging
 #init_logging(level=logging.DEBUG)
 fl = figlist_var()
 
@@ -52,14 +52,14 @@ def process_series(date,id_string,V_AFG, pulse_threshold):
         #if j == p_len:
         #    fl.next('Channel 1, %d'%p_len)
         #    fl.plot(d['ch',0], alpha=0.5, label="label")
-        #d.ft('t',shift=True)
-        #plotdict = {1:"Fourier transform -- low power",
-        #        p_len:"Fourier transform -- high power"}
-        #for whichp in [1,p_len]:
-        #    fl.next(plotdict[whichp])
-        #    if j == whichp:
-        #        fl.plot(abs(d)['ch',0],alpha=0.2,label="FT")
-        #d.ift('t')
+        d.ft('t',shift=True)
+        plotdict = {1:"Fourier transform -- low power",
+                p_len:"Fourier transform -- high power"}
+        for whichp in [1,p_len]:
+            fl.next(plotdict[whichp])
+            if j == whichp:
+                fl.plot(abs(d)['ch',0],alpha=0.2,label="FT")
+        d.ift('t')
         #for whichp in [1,p_len]:
         #    if j == whichp:
         #        fl.next('Channel 1, %d'%whichp)
@@ -101,7 +101,7 @@ def process_series(date,id_string,V_AFG, pulse_threshold):
     pulse_slice = abs(
             analytic_signal['ch',0]['power',-1]).contiguous(lambda x:
                     x>pulse_threshold*x.data.max())
-    winsound.Beep(1010,890)        
+   # winsound.Beep(1010,890)        
     print "done loading all signals for %s"%id_string
     #assert pulse_slice.shape[0] == 1, strm("found more than one (or none) region rising about 0.6 max amplitude:",tuple(pulse_slice))
     pulse_slice = pulse_slice[0,:]
@@ -118,35 +118,35 @@ V_AFG = linspace(25e-3,2.5,100)
 atten = 10**(-40./10) 
 
 for date,id_string in [
-       ('180315','duplexer_amp1'),
        ('180315','control_amp1')
         ]:
     #fl.basename = "(%s diagnostic)"%id_string
     V_anal, V_harmonic, V_pp = process_series(date,id_string,V_AFG, pulse_threshold=0.2)
-    fl.next('V_analytic: P vs P')
-    fl.plot((V_anal/sqrt(2))**2/50./atten, label="%s $V_{analytic}$"%id_string) 
-    fl.next('V_harmonic: P vs P')
-    fl.plot((V_harmonic/sqrt(2))**2/50./atten, label="%s $V_{harmonic}$"%id_string) 
-    fl.next('Power(W) vs Power(W)')
-    fl.plot((V_pp/sqrt(2)/2.0)**2/50./atten,'.', label="%s $V_{pp}$"%id_string)
-    fl.next('Power(W) vs. AFG signal(Vpp)')
-    val = (V_pp/sqrt(2)/2.0)**2/50./atten
-    val.rename('power','setting').setaxis('setting',V_AFG).set_units('setting','Vpp')
-    fl.plot(val,'.', label="%s $V_{pp}$"%id_string)
-    logger.debug(strm('Power(W) vs. AFG signal(Vpp)',fl.basename))
-    logger.debug(strm("gca id",gca(),id(gca())))
-    logger.debug(strm("print out the legend object within the code",gca().legend()))
-    logger.debug(strm("print out the lines",gca().get_lines()))
-    fl.next('GDS signal(Vpp) vs AFG signal(Vpp)')
-    val = V_pp
-    val.rename('power','setting').setaxis('setting',V_AFG).set_units('setting','Vpp')
-    fl.plot(val,'.', label="%s $V{pp}$"%id_string)
+#    fl.next('V_analytic: P vs P')
+#    fl.plot((V_anal/sqrt(2))**2/50./atten, label="%s $V_{analytic}$"%id_string) 
+#    fl.next('V_harmonic: P vs P')
+#    fl.plot((V_harmonic/sqrt(2))**2/50./atten, label="%s $V_{harmonic}$"%id_string) 
+#    fl.next('Power(W) vs Power(W)')
+#    fl.plot((V_pp/sqrt(2)/2.0)**2/50./atten,'.', label="%s $V_{pp}$"%id_string)
+#    fl.next('Power(W) vs. AFG signal(Vpp)')
+#    val = (V_pp/sqrt(2)/2.0)**2/50./atten
+#    val.rename('power','setting').setaxis('setting',V_AFG).set_units('setting','Vpp')
+#    fl.plot(val,'.', label="%s $V_{pp}$"%id_string)
+#    logger.debug(strm('Power(W) vs. AFG signal(Vpp)',fl.basename))
+#    logger.debug(strm("gca id",gca(),id(gca())))
+#    logger.debug(strm("print out the legend object within the code",gca().legend()))
+#    logger.debug(strm("print out the lines",gca().get_lines()))
+#    fl.next('GDS signal(Vpp) vs AFG signal(Vpp)')
+#    val = V_pp
+#    val.rename('power','setting').setaxis('setting',V_AFG).set_units('setting','Vpp')
+
+#    fl.plot(val,'.', label="%s $V{pp}$"%id_string)
 
 #fl.basename = "(%s diagnostic)"%("control_amp1")
-fl.next('Power(W) vs. AFG signal(Vpp)')
-logger.debug(strm('Immediately before show: Power(W) vs. AFG signal(Vpp)',fl.basename))
-logger.debug(strm("gca id",gca(),id(gca())))
-logger.debug(strm("print out the legend object within the code, immediately before show",gca().legend()))
-logger.debug(strm("print out the lines",gca().get_lines()))
+#fl.next('Power(W) vs. AFG signal(Vpp)')
+#logger.debug(strm('Immediately before show: Power(W) vs. AFG signal(Vpp)',fl.basename))
+#logger.debug(strm("gca id",gca(),id(gca())))
+#logger.debug(strm("print out the legend object within the code, immediately before show",gca().legend()))
+#logger.debug(strm("print out the lines",gca().get_lines()))
 fl.show()
 
