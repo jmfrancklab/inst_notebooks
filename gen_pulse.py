@@ -49,10 +49,10 @@ def acquire():
     j = 1
     try_again = True
     while try_again:
-        data_name = 'capture%d_180315'%j
+        data_name = 'capture%d_180316'%j
         data.name(data_name)
         try:
-            data.hdf5_write('180315_test_control_amp1.h5')
+            data.hdf5_write('180316_duplexer_pi2.h5')
             try_again = False
             print "capture number",j
         except:
@@ -90,7 +90,7 @@ def gen_pulse(freq=14.5e6, width=4e-6, ch1_only=True):
             a[this_ch].burst = True
             a.set_burst(per=100e-3) #effectively sets duty cycle (100msec b/w bursts)
 #            set_amp = 1
-            for set_amp in linspace(25e-3,2.5,10):
+            for set_amp in linspace(25e-3,2.5,50):
                a[this_ch].ampl=set_amp
                raw_input("Turn on amp then continue")
                acquire() 
