@@ -7,7 +7,7 @@ f_axis = linspace(100e3,500e3,100) # must match sweep_frequencies_sqw
 with figlist_var(filename='chirp.pdf') as fl:
     expno=0
     for date, id_string in [
-            ('180314','testL1_2'),
+            ('180316','for1N4151x2capacitance'),
             ]:
         try:
             try:
