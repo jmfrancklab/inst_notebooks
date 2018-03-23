@@ -49,10 +49,10 @@ def acquire():
     j = 1
     try_again = True
     while try_again:
-        data_name = 'capture%d_180314'%j
+        data_name = 'capture%d_180320'%j
         data.name(data_name)
         try:
-            data.hdf5_write('180314_test.h5')
+            data.hdf5_write('180320_test.h5')
             try_again = False
             print "capture number",j
         except:
@@ -65,9 +65,6 @@ def acquire():
     fl.next('Dual-channel data')
     fl.plot(data)
     
-# else:
-#    with GDS_scope() as g:
-#        g.timscal(5e-6)  #setting time scale to 500 ns/div
 
 def gen_pulse(freq=14.5e6, width=4e-6, ch1_only=True):
     with AFG() as a:
@@ -92,12 +89,10 @@ def gen_pulse(freq=14.5e6, width=4e-6, ch1_only=True):
             a[this_ch].output = True
         for this_ch in range(1):
             a[this_ch].burst = True
-            raw_input("Manually set AFG to low amplitude, then turn on RF amp.")
-            set_amp = raw_input('What amplitude in Vpp? ')
-            set_amp = float(set_amp)
-            a[this_ch].ampl=set_amp
-
-            #acquire() 
-        # if we run a.check_idn() here, it pops out of burst mode
+            a.set_burst(per=500e-6)
+            for set_amp in linspace(25e-3,2.5,50):
+                a[this_ch].ampl=set_amp
+                raw_input("Stopping at 25mVpp.")
+                acquire()
 gen_pulse()
 
