@@ -21,12 +21,14 @@ with AFG() as a:
     a.reset()
     t = r_[0:4096]
     y = imag(exp(1j*2*pi*0.25*(1-0.5/4096.*t)*t))
+    set_amp = 800e-3 #this is for testing crossed didoes
     for this_ch in range(2):
         a[this_ch].digital_ndarray(y,rate=100e6)
         print "now, output on"
         a[this_ch].output = True
     for this_ch in range(2):
         a[this_ch].burst = True
+        a[this_ch].ampl=set_amp
 
 datalist = []
 print "about to load GDS"
@@ -47,7 +49,7 @@ while try_again:
     data_name = 'capture%d'%j
     data.name(data_name)
     try:
-        data.hdf5_write('180316_for1N4151x2capacitance.h5')
+        data.hdf5_write('180322_1N5818_L1L2_2.h5')
         try_again = False
     except Exception as e:
         print e
