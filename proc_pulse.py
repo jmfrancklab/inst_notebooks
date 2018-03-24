@@ -118,8 +118,12 @@ V_AFG = linspace(25e-3,2.5,50)
 atten = 10**(-40./10) 
 
 for date,id_string in [
-       ('180316','amp_control1'),
-       ('180316','amp_control2')
+       ('180216','control'),
+       ('180222','1N4151'),
+       ('180222','1N5817'),
+       ('180222','1N5818'),
+       ('180222','1N5818'),
+       ('180323','bandpass_Psweep')
         ]:
     #fl.basename = "(%s diagnostic)"%id_string
     V_anal, V_harmonic, V_pp = process_series(date,id_string,V_AFG, pulse_threshold=0.2)
