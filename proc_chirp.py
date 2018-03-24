@@ -49,39 +49,14 @@ with figlist_var(filename='chirp.pdf') as fl:
             fl.next('analytic signal, abs')
             fl.plot(abs(d))
         ranges = abs(d)['ch',0].contiguous(lambda x: x > 0.2*x.data.max())
-        #if ranges.shape[0] > 1:
-        #    raise ValueError("When I try to pull out the waveform, I get more than one range that's greater than 9%")
         ranges = tuple(ranges[0,:].tolist())
         d = d['t':ranges]
         d.setaxis('t', lambda x: x-d.getaxis('t')[0])
         d.setaxis('t', lambda x: 25e6-x*25e6/4096e-8).set_units('t','Hz')
-        if expno == 0:
-            fl.next('analytic signal, phase')
-            fl.plot(d.angle)
-#        if id_string == 'open_control':
-#            fl.next('ratio analytic, pi short', legend=True)
-#            fl.plot(abs(2*d['ch',1]/d['ch',0]), alpha=0.8, label=id_string)
-#        if id_string == 'short_pi':
-#            fl.next('ratio analytic, pi short', legend=True)
-#            fl.plot(abs(2*d['ch',1]/d['ch',0]), alpha=0.8, label=id_string)
-#        if id_string == 'short_control':
-#            fl.next('ratio analytic, pi open', legend=True)
-#            fl.plot(abs(2*d['ch',1]/d['ch',0]), alpha=0.8, label=id_string)
-#        if id_string == 'open_pi':
-#            fl.next('ratio analytic, pi open', legend=True)
-#            fl.plot(abs(2*d['ch',1]/d['ch',0]), alpha=0.8, label=id_string)
-        fl.next('chirp')
-        fl.plot(d['ch',0])
-        d.ft
-        fl.next('FT(chirp)')
-        fl.plot(d['ch',0])
-        fl.next('which ch1')
-        fl.plot(d['ch',1])
-        fl.next('analytic signal, ratio')
-#        d.setaxis('t', lambda x: x-d.getaxis('t')[0])
-        fl.plot(abs(2*d['ch',1]/d['ch',0]), alpha=0.38)
-        fl.next('analytic signal, phase difference')
-#        d.setaxis('t', lambda x: x-d.getaxis('t')[0])
-        expno_str = str(expno)
-        fl.plot((d['ch',1]/d['ch',0]).angle/pi, '.', alpha=0.2, label='%s'%expno_str)
+        fl.next('analytic signal')
+        fl.plot(abs(d['ch',0]), alpha=0.38, label='%s'%id_string)
+        fl.next('analytic signal, phase')
+        fl.plot((d['ch',1]).angle/pi, '.', alpha=0.2, label='%s'%id_string)
+        fl.next('analytic signal, power')
+        fl.plot((d['ch',0]/(2*sqrt(2)))**2/50., alpha=0.38, label='%s'%id_string)
         expno += 1
