@@ -7,7 +7,7 @@ f_axis = linspace(100e3,500e3,100) # must match sweep_frequencies_sqw
 with figlist_var(filename='chirp.pdf') as fl:
     expno=0
     for date, id_string in [
-            ('180322','1N5818_L1L2_2'),
+            ('180323','bp1')
             ]:
         try:
             try:
@@ -79,8 +79,9 @@ with figlist_var(filename='chirp.pdf') as fl:
         fl.plot(d['ch',1])
         fl.next('analytic signal, ratio')
 #        d.setaxis('t', lambda x: x-d.getaxis('t')[0])
-        fl.plot(abs(2*d['ch',1]/d['ch',0]), alpha=0.38, color='cyan')
+        fl.plot(abs(2*d['ch',1]/d['ch',0]), alpha=0.38)
         fl.next('analytic signal, phase difference')
 #        d.setaxis('t', lambda x: x-d.getaxis('t')[0])
-        fl.plot((d['ch',1]/d['ch',0]).angle/pi, '.', alpha=0.38, color='violet')
+        expno_str = str(expno)
+        fl.plot((d['ch',1]/d['ch',0]).angle/pi, '.', alpha=0.2, label='%s'%expno_str)
         expno += 1
