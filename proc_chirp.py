@@ -7,9 +7,10 @@ f_axis = linspace(100e3,500e3,100) # must match sweep_frequencies_sqw
 with figlist_var(filename='chirp.pdf') as fl:
     expno=0
     for date, id_string in [
-            ('180329','RLCs_findL'),
-            ('180329','RLCs_findL_2'),
-            ('180329','RLCs_findL_3')
+            ('180403','newLCR_150'),
+            ('180403','newLCR_220'),
+            ('180403','newLCR_330'),
+            ('180403','newLCR_820'),
             ]:
         try:
             try:
@@ -50,7 +51,7 @@ with figlist_var(filename='chirp.pdf') as fl:
         if expno == 0:
             fl.next('analytic signal, abs')
             fl.plot(abs(d))
-        ranges = abs(d)['ch',1].contiguous(lambda x: x > 0.6*x.data.max())
+        ranges = abs(d)['ch',1].contiguous(lambda x: x > 0.05*x.data.max())
         ranges = tuple(ranges[0,:].tolist())
         d = d['t':ranges]
         d.setaxis('t', lambda x: x-d.getaxis('t')[0])
@@ -58,31 +59,21 @@ with figlist_var(filename='chirp.pdf') as fl:
         if expno == 0:
             fl.next('analytic signal, phase')
             fl.plot(d.angle)
-#        if id_string == 'open_control':
-#            fl.next('ratio analytic, pi short', legend=True)
-#            fl.plot(abs(2*d['ch',1]/d['ch',0]), alpha=0.8, label=id_string)
-#        if id_string == 'short_pi':
-#            fl.next('ratio analytic, pi short', legend=True)
-#            fl.plot(abs(2*d['ch',1]/d['ch',0]), alpha=0.8, label=id_string)
-#        if id_string == 'short_control':
-#            fl.next('ratio analytic, pi open', legend=True)
-#            fl.plot(abs(2*d['ch',1]/d['ch',0]), alpha=0.8, label=id_string)
-#        if id_string == 'open_pi':
-#            fl.next('ratio analytic, pi open', legend=True)
-#            fl.plot(abs(2*d['ch',1]/d['ch',0]), alpha=0.8, label=id_string)
-        fl.next('chirp')
-        fl.plot(d['ch',0])
         d.ft
         fl.next('FT(chirp)')
         fl.plot(d['ch',0])
         fl.next('which ch1')
         fl.plot(d['ch',1])
         if expno == 0: 
-            label = '820 pF'
+            label = '150 pF'
         if expno == 1:
-            label = '330 pF'
+            label = '220 pF'
         if expno == 2:
-            label = '150 pF'       
+            label = '330 pF'       
+        if expno == 3:
+            label = '820 pF'       
+        fl.next('chirp')
+        fl.plot(d['ch',0],'+',alpha=0.2,label='%s'%label)
         fl.next('analytic signal, ratio')
 #        d.setaxis('t', lambda x: x-d.getaxis('t')[0])
         fl.plot(abs(2*d['ch',0]/d['ch',1]), alpha=0.38, label='%s'%label)
