@@ -11,6 +11,7 @@ with figlist_var(filename='chirp.pdf') as fl:
             ('180403','newLCR_220'),
             ('180403','newLCR_330'),
             ('180403','newLCR_820'),
+            ('180403','newLCR_1N5818'),
             ]:
         try:
             try:
@@ -51,7 +52,7 @@ with figlist_var(filename='chirp.pdf') as fl:
         if expno == 0:
             fl.next('analytic signal, abs')
             fl.plot(abs(d))
-        ranges = abs(d)['ch',1].contiguous(lambda x: x > 0.05*x.data.max())
+        ranges = abs(d)['ch',1].contiguous(lambda x: x > 0.1*x.data.max())
         ranges = tuple(ranges[0,:].tolist())
         d = d['t':ranges]
         d.setaxis('t', lambda x: x-d.getaxis('t')[0])
@@ -72,6 +73,8 @@ with figlist_var(filename='chirp.pdf') as fl:
             label = '330 pF'       
         if expno == 3:
             label = '820 pF'       
+        if expno == 4:
+            label = '1N5818'       
         fl.next('chirp')
         fl.plot(d['ch',0],'+',alpha=0.2,label='%s'%label)
         fl.next('analytic signal, ratio')
