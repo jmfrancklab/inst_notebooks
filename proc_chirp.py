@@ -8,6 +8,8 @@ with figlist_var(filename='chirp.pdf') as fl:
     expno=0
     for date, id_string in [
             ('180405','bandpass_LC'),
+            ('180405','bandpass_LC_2'),
+            ('180405','bandpass_L_1N5818'),
             ]:
         try:
             try:
@@ -64,9 +66,9 @@ with figlist_var(filename='chirp.pdf') as fl:
         if expno == 0: 
             label = '330 pF'
         if expno == 1:
-            label = '220 pF'
+            label = '820 pF'
         if expno == 2:
-            label = '330 pF'       
+            label = '1N5818_L'       
         if expno == 3:
             label = '820 pF'       
         if expno == 4:
