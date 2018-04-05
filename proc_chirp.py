@@ -7,12 +7,7 @@ f_axis = linspace(100e3,500e3,100) # must match sweep_frequencies_sqw
 with figlist_var(filename='chirp.pdf') as fl:
     expno=0
     for date, id_string in [
-            ('180403','newLCR_150'),
-            ('180403','newLCR_220'),
-            ('180403','newLCR_330'),
-            ('180403','newLCR_820'),
-            ('180403','newLCR_1N5818'),
-            ('180403','newLCR_1N5818_2L'),
+            ('180405','bandpass_LC'),
             ]:
         try:
             try:
@@ -53,7 +48,7 @@ with figlist_var(filename='chirp.pdf') as fl:
         if expno == 0:
             fl.next('analytic signal, abs')
             fl.plot(abs(d))
-        ranges = abs(d)['ch',1].contiguous(lambda x: x > 0.6*x.data.max())
+        ranges = abs(d)['ch',1].contiguous(lambda x: x > 0.02*x.data.max())
         ranges = tuple(ranges[0,:].tolist())
         d = d['t':ranges]
         d.setaxis('t', lambda x: x-d.getaxis('t')[0])
@@ -67,7 +62,7 @@ with figlist_var(filename='chirp.pdf') as fl:
         fl.next('which ch1')
         fl.plot(d['ch',1])
         if expno == 0: 
-            label = '150 pF'
+            label = '330 pF'
         if expno == 1:
             label = '220 pF'
         if expno == 2:
