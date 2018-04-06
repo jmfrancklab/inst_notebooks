@@ -10,6 +10,8 @@ with figlist_var(filename='chirp.pdf') as fl:
             ('180405','bandpass_LC'),
             ('180405','bandpass_LC_2'),
             ('180405','bandpass_L_1N5818'),
+            ('180405','bandpass_2L_1N5818'),
+            ('180405','bandpass_2L_1N5818_2'),
             ]:
         try:
             try:
@@ -70,11 +72,9 @@ with figlist_var(filename='chirp.pdf') as fl:
         if expno == 2:
             label = '1N5818_L'       
         if expno == 3:
-            label = '820 pF'       
+            label = '1N5818_pL_tiny'       
         if expno == 4:
-            label = '1N5818'       
-        if expno == 5:
-            label = '1N5818_2L'       
+            label = '1N5818_pL_big'       
         fl.next('chirp')
         fl.plot(d['ch',0],'+',alpha=0.2,label='%s'%label)
         fl.next('analytic signal, ratio')
