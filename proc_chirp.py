@@ -10,9 +10,11 @@ with figlist_var(filename='chirp.pdf') as fl:
             ('180405','bandpass_LC'),
             ('180405','bandpass_LC_2'),
             ('180405','bandpass_L_1N5818'),
-            ('180405','bandpass_2L_1N5818'),
-            ('180405','bandpass_2L_1N5818_2'),
+            ('180406','bandpass_2L_1N5818_2'),
+            ('180406','bandpass_3L_1N5818'),
+            ('180406','bandpass_2L_1N5818')
             ]:
+
         try:
             try:
                 # capture2 only present when capture1 was bad
@@ -52,7 +54,7 @@ with figlist_var(filename='chirp.pdf') as fl:
         if expno == 0:
             fl.next('analytic signal, abs')
             fl.plot(abs(d))
-        ranges = abs(d)['ch',1].contiguous(lambda x: x > 0.02*x.data.max())
+        ranges = abs(d)['ch',1].contiguous(lambda x: x > 0.1*x.data.max())
         ranges = tuple(ranges[0,:].tolist())
         d = d['t':ranges]
         d.setaxis('t', lambda x: x-d.getaxis('t')[0])
@@ -72,9 +74,11 @@ with figlist_var(filename='chirp.pdf') as fl:
         if expno == 2:
             label = '1N5818_L'       
         if expno == 3:
-            label = '1N5818_pL_tiny'       
+            label = '1N5818_2Lp'       
         if expno == 4:
-            label = '1N5818_pL_big'       
+            label = '1N5818_3Lp'       
+        if expno == 5:
+            label = '1N5818_2smallLp'       
         fl.next('chirp')
         fl.plot(d['ch',0],'+',alpha=0.2,label='%s'%label)
         fl.next('analytic signal, ratio')
