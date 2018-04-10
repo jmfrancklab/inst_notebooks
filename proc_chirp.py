@@ -11,7 +11,7 @@ with figlist_var(filename='chirp.pdf') as fl:
             ('180410','bandpass_400_2L'),
            # ('180410','bandpass_100_2L'),
             ('180410','bandpass_100_2L_2'),
-            ('180410','bandpass_50_2L')
+            ('180410','bandpass_100_3L')
             ]:
 
         try:
@@ -73,7 +73,7 @@ with figlist_var(filename='chirp.pdf') as fl:
         if expno == 2:
             label = '100mVpp'       
         if expno == 3:
-            label = '50mVpp'       
+            label = '100mVpp_3L'       
         if expno == 4:
             label = '100mVpp_3'       
         if expno == 5:
