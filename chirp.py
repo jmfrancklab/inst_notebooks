@@ -49,7 +49,7 @@ while try_again:
     data_name = 'capture%d'%j
     data.name(data_name)
     try:
-        data.hdf5_write('180406_bandpass_3L_1N5818.h5')
+        data.hdf5_write('180409_bandpass_2Lp_1N5818.h5')
         try_again = False
     except Exception as e:
         print e
