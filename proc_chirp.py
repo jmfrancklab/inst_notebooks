@@ -7,11 +7,9 @@ f_axis = linspace(100e3,500e3,100) # must match sweep_frequencies_sqw
 with figlist_var(filename='chirp.pdf') as fl:
     expno=0
     for date, id_string in [
-            ('180410','bandpass_800_2L'),
-            ('180410','bandpass_400_2L'),
-           # ('180410','bandpass_100_2L'),
-            ('180410','bandpass_100_2L_2'),
-            ('180410','bandpass_100_3L')
+            ('180410','bandpass_90_1L'),
+            ('180410','bandpass_90_2L'),
+            ('180410','bandpass_90_3L')
             ]:
 
         try:
@@ -67,22 +65,18 @@ with figlist_var(filename='chirp.pdf') as fl:
         fl.next('which ch1')
         fl.plot(d['ch',1])
         if expno == 0:
-            label = '800mVpp'
+            label = '1Lp'
         if expno == 1:
-            label = '400mVpp'       
+            label = '2Lp'       
         if expno == 2:
-            label = '100mVpp'       
+            label = '3Lp'       
         if expno == 3:
-            label = '100mVpp_3L'       
-        if expno == 4:
-            label = '100mVpp_3'       
-        if expno == 5:
-            label = '1N5818_2L_|_'       
+            label = '2Lp_tiny'       
         fl.next('chirp')
         fl.plot(d['ch',0],'+',alpha=0.2,label='%s'%label)
         fl.next('analytic signal, ratio')
 #        d.setaxis('t', lambda x: x-d.getaxis('t')[0])
-        fl.plot(abs(2*d['ch',0]/d['ch',1]), alpha=0.38, label='%s'%label)
+        fl.plot(abs(2*d['ch',0]/d['ch',1]),'-', alpha=0.38, label='%s'%label)
         fl.next('analytic signal, phase difference')
 #        d.setaxis('t', lambda x: x-d.getaxis('t')[0])
         fl.plot((d['ch',0]/d['ch',1]).angle/pi, '.', alpha=0.2, label='%s'%label)
