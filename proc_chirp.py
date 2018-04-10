@@ -7,12 +7,11 @@ f_axis = linspace(100e3,500e3,100) # must match sweep_frequencies_sqw
 with figlist_var(filename='chirp.pdf') as fl:
     expno=0
     for date, id_string in [
-            ('180405','bandpass_LC_2'),
-            ('180405','bandpass_L_1N5818'),
-            ('180406','bandpass_2L_1N5818_2'),
-            ('180406','bandpass_3L_1N5818'),
-            ('180409','bandpass_2Ln_1N5818'),
-            ('180409','bandpass_2Lp_1N5818')
+            ('180410','bandpass_800_2L'),
+            ('180410','bandpass_400_2L'),
+           # ('180410','bandpass_100_2L'),
+            ('180410','bandpass_100_2L_2'),
+            ('180410','bandpass_50_2L')
             ]:
 
         try:
@@ -68,15 +67,15 @@ with figlist_var(filename='chirp.pdf') as fl:
         fl.next('which ch1')
         fl.plot(d['ch',1])
         if expno == 0:
-            label = '820 pF'
+            label = '800mVpp'
         if expno == 1:
-            label = '1N5818_L'       
+            label = '400mVpp'       
         if expno == 2:
-            label = '1N5818_2Lp'       
+            label = '100mVpp'       
         if expno == 3:
-            label = '1N5818_3Lp'       
+            label = '50mVpp'       
         if expno == 4:
-            label = '1N5818_2L||'       
+            label = '100mVpp_3'       
         if expno == 5:
             label = '1N5818_2L_|_'       
         fl.next('chirp')
