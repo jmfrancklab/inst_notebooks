@@ -48,7 +48,7 @@ def process_series(date,id_string,V_AFG, pulse_threshold):
         if j == 1:
             #NOTE: process file will not run without the following graph -- need to figure out why
             fl.next('Channel 1, 1')
-            fl.plot(d['ch',0], alpha=0.5, label="label")
+            fl.plot(d['ch',0], alpha=0.5, label="label %s"%id_string)
         #if j == p_len:
         #    fl.next('Channel 1, %d'%p_len)
         #    fl.plot(d['ch',0], alpha=0.5, label="label")
@@ -58,7 +58,7 @@ def process_series(date,id_string,V_AFG, pulse_threshold):
         for whichp in [1,p_len]:
             fl.next(plotdict[whichp])
             if j == whichp:
-                fl.plot(abs(d)['ch',0],alpha=0.2,label="FT")
+                fl.plot(abs(d)['ch',0],alpha=0.2,label="FT %s"%id_string)
         d.ift('t')
         #for whichp in [1,p_len]:
         #    if j == whichp:
@@ -113,17 +113,17 @@ def process_series(date,id_string,V_AFG, pulse_threshold):
     V_pp -= raw_signal['ch',0]['t':tuple(pulse_slice)].run(min,'t')
     return V_anal, V_harmonic, V_pp
 
-V_AFG = linspace(25e-3,2.5,50)
-#atten = 1 
-atten = 10**(-40./10) 
+V_AFG = linspace(0.070,1.7,50)
+atten = 1 
+#atten = 10**(-40./10) 
 
 for date,id_string in [
-       ('180216','control'),
-       ('180222','1N4151'),
-       ('180222','1N5817'),
-       ('180222','1N5818'),
-       ('180222','1N5818'),
-       ('180323','bandpass_Psweep')
+       ('180423','sweep_cable'),
+       ('180423','sweep_1N5818'),
+       ('180423','sweep_1N4151'),
+       ('180423','sweep_1N5818_1L'),
+       ('180423','sweep_1N5818_2L'),
+       ('180423','sweep_1N5818_3L'),
         ]:
     #fl.basename = "(%s diagnostic)"%id_string
     V_anal, V_harmonic, V_pp = process_series(date,id_string,V_AFG, pulse_threshold=0.2)
