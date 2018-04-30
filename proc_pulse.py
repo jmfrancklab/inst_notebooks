@@ -120,9 +120,8 @@ atten = 1
 for date,id_string in [
        ('180423','sweep_PCB'),
        ('180423','sweep_1N5818'),
-       ('180423','sweep_1N5818_1L'),
-       ('180423','sweep_1N5818_2L'),
-       ('180423','sweep_1N5818_3L')
+       ('180423','sweep_1N5818_3L'),
+       ('180430','duplexer_bp')
         ]:
     #fl.basename = "(%s diagnostic)"%id_string
     V_anal, V_harmonic, V_pp = process_series(date,id_string,V_AFG, pulse_threshold=0.2)
