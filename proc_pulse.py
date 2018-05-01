@@ -101,9 +101,9 @@ def process_series(date,id_string,V_AFG, pulse_threshold):
     pulse_slice = abs(
             analytic_signal['ch',0]['power',-1]).contiguous(lambda x:
                     x>pulse_threshold*x.data.max())
+
    # winsound.Beep(1010,890)        
     print "done loading all signals for %s"%id_string
-    #assert pulse_slice.shape[0] == 1, strm("found more than one (or none) region rising about 0.6 max amplitude:",tuple(pulse_slice))
     pulse_slice = pulse_slice[0,:]
     pulse_slice += r_[0.1e-6,-0.1e-6]
     V_anal = abs(analytic_signal['ch',0]['t':tuple(pulse_slice)]).mean('t')
@@ -113,15 +113,15 @@ def process_series(date,id_string,V_AFG, pulse_threshold):
     V_pp -= raw_signal['ch',0]['t':tuple(pulse_slice)].run(min,'t')
     return V_anal, V_harmonic, V_pp
 
-V_AFG = linspace(0.070,1.7,50)
-atten = 1 
-#atten = 10**(-40./10) 
+V_AFG = linspace(0.025,2.5,100)
+#atten = 1 
+atten = 10**(-40./10) 
 
 for date,id_string in [
-       ('180423','sweep_PCB'),
-       ('180423','sweep_1N5818'),
-       ('180423','sweep_1N5818_3L'),
-       ('180430','duplexer_bp')
+       ('180315','control_amp1'),
+       ('180315','duplexer_amp1'),
+       ('180430','rf_amp_control'),
+       ('180430','rf_amp_duplexer_bp'),
         ]:
     #fl.basename = "(%s diagnostic)"%id_string
     V_anal, V_harmonic, V_pp = process_series(date,id_string,V_AFG, pulse_threshold=0.2)
@@ -145,11 +145,5 @@ for date,id_string in [
 
     fl.plot(val,'.', label="%s $V{pp}$"%id_string)
 
-#fl.basename = "(%s diagnostic)"%("control_amp1")
-#fl.next('Power(W) vs. AFG signal(Vpp)')
-#logger.debug(strm('Immediately before show: Power(W) vs. AFG signal(Vpp)',fl.basename))
-#logger.debug(strm("gca id",gca(),id(gca())))
-#logger.debug(strm("print out the legend object within the code, immediately before show",gca().legend()))
-#logger.debug(strm("print out the lines",gca().get_lines()))
 fl.show()
 
