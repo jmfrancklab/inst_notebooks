@@ -49,10 +49,10 @@ def acquire():
     j = 1
     try_again = True
     while try_again:
-        data_name = 'capture%d_180501'%j
+        data_name = 'capture%d_180502'%j
         data.name(data_name)
         try:
-            data.hdf5_write('180501_noamp_control.h5')
+            data.hdf5_write('180502_duplexer_bp2.h5')
             try_again = False
             print "capture number",j
         except:
@@ -64,6 +64,7 @@ def acquire():
     print "shape of data",ndshape(data)
     fl.next('Dual-channel data')
     fl.plot(data)
+
     
 def gen_pulse(freq=15e6, width=4e-6, ch1_only=True):
     with AFG() as a:
