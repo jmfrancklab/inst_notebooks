@@ -29,7 +29,6 @@ def process_series(date,id_string,V_AFG, pulse_threshold):
     """
     p_len = len(V_AFG)
     V_calib = 0.9*V_AFG
-    #fl.basename = "(%s diagnostic)"%id_string
     fl.next('Channel 1, 1')
     #fl.next('Channel 1, %d'%p_len)
     #fl.next('Fourier transform -- low power')
@@ -120,31 +119,26 @@ atten = 1
 #atten = 10**(-40./10) 
 
 for date,id_string in [
+       ('180501','noamp_control'),
        ('180425','sweep_bandpass_3L'),
        ('180430','duplexer_bp'),
        ('180501','duplexer_2pi'),
-       ('180501','noamp_control')
+       ('180502','duplexer_bp2')
         ]:
-    #fl.basename = "(%s diagnostic)"%id_string
     V_anal, V_harmonic, V_pp = process_series(date,id_string,V_AFG, pulse_threshold=0.2)
     fl.next('V_analytic: P vs P')
     fl.plot((V_anal/sqrt(2))**2/50./atten, label="%s $V_{analytic}$"%id_string) 
     fl.next('V_harmonic: P vs P')
     fl.plot((V_harmonic/sqrt(2))**2/50./atten, label="%s $V_{harmonic}$"%id_string) 
-    fl.next('Power v Power: No RF Amp')
-    fl.plot((V_pp/sqrt(2)/2.0)**2/50./atten,'.', label="%s $V_{pp}$"%id_string)
+    fl.next('$P_{OUT}$ vs $P_{IN}$: No RF Amp')
+    fl.plot((V_pp/sqrt(2)/2.0)**2/50./atten,'.', label="%s"%id_string)
     fl.next('Power(W) vs. AFG signal(Vpp)')
     val = (V_pp/sqrt(2)/2.0)**2/50./atten
     val.rename('power','setting').setaxis('setting',V_AFG).set_units('setting','Vpp')
     fl.plot(val,'.', label="%s $V_{pp}$"%id_string)
-    logger.debug(strm('Power(W) vs. AFG signal(Vpp)',fl.basename))
-    logger.debug(strm("gca id",gca(),id(gca())))
-    logger.debug(strm("print out the legend object within the code",gca().legend()))
-    logger.debug(strm("print out the lines",gca().get_lines()))
     fl.next('GDS signal(Vpp) vs AFG signal(Vpp)')
     val = V_pp
     val.rename('power','setting').setaxis('setting',V_AFG).set_units('setting','Vpp')
-
     fl.plot(val,'.', label="%s $V{pp}$"%id_string)
 
 fl.show()
