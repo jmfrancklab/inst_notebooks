@@ -9,7 +9,8 @@ with figlist_var(filename='chirp.pdf') as fl:
     for date, id_string in [
             ('180410','bandpass_90_1L'),
             ('180410','bandpass_90_2L'),
-            ('180410','bandpass_90_3L')
+            ('180410','bandpass_90_3L'),
+            ('180501','bandpass_90_220pf'),
             ]:
 
         try:
@@ -29,20 +30,6 @@ with figlist_var(filename='chirp.pdf') as fl:
                 d = nddata_hdf5(date+'_'+id_string+'.h5/capture1',
                             directory=getDATADIR(exp_type='test_equip'))
         d.set_units('t','s')
-        if expno == 0:
-            # {{{ CDF the values of the data to see if it's really digitizing with 14 bit
-            vals = d.data.flatten()
-            myhist = nddata(linspace(-3,3,1000),'val')
-            fl.next('PDF of values (check digitization)')
-            # {{{ calculate the CDF
-            for j,testval in enumerate(myhist.getaxis('val')):
-                myhist['val',j] = sum(vals < testval)
-            # }}}
-            myhist.diff('val') # to get the PDF
-            num_values = len(myhist[lambda x: x>1e-8].data)
-            print "number of values along dynamic range",num_values,"log_2 ->",log(num_values)/log(2),"bits"
-            fl.plot(myhist, label='Diversity of data matches %0.3f bits'%(log(num_values)/log(2)))
-            # }}}
         d -= d['t':(0,3.5e-6)].runcopy(mean,'t')
         d.ft('t',shift=True)
         d = d['t':(0,100e6)] # throw out negative frequencies and low-pass
@@ -71,7 +58,7 @@ with figlist_var(filename='chirp.pdf') as fl:
         if expno == 2:
             label = '3Lp'       
         if expno == 3:
-            label = '2Lp_tiny'       
+            label = '+220pF,2L'       
         fl.next('chirp')
         fl.plot(d['ch',0],'+',alpha=0.2,label='%s'%label)
         fl.next('analytic signal, ratio')

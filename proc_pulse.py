@@ -43,7 +43,9 @@ def process_series(date,id_string,V_AFG, pulse_threshold):
         if j == 1:
             raw_signal = (ndshape(d) + ('power',p_len)).alloc()
             raw_signal.setaxis('t',d.getaxis('t')).set_units('t','s')
-            raw_signal.setaxis('power',(V_calib/2.0/sqrt(2))**2/50.)
+            #gain = 10**5
+            gain = 1
+            raw_signal.setaxis('power',(gain)*((V_calib/2.0/sqrt(2))**2/50.))
         raw_signal['power',j-1] = d
         if j == 1:
             #NOTE: process file will not run without the following graph -- need to figure out why
@@ -113,15 +115,15 @@ def process_series(date,id_string,V_AFG, pulse_threshold):
     V_pp -= raw_signal['ch',0]['t':tuple(pulse_slice)].run(min,'t')
     return V_anal, V_harmonic, V_pp
 
-V_AFG = linspace(0.025,2.5,100)
-#atten = 1 
-atten = 10**(-40./10) 
+V_AFG = linspace(0.07,10,100)
+atten = 1 
+#atten = 10**(-40./10) 
 
 for date,id_string in [
-       ('180315','control_amp1'),
-       ('180315','duplexer_amp1'),
-       ('180430','rf_amp_control'),
-       ('180430','rf_amp_duplexer_bp'),
+       ('180425','sweep_bandpass_3L'),
+       ('180430','duplexer_bp'),
+       ('180501','duplexer_2pi'),
+       ('180501','noamp_control')
         ]:
     #fl.basename = "(%s diagnostic)"%id_string
     V_anal, V_harmonic, V_pp = process_series(date,id_string,V_AFG, pulse_threshold=0.2)
@@ -129,7 +131,7 @@ for date,id_string in [
     fl.plot((V_anal/sqrt(2))**2/50./atten, label="%s $V_{analytic}$"%id_string) 
     fl.next('V_harmonic: P vs P')
     fl.plot((V_harmonic/sqrt(2))**2/50./atten, label="%s $V_{harmonic}$"%id_string) 
-    fl.next('Power(W) vs Power(W)')
+    fl.next('Power v Power: No RF Amp')
     fl.plot((V_pp/sqrt(2)/2.0)**2/50./atten,'.', label="%s $V_{pp}$"%id_string)
     fl.next('Power(W) vs. AFG signal(Vpp)')
     val = (V_pp/sqrt(2)/2.0)**2/50./atten
