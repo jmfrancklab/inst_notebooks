@@ -28,7 +28,7 @@ def process_series(date,id_string,V_AFG, pulse_threshold):
         After using the analytic signal to determine the extent of the pulse, find the min and max.
     """
     p_len = len(V_AFG)
-    V_calib = 0.9*V_AFG
+    V_calib = 0.694*V_AFG
     fl.next('Channel 1, 1')
     #fl.next('Channel 1, %d'%p_len)
     #fl.next('Fourier transform -- low power')
@@ -114,18 +114,17 @@ def process_series(date,id_string,V_AFG, pulse_threshold):
     V_pp -= raw_signal['ch',0]['t':tuple(pulse_slice)].run(min,'t')
     return V_anal, V_harmonic, V_pp
 
-V_AFG = linspace(0.07,10,100)
+V_AFG = linspace(0.070,10,100)
 atten = 1 
 #atten = 10**(-40./10) 
 
 for date,id_string in [
-       ('180501','noamp_control'),
+       ('180502','sweep_control'),
        ('180425','sweep_bandpass_3L'),
-       ('180430','duplexer_bp'),
-       ('180501','duplexer_2pi'),
-       ('180502','duplexer_bp2')
+       ('180502','sweep_duplexer_bp'),
+       ('180502','sweep_duplexer_bp2L'),
         ]:
-    V_anal, V_harmonic, V_pp = process_series(date,id_string,V_AFG, pulse_threshold=0.2)
+    V_anal, V_harmonic, V_pp = process_series(date,id_string,V_AFG, pulse_threshold=0.1)
     fl.next('V_analytic: P vs P')
     fl.plot((V_anal/sqrt(2))**2/50./atten, label="%s $V_{analytic}$"%id_string) 
     fl.next('V_harmonic: P vs P')
