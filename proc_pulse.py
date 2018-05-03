@@ -120,9 +120,11 @@ atten = 1
 
 for date,id_string in [
        ('180502','sweep_control'),
-       ('180425','sweep_bandpass_3L'),
-       ('180502','sweep_duplexer_bp'),
+       ('180503','sweep_bandpass_3L'),
+       ('180503','sweep_bandpass_3L_220pf'),
+       ('180503','sweep_duplexer_2pi'),
        ('180502','sweep_duplexer_bp2L'),
+       ('180502','sweep_duplexer_bp'),
         ]:
     V_anal, V_harmonic, V_pp = process_series(date,id_string,V_AFG, pulse_threshold=0.1)
     fl.next('V_analytic: P vs P')
