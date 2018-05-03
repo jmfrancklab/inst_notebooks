@@ -52,7 +52,7 @@ def acquire():
         data_name = 'capture%d_180502'%j
         data.name(data_name)
         try:
-            data.hdf5_write('180502_duplexer_bp2.h5')
+            data.hdf5_write('180502_sweep_duplexer_bp2L.h5')
             try_again = False
             print "capture number",j
         except:
