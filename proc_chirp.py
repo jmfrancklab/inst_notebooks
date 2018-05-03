@@ -15,6 +15,8 @@ with figlist_var(filename='chirp.pdf') as fl:
             ('180502','bandpass_3L_220pf'),
             ('180502','duplexer_bp_2'),
             ('180502','duplexer_bp_3'),
+            ('180503','duplexer_1N5818'),
+            ('180503','duplexer_2pi'),
             ]:
 
         try:
@@ -66,6 +68,10 @@ with figlist_var(filename='chirp.pdf') as fl:
             label = 'Duplexer (3L bp)'       
         if expno == 4:
             label = 'Duplexer (2L bp)'       
+        if expno == 5:
+            label = 'Duplexer (1N5818)'       
+        if expno == 6:
+            label = 'Duplexer (2pi)'       
         fl.next('chirp')
         fl.plot(d['ch',0],'+',alpha=0.2,label='%s'%label)
         fl.next('Bandpass S12: Analytic signal')
