@@ -119,8 +119,9 @@ atten = 1
 #atten = 10**(-40./10) 
 
 for date,id_string in [
-       ('180503','sweep_low_control'),
+       ('180503','sweep_low_control_2'),
        ('180503','sweep_low_duplexer_2pi'),
+       ('180503','sweep_low_duplexer_bp2L'),
        ('180503','sweep_low_duplexer_bp'),
         ]:
     V_anal, V_harmonic, V_pp = process_series(date,id_string,V_AFG, pulse_threshold=0.1)
