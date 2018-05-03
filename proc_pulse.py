@@ -114,26 +114,23 @@ def process_series(date,id_string,V_AFG, pulse_threshold):
     V_pp -= raw_signal['ch',0]['t':tuple(pulse_slice)].run(min,'t')
     return V_anal, V_harmonic, V_pp
 
-V_AFG = linspace(0.070,10,100)
+V_AFG = linspace(0.01,0.07,30)
 atten = 1 
 #atten = 10**(-40./10) 
 
 for date,id_string in [
-       ('180502','sweep_control'),
-       ('180503','sweep_bandpass_3L'),
-       ('180503','sweep_bandpass_3L_220pf'),
-       ('180503','sweep_duplexer_2pi'),
-       ('180502','sweep_duplexer_bp2L'),
-       ('180502','sweep_duplexer_bp'),
+       ('180503','sweep_low_control'),
+       ('180503','sweep_low_duplexer_2pi'),
+       ('180503','sweep_low_duplexer_bp'),
         ]:
     V_anal, V_harmonic, V_pp = process_series(date,id_string,V_AFG, pulse_threshold=0.1)
     fl.next('V_analytic: P vs P')
     fl.plot((V_anal/sqrt(2))**2/50./atten, label="%s $V_{analytic}$"%id_string) 
     fl.next('V_harmonic: P vs P')
     fl.plot((V_harmonic/sqrt(2))**2/50./atten, label="%s $V_{harmonic}$"%id_string) 
-    fl.next('$P_{OUT}$ vs $P_{IN}$: No RF Amp')
+    fl.next('$P_{out}$ vs $P_{in}$: no RF amp')
     fl.plot((V_pp/sqrt(2)/2.0)**2/50./atten,'.', label="%s"%id_string)
-    fl.next('Power(W) vs. AFG signal(Vpp)')
+    fl.next('power(W) vs. AFG signal(Vpp)')
     val = (V_pp/sqrt(2)/2.0)**2/50./atten
     val.rename('power','setting').setaxis('setting',V_AFG).set_units('setting','Vpp')
     fl.plot(val,'.', label="%s $V_{pp}$"%id_string)
