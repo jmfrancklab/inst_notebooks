@@ -7,14 +7,14 @@ f_axis = linspace(100e3,500e3,100) # must match sweep_frequencies_sqw
 with figlist_var(filename='chirp.pdf') as fl:
     expno=0
     for date, id_string in [
-            ('180502','bandpass_duplexer')
 #            ('180410','bandpass_90_1L'),
 #            ('180410','bandpass_90_2L'),
 #            ('180410','bandpass_90_3L'),
-#            ('180502','bandpass_test2_with1N4151_3'),
-#            ('180502','bandpass_test3_3'),
-#            ('180502','bandpass_test4_2xn10'),
-#            ('180502','bandpass_test4_2xn10_2'),
+            ('180502','bandpass_2L'),
+            ('180502','bandpass_3L'),
+            ('180502','bandpass_3L_220pf'),
+            ('180502','duplexer_bp_2'),
+            ('180502','duplexer_bp_3'),
             ]:
 
         try:
@@ -55,16 +55,17 @@ with figlist_var(filename='chirp.pdf') as fl:
         fl.plot(d['ch',0])
         fl.next('which ch1')
         fl.plot(d['ch',1])
+
         if expno == 0:
-            label = '1Lp'
+            label = '2L'
         if expno == 1:
-            label = '2Lp'       
+            label = '3L'       
         if expno == 2:
-            label = '3Lp'       
+            label = '3L,220pF'       
         if expno == 3:
-            label = '220pF,2L'       
+            label = 'Duplexer (3L bp)'       
         if expno == 4:
-            label = '220pF,3L'       
+            label = 'Duplexer (2L bp)'       
         fl.next('chirp')
         fl.plot(d['ch',0],'+',alpha=0.2,label='%s'%label)
         fl.next('Bandpass S12: Analytic signal')
