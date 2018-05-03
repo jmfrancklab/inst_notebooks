@@ -49,10 +49,10 @@ def acquire():
     j = 1
     try_again = True
     while try_again:
-        data_name = 'capture%d_180502'%j
+        data_name = 'capture%d_180503'%j
         data.name(data_name)
         try:
-            data.hdf5_write('180502_sweep_duplexer_bp2L.h5')
+            data.hdf5_write('180503_sweep_bandpass_3L_220pf.h5')
             try_again = False
             print "capture number",j
         except:
