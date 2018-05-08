@@ -11,6 +11,11 @@ with figlist_var(filename='chirp.pdf') as fl:
             ('180503','duplexer_bp2L'),
             ('180503','duplexer_2L_test'),
             ('180503','duplexer_2L_test2'),
+            ('180508','chirp_duplexer_SB120E354'),
+            ('180508','chirp_duplexer_SB120E354_bp1'),
+            ('180508','chirp_duplexer_SB120E354_bp2'),
+            ('180508','chirp_duplexer_SB120E354_bp3'),
+            ('180508','chirp_duplexer_SB120E354_bp4'),
             ]:
 
         try:
