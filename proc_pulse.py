@@ -114,17 +114,14 @@ def process_series(date,id_string,V_AFG, pulse_threshold):
     V_pp -= raw_signal['ch',0]['t':tuple(pulse_slice)].run(min,'t')
     return V_anal, V_harmonic, V_pp
 
-V_AFG = linspace(0.01,1.0973,37)
+V_AFG = linspace(0.01,1.45,50)
 #atten = 1 
 atten = 10**(-40./10) 
 
 for date,id_string in [
-       ('180503','sweep_high_control'),
        ('180503','sweep_high_duplexer_2pi'),
-       ('180503','sweep_high_bandpass_2L'),
        ('180503','sweep_high_duplexer_bp2L'),
        ('180503','sweep_high_duplexer_bp3L'),
-       ('180508','sweep_high_control'),
        ('180508','sweep_high_duplexer_SB120E354_bp2L'),
         ]:
     V_anal, V_harmonic, V_pp = process_series(date,id_string,V_AFG, pulse_threshold=0.1)
