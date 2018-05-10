@@ -30,9 +30,6 @@ def process_series(date,id_string,V_AFG, pulse_threshold):
     p_len = len(V_AFG)
     V_calib = 0.694*V_AFG
     fl.next('Channel 1, 1')
-    #fl.next('Channel 1, %d'%p_len)
-    #fl.next('Fourier transform -- low power')
-    #fl.next('Fourier transform -- high power')
     for j in range(1,p_len+1):
         print "loading signal",j
         j_str = str(j)
@@ -47,11 +44,10 @@ def process_series(date,id_string,V_AFG, pulse_threshold):
             raw_signal.setaxis('power',(gain)*((V_calib/2.0/sqrt(2))**2/50.))
         raw_signal['power',j-1] = d
         if j == 1:
-            #NOTE: process file will not run without the following graph -- need to figure out why
             fl.next('Channel 1, 1')
             fl.plot(d['ch',0], alpha=0.5, label="label %s"%id_string)
         #if j == p_len:
-        #    fl.next('Channel 1, %d'%p_len)
+        #    fl.next('channel 1, %d'%p_len)
         #    fl.plot(d['ch',0], alpha=0.5, label="label")
         d.ft('t',shift=True)
         plotdict = {1:"Fourier transform -- low power",
@@ -103,7 +99,6 @@ def process_series(date,id_string,V_AFG, pulse_threshold):
             analytic_signal['ch',0]['power',-1]).contiguous(lambda x:
                     x>pulse_threshold*x.data.max())
 
-   # winsound.Beep(1010,890)        
     print "done loading all signals for %s"%id_string
     pulse_slice = pulse_slice[0,:]
     pulse_slice += r_[0.1e-6,-0.1e-6]
@@ -114,30 +109,47 @@ def process_series(date,id_string,V_AFG, pulse_threshold):
     V_pp -= raw_signal['ch',0]['t':tuple(pulse_slice)].run(min,'t')
     return V_anal, V_harmonic, V_pp
 
-V_AFG = linspace(0.01,1.45,50)
-#atten = 1 
-atten = 10**(-40./10) 
+V_AFG_start = raw_input("Input start of sweep in Vpp: ")
+V_AFG_start = float(V_AFG_start)
+print V_AFG_start
+V_AFG_stop = raw_input("Input stop of sweep in Vpp: ")
+V_AFG_stop = float(V_AFG_stop)
+print V_AFG_stop
+V_AFG_step = raw_input("Input number of steps: ")
+V_AFG_step = float(V_AFG_step)
+print V_AFG_step
+
+V_AFG = linspace(V_AFG_start,V_AFG_stop,V_AFG_step)
+print "V_AFG(%f,%f,%f)"%(V_AFG_start,V_AFG_stop,V_AFG_step)
+print V_AFG
+
+atten_choice = raw_input("1 for attenuation, 0 for no attenuation: ")
+if atten_choice == '1':
+    atten_p = 10**(-40./10.)
+    atten_V = 10**(-40./20.)
+elif atten_choice == '0':
+    atten_p = 1
+    atten_V = 1
+print "Power, Voltage attenuation factors = %f, %f"%(atten_p,atten_V) 
 
 for date,id_string in [
+       ('180503','sweep_high_control'),
        ('180503','sweep_high_duplexer_2pi'),
        ('180503','sweep_high_duplexer_bp2L'),
-       ('180503','sweep_high_duplexer_bp3L'),
-       ('180508','sweep_high_duplexer_SB120E354_bp2L'),
         ]:
     V_anal, V_harmonic, V_pp = process_series(date,id_string,V_AFG, pulse_threshold=0.1)
     fl.next('V_analytic: P vs P')
-    fl.plot((V_anal/sqrt(2))**2/50./atten, label="%s $V_{analytic}$"%id_string) 
+    fl.plot((V_anal/sqrt(2))**2/50./atten_p, label="%s $V_{analytic}$"%id_string) 
     fl.next('V_harmonic: P vs P')
-    fl.plot((V_harmonic/sqrt(2))**2/50./atten, label="%s $V_{harmonic}$"%id_string) 
-    fl.next('$P_{out}$ vs $P_{in}$: no RF amp')
-    fl.plot((V_pp/sqrt(2)/2.0)**2/50./atten,'.', label="%s"%id_string)
+    fl.plot((V_harmonic/sqrt(2))**2/50./atten_p, label="%s $V_{harmonic}$"%id_string) 
+    fl.next('$P_{out}$ vs $P_{in}$: Rf amp power')
+    fl.plot((V_pp/sqrt(2)/2.0)**2/50./atten_p,'.', label="%s"%id_string)
+    fl.next('$P_{out}$ vs. $V_{in}$')
     fl.next('power(W) vs. AFG signal(Vpp)')
-    val = (V_pp/sqrt(2)/2.0)**2/50./atten
+    val = V_pp/atten_V
     val.rename('power','setting').setaxis('setting',V_AFG).set_units('setting','Vpp')
     fl.plot(val,'.', label="%s $V_{pp}$"%id_string)
-    fl.next('GDS signal(Vpp) vs AFG signal(Vpp)')
-    val = V_pp
-    val.rename('power','setting').setaxis('setting',V_AFG).set_units('setting','Vpp')
+    fl.next('$V_{out}$ vs. $V_{in}$')
     fl.plot(val,'.', label="%s $V{pp}$"%id_string)
 
 fl.show()
