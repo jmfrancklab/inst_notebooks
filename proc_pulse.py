@@ -133,9 +133,11 @@ elif atten_choice == '0':
 print "Power, Voltage attenuation factors = %f, %f"%(atten_p,atten_V) 
 
 for date,id_string in [
-       ('180503','sweep_high_control'),
-       ('180503','sweep_high_duplexer_2pi'),
-       ('180503','sweep_high_duplexer_bp2L'),
+       ('180503','sweep_low_control'),
+       ('180510','sweep_low_control'),
+       ('180503','sweep_low_duplexer_2pi'),
+       ('180510','sweep_low_duplexer_2pi'),
+       ('180510','sweep_low_2piTLnoD'),
         ]:
     V_anal, V_harmonic, V_pp = process_series(date,id_string,V_AFG, pulse_threshold=0.1)
     fl.next('V_analytic: P vs P')
