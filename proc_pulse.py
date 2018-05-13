@@ -133,18 +133,25 @@ elif atten_choice == '0':
 print "Power, Voltage attenuation factors = %f, %f"%(atten_p,atten_V) 
 
 for date,id_string in [
-       ('180503','sweep_low_control'),
+#        ('180503','sweep_high_control'),
+#        ('180513','sweep_high_control'),
+#        ('180503','sweep_high_duplexer_2pi'),
+#        ('180513','sweep_high_duplexer_2piTL'),
+#        ('180502','sweep_control'),
+#        ('180503','sweep_duplexer_2pi'),
+#        ('180513','sweep_duplexer_2piTLnoD'),
+#        ('180513','sweep_duplexer_2piTL'),
        ('180510','sweep_low_control'),
        ('180503','sweep_low_duplexer_2pi'),
-       ('180510','sweep_low_duplexer_2pi'),
-       ('180510','sweep_low_2piTLnoD'),
+       ('180513','sweep_low_duplexer_2piTLnoD'),
+       ('180513','sweep_low_duplexer_2piTL'),
         ]:
     V_anal, V_harmonic, V_pp = process_series(date,id_string,V_AFG, pulse_threshold=0.1)
     fl.next('V_analytic: P vs P')
     fl.plot((V_anal/sqrt(2))**2/50./atten_p, label="%s $V_{analytic}$"%id_string) 
     fl.next('V_harmonic: P vs P')
     fl.plot((V_harmonic/sqrt(2))**2/50./atten_p, label="%s $V_{harmonic}$"%id_string) 
-    fl.next('$P_{out}$ vs $P_{in}$: Rf amp power')
+    fl.next('$P_{out}$ vs $P_{in}$: Very low power')
     fl.plot((V_pp/sqrt(2)/2.0)**2/50./atten_p,'.', label="%s"%id_string)
     fl.next('$P_{out}$ vs. $V_{in}$')
     fl.next('power(W) vs. AFG signal(Vpp)')
