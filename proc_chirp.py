@@ -7,15 +7,10 @@ f_axis = linspace(100e3,500e3,100) # must match sweep_frequencies_sqw
 with figlist_var(filename='chirp.pdf') as fl:
     expno=0
     for date, id_string in [
-            ('180502','duplexer_bp_3'),
-            ('180503','duplexer_bp2L'),
-            ('180503','duplexer_2L_test'),
-            ('180503','duplexer_2L_test2'),
-            ('180508','chirp_duplexer_SB120E354'),
-            ('180508','chirp_duplexer_SB120E354_bp1'),
-            ('180508','chirp_duplexer_SB120E354_bp2'),
-            ('180508','chirp_duplexer_SB120E354_bp3'),
-            ('180508','chirp_duplexer_SB120E354_bp4'),
+            ('180513','test_M8653x3_1'),
+            ('180513','test_M8653x3_2'),
+            ('180513','test_M8653x3_3'),
+            ('180513','test_M8653x3_4'),
             ]:
 
         try:
@@ -54,6 +49,7 @@ with figlist_var(filename='chirp.pdf') as fl:
         d.ft
         fl.next('FT(chirp)')
         fl.plot(d['ch',0])
+
         fl.next('which ch1')
         fl.plot(d['ch',1])
 
@@ -73,7 +69,7 @@ with figlist_var(filename='chirp.pdf') as fl:
         fl.plot(d['ch',0],'+',alpha=0.2,label='%s'%label)
         fl.next('bandpass s12: analytic signal')
 #        d.setaxis('t', lambda x: x-d.getaxis('t')[0])
-        fl.plot(abs(d['ch',0]/d['ch',1]),'-', alpha=0.38, label='%s'%label)
+        fl.plot(2*abs(d['ch',0]/d['ch',1]),'-', alpha=0.38, label='%s'%label)
         fl.next('bandpass s12: phase')
 #        d.setaxis('t', lambda x: x-d.getaxis('t')[0])
         fl.plot((d['ch',0]/d['ch',1]).angle/pi, '.', alpha=0.2, label='%s'%label)
