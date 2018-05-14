@@ -7,10 +7,18 @@ f_axis = linspace(100e3,500e3,100) # must match sweep_frequencies_sqw
 with figlist_var(filename='chirp.pdf') as fl:
     expno=0
     for date, id_string in [
-            ('180513','test_M8653x3_1'),
-            ('180513','test_M8653x3_2'),
-            ('180513','test_M8653x3_3'),
-            ('180513','test_M8653x3_4'),
+#            ('180513','test_M8653x3_1'),
+#            ('180513','test_M8653x3_2'),
+#            ('180513','test_M8653x3_3'),
+#            ('180513','test_M8653x3_4'),
+#            ('180514','test_M8653x3_1'),
+            ('180514','test_M8653x3_2'),
+            ('180514','test_M8653x3_3'),
+            ('180514','test_M8653x3_4'),
+#            ('180514','test_M8653x3_5'),
+#            ('180514','test_M8653x3_6'),
+            ('180514','test_M8653x3_7'),
+            ('180514','test_M8653x3_8'),
             ]:
 
         try:
@@ -55,16 +63,16 @@ with figlist_var(filename='chirp.pdf') as fl:
 
         if expno == 0:
             label = '2L'
-        if expno == 1:
-            label = '2L,220pF'
-        if expno == 2:
-            label = '3L'       
-        if expno == 3:
-            label = '3L,220pF'       
-        if expno == 4:
-            label = 'Duplexer (3L bp)'       
-        if expno == 5:
-            label = 'Duplexer (2L bp)'       
+#        if expno == 1:
+#            label = '2L,220pF'
+#        if expno == 2:
+#            label = '3L'       
+#        if expno == 3:
+#            label = '3L,220pF'       
+#        if expno == 4:
+#            label = 'Duplexer (3L bp)'       
+#        if expno == 5:
+#            label = 'Duplexer (2L bp)'       
         fl.next('chirp')
         fl.plot(d['ch',0],'+',alpha=0.2,label='%s'%label)
         fl.next('bandpass s12: analytic signal')
