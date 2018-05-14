@@ -142,11 +142,12 @@ elif atten_choice == '0':
 print "power, Voltage attenuation factors = %f, %f"%(atten_p,atten_V) 
 
 for date,id_string in [
-        ('180514','sweep_high_control'),
-        ('180514','sweep_high_duplexer_2piTL')
+#        ('180514','sweep_high_control'),
 #        ('180514','sweep_high_duplexer_2piTL')
-#        ('180514','sweep_control'),
-#        ('180514','sweep_duplexer_2piTL')
+#        ('180514','sweep_high_duplexer_2piTL')
+        ('180514','sweep_control'),
+        ('180514','sweep_duplexer_2piTL'),
+        ('180514','sweep_duplexer_2piTL_2'),
 #        ('180503','sweep_high_control'),
 #        ('180513','sweep_high_control'),
 #        ('180503','sweep_high_duplexer_2pi'),
