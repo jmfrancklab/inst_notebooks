@@ -4,7 +4,7 @@ from pyspecdata import *
 #init_logging(level=logging.DEBUG)
 fl = figlist_var()
 
-def process_series(date,id_string,V_afg, pulse_threshold):
+def process_series(date,id_string,V_AFG, pulse_threshold):
     """Process a series of pulse data.
     
     Lumping this as a function so we can do things like divide series, etc.
@@ -15,8 +15,8 @@ def process_series(date,id_string,V_afg, pulse_threshold):
         date used in the filename
     id_string: str
         filename is called date_id_string
-    V_afg: array
-        list of voltage settings used on the afg
+    V_AFG: array
+        list of voltage settings used on the AFG 
 
     Returns
     -------
@@ -27,8 +27,8 @@ def process_series(date,id_string,V_afg, pulse_threshold):
     V_pp: nddata
         After using the analytic signal to determine the extent of the pulse, find the min and max.
     """
-    p_len = len(V_afg)
-    V_calib = 0.694*V_afg
+    p_len = len(V_AFG)
+    V_calib = 0.694*V_AFG
     fl.next('Channel 1, 1')
     for j in range(1,p_len+1):
         print "loading signal",j
@@ -109,19 +109,28 @@ def process_series(date,id_string,V_afg, pulse_threshold):
     V_pp -= raw_signal['ch',0]['t':tuple(pulse_slice)].run(min,'t')
     return V_anal, V_harmonic, V_pp
 
-V_afg_start = raw_input("Input start of sweep in Vpp: ")
-V_afg_start = float(V_afg_start)
-print V_afg_start
-V_afg_stop = raw_input("Input stop of sweep in Vpp: ")
-V_afg_stop = float(V_afg_stop)
-print V_afg_stop
-V_afg_step = raw_input("Input number of steps: ")
-V_afg_step = float(V_afg_step)
-print V_afg_step
+V_start = raw_input("Input start of sweep in Vpp: ")
+V_start = float(V_start)
+print V_start
+V_stop = raw_input("Input stop of sweep in Vpp: ")
+V_stop = float(V_stop)
+print V_stop
+V_step = raw_input("Input number of steps: ")
+V_step = float(V_step)
+print V_step
 
-V_afg = linspace(V_afg_start,V_afg_stop,V_afg_step)
-print "V_aFG(%f,%f,%f)"%(V_afg_start,V_afg_stop,V_afg_step)
-print V_afg
+axis_spacing = raw_input("1 for log scale, 0 for linear scale: ")
+if axis_spacing == '1':
+    V_start_log = log10(V_start)
+    V_stop_log = log10(V_stop)
+    V_AFG = logspace(V_start_log,V_stop_log,V_step)
+    print "V_AFG(log10(%f),log10(%f),%f)"%(V_start,V_stop,V_step)
+    print "V_AFG(%f,%f,%f)"%(log10(V_start),log10(V_stop),V_step)
+    print V_AFG
+elif axis_spacing == '0':
+    V_AFG = linspace(V_start,V_stop,V_step)
+    print "V_AFG(%f,%f,%f)"%(V_start,V_stop,V_step)
+    print V_AFG
 
 atten_choice = raw_input("1 for attenuation, 0 for no attenuation: ")
 if atten_choice == '1':
@@ -133,10 +142,15 @@ elif atten_choice == '0':
 print "power, Voltage attenuation factors = %f, %f"%(atten_p,atten_V) 
 
 for date,id_string in [
-        ('180503','sweep_high_control'),
-        ('180513','sweep_high_control'),
-        ('180503','sweep_high_duplexer_2pi'),
-        ('180513','sweep_high_duplexer_2piTL'),
+        ('180514','sweep_high_control'),
+        ('180514','sweep_high_duplexer_2piTL')
+#        ('180514','sweep_high_duplexer_2piTL')
+#        ('180514','sweep_control'),
+#        ('180514','sweep_duplexer_2piTL')
+#        ('180503','sweep_high_control'),
+#        ('180513','sweep_high_control'),
+#        ('180503','sweep_high_duplexer_2pi'),
+#        ('180513','sweep_high_duplexer_2piTL'),
 #        ('180502','sweep_control'),
 #        ('180503','sweep_duplexer_2pi'),
 #        ('180513','sweep_duplexer_2piTLnoD'),
@@ -146,17 +160,16 @@ for date,id_string in [
 #       ('180513','sweep_low_duplexer_2piTLnoD'),
 #       ('180513','sweep_low_duplexer_2piTL'),
         ]:
-    V_anal, V_harmonic, V_pp = process_series(date,id_string,V_afg, pulse_threshold=0.1)
+    V_anal, V_harmonic, V_pp = process_series(date,id_string,V_AFG, pulse_threshold=0.1)
 #    fl.next('V_analytic: P vs P')
 #    fl.plot((V_anal/sqrt(2))**2/50./atten_p, label="%s $V_{analytic}$"%id_string) 
 #    fl.next('V_harmonic: P vs P')
 #    fl.plot((V_harmonic/sqrt(2))**2/50./atten_p, label="%s $V_{harmonic}$"%id_string) 
     fl.next('log($P_{out}$) vs log($P_{in}$): Very low power')
-    #point out to JF, need plottype='' but not so for linestyle
     fl.plot((V_pp/sqrt(2)/2.0)**2/50./atten_p,'.',plottype='loglog',label="%s"%id_string) 
     fl.next('log($P_{out}$) vs. log($V^{PP}_{in}$)')
     val = V_pp/atten_V
-    val.rename('power','setting').setaxis('setting',V_afg).set_units('setting','Vpp')
+    val.rename('power','setting').setaxis('setting',V_AFG).set_units('setting','Vpp')
     fl.plot(val,'.',plottype='loglog',label="%s $V_{pp}$"%id_string)
     fl.next('log($V^{PP}_{out}$) vs. log($V^{PP}_{in}$)')
     fl.plot(val,'.',plottype='loglog',label="%s $V{pp}$"%id_string)
