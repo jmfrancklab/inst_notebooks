@@ -143,11 +143,13 @@ print "power, Voltage attenuation factors = %f, %f"%(atten_p,atten_V)
 
 for date,id_string in [
 #        ('180514','sweep_high_control'),
+        ('180515','sweep10_high_control'),
+        ('180515','sweep10_high_duplexer_2piTL_2'),
 #        ('180514','sweep_high_duplexer_2piTL')
 #        ('180514','sweep_high_duplexer_2piTL')
-        ('180514','sweep_control'),
-        ('180514','sweep_duplexer_2piTL'),
-        ('180514','sweep_duplexer_2piTL_2'),
+#        ('180514','sweep_control'),
+#        ('180514','sweep_duplexer_2piTL'),
+#        ('180514','sweep_duplexer_2piTL_2'),
 #        ('180503','sweep_high_control'),
 #        ('180513','sweep_high_control'),
 #        ('180503','sweep_high_duplexer_2pi'),
@@ -166,7 +168,7 @@ for date,id_string in [
 #    fl.plot((V_anal/sqrt(2))**2/50./atten_p, label="%s $V_{analytic}$"%id_string) 
 #    fl.next('V_harmonic: P vs P')
 #    fl.plot((V_harmonic/sqrt(2))**2/50./atten_p, label="%s $V_{harmonic}$"%id_string) 
-    fl.next('log($P_{out}$) vs log($P_{in}$): Very low power')
+    fl.next('log($P_{out}$) vs log($P_{in}$): High power')
     fl.plot((V_pp/sqrt(2)/2.0)**2/50./atten_p,'.',plottype='loglog',label="%s"%id_string) 
     fl.next('log($P_{out}$) vs. log($V^{PP}_{in}$)')
     val = V_pp/atten_V
