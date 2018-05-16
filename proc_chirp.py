@@ -7,18 +7,7 @@ f_axis = linspace(100e3,500e3,100) # must match sweep_frequencies_sqw
 with figlist_var(filename='chirp.pdf') as fl:
     expno=0
     for date, id_string in [
-#            ('180513','test_M8653x3_1'),
-#            ('180513','test_M8653x3_2'),
-#            ('180513','test_M8653x3_3'),
-#            ('180513','test_M8653x3_4'),
-#            ('180514','test_M8653x3_1'),
-            ('180514','test_M8653x3_2'),
-            ('180514','test_M8653x3_3'),
-            ('180514','test_M8653x3_4'),
-#            ('180514','test_M8653x3_5'),
-#            ('180514','test_M8653x3_6'),
-            ('180514','test_M8653x3_7'),
-            ('180514','test_M8653x3_8'),
+            ('180515','chirp_duplexer_45mVpp'),
             ]:
 
         try:
@@ -46,7 +35,7 @@ with figlist_var(filename='chirp.pdf') as fl:
         if expno == 0:
             fl.next('analytic signal, abs')
             fl.plot(abs(d))
-        ranges = abs(d)['ch',1].contiguous(lambda x: x > 0.2*x.data.max())
+        ranges = abs(d)['ch',1].contiguous(lambda x: x > 0.1*x.data.max())
         ranges = tuple(ranges[0,:].tolist())
         d = d['t':ranges]
         d.setaxis('t', lambda x: x-d.getaxis('t')[0])

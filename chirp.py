@@ -21,7 +21,7 @@ with AFG() as a:
     a.reset()
     t = r_[0:4096]
     y = imag(exp(1j*2*pi*0.25*(1-0.5/4096.*t)*t))
-    set_amp = 5
+    set_amp = 500e-3
     for this_ch in range(2):
         a[this_ch].digital_ndarray(y,rate=100e6)
         print "now, output on"
@@ -49,7 +49,7 @@ while try_again:
     data_name = 'capture%d'%j
     data.name(data_name)
     try:
-        data.hdf5_write('180514_chirp_low_duplexer_2piTL_low.h5')
+        data.hdf5_write('180515_chirp_test_duplexer.h5')
         try_again = False
     except Exception as e:
         print e
