@@ -147,6 +147,9 @@ for date,id_string in [
         ('180515','sweep10_high_duplexer_2piTL_2'),
 #        ('180514','sweep_high_duplexer_2piTL')
 #        ('180514','sweep_high_duplexer_2piTL')
+        ('180514','sweep_control'),
+        ('180514','sweep_duplexer_2piTL'),
+        ('180514','sweep_duplexer_2piTL_2'),
 #        ('180514','sweep_control'),
 #        ('180514','sweep_duplexer_2piTL'),
 #        ('180514','sweep_duplexer_2piTL_2'),
@@ -168,6 +171,7 @@ for date,id_string in [
 #    fl.plot((V_anal/sqrt(2))**2/50./atten_p, label="%s $V_{analytic}$"%id_string) 
 #    fl.next('V_harmonic: P vs P')
 #    fl.plot((V_harmonic/sqrt(2))**2/50./atten_p, label="%s $V_{harmonic}$"%id_string) 
+    fl.next('log($P_{out}$) vs log($P_{in}$): Intermediate power, logspace data')
     fl.next('log($P_{out}$) vs log($P_{in}$): High power')
     fl.plot((V_pp/sqrt(2)/2.0)**2/50./atten_p,'.',plottype='loglog',label="%s"%id_string) 
     fl.next('log($P_{out}$) vs. log($V^{PP}_{in}$)')
@@ -179,40 +183,3 @@ for date,id_string in [
 
 fl.show()
 
-
-        id_ch0 = 'ch1'
-        id_ch1 = 'ch2'
-        if j == 1:
-#            fl.next('CH1: capture 1 raw')
-#            fl.plot(d['ch',0], alpha=0.5, label='%s'%id_ch0)
-#            fl.next('CH2: capture 1 raw')
-#            fl.plot(d['ch',1], alpha=0.5, label='%s'%id_ch1)
-            fl.next('CH1,2: capture 1')
-            fl.plot(d['ch',0], alpha=0.5, label='%s'%id_ch0)
-            fl.plot(d['ch',1], alpha=0.5, label='%s'%id_ch1)
-        if j == p_len:
-
-#            fl.next('CH1: capture %d raw'%p_len)
-#            fl.plot(d['ch',0], alpha=0.5, label='%s'%id_ch0)
-#            fl.next('CH2: capture %d raw'%p_len)
-#            fl.plot(d['ch',1], alpha=0.5, label='%s'%id_ch1)
-            fl.next('CH1,2: capture %d'%p_len)
-            fl.plot(d['ch',0], alpha=0.5, label='%s'%id_ch0)
-            fl.plot(d['ch',1], alpha=0.5, label='%s'%id_ch1)
-        d.ft('t',shift=True)
-        if j == 1:
-#            fl.next('CH1: capture 1 FT raw')
-#            fl.plot(abs(d['ch',0]),alpha=0.2,label='%s'%id_ch0)
-#            fl.next('CH2: capture 1 FT raw')
-#            fl.plot(abs(d['ch',1]),alpha=0.2,label='%s'%id_ch1)
-            fl.next('CH1,2: capture 1 FT')
-            fl.plot(abs(d['ch',0]),alpha=0.2,label='%s'%id_ch0)
-            fl.plot(abs(d['ch',1]),alpha=0.2,label='%s'%id_ch1)
-        if j == p_len:
-#            fl.next('CH1: capture %s FT raw'%p_len)
-#            fl.plot(abs(d['ch',0]),alpha=0.2,label='%s'%id_ch0)
-#            fl.next('CH2: capture %s FT raw'%p_len)
-#            fl.plot(abs(d['ch',1]),alpha=0.2,label='%s'%id_ch1)
-            fl.next('CH1,2: capture %d FT'%p_len)
-            fl.plot(abs(d['ch',0]),alpha=0.2,label='%s'%id_ch0)
-            fl.plot(abs(d['ch',1]),alpha=0.2,label='%s'%id_ch1)
