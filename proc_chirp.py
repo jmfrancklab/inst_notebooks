@@ -10,14 +10,14 @@ with figlist_var(filename='chirp.pdf') as fl:
 #            ('180513','test_M8653x3_1'),
 #            ('180513','test_M8653x3_2'),
 #            ('180513','test_M8653x3_3'),
-#            ('180513','test_M8653x3_4'),
+            ('180513','test_M8653x3_4'),
 #            ('180514','test_M8653x3_1'),
-            ('180514','test_M8653x3_2'),
-            ('180514','test_M8653x3_3'),
-            ('180514','test_M8653x3_4'),
+#            ('180514','test_M8653x3_2'),
+#            ('180514','test_M8653x3_3'),
+#            ('180514','test_M8653x3_4'),
 #            ('180514','test_M8653x3_5'),
 #            ('180514','test_M8653x3_6'),
-            ('180514','test_M8653x3_7'),
+#            ('180514','test_M8653x3_7'),
             ('180514','test_M8653x3_8'),
             ]:
 
@@ -62,11 +62,11 @@ with figlist_var(filename='chirp.pdf') as fl:
         fl.plot(d['ch',1])
 
         if expno == 0:
-            label = '2L'
-#        if expno == 1:
-#            label = '2L,220pF'
-#        if expno == 2:
-#            label = '3L'       
+            label = 'previous'
+        if expno == 1:
+            label = 'current'
+        if expno == 2:
+            label = '3'       
 #        if expno == 3:
 #            label = '3L,220pF'       
 #        if expno == 4:
@@ -75,7 +75,7 @@ with figlist_var(filename='chirp.pdf') as fl:
 #            label = 'Duplexer (2L bp)'       
         fl.next('chirp')
         fl.plot(d['ch',0],'+',alpha=0.2,label='%s'%label)
-        fl.next('bandpass s12: analytic signal')
+        fl.next('s11: 3xM8653')
 #        d.setaxis('t', lambda x: x-d.getaxis('t')[0])
         fl.plot(2*abs(d['ch',0]/d['ch',1]),'-', alpha=0.38, label='%s'%label)
         fl.next('bandpass s12: phase')
