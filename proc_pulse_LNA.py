@@ -62,7 +62,15 @@ def gen_power_data(date,id_string,V_AFG,pulse_threshold):
     print 'Control pulse limits in microsec: %f, %f'%(p0_lim1/1e-6,p0_lim2/1e-6)
     V_pp0 = raw_signal['ch',0]['t':tuple(pulse0_slice)].run(max,'t')
     V_pp0 -= raw_signal['ch',0]['t':tuple(pulse0_slice)].run(min,'t')
-    power0 = ((V_pp0/2./sqrt(2.))**2./50.)/(10**(41.51/10.))
+    #Using exact attenuation of VY574681722
+    VinPP = 500.e-3
+    VoutPP = 4.20e-3
+    VinRMS = (VinPP)/(2*sqrt(2))
+    VoutRMS = (VoutPP)/(2*sqrt(2))
+    Pin_ = ((VinRMS)**2)/50.
+    Pout_ = ((VoutRMS)**2)/50.
+    atten_factor_P = (Pout_)/(Pin_)
+    power0 = ((V_pp0/2./sqrt(2.))**2./50.)*atten_factor_P
     dBm0 = 10*log10(power0/1e-3)
     print power0.data
     s = analytic_signal['ch',1]
@@ -95,10 +103,11 @@ V_step_log = log10(V_step)
 V_AFG = logspace(V_start_log,V_stop_log,V_step)
 print "V_AFG(log10(%f),log10(%f),%f)"%(V_start,V_stop,V_step)
 print "V_AFG(%f,%f,%f)"%(log10(V_start),log10(V_stop),V_step)
+#Ignore attenuation here, does not correspond to the corrections we apply later
 atten_p = 1
 atten_V = 1
-print "power, Voltage attenuation factors = %f, %f"%(atten_p,atten_V) 
-print "Axis spacing: Log"
+#print "power, Voltage attenuation factors = %f, %f"%(atten_p,atten_V) 
+#print "Axis spacing: Log"
 
 for date,id_string in [
         ('180515','sweep_test_LNA'),
