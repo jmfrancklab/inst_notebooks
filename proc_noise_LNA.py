@@ -34,9 +34,10 @@ s_avg.setaxis('t',s.getaxis('t')).set_units('t','s')
 s.ft('t',shift=True)
 s_data.ft('t',shift=True)
 s_avg.ft('t',shift=True)
-s_modsq = ((abs(s))**2)
-s_modsq /= acq_time
-s_modsq /= 50.
+s_modsq = ((abs(s))**2)     #mod square
+s_modsq /= 519.01901761     #divide by gain factor, found from power curve
+s_modsq /= acq_time         #divide by acquisition time
+s_modsq /= 50.              #divide by resistance, gives units: W*s, or W/Hz
 for q in xrange(int(0),int(len(captures))):
     s_data['capture',q] = s_modsq['capture',q]
     if q == 0:
@@ -54,10 +55,8 @@ w=1.5e4 #this still contains large peaks at the +/- 1250 MHz
 ###w = 1.5e6 #this is very smooth, but may be too drastic 
 s_avg = s_avg.convolve('t',w)
 fl.plot(s_avg,alpha=0.2,color='green',label='Convolved')
-ylim(0,1.5e-14)
 fl.next('Convolved, width=1.5e4 Hz')
 fl.plot(s_avg,alpha=0.15)
-ylim(0,1.5e-14)
 ###print "\n\n printing power density, f'n of f:\n"
 ###print p_den
 ###p_J = abs(p_den['t':(626e-6,626e6)]).sum('t')
