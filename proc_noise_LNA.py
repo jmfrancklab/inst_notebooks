@@ -26,44 +26,42 @@ for date,id_string in [
     ('180521','noise_LNA'),
     ]:
     s = load_noise(date,id_string,captures)
+#Declaring now because cannot set frequency units atm
+s_data = (ndshape(s)).alloc()
+s_data.setaxis('t',s.getaxis('t')).set_units('t','s')
+s_avg = (ndshape(s)).alloc()
+s_avg.setaxis('t',s.getaxis('t')).set_units('t','s')
 s.ft('t',shift=True)
+s_data.ft('t',shift=True)
+s_avg.ft('t',shift=True)
 s_modsq = ((abs(s))**2)
-s_data = (ndshape(s_modsq)).alloc()
-s_avg = (ndshape(s_modsq)).alloc()
-s_data.setaxis('t',s_modsq.getaxis('t')).set_units('t','s')
-s_avg.setaxis('t',s_modsq.getaxis('t')).set_units('t','s')
+s_modsq /= acq_time
+s_modsq /= 50.
 for q in xrange(int(0),int(len(captures))):
     s_data['capture',q] = s_modsq['capture',q]
     if q == 0:
         s_avg = s_data['capture',q]
     s_avg += s_data['capture',q]
 s_avg /= len(captures) 
-fl.next('Avg of FT(modsq(s))')
+print s_avg
+fl.next('Power density($\\nu$)')
 fl.plot(s_avg,alpha=0.3)
-ylim(0,2e-22)
-p_den = s_avg/acq_time
-fl.next('power density')
-fl.plot(p_den,alpha=0.3)
-ylim(0,8e-13)
-fl.next('power densities')
-fl.plot(p_den,alpha=0.23,label='nix')
-#w=1.4e3 #near minimum before losing plot, looks too noisy
-#w=1.5e3 #can still see some noise
-#w=1.5e4 #this still contains large peaks at the +/- 1250 MHz
-#w = 9e5 #this removes the large peaks at 1250 MHz and leaves
-        #approximately the expected bandwidth of the LNA
-#w = 1e6
-w = 1.5e6 #this is very smooth, but may be too drastic 
-p_den = p_den.convolve('t',w)
-fl.plot(p_den,alpha=0.2,color='green',label='conv')
-ylim(0,1.5e-12)
-fl.next('power density conv')
-fl.plot(p_den,alpha=0.15)
-ylim(0,1.5e-12)
-print "\n\n printing power density, f'n of f:\n"
-print p_den
-p_J = abs(p_den['t':(626e-6,626e6)]).sum('t')
-p_J /= ((1.381e-23)*(293.15)) #kBT units
-print p_J
+fl.next('Power densities($\\nu$), width=1.5e4 Hz')
+fl.plot(s_avg,alpha=0.23,label='PD')
+w=1.5e4 #this still contains large peaks at the +/- 1250 MHz
+#w=1.5e5 #this removes the large peaks at 1250 MHz and leaves
+####w = 1e6
+###w = 1.5e6 #this is very smooth, but may be too drastic 
+s_avg = s_avg.convolve('t',w)
+fl.plot(s_avg,alpha=0.2,color='green',label='Convolved')
+ylim(0,1.5e-14)
+fl.next('Convolved, width=1.5e4 Hz')
+fl.plot(s_avg,alpha=0.15)
+ylim(0,1.5e-14)
+###print "\n\n printing power density, f'n of f:\n"
+###print p_den
+###p_J = abs(p_den['t':(626e-6,626e6)]).sum('t')
+###p_J /= ((1.381e-23)*(293.15)) #kBT units
+###print p_J
 fl.show()
 
