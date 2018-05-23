@@ -6,7 +6,10 @@ logger.debug("a test!")
 
 # # Current Summary
 # 
-# I should be able to run the cell that defines ``plot_noise``. In trying to get it to work, I realized that I needed to replace `load_file` (old style) with `find_file`.  For some reason, it's not able to find the file (which is there, I checked with "find" on the command line.)  I need to double-check how far `find_file` will try to recurse.
+# I should be able to run the cell that defines ``plot_noise``. In trying to get it to work, I realized that I needed to replace `load_file` (old style) with `find_file`.
+# Because the data was in a subdirectory of a subdirectory of the reference data, there was trouble finding it.
+# I needed to tweak pyspecdata's file-finding routines, so you need to be using version of pyspecdata that includes the changes in commit ba5d707342fb (just be sure you pull pyspecdata).
+
 # 
 # When I'm done, I should pull all these functions out of pyspecdata, since they are applications.
 
@@ -15,18 +18,16 @@ logger.debug("a test!")
 # In[ ]:
 
 #{{{ plot_noise
-def plot_noise(filename,expno,calibration,mask_start,mask_stop,rgmin=0,k_B = None,smoothing = False, both = False, T = 293.0,plottype = 'semilogy',retplot = False, exp_type='shared_drive'):
+def plot_noise(filename, expno, calibration, mask_start, mask_stop,
+        rgmin=0, smoothing=False, both=False, T=293.0,
+        plottype='semilogy', retplot=False, exp_type='shared_drive'):
     '''plot noise scan as resistance'''
-    try:
-        data = find_file(filename, expno=expno, calibration=calibration, exp_type=exp_type)
-    except BaseException  as e:
-        raise ValueError("Trouble loading the file "+filename+explain_error(e))
-                         #+ '\n'.join(['>\t'+j for j in str(e).split('\n')]))# this indents
-    k_B = 1.3806504e-23
+    data = find_file(filename, expno=expno, calibration=calibration,
+            exp_type=exp_type)
     data.ft('t2',shift = True)
     newt2 = r'F2 / $Hz$'
     data.rename('t2',newt2)
-    v = bruker.load_acqu(r'%s%d/'%(path,j))
+    v = data.get_prop('acq')
     dw = 1/v['SW_h']
     dwov = dw/v['DECIM']
     rg = v['RG']
@@ -58,12 +59,12 @@ def plot_noise(filename,expno,calibration,mask_start,mask_stop,rgmin=0,k_B = Non
             t = plotdata.getaxis(newt2)
             g = exp(-siginv*t.copy()**2) # we use unnormalized kernel (1 at 0), which is not what I thought!
             plotdata.data *= g
-            plotdata.ift(newt2,shift = True)
+            plotdata.ift(newt2)
             t = plotdata.getaxis(newt2).copy()
             t[:] = originalt
             # end convolution
             pval = plot(plotdata,'-',alpha=0.5,plottype = plottype)
-            retval += ['%d: '%j+bruker.load_title(r'%s%d'%(path,j))+' $t_{dwov}$ %0.1f RG %d, DE %0.2f, mean %0.1f'%(dwov*1e6,rg,de,avg)]
+            retval += ['%d: '%j+data.get_prop('title')+' $t_{dwov}$ %0.1f RG %d, DE %0.2f, mean %0.1f'%(dwov*1e6,rg,de,avg)]
             axis('tight')
         if retplot:
             return pval,retval
@@ -124,7 +125,7 @@ for j in range(0,1): # for multiple plots $\Rightarrow$ add in j index below if 
    ax.get_xaxis().set_visible(False)
    ax.get_yaxis().set_visible(False)
    map((lambda x: x.set_visible(False)),ax.spines.values())
-   lplot('noise'+plotlabel+'_%d.pdf'%ind,grid=False,width=5,gensvg=True)
+   #lplot('noise'+plotlabel+'_%d.pdf'%ind,grid=False,width=5,gensvg=True)
    print '\n\n'
    figure(2)
    legendstr = []
@@ -139,8 +140,10 @@ for j in range(0,1): # for multiple plots $\Rightarrow$ add in j index below if 
       legendstr += [explabel[k]]
    if len(signalexpno)>0:
        autolegend(legendstr)
-       lplot('signal'+plotlabel+'_%d.pdf'%ind,grid=False)
+       #lplot('signal'+plotlabel+'_%d.pdf'%ind,grid=False)
    if (ind % 2) ==  0:
       print '\n\n'
 
+# here is a show command for when we're running from the command line
 
+show()
