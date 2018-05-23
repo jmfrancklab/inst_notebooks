@@ -5,14 +5,18 @@
 
 get_ipython().magic(u'load_ext pyspecdata.ipy')
 from pyspecdata.fornotebook import standard_noise_comparison, save_data
-init_logging(level='debug')
+init_logging(level=logging.DEBUG)
 logger.debug("a test!")
 
 
 # # Current Summary
 # 
-# I should be able to run the cell that defines ``plot_noise``. In trying to get it to work, I realized that I needed to replace `load_file` (old style) with `find_file`.  For some reason, it's not able to find the file (which is there, I checked with "find" on the command line.)  I need to double-check how far `find_file` will try to recurse.
+# I should be able to run the cell that defines ``plot_noise``. In trying to get it to work, I realized that I needed to replace `load_file` (old style) with `find_file`.
+# Because the data was in a subdirectory of a subdirectory of the reference data, there was trouble finding it.
+# I needed to tweak pyspecdata's file-finding routines, so you need to be using version of pyspecdata that includes the changes in commit ba5d707342fb (just be sure you pull pyspecdata).
 # 
+# **at some point**, I remember the noise being comparable to 50 $\Omega$, so something is a little screwy here -- we can compare -- should be able to pull the notebook, roll back git, and regenerate PDF corresponding to hardware_improvements.tex (just make shared directory the data_directory).   However, I think that the internal reference with the current hardware is a better check, anyways.
+
 # When I'm done, I should pull all these functions out of pyspecdata, since they are applications.
 
 # # Code
@@ -26,21 +30,19 @@ standard_noise_comparison(name)
 
 # since this calls on plot_noise (which was deleted when nmr.py was deleted), go back to git and retrieve the plot_noise function
 
-# In[ ]:
+# In[2]:
 
 #{{{ plot_noise
-def plot_noise(filename,expno,calibration,mask_start,mask_stop,rgmin=0,k_B = None,smoothing = False, both = False, T = 293.0,plottype = 'semilogy',retplot = False, exp_type='shared_drive'):
+def plot_noise(filename, expno, calibration, mask_start, mask_stop,
+        rgmin=0, smoothing=False, both=False, T=293.0,
+        plottype='semilogy', retplot=False, exp_type='shared_drive'):
     '''plot noise scan as resistance'''
-    try:
-        data = find_file(filename, expno=expno, calibration=calibration, exp_type=exp_type)
-    except BaseException  as e:
-        raise ValueError("Trouble loading the file "+filename+explain_error(e))
-                         #+ '\n'.join(['>\t'+j for j in str(e).split('\n')]))# this indents
-    k_B = 1.3806504e-23
+    data = find_file(filename, expno=expno, calibration=calibration,
+            exp_type=exp_type)
     data.ft('t2',shift = True)
     newt2 = r'F2 / $Hz$'
     data.rename('t2',newt2)
-    v = bruker.load_acqu(r'%s%d/'%(path,j))
+    v = data.get_prop('acq')
     dw = 1/v['SW_h']
     dwov = dw/v['DECIM']
     rg = v['RG']
@@ -72,12 +74,12 @@ def plot_noise(filename,expno,calibration,mask_start,mask_stop,rgmin=0,k_B = Non
             t = plotdata.getaxis(newt2)
             g = exp(-siginv*t.copy()**2) # we use unnormalized kernel (1 at 0), which is not what I thought!
             plotdata.data *= g
-            plotdata.ift(newt2,shift = True)
+            plotdata.ift(newt2)
             t = plotdata.getaxis(newt2).copy()
             t[:] = originalt
             # end convolution
             pval = plot(plotdata,'-',alpha=0.5,plottype = plottype)
-            retval += ['%d: '%j+bruker.load_title(r'%s%d'%(path,j))+' $t_{dwov}$ %0.1f RG %d, DE %0.2f, mean %0.1f'%(dwov*1e6,rg,de,avg)]
+            retval += ['%d: '%j+data.get_prop('title')+' $t_{dwov}$ %0.1f RG %d, DE %0.2f, mean %0.1f'%(dwov*1e6,rg,de,avg)]
             axis('tight')
         if retplot:
             return pval,retval
@@ -162,10 +164,9 @@ def standard_noise_comparison(name,path = 'franck_cnsi/nmr/', data_subdir = 'ref
 
 # Here, I want to pull out the potion of ``standard_noise_comparison`` that plots the reference scans
 
-# In[ ]:
+# In[6]:
 
 figure(1,figsize=(16,8))
-data_subdir = 'reference_data'
 #data_subdir = 'shared_drive' # call with this once, so it finds the reference_data directory
 #{{{ pull the cnsi calibration info from the data text file
 v = save_data()
@@ -173,14 +174,21 @@ our_calibration = double(v['our_calibration'])
 cnsi_calibration = double(v['cnsi_calibration'])
 calibration = cnsi_calibration*sqrt(50.0/10.0)*sqrt(50.0/40.0)
 #}}}
-path_list = []
+name_list = []
+dir_list = []
 explabel = []
 noiseexpno = []
 signalexpno = []
 plotlabel = 'example_noise'
 #
 path_list += ['popem_4mM_5p_pct_110610']
+dir_list += ['reference_data']
 explabel += ['control without shield']
+noiseexpno += [3] # 3 is the noise scan 2 is the reference
+#
+path_list += ['dna_cs14_120314']
+dir_list += ['franck_cnsi']
+explabel += ['with shield']
 noiseexpno += [3] # 3 is the noise scan 2 is the reference
 #
 mask_start = -1e6
@@ -196,7 +204,7 @@ for j in range(0,1): # for multiple plots $\Rightarrow$ add in j index below if 
    for k in range(0,len(noiseexpno)):
       retval = plot_noise(path_list[k], noiseexpno[k], calibration, mask_start,
               mask_stop, smoothing=smoothing,  both=False, retplot=True,
-              exp_type=data_subdir)
+              exp_type=dir_list[k])
       linelist += retval[0]
       legendstr.append('\n'.join(textwrap.wrap(explabel[k]+':'+retval[1][0],50))+'\n')
    ylabel(r'$\Omega$')
@@ -213,7 +221,6 @@ for j in range(0,1): # for multiple plots $\Rightarrow$ add in j index below if 
    ax.get_xaxis().set_visible(False)
    ax.get_yaxis().set_visible(False)
    map((lambda x: x.set_visible(False)),ax.spines.values())
-   lplot('noise'+plotlabel+'_%d.pdf'%ind,grid=False,width=5,gensvg=True)
    print '\n\n'
    figure(2)
    legendstr = []
@@ -228,12 +235,13 @@ for j in range(0,1): # for multiple plots $\Rightarrow$ add in j index below if 
       legendstr += [explabel[k]]
    if len(signalexpno)>0:
        autolegend(legendstr)
-       lplot('signal'+plotlabel+'_%d.pdf'%ind,grid=False)
    if (ind % 2) ==  0:
       print '\n\n'
 
 
+# here is a show command for when we're running from the command line
+
 # In[ ]:
 
-
+show()
 
