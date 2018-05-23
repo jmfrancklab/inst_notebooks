@@ -32,11 +32,13 @@ def load_noise(date,id_string,captures):
 captures = linspace(1,100,100)
 sample_rate = 5e9 #samples/sec
 acq_time = 1./sample_rate
+print '\nAcquistion time:',acq_time
+
 for date,id_string in [
     ('180521','noise_LNA'),
     ]:
     s = load_noise(date,id_string,captures)
-#Declaring/allocating now because cannot set frequency units atm
+#Declaring now because cannot set frequency units atm
 s_data = (ndshape(s)).alloc()
 s_data.setaxis('t',s.getaxis('t')).set_units('t','s')
 s.ft('t',shift=True)
