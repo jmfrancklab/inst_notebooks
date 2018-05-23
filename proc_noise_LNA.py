@@ -12,7 +12,7 @@ def load_noise(date,id_string,captures):
         print "pulled accumulated data"
     except:
         print "accumulated data was not found, pulling individual captures"
-        for j in xrange(1,cap_len+1):
+        for j in xrange(0,cap_len):
             j_str = str(j)
             d = nddata_hdf5(filename+'/capture'+j_str+'_'+date,
                 directory=getDATADIR(exp_type='test_equip'))
@@ -38,7 +38,6 @@ for date,id_string in [
 
 acq_time = diff(s.getaxis('t')[r_[0,-1]])[0]
 print '\nAcquistion time:',acq_time
-
 w=1e6 
 plot_y_max = 1
 #Declaring now because cannot set frequency units atm
