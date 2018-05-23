@@ -51,6 +51,9 @@ text += """
 nbook = v3.reads_py(text)
 
 nbook = v4.upgrade(nbook)  # Upgrade v3 to v4
+nbook.metadata.update({'kernelspec':{'name':"Python [Anaconda2]",
+    'display_name':'Python [Anaconda2]',
+    'language':'python'}})
 
 jsonform = v4.writes(nbook) + "\n"
 with open(sys.argv[1].replace('.py','.ipynb'), "w") as fpout:
