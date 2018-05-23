@@ -15,7 +15,7 @@ logger.debug("a test!")
 # Because the data was in a subdirectory of a subdirectory of the reference data, there was trouble finding it.
 # I needed to tweak pyspecdata's file-finding routines, so you need to be using version of pyspecdata that includes the changes in commit ba5d707342fb (just be sure you pull pyspecdata).
 # 
-# **at some point**, I remember the noise being comparable to 50 $\Omega$, so something is a little screwy here -- we can compare -- should be able to pull the notebook, roll back git, and regenerate PDF corresponding to hardware_improvements.tex (just make shared directory the data_directory).   However, I think that the internal reference with the current hardware is a better check, anyways.
+# *Note that the calibration argument got dropped in the update -- this is just fine -- we should probably do the calibration explicitly, anyways.*
 
 # When I'm done, I should pull all these functions out of pyspecdata, since they are applications.
 
@@ -37,8 +37,9 @@ def plot_noise(filename, expno, calibration, mask_start, mask_stop,
         rgmin=0, smoothing=False, both=False, T=293.0,
         plottype='semilogy', retplot=False, exp_type='shared_drive'):
     '''plot noise scan as resistance'''
-    data = find_file(filename, expno=expno, calibration=calibration,
+    data = find_file(filename, expno=expno,
             exp_type=exp_type)
+    data *= calibration
     data.ft('t2',shift = True)
     newt2 = r'F2 / $Hz$'
     data.rename('t2',newt2)
@@ -164,7 +165,7 @@ def standard_noise_comparison(name,path = 'franck_cnsi/nmr/', data_subdir = 'ref
 
 # Here, I want to pull out the potion of ``standard_noise_comparison`` that plots the reference scans
 
-# In[6]:
+# In[4]:
 
 figure(1,figsize=(16,8))
 #data_subdir = 'shared_drive' # call with this once, so it finds the reference_data directory
@@ -181,12 +182,12 @@ noiseexpno = []
 signalexpno = []
 plotlabel = 'example_noise'
 #
-path_list += ['popem_4mM_5p_pct_110610']
+name_list += ['popem_4mM_5p_pct_110610']
 dir_list += ['reference_data']
 explabel += ['control without shield']
 noiseexpno += [3] # 3 is the noise scan 2 is the reference
 #
-path_list += ['dna_cs14_120314']
+name_list += ['dna_cs14_120314']
 dir_list += ['franck_cnsi']
 explabel += ['with shield']
 noiseexpno += [3] # 3 is the noise scan 2 is the reference
@@ -202,7 +203,7 @@ for j in range(0,1): # for multiple plots $\Rightarrow$ add in j index below if 
    linelist = []
    subplot(121) # so that legend will fit
    for k in range(0,len(noiseexpno)):
-      retval = plot_noise(path_list[k], noiseexpno[k], calibration, mask_start,
+      retval = plot_noise(name_list[k], noiseexpno[k], calibration, mask_start,
               mask_stop, smoothing=smoothing,  both=False, retplot=True,
               exp_type=dir_list[k])
       linelist += retval[0]
