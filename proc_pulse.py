@@ -53,7 +53,7 @@ def process_series(date,id_string,V_AFG, pulse_threshold):
         plotdict = {1:"Fourier transform -- low power",
                 p_len:"Fourier transform -- high power"}
         for whichp in [1,p_len]:
-            fl.next(plotdict[whichp])
+            fl.next(plotdict[whichp]) #this does not need to be here - empty plot
             if j == whichp:
                 fl.plot(abs(d)['ch',0],alpha=0.2,label="FT %s"%id_string)
         d.ift('t')
