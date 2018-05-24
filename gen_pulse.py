@@ -18,8 +18,8 @@ print "done printing available instruments"
 with SerialInstrument('GDS-3254') as s:
     print s.respond('*idn?')
     
-with SerialInstrument('AFG-2225') as s:
-    print s.respond('*idn?')
+#with SerialInstrument('AFG-2225') as s:
+#    print s.respond('*idn?')
 
 def acquire():
     datalist = []
@@ -46,7 +46,7 @@ def acquire():
         data_name = 'capture%d_180523'%j
         data.name(data_name)
         try:
-            data.hdf5_write('180523_sine_LNA_noavg.h5')
+            data.hdf5_write('180523_noise_LNA_noavg.h5')
             try_again = False
             print "capture number",j
         except:
@@ -61,34 +61,34 @@ def acquire():
 
     
 def gen_pulse(freq=14.5e6, width=4e-6, ch1_only=True):
-    with AFG() as a:
-        a.reset()
-        rate = freq*4
-        total_samples = width*rate
-        total_samples = int(total_samples/4 + 0.5)*4 # convert to multiple of 4
-        assert total_samples < 4097, "Your pattern length (%d) exceeds the max (4096 samples at %g MHz)"%(total_samples,rate)
-        y = zeros(total_samples)
-        y[0::4]=0
-        y[1::4]=1
-        y[2::4]=0
-        y[3::4]=-1
-        y[-1]=0
-        if ch1_only:
-            ch_list = [0]
-        else:
-            ch_list = [0,1]
-        for this_ch in ch_list:
-            a[this_ch].digital_ndarray(y, rate=rate)
-            print "now, output on"
-            a[this_ch].output = True
-        for this_ch in range(1):
-            a[this_ch].burst = True
-            a.set_burst(per=100e-3) #effectively sets duty cycle (100msec b/w bursts)
-            set_amp = 50e-3
-            a[this_ch].ampl = set_amp
-            raw_input("Set")
-            for x in linspace(0,100,100): 
-               print "capture",x 
-               acquire() 
+#    with AFG() as a:
+#        a.reset()
+#        rate = freq*4
+#        total_samples = width*rate
+#        total_samples = int(total_samples/4 + 0.5)*4 # convert to multiple of 4
+#        assert total_samples < 4097, "Your pattern length (%d) exceeds the max (4096 samples at %g MHz)"%(total_samples,rate)
+#        y = zeros(total_samples)
+#        y[0::4]=0
+#        y[1::4]=1
+#        y[2::4]=0
+#        y[3::4]=-1
+#        y[-1]=0
+#        if ch1_only:
+#            ch_list = [0]
+#        else:
+#            ch_list = [0,1]
+#        for this_ch in ch_list:
+#            a[this_ch].digital_ndarray(y, rate=rate)
+#            print "now, output on"
+#            a[this_ch].output = True
+#        for this_ch in range(1):
+#            a[this_ch].burst = True
+#            a.set_burst(per=100e-3) #effectively sets duty cycle (100msec b/w bursts)
+#            set_amp = 50e-3
+#            a[this_ch].ampl = set_amp
+    raw_input("Set")
+    for x in linspace(0,100,100): 
+       print "capture",x 
+       acquire() 
 gen_pulse()
 
