@@ -8,6 +8,7 @@ gain_factor =  519.01901761
 atten_factor = 7.056e-5
 T = 273.15 + 20.
 power_signal_AFG = ((50.e-3)/(sqrt(2)*2))**2./50.
+test_signal_power = power_signal_AFG * atten_factor
 # }}}
 width_choice = int(sys.argv[1])
 if width_choice == 1:
@@ -92,10 +93,11 @@ for date,id_string in [
     #                      point, the signal at both ends is very close to
     #                      zero, so that's good
     s = s['t':(0,None)]
-    s /= 50.              #divide by resistance, gives units: W*s, or W/Hz
-    s /= acq_time         #divide by acquisition time
-    #s /= 519.01901761     #divide by gain factor, found from power curve
-    #s /= k_B*T           #divide by thermal noise
+    s /= 50.              # divide by resistance, gives units: W*s, or W/Hz
+    s /= acq_time         # divide by acquisition time
+    s /= gain_factor      # divide by gain factor, found from power curve -->
+    #                       now we have input-referred power
+    #s /= k_B*T           # divide by thermal noise
     s *= 2                # because the power is split over negative and positive frequencies
     # }}}
     interval = tuple(integration_center+r_[-1,1]*integration_width)
@@ -103,9 +105,10 @@ for date,id_string in [
     fl.next('Power spectral density, semilog')
     s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
     s_slice.name('$S_{xx}(\\nu)$').set_units('W/Hz')
-    fl.plot(s['t':(0,80e6)],alpha=0.3,label="%s"%label,plottype='semilogy')
-    fl.plot(s_slice,alpha=0.6,color='black',label="%s"%label,plottype='semilogy')
-    axhline(y=k_B*T*gain_factor/1e-12, alpha=0.3, color='g', lw=2.5) # 1e-12 b/c the axis is given in pW
+    fl.plot(s['t':(0,80e6)], alpha=0.3, label="%s"%label, plottype='semilogy')
+    fl.plot(s_slice, alpha=0.6, color='black', label="%s"%label,
+            plottype='semilogy')
+    axhline(y=k_B*T/1e-12, alpha=0.3, color='g', lw=2.5) # 1e-12 b/c the axis is given in pW
     print id_string," integration ",str(interval)," Hz = ",s['t':interval].integrate('t')
     power_dens_dict[id_string] = s['t':interval].integrate('t').data
     expand_x()
@@ -115,8 +118,7 @@ for date,id_string in [
     ###ylim(0,plot_y_max)
     #p_J = (abs(s['t':(-600e6,600e6)])).integrate('t')
     #print p_J
-predicted_power = power_signal_AFG * atten_factor * gain_factor
-print "error is %0.2f"%((power_dens_dict['sine_LNA_noavg'] - power_dens_dict['noise_LNA_noavg'] - predicted_power)/predicted_power*100)
+print "error is %0.2f"%((power_dens_dict['sine_LNA_noavg'] - power_dens_dict['noise_LNA_noavg'] - test_signal_power)/test_signal_power*100)
 fl.show()
 ######for date,id_string in [
 ######    ('180524','sine_noavg')
