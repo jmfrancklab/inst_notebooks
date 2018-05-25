@@ -3,9 +3,12 @@ fl = figlist_var()
 import os
 import sys
 
+# {{{ constants measured elsewhere
 gain_factor =  519.01901761
 atten_factor = 7.056e-5
+T = 273.15 + 20.
 power_signal_AFG = ((50.e-3)/(sqrt(2)*2))**2./50.
+# }}}
 width_choice = int(sys.argv[1])
 if width_choice == 1:
     integration_center = 1.452e7
@@ -59,13 +62,6 @@ for date,id_string in [
     #('180523','noise_LNA_noavg_bw100'),
     #('180524','noise_LNA_noavg_bw20'),
     ]:
-    s = load_noise(date,id_string,captures)
-    acq_time = diff(s.getaxis('t')[r_[0,-1]])[0]
-    print '\nAcquistion time:',acq_time
-    #print '\nTotal number of samples:',len(s.getaxis('t'))
-    #print '\nTime between samples:',acq_time/len(s.getaxis('t'))
-    s.ft('t',shift=True)
-    T = 293.15
     if id_string == 'sine_LNA':
         label = '14 avg/cap, 14.5 MHz sine, BW=250 MHz'
     elif id_string == 'sine_LNA_noavg':
@@ -85,24 +81,34 @@ for date,id_string in [
     #fl.next('Amplitude spectral density')
     #s.name('$\hat{x}(\\nu)$').set_units('V/Hz')
     #fl.plot(s['capture',1],alpha=0.5,label='%s'%label)
+    # {{{ this part calculates the positive frequency noise power spectral density
+    s = load_noise(date,id_string,captures)
+    acq_time = diff(s.getaxis('t')[r_[0,-1]])[0]
+    s.ft('t',shift=True)
     s = abs(s)**2         #mod square
     s.mean('capture', return_error=False)
+    s.convolve('t',2e5) # we do this before chopping things up, since it uses
+    #                      FFT and assumes that the signal is periodic (at this
+    #                      point, the signal at both ends is very close to
+    #                      zero, so that's good
     s = s['t':(0,None)]
     s /= 50.              #divide by resistance, gives units: W*s, or W/Hz
     s /= acq_time         #divide by acquisition time
     #s /= 519.01901761     #divide by gain factor, found from power curve
     #s /= k_B*T           #divide by thermal noise
     s *= 2                # because the power is split over negative and positive frequencies
+    # }}}
     interval = tuple(integration_center+r_[-1,1]*integration_width)
     s_slice = s['t':interval]
     fl.next('Power spectral density, semilog')
     s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
     s_slice.name('$S_{xx}(\\nu)$').set_units('W/Hz')
-    fl.plot(s,alpha=0.3,label="%s"%label,plottype='semilogy')
+    fl.plot(s['t':(0,80e6)],alpha=0.3,label="%s"%label,plottype='semilogy')
     fl.plot(s_slice,alpha=0.6,color='black',label="%s"%label,plottype='semilogy')
-    xlim(0,80)
+    axhline(y=k_B*T*gain_factor/1e-12, alpha=0.3, color='g', lw=2.5) # 1e-12 b/c the axis is given in pW
     print id_string," integration ",str(interval)," Hz = ",s['t':interval].integrate('t')
     power_dens_dict[id_string] = s['t':interval].integrate('t').data
+    expand_x()
     ####ylim(0,6e-21)
     #fl.next('PD Convolved zoom, width= %.1e Hz'%w)
     #fl.plot(s['t':(-600e6,600e6)],alpha=0.23)
