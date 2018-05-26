@@ -43,10 +43,10 @@ def acquire():
     j = 1
     try_again = True
     while try_again:
-        data_name = 'capture%d_180524'%j
+        data_name = 'capture%d_180525'%j
         data.name(data_name)
         try:
-            data.hdf5_write('180524_sine25_LNA_noavg.h5')
+            data.hdf5_write('180525_AFG_terminator.h5')
             try_again = False
             print "capture number",j
         except:
@@ -59,7 +59,6 @@ def acquire():
     fl.next('Dual-channel data')
     fl.plot(data)
 
-    
 def gen_pulse(freq=14.5e6, width=4e-6, ch1_only=True):
 #    with AFG() as a:
 #        a.reset()
