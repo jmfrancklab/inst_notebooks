@@ -55,13 +55,13 @@ def load_noise(date,id_string,captures):
 captures = linspace(0,100,100)
 power_dens_dict = {}
 for date,id_string in [
-    #('180523','sine_LNA'),
-    #('180521','noise_LNA'),
+    ('180525','AFG_terminator'),
+    ('180526','AFG_terminator_2'),
     ('180523','noise_LNA_noavg'),
-    ('180523','sine_LNA_noavg'),
-    #('180524','sine25_LNA_noavg'),
-    #('180523','noise_LNA_noavg_bw100'),
-    #('180524','noise_LNA_noavg_bw20'),
+#    ('180523','sine_LNA_noavg'),
+#    ('180524','sine25_LNA_noavg'),
+#    ('180523','noise_LNA_noavg_bw100'),
+#    ('180524','noise_LNA_noavg_bw20'),
     ]:
     if id_string == 'sine_LNA':
         label = '14 avg/cap, BW=250 MHz, 14.5 MHz sine'
@@ -77,6 +77,10 @@ for date,id_string in [
         label = '0 avg/cap, BW=100 MHz, noise'
     elif id_string == 'noise_LNA_noavg_bw20':
         label = '0 avg/cap, BW=20 MHz, noise'
+    elif id_string == 'AFG_terminator':
+        label = '0 avg/cap, BW=250 MHz, AFG terminator noise'
+    elif id_string == 'AFG_terminator_2':
+        label = '0 avg/cap, BW=250 MHz, AFG,coax,adapter terminator noise'
     else:
         label = 'undetermined'
     #fl.next('Amplitude spectral density')
@@ -95,9 +99,9 @@ for date,id_string in [
     s = abs(s)['t':(0,None)]
     s /= 50.              # divide by resistance, gives units: W*s, or W/Hz
     s /= acq_time         # divide by acquisition time
-    s /= gain_factor      # divide by gain factor, found from power curve -->
+#    s /= gain_factor      # divide by gain factor, found from power curve -->
     #                       now we have input-referred power
-    #s /= k_B*T           # divide by thermal noise
+#    s /= k_B*T           # divide by thermal noise
     s *= 2                # because the power is split over negative and positive frequencies
     # }}}
     interval = tuple(integration_center+r_[-1,1]*integration_width)
@@ -118,7 +122,7 @@ for date,id_string in [
     ###ylim(0,plot_y_max)
     #p_J = (abs(s['t':(-600e6,600e6)])).integrate('t')
     #print p_J
-print "error is %0.2f"%((power_dens_dict['sine_LNA_noavg'] - power_dens_dict['noise_LNA_noavg'] - test_signal_power)/test_signal_power*100)
+#print "error is %0.2f"%((power_dens_dict['sine_LNA_noavg'] - power_dens_dict['noise_LNA_noavg'] - test_signal_power)/test_signal_power*100)
 fl.show()
 ######for date,id_string in [
 ######    ('180524','sine_noavg')
