@@ -110,7 +110,7 @@ atten_V = 1
 #print "Axis spacing: Log"
 
 for date,id_string in [
-        ('180515','sweep_test_LNA'),
+        ('180526','sweep_test_LNA3'),
         ]:
     LNA_power = gen_power_data(date,id_string,V_AFG,pulse_threshold=0.1)
 
