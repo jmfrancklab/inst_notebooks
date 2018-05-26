@@ -4,7 +4,7 @@ import os
 import sys
 
 # {{{ constants measured elsewhere
-gain_factor =  519.01901761
+gain_factor =  523.09526795
 atten_factor = 7.056e-5
 T = 273.15 + 20.
 power_signal_AFG = ((50.e-3)/(sqrt(2)*2))**2./50.
@@ -55,10 +55,10 @@ def load_noise(date,id_string,captures):
 captures = linspace(0,100,100)
 power_dens_dict = {}
 for date,id_string in [
-    ('180525','AFG_terminator'),
-    ('180526','AFG_terminator_2'),
+#    ('180525','AFG_terminator'),
+#    ('180526','AFG_terminator_2'),
     ('180523','noise_LNA_noavg'),
-#    ('180523','sine_LNA_noavg'),
+    ('180523','sine_LNA_noavg'),
 #    ('180524','sine25_LNA_noavg'),
 #    ('180523','noise_LNA_noavg_bw100'),
 #    ('180524','noise_LNA_noavg_bw20'),
@@ -99,7 +99,7 @@ for date,id_string in [
     s = abs(s)['t':(0,None)]
     s /= 50.              # divide by resistance, gives units: W*s, or W/Hz
     s /= acq_time         # divide by acquisition time
-#    s /= gain_factor      # divide by gain factor, found from power curve -->
+    s /= gain_factor      # divide by gain factor, found from power curve -->
     #                       now we have input-referred power
 #    s /= k_B*T           # divide by thermal noise
     s *= 2                # because the power is split over negative and positive frequencies
@@ -110,8 +110,8 @@ for date,id_string in [
     s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
     s_slice.name('$S_{xx}(\\nu)$').set_units('W/Hz')
     fl.plot(s['t':(0e6,80e6)], alpha=0.8, label="%s"%label, plottype='semilogy')
-#    fl.plot(s_slice, alpha=0.8, color='black', label="integration slice",
-#            plottype='semilogy')
+    fl.plot(s_slice, alpha=0.8, color='black', label="integration slice",
+            plottype='semilogy')
     axhline(y=k_B*T/1e-12, alpha=0.9, color='g', lw=2) # 1e-12 b/c the axis is given in pW
     print id_string," integration ",str(interval)," Hz = ",s['t':interval].integrate('t')
     power_dens_dict[id_string] = s['t':interval].integrate('t').data
@@ -122,7 +122,7 @@ for date,id_string in [
     ###ylim(0,plot_y_max)
     #p_J = (abs(s['t':(-600e6,600e6)])).integrate('t')
     #print p_J
-#print "error is %0.2f"%((power_dens_dict['sine_LNA_noavg'] - power_dens_dict['noise_LNA_noavg'] - test_signal_power)/test_signal_power*100)
+print "error is %0.2f"%((power_dens_dict['sine_LNA_noavg'] - power_dens_dict['noise_LNA_noavg'] - test_signal_power)/test_signal_power*100)
 fl.show()
 ######for date,id_string in [
 ######    ('180524','sine_noavg')
