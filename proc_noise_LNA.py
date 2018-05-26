@@ -64,19 +64,19 @@ for date,id_string in [
     #('180524','noise_LNA_noavg_bw20'),
     ]:
     if id_string == 'sine_LNA':
-        label = '14 avg/cap, 14.5 MHz sine, BW=250 MHz'
+        label = '14 avg/cap, BW=250 MHz, 14.5 MHz sine'
     elif id_string == 'sine_LNA_noavg':
-        label = '0 avg/cap, 14.5 MHz sine, BW=250 MHz'
+        label = '0 avg/cap, BW=250 MHz, 14.5 MHz sine'
     elif id_string == 'sine25_LNA_noavg':
-        label = '0 avg/cap, 25 MHz sine, BW=100 MHz'
+        label = '0 avg/cap, BW=100 MHz, 14.5 MHz sine'
     elif id_string == 'noise_LNA':
-        label = '14 avg/cap, BW=250 MHz'
+        label = '14 avg/cap, BW=250 MHz, noise'
     elif id_string == 'noise_LNA_noavg':
-        label = '0 avg/cap, BW=250 MHz'
+        label = '0 avg/cap, BW=250 MHz, noise'
     elif id_string == 'noise_LNA_noavg_bw100':
-        label = '0 avg/cap, BW=100 MHz'
+        label = '0 avg/cap, BW=100 MHz, noise'
     elif id_string == 'noise_LNA_noavg_bw20':
-        label = '0 avg/cap, BW=20 MHz'
+        label = '0 avg/cap, BW=20 MHz, noise'
     else:
         label = 'undetermined'
     #fl.next('Amplitude spectral density')
@@ -92,7 +92,7 @@ for date,id_string in [
     #                      FFT and assumes that the signal is periodic (at this
     #                      point, the signal at both ends is very close to
     #                      zero, so that's good
-    s = s['t':(0,None)]
+    s = abs(s)['t':(0,None)]
     s /= 50.              # divide by resistance, gives units: W*s, or W/Hz
     s /= acq_time         # divide by acquisition time
     s /= gain_factor      # divide by gain factor, found from power curve -->
@@ -102,13 +102,13 @@ for date,id_string in [
     # }}}
     interval = tuple(integration_center+r_[-1,1]*integration_width)
     s_slice = s['t':interval]
-    fl.next('Power spectral density, semilog')
+    fl.next('Input-Referred Power Spectral Density, semilog')
     s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
     s_slice.name('$S_{xx}(\\nu)$').set_units('W/Hz')
-    fl.plot(s['t':(0,80e6)], alpha=0.3, label="%s"%label, plottype='semilogy')
-    fl.plot(s_slice, alpha=0.6, color='black', label="%s"%label,
-            plottype='semilogy')
-    axhline(y=k_B*T/1e-12, alpha=0.3, color='g', lw=2.5) # 1e-12 b/c the axis is given in pW
+    fl.plot(s['t':(0e6,80e6)], alpha=0.8, label="%s"%label, plottype='semilogy')
+#    fl.plot(s_slice, alpha=0.8, color='black', label="integration slice",
+#            plottype='semilogy')
+    axhline(y=k_B*T/1e-12, alpha=0.9, color='g', lw=2) # 1e-12 b/c the axis is given in pW
     print id_string," integration ",str(interval)," Hz = ",s['t':interval].integrate('t')
     power_dens_dict[id_string] = s['t':interval].integrate('t').data
     expand_x()
