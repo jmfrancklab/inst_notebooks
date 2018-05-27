@@ -4,7 +4,9 @@ import os
 import sys
 
 # {{{ constants measured elsewhere
-gain_factor =  519.01901761
+#gain_factor =   523.09526795    #LNA#1 gain factor
+#gain_factor =  533.02207468    #LNA#2 gain factor
+gain_factor =  526.65867808    #LNA#3 gain factor
 atten_factor = 7.056e-5
 T = 273.15 + 20.
 power_signal_AFG = ((50.e-3)/(sqrt(2)*2))**2./50.
@@ -55,11 +57,12 @@ def load_noise(date,id_string,captures):
 captures = linspace(0,100,100)
 power_dens_dict = {}
 for date,id_string in [
-    ('180525','AFG_terminator'),
-    ('180526','AFG_terminator_2'),
-    ('180523','noise_LNA_noavg'),
+#    ('180525','AFG_terminator'),
+#    ('180526','AFG_terminator_2'),
+#    ('180527','noise_LNA1_noavg'),
+#    ('180527','noise_LNA2_noavg'),
+    ('180527','noise_LNA3_noavg'),
 #    ('180523','sine_LNA_noavg'),
-#    ('180524','sine25_LNA_noavg'),
 #    ('180523','noise_LNA_noavg_bw100'),
 #    ('180524','noise_LNA_noavg_bw20'),
     ]:
@@ -72,6 +75,10 @@ for date,id_string in [
     elif id_string == 'noise_LNA':
         label = '14 avg/cap, BW=250 MHz, noise'
     elif id_string == 'noise_LNA_noavg':
+        label = '0 avg/cap, BW=250 MHz, noise'
+    elif id_string == 'noise_LNA2_noavg':
+        label = '0 avg/cap, BW=250 MHz, noise'
+    elif id_string == 'noise_LNA3_noavg':
         label = '0 avg/cap, BW=250 MHz, noise'
     elif id_string == 'noise_LNA_noavg_bw100':
         label = '0 avg/cap, BW=100 MHz, noise'
@@ -99,7 +106,7 @@ for date,id_string in [
     s = abs(s)['t':(0,None)]
     s /= 50.              # divide by resistance, gives units: W*s, or W/Hz
     s /= acq_time         # divide by acquisition time
-#    s /= gain_factor      # divide by gain factor, found from power curve -->
+    s /= gain_factor      # divide by gain factor, found from power curve -->
     #                       now we have input-referred power
 #    s /= k_B*T           # divide by thermal noise
     s *= 2                # because the power is split over negative and positive frequencies
@@ -110,11 +117,11 @@ for date,id_string in [
     s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
     s_slice.name('$S_{xx}(\\nu)$').set_units('W/Hz')
     fl.plot(s['t':(0e6,80e6)], alpha=0.8, label="%s"%label, plottype='semilogy')
-#    fl.plot(s_slice, alpha=0.8, color='black', label="integration slice",
-#            plottype='semilogy')
+    fl.plot(s_slice, alpha=0.8, color='black', label="integration slice",
+            plottype='semilogy')
     axhline(y=k_B*T/1e-12, alpha=0.9, color='g', lw=2) # 1e-12 b/c the axis is given in pW
     print id_string," integration ",str(interval)," Hz = ",s['t':interval].integrate('t')
-    power_dens_dict[id_string] = s['t':interval].integrate('t').data
+#    power_dens_dict[id_string] = s['t':interval].integrate('t').data
     expand_x()
     ####ylim(0,6e-21)
     #fl.next('PD Convolved zoom, width= %.1e Hz'%w)
@@ -124,56 +131,4 @@ for date,id_string in [
     #print p_J
 #print "error is %0.2f"%((power_dens_dict['sine_LNA_noavg'] - power_dens_dict['noise_LNA_noavg'] - test_signal_power)/test_signal_power*100)
 fl.show()
-######for date,id_string in [
-######    ('180524','sine_noavg')
-#######    ('180524','sine25_noavg')
-######    ]:
-######    s_none = load_noise(date,id_string,captures)
-######    acq_time_none = diff(s_none.getaxis('t')[r_[0,-1]])[0]
-######    print '\nAcquistion time:',acq_time
-#######    print '\nTotal number of samples:',len(s.getaxis('t'))
-#######    print '\nTime between samples:',acq_time/len(s.getaxis('t'))
-######    s_none.ft('t',shift=True)
-######    if id_string == 'sine_noavg':
-######        label = '0 avg/cap, 14.5MHz sine, BW=250 MHz, No LNA'
-######    elif id_string == 'sine25_noavg':
-######        label = '0 avg/cap, 25 MHz sine, BW=100 MHz, No LNA'
-######    else:
-######        label = 'undetermined'
-######    fl.next('Amplitude spectral density')
-######    s_none.name('$\hat{x}(\\nu)$').set_units('V/Hz')
-######    fl.plot(s_none['capture',1],alpha=0.5,label='%s'%label)
-######    s_none_modsq = abs(s_none)**2         #mod square
-######    s_none_modsq /= acq_time         #divide by acquisition time
-######    s_none_modsq /= 50.              #divide by resistance, gives units: W*s, or W/Hz
-######    s_none_modsq /= k_B*T           #divide by thermal noise
-######    s_none_modsq *= 2                # because the power is split over negative and positive frequencies
-######    s_none_avg = s_none_modsq.C.mean('capture', return_error=False)
-#######    signal_slice = s_avg['t':(4.66016e6,23.6241e6)]
-#######    LNA_BW_slice = s_avg.copy()
-#######    LNA_BW_slice['t':(0.1e6,None)]=0
-#######    LNA_BW_slice['t':(None,-0.1e6)]=0
-#######    fl.next('lna bandwidth slice')
-#######    fl.plot(LNA_BW_slice,alpha=0.3,label='%s'%id_string,plottype='semilogy') 
-######    fl.next('Power spectral density, loglog')
-######    s_none_avg.name('$S_{xx}(\\nu)$').set_units('W/Hz')
-######    fl.plot(s_none_avg,alpha=0.3,label="%s"%label,plottype='semilogy')
-#######    fl.plot(LNA_BW_slice,alpha=0.4,color='black',label="%s"%id_string,plottype='semilogy')
-#######    fl.plot(signal_slice,alpha=0.4,color='black',label="SLICE")
-#######    print "for,",id_string,"signal is: ",'%0.4e'%(signal_slice.C.integrate('t').data)
-#######    print 'check above same as ',s_avg['t':(4.66016e6,23.6241e6)].integrate('t')
-#######    interval = (130e6,131e6)
-#######    print "integrate from 130 to 131 MHz (should match P/(k_B T) of injected reference signal):",s_avg['t':interval].integrate('t')
-#######    print "Johnson noise over same interval (also P/(k_B T)) should be:",(interval[1]-interval[0])
-#######    w=1e6
-#######    w_str = str(w)
-#######    fl.next('power_densities($\\nu$): smoothing=%.1eHz'%w)
-#######    fl.plot(s_avg,alpha=0.23,label='%s'%id_string, plottype='semilogy')
-#######    s_avg = s_avg.convolve('t',w)
-########    smooth_slice = s_avg['t':(24e6,26e6)]
-#######    fl.plot(s_avg,alpha=0.2,color='black',label='smoothing', plottype='semilogy')
-#######    fl.next('power_density($\\nu$), slices and smoothing=%.1e Hz'%w)
-#######    fl.plot(s_avg,alpha=0.23,label='%s'%id_string,plottype='semilogy')
-#######    fl.plot(smooth_slice,alpha=0.4,color='black',label='SLICE',plottype='semilogy')
-#######    print "for smooth,",id_string,"signal is: ",'%f'%(smooth_slice.C.integrate('t').data)
 
