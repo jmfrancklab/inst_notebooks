@@ -4,9 +4,15 @@ import os
 import sys
 
 # {{{ constants measured elsewhere
+<<<<<<< HEAD
 #gain_factor =   523.09526795    #LNA#1 gain factor
 #gain_factor =  533.02207468    #LNA#2 gain factor
 gain_factor =  526.65867808    #LNA#3 gain factor
+||||||| merged common ancestors
+gain_factor =  519.01901761
+=======
+gain_factor =  523.09526795
+>>>>>>> aacb16be51a90adceeef0a0add4b8fecba31d37c
 atten_factor = 7.056e-5
 T = 273.15 + 20.
 power_signal_AFG = ((50.e-3)/(sqrt(2)*2))**2./50.
@@ -63,6 +69,11 @@ for date,id_string in [
 #    ('180527','noise_LNA2_noavg'),
     ('180527','noise_LNA3_noavg'),
 #    ('180523','sine_LNA_noavg'),
+    ('180525','AFG_terminator'),
+    ('180526','AFG_terminator_2'),
+    ('180523','noise_LNA_noavg'),
+#    ('180523','sine_LNA_noavg'),
+#    ('180524','sine25_LNA_noavg'),
 #    ('180523','noise_LNA_noavg_bw100'),
 #    ('180524','noise_LNA_noavg_bw20'),
     ]:
@@ -129,6 +140,6 @@ for date,id_string in [
     ###ylim(0,plot_y_max)
     #p_J = (abs(s['t':(-600e6,600e6)])).integrate('t')
     #print p_J
-#print "error is %0.2f"%((power_dens_dict['sine_LNA_noavg'] - power_dens_dict['noise_LNA_noavg'] - test_signal_power)/test_signal_power*100)
+print "error is %0.2f"%((power_dens_dict['sine_LNA_noavg'] - power_dens_dict['noise_LNA_noavg'] - test_signal_power)/test_signal_power*100)
 fl.show()
 
