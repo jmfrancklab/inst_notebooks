@@ -7,7 +7,7 @@ import sys
 #gain_factor =   523.09526795    #LNA#1 gain factor
 #gain_factor =  533.02207468    #LNA#2 gain factor
 #gain_factor =  526.65867808    #LNA#3 gain factor
-gain_factor = 198381.268141728
+gain_factor = 198381.268141728  #LNA#1,LNA#2 gain factor
 atten_factor = 7.056e-5
 T = 273.15 + 20.
 power_signal_AFG = ((50.e-3)/(sqrt(2)*2))**2./50.

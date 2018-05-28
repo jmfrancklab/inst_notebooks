@@ -21,13 +21,13 @@ def plot_captures(capture_list,plot_str,current_j,data,how_many_ch):
 
 def gen_power_data(date,id_string,V_AFG,pulse_threshold):
     p_len = len(V_AFG)
-    for j in range(1,p_len+1):
+    for j in range(10+1,p_len+1):
         print "loading signal",j
         j_str = str(j)
         d = nddata_hdf5(date+'_'+id_string+'.h5/capture'+j_str+'_'+date,
                 directory=getDATADIR(exp_type='test_equip'))
         d.set_units('t','s')
-        if j == 1:
+        if j == 10+1:
             raw_signal = (ndshape(d) + ('power',p_len)).alloc()
             raw_signal.setaxis('t',d.getaxis('t')).set_units('t','s')
             raw_signal.setaxis('power',(V_AFG/2.0/sqrt(2))**2/50.).set_units('power','W')
@@ -46,7 +46,7 @@ def gen_power_data(date,id_string,V_AFG,pulse_threshold):
         #I only want to do the following for d['ch',0] (control, ch1)3
         #NOT d['ch',1], since I want to define the power axis values for ch2
         #as values I generate for ch1
-        if j == 1:
+        if j == 10+1:
             analytic_signal = (ndshape(d) + ('power',p_len)).alloc()
             analytic_signal.setaxis('t',d.getaxis('t')).set_units('t','s')
             #Do I need to do this? Isn't it arbitrary?
@@ -95,8 +95,8 @@ def gen_power_data(date,id_string,V_AFG,pulse_threshold):
 
 ## NO USER INPUT; LOG SPACING
 V_start = 0.01
-V_stop = 0.274
-V_step = 30 
+V_stop = 0.860
+V_step = 24 
 V_start_log = log10(V_start)
 V_stop_log = log10(V_stop)
 V_step_log = log10(V_step)
@@ -110,7 +110,9 @@ atten_V = 1
 #print "Axis spacing: Log"
 
 for date,id_string in [
-        ('180527','sweep_cascade12'),
+#        ('180527','sweep_cascade12'),
+        ('180528','sweep_cascade12'),
+#        ('180526','sweep_test_LNA1'),
         ]:
     LNA_power = gen_power_data(date,id_string,V_AFG,pulse_threshold=0.1)
 
