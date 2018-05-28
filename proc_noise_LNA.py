@@ -7,7 +7,7 @@ import sys
 #gain_factor =   523.09526795    #LNA#1 gain factor
 #gain_factor =  533.02207468    #LNA#2 gain factor
 #gain_factor =  526.65867808    #LNA#3 gain factor
-gain_factor = 523.09526795*533.02207468
+gain_factor = 198381.268141728
 atten_factor = 7.056e-5
 T = 273.15 + 20.
 power_signal_AFG = ((50.e-3)/(sqrt(2)*2))**2./50.
@@ -25,6 +25,9 @@ elif width_choice == 3:
     integration_width = 3.28e6
 elif width_choice == 4:
     integration_center = 1.45e7
+    integration_width = 5.28e6
+elif width_choice == 5:
+    integration_center = 50.e6 
     integration_width = 5.28e6
 
 
@@ -106,7 +109,7 @@ for date,id_string in [
     s.ft('t',shift=True)
     s = abs(s)**2         #mod square
     s.mean('capture', return_error=False)
-#    s.convolve('t',2e5) # we d526.65867808o this before chopping things up, since it uses
+#    s.convolve('t',9e5) # we d526.65867808o this before chopping things up, since it uses
     #                      FFT and assumes that the signal is periodic (at this
     #                      point, the signal at both ends is very close to
     #                      zero, so that's good
@@ -123,7 +126,7 @@ for date,id_string in [
     fl.next('Input-Referred Power Spectral Density, semilog')
     s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
     s_slice.name('$S_{xx}(\\nu)$').set_units('W/Hz')
-    fl.plot(s['t':(0e6,80e6)], alpha=0.8, label="%s"%label, plottype='semilogy')
+    fl.plot(s['t':(0e6,200e6)], alpha=0.8, label="%s"%label, plottype='semilogy')
     fl.plot(s_slice, alpha=0.8, color='black', label="integration slice",
             plottype='semilogy')
     axhline(y=k_B*T/1e-12, alpha=0.9, color='g', lw=2) # 1e-12 b/c the axis is given in pW
