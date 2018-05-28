@@ -7,7 +7,7 @@ import sys
 #gain_factor = 523.09526795   #LNA#1 gain factor
 #gain_factor = 533.02207468    #LNA#2 gain factor
 #gain_factor = 526.65867808    #LNA#3 gain factor
-gain_factor = 217170.900258      #LNA#1,LNA#2 gain factor
+gain_factor = 207584.430917      #LNA#1,LNA#2 gain factor
                                 #Calculated manually by sending
                                 #100 mVpp into splitter(5/28/2018)
 atten_factor = 7.056e-5
@@ -64,16 +64,16 @@ captures = linspace(0,100,100)
 power_dens_dict = {}
 for date,id_string in [
     ('180527','noise_cascade12'),
-    ('180528','sine_cascade12'),
+    ('180528','noise_cascade12'),
+#    ('180528','sine_cascade12'),
 #    ('180525','AFG_terminator'),
 #    ('180526','AFG_terminator_2'),
-#    ('180527','noise_LNA1_noavg'),
+    ('180527','noise_LNA1_noavg'),
 #    ('180527','noise_LNA2_noavg'),
 #   ('180527','noise_LNA3_noavg'),
 #    ('180523','sine_LNA_noavg'),
 #    ('180525','AFG_terminator'),
 #    ('180526','AFG_terminator_2'),
-
 #    ('180523','noise_LNA_noavg'),
 #    ('180523','sine_LNA_noavg'),
 #    ('180524','sine25_LNA_noavg'),
@@ -133,11 +133,11 @@ for date,id_string in [
     fl.plot(s['t':(0e6,80e6)], alpha=0.8, label="%s"%label, plottype='semilogy')
     fl.plot(s_slice, alpha=0.8, color='black', label="integration slice",
             plottype='semilogy')
-    axhline(y=k_B*T/1e-12, alpha=0.9, color='g', lw=2) # 1e-12 b/c the axis is given in pW
+    axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
     print id_string," integration ",str(interval)," Hz = ",s['t':interval].integrate('t')
-    power_dens_dict[id_string] = s['t':interval].integrate('t').data
+#    power_dens_dict[id_string] = s['t':interval].integrate('t').data
     expand_x()
-print "error is %0.2f"%((power_dens_dict['sine_cascade12'] - power_dens_dict['noise_cascade12'] - test_signal_power)/test_signal_power*100)
+#print "error is %0.2f"%((power_dens_dict['sine_cascade12'] - power_dens_dict['noise_cascade12'] - test_signal_power)/test_signal_power*100)
 print type(interval)
 print "thermal noise is:",k_B*T*float(interval[-1]-interval[0])
 fl.show()
