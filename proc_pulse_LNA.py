@@ -95,8 +95,8 @@ def gen_power_data(date,id_string,V_AFG,pulse_threshold):
 
 ## NO USER INPUT; LOG SPACING
 V_start = 0.01
-V_stop = 0.86
-V_step = 40 
+V_stop = 0.274
+V_step = 30 
 V_start_log = log10(V_start)
 V_stop_log = log10(V_stop)
 V_step_log = log10(V_step)
@@ -110,7 +110,7 @@ atten_V = 1
 #print "Axis spacing: Log"
 
 for date,id_string in [
-        ('180526','sweep_test_LNA1'),
+        ('180527','sweep_cascade12'),
         ]:
     LNA_power = gen_power_data(date,id_string,V_AFG,pulse_threshold=0.1)
 
