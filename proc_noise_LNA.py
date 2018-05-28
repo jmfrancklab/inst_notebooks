@@ -4,15 +4,10 @@ import os
 import sys
 
 # {{{ constants measured elsewhere
-<<<<<<< HEAD
 #gain_factor =   523.09526795    #LNA#1 gain factor
 #gain_factor =  533.02207468    #LNA#2 gain factor
-gain_factor =  526.65867808    #LNA#3 gain factor
-||||||| merged common ancestors
-gain_factor =  519.01901761
-=======
-gain_factor =  523.09526795
->>>>>>> aacb16be51a90adceeef0a0add4b8fecba31d37c
+#gain_factor =  526.65867808    #LNA#3 gain factor
+gain_factor = 523.09526795*533.02207468
 atten_factor = 7.056e-5
 T = 273.15 + 20.
 power_signal_AFG = ((50.e-3)/(sqrt(2)*2))**2./50.
@@ -63,15 +58,16 @@ def load_noise(date,id_string,captures):
 captures = linspace(0,100,100)
 power_dens_dict = {}
 for date,id_string in [
+    ('180527','noise_cascade12'),
 #    ('180525','AFG_terminator'),
 #    ('180526','AFG_terminator_2'),
 #    ('180527','noise_LNA1_noavg'),
 #    ('180527','noise_LNA2_noavg'),
-    ('180527','noise_LNA3_noavg'),
+#   ('180527','noise_LNA3_noavg'),
 #    ('180523','sine_LNA_noavg'),
-    ('180525','AFG_terminator'),
-    ('180526','AFG_terminator_2'),
-    ('180523','noise_LNA_noavg'),
+#    ('180525','AFG_terminator'),
+#    ('180526','AFG_terminator_2'),
+#    ('180523','noise_LNA_noavg'),
 #    ('180523','sine_LNA_noavg'),
 #    ('180524','sine25_LNA_noavg'),
 #    ('180523','noise_LNA_noavg_bw100'),
@@ -110,7 +106,7 @@ for date,id_string in [
     s.ft('t',shift=True)
     s = abs(s)**2         #mod square
     s.mean('capture', return_error=False)
-    s.convolve('t',2e5) # we do this before chopping things up, since it uses
+#    s.convolve('t',2e5) # we d526.65867808o this before chopping things up, since it uses
     #                      FFT and assumes that the signal is periodic (at this
     #                      point, the signal at both ends is very close to
     #                      zero, so that's good
@@ -131,6 +127,7 @@ for date,id_string in [
     fl.plot(s_slice, alpha=0.8, color='black', label="integration slice",
             plottype='semilogy')
     axhline(y=k_B*T/1e-12, alpha=0.9, color='g', lw=2) # 1e-12 b/c the axis is given in pW
+    ylim(1e-9,None)
     print id_string," integration ",str(interval)," Hz = ",s['t':interval].integrate('t')
 #    power_dens_dict[id_string] = s['t':interval].integrate('t').data
     expand_x()
@@ -140,6 +137,6 @@ for date,id_string in [
     ###ylim(0,plot_y_max)
     #p_J = (abs(s['t':(-600e6,600e6)])).integrate('t')
     #print p_J
-print "error is %0.2f"%((power_dens_dict['sine_LNA_noavg'] - power_dens_dict['noise_LNA_noavg'] - test_signal_power)/test_signal_power*100)
+#print "error is %0.2f"%((power_dens_dict['sine_LNA_noavg'] - power_dens_dict['noise_LNA_noavg'] - test_signal_power)/test_signal_power*100)
 fl.show()
 
