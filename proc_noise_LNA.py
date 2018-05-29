@@ -4,10 +4,10 @@ import os
 import sys
 
 # {{{ constants measured elsewhere
-#gain_factor = 523.09526795   #LNA#1 gain factor
-#gain_factor = 533.02207468    #LNA#2 gain factor
-#gain_factor = 526.65867808    #LNA#3 gain factor
-gain_factor = 203341.124734     #LNA#1,LNA#2 gain factor
+#gain_factor_amp2 = 533.02207468    #LNA#2 gain factor
+#gain_factor_amp3 = 526.65867808    #LNA#3 gain factor
+gain_factor_amp1 =  523.09526795    #LNA#1 gain factor
+gain_factor_both = 203341.124734     #LNA#1,LNA#2 gain factor
                                 #Calculated by using splitter
                                 #during test signal collection
 atten_factor = 7.056e-5
@@ -62,23 +62,20 @@ def load_noise(date,id_string,captures):
 captures = linspace(0,100,100)
 power_dens_CH1_dict = {}
 power_dens_CH2_dict = {}
-for date,id_string in [
-#    ('180527','noise_cascade12'),
-    ('180528','noise_cascade12'),
-    ('180528','sine_cascade12_2'),
-    ('180526','AFG_terminator_2'),
-#    ('180528','sine_cascade12'),
-#    ('180527','noise_LNA1_noavg'),
-#    ('180527','noise_LNA2_noavg'),
-#   ('180527','noise_LNA3_noavg'),
-#    ('180523','sine_LNA_noavg'),
-#    ('180523','noise_LNA_noavg'),
-#    ('180523','sine_LNA_noavg'),
+for date,id_string,numchan,gain_factor in [
+    ('180523','noise_LNA_noavg',1,gain_factor_amp1),
+    ('180523','sine_LNA_noavg',1,gain_factor_amp1),
+    ('180528','noise_cascade12',2,gain_factor_both),
+    ('180528','sine_cascade12_2',2,gain_factor_both),
+    ('180526','AFG_terminator_2',2,gain_factor_both),
+    ('180526','AFG_terminator_2',2,gain_factor_amp1),
     ]:
     if id_string == 'sine_LNA':
         label = '14 avg/cap, BW=250 MHz, 14.5 MHz sine'
     elif id_string == 'sine_LNA_noavg':
         label = '0 avg/cap, BW=250 MHz, 14.5 MHz sine'
+    elif id_string == 'sine25_LNA_noavg':
+        label = '0 avg/cap, BW=100 MHz, 14.5 MHz sine'
     elif id_string == 'noise_LNA':
         label = '14 avg/cap, BW=250 MHz, noise'
     elif id_string == 'noise_LNA_noavg':
@@ -93,15 +90,25 @@ for date,id_string in [
         label = '0 avg/cap, BW=250 MHz, 14.5 MHz sine, cascade #1,#2'
     elif id_string == 'sine_cascade12_2':
         label = '0 avg/cap, BW=250 MHz, 14.5 MHz sine, cascade #1,#2'
+    elif id_string == 'noise_LNA_noavg_bw100':
+        label = '0 avg/cap, BW=100 MHz, noise'
+    elif id_string == 'noise_LNA_noavg_bw20':
+        label = '0 avg/cap, BW=20 MHz, noise'
+    elif id_string == 'AFG_terminator':
+        label = '0 avg/cap, BW=250 MHz, AFG terminator noise'
+    elif id_string == 'AFG_terminator_2':
+        label = '0 avg/cap, BW=250 MHz, AFG,coax,adapter terminator noise'
     else:
         label = 'undetermined'
+    label += ' (G=%0.1e)'%gain_factor
+    print "for",id_string,"label is",label
     # {{{ this part calculates the positive frequency noise power spectral density
     s = load_noise(date,id_string,captures)
     acq_time = diff(s.getaxis('t')[r_[0,-1]])[0]
     s.ft('t',shift=True)
     s = abs(s)**2         #mod square
     s.mean('capture', return_error=False)
-    s.convolve('t',1e5) # we do this before chopping things up, since it uses
+    s.convolve('t',5e5) # we do this before chopping things up, since it uses
     #                      FFT and assumes that the signal is periodic (at this
     #                      point, the signal at both ends is very close to
     #                      zero, so that's good
@@ -113,7 +120,19 @@ for date,id_string in [
     s *= 2                # because the power is split over negative and positive frequencies
     # }}}
     interval = tuple(integration_center+r_[-1,1]*integration_width)
-    s_slice = s['t':interval]['ch',0]
+    if 'ch' not in s.dimlabels:
+        # {{{ a hack to create a fake ch axis
+        t_label = s.getaxis('t')
+        t_units = s.get_units('t')
+        s.setaxis('t',None)
+        s.chunk('t',['t','ch'],[-1,1])
+        s.setaxis('t',t_label)
+        s.set_units('t',t_units)
+        # }}}
+    try:
+        s_slice = s['t':interval]['ch',0]
+    except:
+        raise ValueError(strm("problem trying to pull the slice, shape of s is",ndshape(s),"numchan is",numchan))
     fl.next('Input-Referred Power Spectral Density, semilog')
     s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
     s_slice.name('$S_{xx}(\\nu)$').set_units('W/Hz')
@@ -121,10 +140,11 @@ for date,id_string in [
     fl.plot(s_slice, alpha=0.8, color='black', label="integration slice",
             plottype='semilogy')
     axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
-    print id_string,"CH1 power",str(interval)," Hz = ",s['t':interval]['ch',0].integrate('t')
-    print id_string,"CH2 power (only for test signal)",str(interval)," Hz = ",s['t':interval]['ch',1].integrate('t')*atten_factor
+    if numchan == 2:
+        print id_string,"CH1 power",str(interval)," Hz = ",s['t':interval]['ch',0].integrate('t')
+        print id_string,"CH2 power (only for test signal)",str(interval)," Hz = ",s['t':interval]['ch',1].integrate('t')*atten_factor
+        power_dens_CH2_dict[id_string] = (s['t':interval]['ch',1].integrate('t').data)*atten_factor*gain_factor
     power_dens_CH1_dict[id_string] = s['t':interval]['ch',0].integrate('t').data
-    power_dens_CH2_dict[id_string] = (s['t':interval]['ch',1].integrate('t').data)*atten_factor*gain_factor
     expand_x()
 print "error is %0.12f"%(((power_dens_CH1_dict['sine_cascade12_2'] - power_dens_CH1_dict['noise_cascade12'] - power_dens_CH2_dict['sine_cascade12_2'])/power_dens_CH2_dict['sine_cascade12_2'])*100)
 print "thermal noise is:",k_B*T*float(interval[-1]-interval[0])
