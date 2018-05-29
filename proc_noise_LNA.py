@@ -65,45 +65,49 @@ captures = linspace(0,100,100)
 power_dens_CH1_dict = {}
 power_dens_CH2_dict = {}
 for date,id_string,numchan,gain_factor in [
-    ('180523','noise_LNA_noavg',1,gain_factor_amp1),
-    ('180523','sine_LNA_noavg',1,gain_factor_amp1),
-    ('180528','noise_cascade12',2,gain_factor_both),
-    ('180528','sine_cascade12_2',2,gain_factor_both),
-    ('180526','AFG_terminator_2',2,gain_factor_both),
-    ('180526','AFG_terminator_2',2,gain_factor_amp1),
-    #('180526','AFG_terminator_2',2,1.0),# leave gain set to 1 so we can get the absolute number here (not input-referred)
+        ('180529','dpx_cascade12',2,gain_factor_both),
+#        ('180523','noise_LNA_noavg',1,gain_factor_amp1),
+#        ('180523','sine_LNA_noavg',1,gain_factor_amp1),
+#        ('180528','noise_cascade12',2,gain_factor_both),
+#        ('180528','sine_cascade12_2',2,gain_factor_both),
+#        ('180526','AFG_terminator_2',2,gain_factor_both),
+#        ('180526','AFG_terminator_2',2,gain_factor_amp1),
+#    ('180526','AFG_terminator_2',2,1.0),#   leave gain set to 1 so we can get the 
+                                         #   absolute number here (not input-referred)
     ]:
-    if id_string == 'sine_LNA':
-        label = '14 avg/cap, BW=250 MHz, 14.5 MHz sine'
-    elif id_string == 'sine_LNA_noavg':
-        label = '0 avg/cap, BW=250 MHz, 14.5 MHz sine'
-    elif id_string == 'sine25_LNA_noavg':
-        label = '0 avg/cap, BW=100 MHz, 14.5 MHz sine'
-    elif id_string == 'noise_LNA':
-        label = '14 avg/cap, BW=250 MHz, noise'
-    elif id_string == 'noise_LNA_noavg':
-        label = '0 avg/cap, BW=250 MHz, noise'
-    elif id_string == 'noise_LNA2_noavg':
-        label = '0 avg/cap, BW=250 MHz, noise'
-    elif id_string == 'noise_LNA3_noavg':
-        label = '0 avg/cap, BW=250 MHz, noise'
+    if id_string == 'sine_lna':
+        label = '14 avg/cap, bw=250 mhz, 14.5 mhz sine'
+    elif id_string == 'sine_lna_noavg':
+        label = '0 avg/cap, bw=250 mhz, 14.5 mhz sine'
+    elif id_string == 'sine25_lna_noavg':
+        label = '0 avg/cap, bw=100 mhz, 14.5 mhz sine'
+    elif id_string == 'noise_lna':
+        label = '14 avg/cap, bw=250 mhz, noise'
+    elif id_string == 'noise_lna_noavg':
+        label = '0 avg/cap, bw=250 mhz, noise'
+    elif id_string == 'noise_lna2_noavg':
+        label = '0 avg/cap, bw=250 mhz, noise'
+    elif id_string == 'noise_lna3_noavg':
+        label = '0 avg/cap, bw=250 mhz, noise'
     elif id_string == 'noise_cascade12':
-        label = '0 avg/cap, BW=250 MHz, noise, cascade #1,#2'
+        label = '0 avg/cap, bw=250 mhz, noise, cascade #1,#2'
     elif id_string == 'sine_cascade12':
-        label = '0 avg/cap, BW=250 MHz, 14.5 MHz sine, cascade #1,#2'
+        label = '0 avg/cap, bw=250 mhz, 14.5 mhz sine, cascade #1,#2'
     elif id_string == 'sine_cascade12_2':
-        label = '0 avg/cap, BW=250 MHz, 14.5 MHz sine, cascade #1,#2'
-    elif id_string == 'noise_LNA_noavg_bw100':
-        label = '0 avg/cap, BW=100 MHz, noise'
-    elif id_string == 'noise_LNA_noavg_bw20':
-        label = '0 avg/cap, BW=20 MHz, noise'
-    elif id_string == 'AFG_terminator':
-        label = '0 avg/cap, BW=250 MHz, AFG terminator noise'
-    elif id_string == 'AFG_terminator_2':
-        label = '0 avg/cap, BW=250 MHz, AFG,coax,adapter terminator noise'
+        label = '0 avg/cap, bw=250 mhz, 14.5 mhz sine, cascade #1,#2'
+    elif id_string == 'noise_lna_noavg_bw100':
+        label = '0 avg/cap, bw=100 mhz, noise'
+    elif id_string == 'noise_lna_noavg_bw20':
+        label = '0 avg/cap, bw=20 mhz, noise'
+    elif id_string == 'afg_terminator':
+        label = '0 avg/cap, bw=250 mhz, afg terminator noise'
+    elif id_string == 'afg_terminator_2':
+        label = '0 avg/cap, bw=250 mhz, afg,coax,adapter terminator noise'
+    elif id_string == 'dpx_cascade12':
+        label = '0 avg/cap, bw=250 mhz, noise, duplexer, cascade #1,#2'
     else:
         label = 'undetermined'
-    label += ' (G=%0.1e)'%gain_factor
+    label += ' (g=%0.1e)'%gain_factor
     print "for",id_string,"label is",label
     # {{{ this part calculates the positive frequency noise power spectral density
     s = load_noise(date,id_string,captures)
@@ -111,8 +115,8 @@ for date,id_string,numchan,gain_factor in [
     s.ft('t',shift=True)
     s = abs(s)**2         #mod square
     s.mean('capture', return_error=False)
-    s.convolve('t',5e5) # we do this before chopping things up, since it uses
-    #                      FFT and assumes that the signal is periodic (at this
+#    s.convolve('t',5e5) # we do this before chopping things up, since it uses
+    #                      fft and assumes that the signal is periodic (at this
     #                      point, the signal at both ends is very close to
     #                      zero, so that's good
     s = abs(s)['t':(0,None)]
@@ -154,7 +158,7 @@ for date,id_string,numchan,gain_factor in [
             power_dens_CH2_dict[id_string] = (s['t':interval]['ch',1].integrate('t').data)*atten_factor*gain_factor
         power_dens_CH1_dict[id_string] = s['t':interval]['ch',0].integrate('t').data
         expand_x()
-print "error is %0.12f"%(((power_dens_CH1_dict['sine_cascade12_2'] - power_dens_CH1_dict['noise_cascade12'] - power_dens_CH2_dict['sine_cascade12_2'])/power_dens_CH2_dict['sine_cascade12_2'])*100)
+#print "error is %0.12f"%(((power_dens_CH1_dict['sine_cascade12_2'] - power_dens_CH1_dict['noise_cascade12'] - power_dens_CH2_dict['sine_cascade12_2'])/power_dens_CH2_dict['sine_cascade12_2'])*100)
 print "thermal noise is:",k_B*T*float(interval[-1]-interval[0])
 fl.show()
 
