@@ -66,6 +66,7 @@ for date,id_string in [
 #    ('180527','noise_cascade12'),
     ('180528','noise_cascade12'),
     ('180528','sine_cascade12_2'),
+    ('180526','AFG_terminator_2'),
 #    ('180528','sine_cascade12'),
 #    ('180527','noise_LNA1_noavg'),
 #    ('180527','noise_LNA2_noavg'),
