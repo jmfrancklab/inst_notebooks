@@ -65,7 +65,7 @@ captures = linspace(0,100,100)
 power_dens_CH1_dict = {}
 power_dens_CH2_dict = {}
 for date,id_string,numchan,gain_factor in [
-        ('180529','dpx_cascade12',2,gain_factor_both),
+        ('180529','noise_dpx_cascade12',2,gain_factor_both),
 #        ('180523','noise_LNA_noavg',1,gain_factor_amp1),
 #        ('180523','sine_LNA_noavg',1,gain_factor_amp1),
 #        ('180528','noise_cascade12',2,gain_factor_both),
@@ -103,7 +103,7 @@ for date,id_string,numchan,gain_factor in [
         label = '0 avg/cap, bw=250 mhz, afg terminator noise'
     elif id_string == 'afg_terminator_2':
         label = '0 avg/cap, bw=250 mhz, afg,coax,adapter terminator noise'
-    elif id_string == 'dpx_cascade12':
+    elif id_string == 'noise_dpx_cascade12':
         label = '0 avg/cap, bw=250 mhz, noise, duplexer, cascade #1,#2'
     else:
         label = 'undetermined'
