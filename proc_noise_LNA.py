@@ -10,6 +10,8 @@ gain_factor_amp1 =  523.09526795    #LNA#1 gain factor
 gain_factor_both = 203341.124734     #LNA#1,LNA#2 gain factor
                                 #Calculated by using splitter
                                 #during test signal collection
+scope_noise = 3.70056774034e-19 # pulled from the gain=1.0 calculation of the
+                                # scope noise, below
 atten_factor = 7.056e-5
 T = 273.15 + 20.
 power_signal_AFG = ((50.e-3)/(sqrt(2)*2))**2./50.
@@ -69,6 +71,7 @@ for date,id_string,numchan,gain_factor in [
     ('180528','sine_cascade12_2',2,gain_factor_both),
     ('180526','AFG_terminator_2',2,gain_factor_both),
     ('180526','AFG_terminator_2',2,gain_factor_amp1),
+    #('180526','AFG_terminator_2',2,1.0),# leave gain set to 1 so we can get the absolute number here (not input-referred)
     ]:
     if id_string == 'sine_LNA':
         label = '14 avg/cap, BW=250 MHz, 14.5 MHz sine'
@@ -115,9 +118,11 @@ for date,id_string,numchan,gain_factor in [
     s = abs(s)['t':(0,None)]
     s /= 50.              # divide by resistance, gives units: W*s, or W/Hz
     s /= acq_time         # divide by acquisition time
+    s *= 2                # because the power is split over negative and positive frequencies
+    if gain_factor != 1: # if we're not talking about the scope noise
+        s -= scope_noise
     s /= gain_factor      # divide by gain factor, found from power curve -->
     #                       now we have input-referred power
-    s *= 2                # because the power is split over negative and positive frequencies
     # }}}
     interval = tuple(integration_center+r_[-1,1]*integration_width)
     if 'ch' not in s.dimlabels:
@@ -133,19 +138,22 @@ for date,id_string,numchan,gain_factor in [
         s_slice = s['t':interval]['ch',0]
     except:
         raise ValueError(strm("problem trying to pull the slice, shape of s is",ndshape(s),"numchan is",numchan))
-    fl.next('Input-Referred Power Spectral Density, semilog')
-    s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
-    s_slice.name('$S_{xx}(\\nu)$').set_units('W/Hz')
-    fl.plot(s['t':(0e6,80e6)]['ch',0], alpha=0.8, label="%s"%label, plottype='semilogy')
-    fl.plot(s_slice, alpha=0.8, color='black', label="integration slice",
-            plottype='semilogy')
-    axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
-    if numchan == 2:
-        print id_string,"CH1 power",str(interval)," Hz = ",s['t':interval]['ch',0].integrate('t')
-        print id_string,"CH2 power (only for test signal)",str(interval)," Hz = ",s['t':interval]['ch',1].integrate('t')*atten_factor
-        power_dens_CH2_dict[id_string] = (s['t':interval]['ch',1].integrate('t').data)*atten_factor*gain_factor
-    power_dens_CH1_dict[id_string] = s['t':interval]['ch',0].integrate('t').data
-    expand_x()
+    if gain_factor == 1.0:
+        print "Noise coming from the scope is",s['t':interval]['ch',1].mean('t', return_error=False).data
+    else:
+        fl.next('Input-Referred Power Spectral Density, semilog')
+        s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
+        s_slice.name('$S_{xx}(\\nu)$').set_units('W/Hz')
+        fl.plot(s['t':(0e6,80e6)]['ch',0], alpha=0.8, label="%s"%label, plottype='semilogy')
+        fl.plot(s_slice, alpha=0.8, color='black', label="integration slice",
+                plottype='semilogy')
+        axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
+        if numchan == 2:
+            print id_string,"CH1 power",str(interval)," Hz = ",s['t':interval]['ch',0].integrate('t')
+            print id_string,"CH2 power (only for test signal)",str(interval)," Hz = ",s['t':interval]['ch',1].integrate('t')*atten_factor
+            power_dens_CH2_dict[id_string] = (s['t':interval]['ch',1].integrate('t').data)*atten_factor*gain_factor
+        power_dens_CH1_dict[id_string] = s['t':interval]['ch',0].integrate('t').data
+        expand_x()
 print "error is %0.12f"%(((power_dens_CH1_dict['sine_cascade12_2'] - power_dens_CH1_dict['noise_cascade12'] - power_dens_CH2_dict['sine_cascade12_2'])/power_dens_CH2_dict['sine_cascade12_2'])*100)
 print "thermal noise is:",k_B*T*float(interval[-1]-interval[0])
 fl.show()
