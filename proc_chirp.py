@@ -7,17 +7,9 @@ f_axis = linspace(100e3,500e3,100) # must match sweep_frequencies_sqw
 with figlist_var(filename='chirp.pdf') as fl:
     expno=0
     for date, id_string in [
-#            ('180109','tm2probe'),
-#            ('180109','tm3probe'),
-#            ('180109','tm4probe'),
-#            ('180109','tm4adj1'),
-#            ('180109','tm5probe'),
-#            ('180109','tm6probe'),
-#            ('180109','tm7probe'),
-#            ('180110','tm8probe'),
-#            ('180110','tm9probe')
-            ('180530','chirp_0p5uH'),
-            ('180530','chirp_0p5uH_2')
+            ('180530','chirp_1'),
+            ('180530','chirp_11'),
+            ('180530','chirp_2'),
             ]:
 
         try:
@@ -47,8 +39,6 @@ with figlist_var(filename='chirp.pdf') as fl:
         d = d['t':ranges]
         d.setaxis('t', lambda x: x-d.getaxis('t')[0])
         d.setaxis('t', lambda x: 25e6-x*25e6/4096e-8).set_units('t','Hz')
-        if expno == 0:
-            label = id_string
         fl.next('channel 1')
         fl.plot(d['ch',0],'+',alpha=0.2,label='%s'%label)
         fl.next('channel 2')
