@@ -143,13 +143,17 @@ print "power, Voltage attenuation factors = %f, %f"%(atten_p,atten_V)
 
 for date,id_string in [
 #        ('180514','sweep_high_control'),
-        ('180515','sweep10_high_control'),
-        ('180515','sweep10_high_duplexer_2piTL_2'),
+#        ('180515','sweep10_high_control'),
+#        ('180515','sweep10_high_duplexer_2piTL_2'),
 #        ('180514','sweep_high_duplexer_2piTL')
 #        ('180514','sweep_high_duplexer_2piTL')
         ('180514','sweep_control'),
+        ('180531','sweep_pomona_dpx_testing'),
+        ('180531','sweep_pomona_dpx_testing2'),
+        ('180531','sweep_pomona_dpx_testing3'),
         ('180514','sweep_duplexer_2piTL'),
         ('180514','sweep_duplexer_2piTL_2'),
+#        ('180531','sweep_pomona_dpx'),
 #        ('180514','sweep_control'),
 #        ('180514','sweep_duplexer_2piTL'),
 #        ('180514','sweep_duplexer_2piTL_2'),
