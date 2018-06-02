@@ -67,13 +67,15 @@ for date,id_string,numchan,gain_factor in [
 #        ('180527','noise_LNA1_noavg',1,gain_factor_amp1),
 #        ('180527','noise_LNA2_noavg',1,gain_factor_amp2),
 #        ('180527','noise_LNA3_noavg',1,gain_factor_amp3),
-        ('180530','noise_dpx_cascade12_2CH',2,gain_factor_both),
-        ('180530','sine_dpx_cascade12_2CH',2,gain_factor_both),
+#        ('180601','noise_pomona_dpx_cascade12_2CH',2,gain_factor_both),
+#        ('180530','noise_dpx_cascade12_2CH',2,gain_factor_both),
+#        ('180530','sine_dpx_cascade12_2CH',2,gain_factor_both),
 #        ('10529','noise_dpx_cascade12',2,gain_factor_both),   
 #        ('180529','sine_dpx_cascade12',2,gain_factor_both),
 #        ('180523','noise_LNA_noavg',1,gain_factor_amp1),
 #        ('180523','sine_LNA_noavg',1,gain_factor_amp1),
-#        ('180527','noise_cascade12_2',2,gain_factor_both),
+        ('180527','noise_cascade12_2',2,gain_factor_both),
+        ('180531','noise_cascade21_2CH',2,gain_factor_both),
 #        ('180528','sine_cascade12_2',2,gain_factor_both),
 #        ('180526','AFG_terminator_2',2,gain_factor_both),
 #        ('180526','AFG_terminator_2',2,gain_factor_amp1),
@@ -92,6 +94,8 @@ for date,id_string,numchan,gain_factor in [
         label = 'LNA#3, 0 avg/cap, bw=250 MHz, noise'
     elif id_string == 'noise_cascade12_2':
         label = 'Cascade #1,#2, 0 avg/cap, bw=250 MHz, noise'
+    elif id_string == 'noise_cascade21_2CH':
+        label = 'Cascade #2,#1, 0 avg/cap, bw=250 MHz, noise'
     elif id_string == 'sine_cascade12_2':
         label = 'Cascade #1,#2, 0 avg/cap, bw=250 MHz, 14.5 MHz sine'
     elif id_string == 'AFG_terminator':
@@ -106,6 +110,8 @@ for date,id_string,numchan,gain_factor in [
         label = 'Duplexer-cascade #1,#2, 0 avg/cap, bw=250 MHz, noise'
     elif id_string == 'sine_dpx_cascade12_2CH':
         label = 'Duplexer-cascade #1,#2, 0 avg/cap, bw=250 MHz, 14.5 MHz sine'
+    elif id_string == 'noise_pomona_dpx_cascade12_2CH':
+        label = 'Pomona duplexer-cascade #1,#2, 0 avg/cap, bw=250 MHz, noise'
     else:
         label = 'undetermined'
     label += ' (g=%0.1e)'%gain_factor
