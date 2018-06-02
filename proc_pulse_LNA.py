@@ -96,7 +96,7 @@ def gen_power_data(date,id_string,V_AFG,pulse_threshold):
 ## NO USER INPUT; LOG SPACING
 V_start = 0.01
 V_stop = 0.860
-V_step = 20 
+V_step = 40 
 V_start_log = log10(V_start)
 V_stop_log = log10(V_stop)
 V_step_log = log10(V_step)
@@ -110,15 +110,16 @@ atten_V = 1
 #print "Axis spacing: Log"
 
 for date,id_string in [
+        ('180601','sweep_pomona_dpx_cascade12'),
 #        ('180527','sweep_cascade12'),
-        ('180528','sweep_cascade12'),
+#        ('180528','sweep_cascade12'),
 #        ('180526','sweep_test_LNA1'),
 #        ('180526','sweep_test_LNA2'),
 #        ('180526','sweep_test_LNA3'),
         ]:
     LNA_power = gen_power_data(date,id_string,V_AFG,pulse_threshold=0.1)
 
-fl.next('Cascade LNA#1,LNA#2: Power Curve')
+fl.next('Power Curve')
 fl.plot(LNA_power,'.',plottype='loglog')
 print LNA_power
 c, result = LNA_power.polyfit('$P_{in}$',force_y_intercept=0)

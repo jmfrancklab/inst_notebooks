@@ -148,12 +148,17 @@ for date,id_string in [
 #        ('180514','sweep_high_duplexer_2piTL')
 #        ('180514','sweep_high_duplexer_2piTL')
         ('180514','sweep_control'),
-        ('180531','sweep_pomona_dpx_testing'),
-        ('180531','sweep_pomona_dpx_testing2'),
-        ('180531','sweep_pomona_dpx_testing3'),
         ('180514','sweep_duplexer_2piTL'),
         ('180514','sweep_duplexer_2piTL_2'),
-#        ('180531','sweep_pomona_dpx'),
+        ('180531','sweep_pomona_dpx'),
+#        ('180531','sweep_pomona_dpx_testing'),
+#        ('180531','sweep_pomona_dpx_testing2'),
+#        ('180531','sweep_pomona_dpx_testing3'),
+#        ('180601','sweep_pomona_dpx_testing'),
+#        ('180601','sweep_pomona_dpx_testing2'),
+#        ('180601','sweep_pomona_dpx_testing3'),
+#        ('180601','sweep_pomona_dpx_testing4'),
+        ('180601','sweep_pomona_dpx'),
 #        ('180514','sweep_control'),
 #        ('180514','sweep_duplexer_2piTL'),
 #        ('180514','sweep_duplexer_2piTL_2'),
@@ -170,20 +175,46 @@ for date,id_string in [
 #       ('180513','sweep_low_duplexer_2piTLnoD'),
 #       ('180513','sweep_low_duplexer_2piTL'),
         ]:
+    if date == '180514' and id_string == 'sweep_control':
+        label='control'
+    elif date == '180514' and id_string == 'sweep_duplexer_2piTL':
+        label = 'previous duplexer'
+    elif date == '180514' and id_string == 'sweep_duplexer_2piTL_2':
+        label = 'previous duplexer 2'
+    elif date == '180531' and id_string == 'sweep_pomona_dpx':
+        label = 'pomona duplexer'
+    elif date == '180531' and id_string == 'sweep_pomona_dpx_testing':
+        label = 'Trial 2'
+    elif date == '180531' and id_string == 'sweep_pomona_dpx_testing2':
+        label = 'Trial 3'
+    elif date == '180531' and id_string == 'sweep_pomona_dpx_testing3':
+        label = 'Trial 4'
+    elif date == '180601' and id_string == 'sweep_pomona_dpx_testing':
+        label = 'Trial 5'
+    elif date == '180601' and id_string == 'sweep_pomona_dpx_testing2':
+        label = 'Trial 6'
+    elif date == '180601' and id_string == 'sweep_pomona_dpx_testing3':
+        label = 'Trial 7'
+    elif date == '180601' and id_string == 'sweep_pomona_dpx_testing4':
+        label = 'Trial 8'
+    elif date == '180601' and id_string == 'sweep_pomona_dpx':
+        label = 'current pomona duplexer'
+
     V_anal, V_harmonic, V_pp = process_series(date,id_string,V_AFG, pulse_threshold=0.1)
 #    fl.next('V_analytic: P vs P')
-#    fl.plot((V_anal/sqrt(2))**2/50./atten_p, label="%s $V_{analytic}$"%id_string) 
+#    fl.plot((V_anal/sqrt(2))**2/50./atten_p, label="%s $V_{analytic}$"%label) 
 #    fl.next('V_harmonic: P vs P')
-#    fl.plot((V_harmonic/sqrt(2))**2/50./atten_p, label="%s $V_{harmonic}$"%id_string) 
-    fl.next('log($P_{out}$) vs log($P_{in}$): Intermediate power, logspace data')
-    fl.next('log($P_{out}$) vs log($P_{in}$): High power')
-    fl.plot((V_pp/sqrt(2)/2.0)**2/50./atten_p,'.',plottype='loglog',label="%s"%id_string) 
+#    fl.plot((V_harmonic/sqrt(2))**2/50./atten_p, label="%s $V_{harmonic}$"%label) 
+    fl.next('Output vs Input: Intermediate power, loglog')
+    V_pp.rename('power','$P_{in}$').set_units('$P_{in}$','W')
+    V_pp.name('$P_{out}$').set_units('W')
+    fl.plot((V_pp/sqrt(2)/2.0)**2/50./atten_p,'.',alpha=0.65,plottype='loglog',label="%s"%label) 
     fl.next('log($P_{out}$) vs. log($V^{PP}_{in}$)')
     val = V_pp/atten_V
-    val.rename('power','setting').setaxis('setting',V_AFG).set_units('setting','Vpp')
-    fl.plot(val,'.',plottype='loglog',label="%s $V_{pp}$"%id_string)
+    val.rename('$P_{in}$','setting').setaxis('setting',V_AFG).set_units('setting','Vpp')
+    fl.plot(val,'.',plottype='loglog',label="%s $V_{pp}$"%label)
     fl.next('log($V^{PP}_{out}$) vs. log($V^{PP}_{in}$)')
-    fl.plot(val,'.',plottype='loglog',label="%s $V{pp}$"%id_string)
+    fl.plot(val,'.',plottype='loglog',label="%s $V{pp}$"%label)
 
 fl.show()
 
