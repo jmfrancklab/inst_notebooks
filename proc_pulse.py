@@ -4,7 +4,7 @@ from pyspecdata import *
 #init_logging(level=logging.DEBUG)
 fl = figlist_var()
 
-def process_series(date,id_string,V_AFG, pulse_threshold):
+def process_series(date,id_string,V_AFG,pulse_threshold,noise_threshold):
     """Process a series of pulse data.
     
     Lumping this as a function so we can do things like divide series, etc.
@@ -17,15 +17,18 @@ def process_series(date,id_string,V_AFG, pulse_threshold):
         filename is called date_id_string
     V_AFG: array
         list of voltage settings used on the AFG 
+    pulse_threshold: float 
+        determines cut-off limit for calculating pulse power;
+        this number is multiplied by the maximum V_{RMS} in the pulse width.
+    noise_threshold: float
+        determines cut-off limit for calculating noise power;
+        this number is multiplied by the minimum V_{RMS} in the capture, outside of pulse width.
 
     Returns
     -------
-    V_anal: nddata
-        The analytic signal, filtered to select the fundamental frequency (this is manually set).
-    V_harmonic: nddata
-        The analytic signal, filtered to set the second harmonic (this is manually set)
-    V_pp: nddata
-        After using the analytic signal to determine the extent of the pulse, find the min and max.
+    V_rms: nddata
+        Generated from the analytic signal for each capture,
+        has noise outside of pulse width subtracted out.
     """
     p_len = len(V_AFG)
     V_calib = 0.694*V_AFG
@@ -39,108 +42,66 @@ def process_series(date,id_string,V_AFG, pulse_threshold):
         if j == 1:
             raw_signal = (ndshape(d) + ('power',p_len)).alloc()
             raw_signal.setaxis('t',d.getaxis('t')).set_units('t','s')
-            #gain = 10**5
             gain = 1
             raw_signal.setaxis('power',(gain)*((V_calib/2.0/sqrt(2))**2/50.))
         raw_signal['power',j-1] = d
         if j == 1:
             fl.next('Channel 1, 1')
             fl.plot(d['ch',0], alpha=0.5, label="label %s"%id_string)
-        #if j == p_len:
-        #    fl.next('channel 1, %d'%p_len)
-        #    fl.plot(d['ch',0], alpha=0.5, label="label")
         d.ft('t',shift=True)
-        plotdict = {1:"Fourier transform -- low power",
-                p_len:"Fourier transform -- high power"}
-        for whichp in [1,p_len]:
-            fl.next(plotdict[whichp]) #this does not need to be here - empty plot
-            if j == whichp:
-                fl.plot(abs(d)['ch',0],alpha=0.2,label="FT %s"%id_string)
-        d.ift('t')
-        #for whichp in [1,p_len]:
-        #    if j == whichp:
-        #        fl.next('Channel 1, %d'%whichp)
-        #        fl.plot(d['ch',0], alpha=0.5, label='FT and IFT')
-        #        fl.plot(d['ch',0], alpha=0.5,label='raw data')
-        # calculate the analytic signal
-        d.ft('t')
         d = d['t':(0,None)]
-        d_harmonic = d.copy()
-        d['t':(33e6,None)] = 0
-        d_harmonic['t':(0,33e6)] = 0
-        d_harmonic['t':(60e6,None)] = 0
-        #for whichp in [1,p_len]:
-        #    fl.next(plotdict[whichp])
-        #    if j == whichp:
-        #        fl.plot(abs(d)['ch',0],alpha=0.15, label="used for analytic")
-        #        fl.plot(abs(d_harmonic)['ch',0],alpha=0.15, label="used for harmonic")
+        d['t':(0,5e6)] = 0
+        d['t':(25e6,None)] = 0
         d.ift('t')
-        d_harmonic.ift('t')
         d *= 2
-        d_harmonic *= 2
-        #for whichp in [1,p_len]:
-        #    if j == whichp:
-        #        fl.next('Channel 1, %d'%whichp)
-        #        fl.plot(abs(d)['ch',0],alpha=0.5, label="analytic abs")
-        #        fl.plot(abs(d_harmonic)['ch',0],alpha=0.5, label="harmonic abs")
-        #        fl.plot(d['ch',0],alpha=0.5, label="analytic real")
         if j == 1:
             analytic_signal = (ndshape(d) + ('power',p_len)).alloc()
             analytic_signal.setaxis('t',d.getaxis('t')).set_units('t','s')
             analytic_signal.setaxis('power',(V_calib/2/sqrt(2))**2/50.)
-            harmonic_signal = (ndshape(d_harmonic) + ('power',p_len)).alloc()
-            harmonic_signal.setaxis('t',d_harmonic.getaxis('t')).set_units('t','s')
-            harmonic_signal.setaxis('power',(V_calib/2/sqrt(2))**2/50.)
-        analytic_signal['power',j-1] = d
-        harmonic_signal['power',j-1] = d_harmonic
-        #fl.next('analytic signal magnitude')
-        #fl.plot(abs(analytic_signal['ch',0]),alpha=0.2,label="label")
-    pulse_slice = abs(
-            analytic_signal['ch',0]['power',-1]).contiguous(lambda x:
-                    x>pulse_threshold*x.data.max())
-
-    print "done loading all signals for %s"%id_string
-    pulse_slice = pulse_slice[0,:]
-    pulse_slice += r_[0.1e-6,-0.1e-6]
-    V_anal = abs(analytic_signal['ch',0]['t':tuple(pulse_slice)]).mean('t')
-    V_harmonic = abs(harmonic_signal['ch',0]['t':tuple(pulse_slice)]).mean('t')
-    pulse_slice += r_[0.5e-6,-0.5e-6]
-    V_pp = raw_signal['ch',0]['t':tuple(pulse_slice)].run(max,'t')
-    V_pp -= raw_signal['ch',0]['t':tuple(pulse_slice)].run(min,'t')
-    return V_anal, V_harmonic, V_pp
-
-V_start = raw_input("Input start of sweep in Vpp: ")
-V_start = float(V_start)
-print V_start
-V_stop = raw_input("Input stop of sweep in Vpp: ")
-V_stop = float(V_stop)
-print V_stop
-V_step = raw_input("Input number of steps: ")
-V_step = float(V_step)
-print V_step
-
-axis_spacing = raw_input("1 for log scale, 0 for linear scale: ")
-if axis_spacing == '1':
-    V_start_log = log10(V_start)
-    V_stop_log = log10(V_stop)
-    V_AFG = logspace(V_start_log,V_stop_log,V_step)
-    print "V_AFG(log10(%f),log10(%f),%f)"%(V_start,V_stop,V_step)
-    print "V_AFG(%f,%f,%f)"%(log10(V_start),log10(V_stop),V_step)
-    print V_AFG
-elif axis_spacing == '0':
-    V_AFG = linspace(V_start,V_stop,V_step)
-    print "V_AFG(%f,%f,%f)"%(V_start,V_stop,V_step)
-    print V_AFG
-
-atten_choice = raw_input("1 for attenuation, 0 for no attenuation: ")
-if atten_choice == '1':
-    atten_p = 10**(-40./10.)
-    atten_V = 10**(-40./20.)
-elif atten_choice == '0':
-    atten_p = 1
-    atten_V = 1
-print "power, Voltage attenuation factors = %f, %f"%(atten_p,atten_V) 
-
+        analytic_signal['power',j-1] = abs(d)
+    fl.next('analytic')
+    fl.plot(analytic_signal['ch',0])
+    print "Done loading signal for %s \n\n"%id_string 
+    pulse0_slice = abs(analytic_signal['ch',0]['power',-1]).contiguous(lambda x: x>pulse_threshold*x.data.max())
+    pulse0_slice = pulse0_slice[0,:]
+    pulse0_slice += r_[0.6e-6,-0.6e-6]
+    pulse0_limits = tuple(pulse0_slice)
+    p0_lim1,p0_lim2 = pulse0_limits
+    print p0_lim1,p0_lim2
+    noise0_slice = abs(analytic_signal['ch',0]['power',-1]).contiguous(lambda x: x>noise_threshold*x.data.min())
+    noise0_slice = noise0_slice[0,:]
+    noise0_limits = tuple(noise0_slice)
+    print noise0_slice
+    n0_lim1,n0_lim2 = noise0_limits
+    print n0_lim1
+    print n0_lim2
+    Vn1_rms0 = (abs(analytic_signal['ch',0]['t':(0,n0_lim1)]))**2
+    Vn1_rms0 = Vn1_rms0.mean('t',return_error=False)
+    Vn1_rms0 = sqrt(Vn1_rms0)
+    Vn2_rms0 = (abs(analytic_signal['ch',0]['t':(n0_lim2,None)]))**2
+    Vn2_rms0 = Vn2_rms0.mean('t',return_error=False)
+    Vn2_rms0 = sqrt(Vn2_rms0)
+    Vn_rms0 = (Vn1_rms0 + Vn2_rms0)/2.
+    V_rms0 = (abs(analytic_signal['ch',0]['t':tuple(pulse0_slice)]))**2
+    V_rms0 = V_rms0.mean('t',return_error=False)
+    V_rms0 = sqrt(V_rms0)
+    V_rms0 -= Vn_rms0
+    print 'Control noise limits in microsec: %f, %f'%(n0_lim1/1e-6,n0_lim2/1e-6)
+    print 'Control pulse limits in microsec: %f, %f'%(p0_lim1/1e-6,p0_lim2/1e-6)
+    return V_rms0
+## NO USER INPUT; LOG SPACING 
+V_start = 0.01
+V_stop = 0.01321941
+V_step = 5
+V_start_log = log10(V_start)
+V_stop_log = log10(V_stop)
+V_step_log = V_step
+V_AFG = logspace(V_start_log,V_stop_log,V_step)
+print "V_AFG(log10(%f),log10(%f),%f)"%(V_start,V_stop,V_step)
+print "V_AFG(%f,%f,%f)"%(log10(V_start),log10(V_stop),V_step)
+#Ignore attenuation here, does not correspond to the corrections we apply later
+atten_p = 1
+atten_V = 1
 for date,id_string in [
 #        ('180514','sweep_high_control'),
 #        ('180515','sweep10_high_control'),
@@ -151,19 +112,19 @@ for date,id_string in [
         ('180514','sweep_duplexer_2piTL'),
         ('180514','sweep_duplexer_2piTL_2'),
         ('180531','sweep_pomona_dpx'),
-#        ('180531','sweep_pomona_dpx_testing'),
-#        ('180531','sweep_pomona_dpx_testing2'),
-#        ('180531','sweep_pomona_dpx_testing3'),
-#        ('180601','sweep_pomona_dpx_testing'),
-#        ('180601','sweep_pomona_dpx_testing2'),
-#        ('180601','sweep_pomona_dpx_testing3'),
-#        ('180601','sweep_pomona_dpx_testing4'),
-        ('180601','sweep_pomona_dpx'),
+        ('180531','sweep_pomona_dpx_testing'),
+        ('180531','sweep_pomona_dpx_testing2'),
+        ('180531','sweep_pomona_dpx_testing3'),
+        ('180601','sweep_pomona_dpx_testing'),
+        ('180601','sweep_pomona_dpx_testing2'),
+        ('180601','sweep_pomona_dpx_testing3'),
+        ('180601','sweep_pomona_dpx_testing4'),
+       ('180601','sweep_pomona_dpx'),
 #        ('180514','sweep_control'),
 #        ('180514','sweep_duplexer_2piTL'),
 #        ('180514','sweep_duplexer_2piTL_2'),
 #        ('180503','sweep_high_control'),
-#        ('180513','sweep_high_control'),
+#        ('180513','sweep_high_control')s,
 #        ('180503','sweep_high_duplexer_2pi'),
 #        ('180513','sweep_high_duplexer_2piTL'),
 #        ('180502','sweep_control'),
@@ -180,6 +141,7 @@ for date,id_string in [
     elif date == '180514' and id_string == 'sweep_duplexer_2piTL':
         label = 'previous duplexer'
     elif date == '180514' and id_string == 'sweep_duplexer_2piTL_2':
+
         label = 'previous duplexer 2'
     elif date == '180531' and id_string == 'sweep_pomona_dpx':
         label = 'pomona duplexer'
@@ -200,21 +162,49 @@ for date,id_string in [
     elif date == '180601' and id_string == 'sweep_pomona_dpx':
         label = 'current pomona duplexer'
 
-    V_anal, V_harmonic, V_pp = process_series(date,id_string,V_AFG, pulse_threshold=0.1)
-#    fl.next('V_analytic: P vs P')
-#    fl.plot((V_anal/sqrt(2))**2/50./atten_p, label="%s $V_{analytic}$"%label) 
-#    fl.next('V_harmonic: P vs P')
-#    fl.plot((V_harmonic/sqrt(2))**2/50./atten_p, label="%s $V_{harmonic}$"%label) 
+    V_rms = process_series(date,id_string,V_AFG,pulse_threshold=0.1,noise_threshold=32)
     fl.next('Output vs Input: Intermediate power, loglog')
-    V_pp.rename('power','$P_{in}$').set_units('$P_{in}$','W')
-    V_pp.name('$P_{out}$').set_units('W')
-    fl.plot((V_pp/sqrt(2)/2.0)**2/50./atten_p,'.',alpha=0.65,plottype='loglog',label="%s"%label) 
-    fl.next('log($P_{out}$) vs. log($V^{PP}_{in}$)')
-    val = V_pp/atten_V
-    val.rename('$P_{in}$','setting').setaxis('setting',V_AFG).set_units('setting','Vpp')
-    fl.plot(val,'.',plottype='loglog',label="%s $V_{pp}$"%label)
-    fl.next('log($V^{PP}_{out}$) vs. log($V^{PP}_{in}$)')
-    fl.plot(val,'.',plottype='loglog',label="%s $V{pp}$"%label)
+    V_rms.rename('power','$P_{in}$').set_units('$P_{in}$','W')
+    V_rms.name('$P_{out}$').set_units('W')
+    fl.plot(V_rms**2/50./atten_p,'.',alpha=0.65,plottype='loglog',label="%s"%label) 
+    fl.next('log($P_{out}$) vs. log($V^{RMS}_{in}$)')
+    val = V_rms/atten_V
+    val.rename('$P_{in}$','setting').setaxis('setting',V_AFG).set_units('setting','Vrms')
+    fl.plot(val,'.',plottype='loglog',label="%s $V_{RMS}$"%label)
+    fl.next('log($V^{RMS}_{out}$) vs. log($V^{RMS}_{in}$)')
+    fl.plot(val,'.',plottype='loglog',label="%s $V{RMS}$"%label)
 
 fl.show()
+#   V_start = raw_input("Input start of sweep in Vpp: ")
+#   V_start = float(V_start)
+#   print V_start
+#   V_stop = raw_input("Input stop of sweep in Vpp: ")
+#   V_stop = float(V_stop)
+#   print V_stop
+#   V_step = raw_input("Input number of steps: ")
+#   V_step = float(V_step)
+#   print V_step
+#   
+#   axis_spacing = raw_input("1 for log scale, 0 for linear scale: ")
+#   if axis_spacing == '1':
+#       V_start_log = log10(V_start)
+#       V_stop_log = log10(V_stop)
+#       V_AFG = logspace(V_start_log,V_stop_log,V_step)
+#       print "V_AFG(log10(%f),log10(%f),%f)"%(V_start,V_stop,V_step)
+#       print "V_AFG(%f,%f,%f)"%(log10(V_start),log10(V_stop),V_step)
+#       print V_AFG
+#   elif axis_spacing == '0':
+#       V_AFG = linspace(V_start,V_stop,V_step)
+#       print "V_AFG(%f,%f,%f)"%(V_start,V_stop,V_step)
+#       print V_AFG
+#   
+#   atten_choice = raw_input("1 for attenuation, 0 for no attenuation: ")
+#   if atten_choice == '1':
+#       atten_p = 10**(-40./10.)
+#       atten_V = 10**(-40./20.)
+#   elif atten_choice == '0':
+#       atten_p = 1
+#       atten_V = 1
+#   print "power, Voltage attenuation factors = %f, %f"%(atten_p,atten_V) 
+
 
