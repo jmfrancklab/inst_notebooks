@@ -35,6 +35,7 @@ def gen_power_data(date,id_string,V_AFG,pulse_threshold,noise_threshold):
         capture_list = [1,p_len]
         plot_captures(capture_list,'RAW',j,d,2)
         d.ft('t',shift=True)
+
         plot_captures(capture_list,'RAW FT',j,abs(d),2)
         d = d['t':(0,None)]
         d['t':(0,5e6)] = 0
@@ -58,7 +59,6 @@ def gen_power_data(date,id_string,V_AFG,pulse_threshold,noise_threshold):
     pulse0_slice += r_[0.6e-6,-0.6e-6]
     pulse0_limits = tuple(pulse0_slice)
     p0_lim1,p0_lim2 = pulse0_limits
-    print 'Control pulse limits in microsec: %f, %f'%(p0_lim1/1e-6,p0_lim2/1e-6)
     noise0_slice = abs(analytic_signal['ch',0]['power',-1]).contiguous(lambda x: x>noise_threshold*x.data.min())
     noise0_slice = noise0_slice[0,:]
     noise0_limits = tuple(noise0_slice)
@@ -69,23 +69,14 @@ def gen_power_data(date,id_string,V_AFG,pulse_threshold,noise_threshold):
     Vn2_rms0 = (abs(analytic_signal['ch',0]['t':(n0_lim2,None)]))**2
     Vn2_rms0 = Vn2_rms0.mean('t',return_error=False)
     Vn2_rms0 = sqrt(Vn2_rms0)
-    Vn_rms0 = (Vn1_rms0 + Vn2_rms0) / 2
-    print 'Control noise limits in microsec: %f, %f'%(n0_lim1/1e-6,n0_lim2/1e-6)
-    print "Control noise rms 1:"
-    print Vn1_rms0
-    print "Control noise rms 2:"
-    print Vn2_rms0
-    print "Control noise rms total:"
-    print Vn_rms0
+    Vn_rms0 = (Vn1_rms0 + Vn2_rms0)/2.
     V_rms0 = (abs(analytic_signal['ch',0]['t':tuple(pulse0_slice)]))**2
     V_rms0 = V_rms0.mean('t',return_error=False)
     V_rms0 = sqrt(V_rms0)
-    print "\n\n\n\n Without noise correction,",V_rms0
-    print "\n\n\n\n"
     V_rms0 -= Vn_rms0
-    print "\n\n\n\n Printing V_rms0,",V_rms0
-    print "\n\n\n\n"
-   #Using exact attenuation of VY574681722
+    print 'Control noise limits in microsec: %f, %f'%(n0_lim1/1e-6,n0_lim2/1e-6)
+    print 'Control pulse limits in microsec: %f, %f'%(p0_lim1/1e-6,p0_lim2/1e-6)
+   #Calculate atten_factor using exact attenuation of VY574681722
     VinPP = 500.e-3
     VoutPP = 4.20e-3
     VinRMS = (VinPP)/(2*sqrt(2))
@@ -94,10 +85,8 @@ def gen_power_data(date,id_string,V_AFG,pulse_threshold,noise_threshold):
     Pout_ = ((VoutRMS)**2)/50.
     atten_factor_P = (Pout_)/(Pin_)
     power0 = ((V_rms0)**2./50.)*atten_factor_P
-    print "\n printing new input power \n\n\n\n\n"
     print power0.data
     s = analytic_signal['ch',1] 
-
     s.rename('power','power_in').setaxis('power_in',power0.data).set_units('power_in','W')
     pulse1_slice = abs(s['power_in',-1]).contiguous(lambda x: x>pulse_threshold*x.data.max())
     pulse1_slice = pulse1_slice[0,:]
@@ -115,29 +104,17 @@ def gen_power_data(date,id_string,V_AFG,pulse_threshold,noise_threshold):
     Vn2_rms1 = Vn2_rms1.mean('t',return_error=False)
     Vn2_rms1 = sqrt(abs(Vn2_rms1))
     Vn_rms1 = (Vn1_rms1+Vn2_rms1)/2.
-    print '1 noise limits in microsec: %f, %f'%(n1_lim1/1e-6,n1_lim2/1e-6)
-    print "1 noise rms 1:"
-    print Vn1_rms1
-    print "1 noise rms 2:"
-    print Vn2_rms1
-    print "1 noise rms total:"
-    print Vn_rms1
-    print 'Amplifier pulse limits in microsec: %f, %f'%(p1_lim1/1e-6,p1_lim2/1e-6)
     V_rms1 = (abs(analytic_signal['ch',1]['t':tuple(pulse1_slice)]))**2
+
     V_rms1 = V_rms1.mean('t',return_error=False)
     V_rms1 = sqrt(abs(V_rms1))
-    print "\n\n\n\n Without noise correction,",V_rms1
-    print "\n\n\n\n"
     V_rms1 -= Vn_rms1
-    print "\n\n\n\n Printing V_rms1,",V_rms1
-    print "\n\n\n\n"
+    print 'Amplifier noise limits in microsec: %f, %f'%(n1_lim1/1e-6,n1_lim2/1e-6)
+    print 'Amplifier pulse limits in microsec: %f, %f'%(p1_lim1/1e-6,p1_lim2/1e-6)
     power1 = (V_rms1)**2./50.
     power_amp = power1
     power_amp.name('$P_{out}$').set_units('W')  #***IMPORTANT!***
     power_amp.rename('power','$P_{in}$').setaxis('$P_{in}$',power0.data).set_units('$P_{in}$','W')
-    print "\n printing new output power \n\n\n\n\n"
-    print power1.data
-    print "\n\n\n\n\n printing new power amp \n\n\n\n\n"
     print power1.data
     return power_amp
 
@@ -159,21 +136,20 @@ atten_V = 1
 
 for date,id_string in [
 #       ('180601','sweep_pomona_dpx_cascade12'),
-#        ('180527','sweep_cascade12'),
-#        ('180528','sweep_cascade12'),
+        ('180528','sweep_cascade12'),
 #        ('180526','sweep_test_LNA1'),
 #        ('180526','sweep_test_LNA2'),
-        ('180526','sweep_test_LNA3'),
+#        ('180526','sweep_test_LNA3'),
         ]:
     LNA_power = gen_power_data(date,id_string,V_AFG,pulse_threshold=0.1,noise_threshold=10.)
-
-fl.next('Power Curve')
-fl.plot(LNA_power,'.',plottype='loglog')
-print LNA_power
-c, result = LNA_power.polyfit('$P_{in}$',force_y_intercept=0)
-fl.plot(result,plottype='loglog')
-print "\n \n \nprinting results for ",id_string
-print c
+    truncate_LNAp = LNA_power['$P_{in}$':((1e2*1e-12),None)]
+    fl.next('Power Curve, %s'%id_string)
+    fl.plot(truncate_LNAp,'.',plottype='loglog')           
+    print truncate_LNAp
+    c,result = truncate_LNAp.polyfit('$P_{in}$',force_y_intercept=0)
+    fl.plot(result,plottype='loglog')
+    print "\n \n \nprinting results for ",id_string
+    print c
 fl.show()
 
 ## REQUESTS USER INPUT
