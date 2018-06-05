@@ -4,11 +4,11 @@ import os
 import sys
 
 # {{{ constants measured elsewhere
-gain_factor_amp2 = 533.02207468                        #LNA2 gain factor
-gain_factor_amp3 = 526.65867808                        #LNA3 gain factor
-gain_factor_amp1 =  523.09526795                        #LNA1 gain factor
-gain_factor_both = 203341.124734                        #LNA1,LNA2 gain factor
-gain_factor_dpx = 0.000576774809877189                  #Duplexer gain factor
+gain_factor_amp1 = 521.817303                          #LNA1 gain factor
+gain_factor_amp2 = 530.83648352                        #LNA2 gain factor
+gain_factor_amp3 = 524.42584615                        #LNA3 gain factor
+gain_factor_both = 179715.16664132                     #LNA1,LNA2 gain factor
+gain_factor_dpx = 14144.90020587                       #Duplexer gain factor
 scope_noise = 4.4578468934e-19                         # pulled from the gain=1.0 calculation of the
                                                         # scope noise, below
 atten_factor = 7.056e-5
@@ -76,6 +76,7 @@ for date,id_string,numchan,gain_factor in [
 #        ('180523','sine_LNA_noavg',1,gain_factor_amp1),
         ('180527','noise_cascade12_2',2,gain_factor_both),
         ('180531','noise_cascade21_2CH',2,gain_factor_both),
+        ('180604','sine_pomona_dpx_cascade21_2CH',2,gain_factor_both),
 #        ('180528','sine_cascade12_2',2,gain_factor_both),
 #        ('180526','AFG_terminator_2',2,gain_factor_both),
 #        ('180526','AFG_terminator_2',2,gain_factor_amp1),
@@ -112,6 +113,8 @@ for date,id_string,numchan,gain_factor in [
         label = 'Duplexer-cascade #1,#2, 0 avg/cap, bw=250 MHz, 14.5 MHz sine'
     elif id_string == 'noise_pomona_dpx_cascade12_2CH':
         label = 'Pomona duplexer-cascade #1,#2, 0 avg/cap, bw=250 MHz, noise'
+    elif id_string == 'sine_pomonadpx_cascade12_2CH':
+        label = 'Pomona duplexer-cascade #1,#2, 0 avg/cap, bw=250 MHz, 14.5 MHz sine'
     else:
         label = 'undetermined'
     label += ' (g=%0.1e)'%gain_factor
