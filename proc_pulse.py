@@ -43,8 +43,7 @@ def process_series(date,id_string,V_AFG,pulse_threshold,noise_threshold):
         if j == 1:
             raw_signal = (ndshape(d) + ('power',p_len)).alloc()
             raw_signal.setaxis('t',d.getaxis('t')).set_units('t','s')
-            gain = 1
-            raw_signal.setaxis('power',(gain)*((V_calib/2.0/sqrt(2))**2/50.))
+            raw_signal.setaxis('power',((V_calib/2.0/sqrt(2))**2/50.))
         raw_signal['power',j-1] = d
         if j == 1:
             fl.next('Channel 1, 1')
@@ -61,7 +60,7 @@ def process_series(date,id_string,V_AFG,pulse_threshold,noise_threshold):
             analytic_signal.setaxis('power',(V_calib/2/sqrt(2))**2/50.)
         analytic_signal['power',j-1] = abs(d)
     fl.next('analytic')
-    fl.plot(analytic_signal['ch',0])
+    fl.plot(analytic_signal['ch',0]['power',-1])
     print "Done loading signal for %s \n\n"%id_string 
     pulse0_slice = abs(analytic_signal['ch',0]['power',-1]).contiguous(lambda x: x>pulse_threshold*x.data.max())
     pulse0_slice = pulse0_slice[0,:]
@@ -87,43 +86,79 @@ def process_series(date,id_string,V_AFG,pulse_threshold,noise_threshold):
     V_rms0 = V_rms0.mean('t',return_error=False)
     V_rms0 = sqrt(V_rms0)
     V_rms0 -= Vn_rms0
-    print 'Control noise limits in microsec: %f, %f'%(n0_lim1/1e-6,n0_lim2/1e-6)
-    print 'Control pulse limits in microsec: %f, %f'%(p0_lim1/1e-6,p0_lim2/1e-6)
+    print 'Noise limits in microsec: %f, %f'%(n0_lim1/1e-6,n0_lim2/1e-6)
+    print 'Pulse limits in microsec: %f, %f'%(p0_lim1/1e-6,p0_lim2/1e-6)
     return V_rms0
-## NO USER INPUT; LOG SPACING 
-V_start = 0.01
-V_stop = 0.01321941
-V_step = 5
-V_start_log = log10(V_start)
-V_stop_log = log10(V_stop)
-V_step_log = V_step
-V_AFG = logspace(V_start_log,V_stop_log,V_step)
-print "V_AFG(log10(%f),log10(%f),%f)"%(V_start,V_stop,V_step)
-print "V_AFG(%f,%f,%f)"%(log10(V_start),log10(V_stop),V_step)
-#Ignore attenuation here, does not correspond to the corrections we apply later
-atten_p = 1
-atten_V = 1
+
+
+# must comment out on of the following before starting
+    # {{{ user input
+V_start = raw_input("Input start of sweep in Vpp: ")
+V_start = float(V_start)
+print V_start
+V_stop = raw_input("Input stop of sweep in Vpp: ")
+V_stop = float(V_stop)
+print V_stop
+V_step = raw_input("Input number of steps: ")
+V_step = float(V_step)
+print V_step
+
+axis_spacing = raw_input("1 for log scale, 0 for linear scale: ")
+if axis_spacing == '1':
+    V_start_log = log10(V_start)
+    V_stop_log = log10(V_stop)
+    V_AFG = logspace(V_start_log,V_stop_log,V_step)
+    print "V_AFG(log10(%f),log10(%f),%f)"%(V_start,V_stop,V_step)
+    print "V_AFG(%f,%f,%f)"%(log10(V_start),log10(V_stop),V_step)
+    print V_AFG
+elif axis_spacing == '0':
+    V_AFG = linspace(V_start,V_stop,V_step)
+    print "V_AFG(%f,%f,%f)"%(V_start,V_stop,V_step)
+    print V_AFG
+
+atten_choice = raw_input("1 for attenuation, 0 for no attenuation: ")
+if atten_choice == '1':
+    atten_p = 10**(-40./10.)
+    atten_V = 10**(-40./20.)
+elif atten_choice == '0':
+    atten_p = 1
+    atten_V = 1
+print "power, Voltage attenuation factors = %f, %f"%(atten_p,atten_V) 
+    # }}}
+    # {{{   no user input (must update)
+#V_start = 0.01
+#V_stop = 1.45 
+#V_step = 50
+#V_start_log = log10(V_start)
+#V_stop_log = log10(V_stop)
+#V_step_log = V_step
+#V_AFG = logspace(V_start_log,V_stop_log,V_step)
+#print "V_AFG(log10(%f),log10(%f),%f)"%(V_start,V_stop,V_step)
+#print "V_AFG(%f,%f,%f)"%(log10(V_start),log10(V_stop),V_step)
+##Ignore attenuation here, does not correspond to the corrections we apply later
+#atten_p = 1
+#atten_V = 1
+    # }}}
+
+    # {{{ call files
 for date,id_string in [
-#        ('180514','sweep_high_control'),
-#        ('180515','sweep10_high_control'),
-#        ('180515','sweep10_high_duplexer_2piTL_2'),
-#        ('180514','sweep_high_duplexer_2piTL')
-#        ('180514','sweep_high_duplexer_2piTL')
-        ('180514','sweep_control'),
-        ('180514','sweep_duplexer_2piTL'),
-        ('180531','sweep_pomona_dpx_testing'),
-        ('180531','sweep_pomona_dpx_testing2'),
-        ('180531','sweep_pomona_dpx_testing3'),
-        ('180601','sweep_pomona_dpx_testing'),
-        ('180601','sweep_pomona_dpx_testing2'),
-        ('180601','sweep_pomona_dpx_testing3'),
-        ('180601','sweep_pomona_dpx_testing4'),
-        ('180601','sweep_pomona_dpx'),
+        ('180514','sweep_high_control'),
+        ('180514','sweep_high_duplexer_2piTL')
+#        ('180514','sweep_control'),
+#        ('180514','sweep_duplexer_2piTL'),
+#        ('180531','sweep_pomona_dpx_testing'),
+#        ('180531','sweep_pomona_dpx_testing2'),
+#        ('180531','sweep_pomona_dpx_testing3'),
+#        ('180601','sweep_pomona_dpx_testing'),
+#        ('180601','sweep_pomona_dpx_testing2'),
+#        ('180601','sweep_pomona_dpx_testing3'),
+#        ('180601','sweep_pomona_dpx_testing4'),
+#        ('180601','sweep_pomona_dpx'),
 #        ('180514','sweep_control'),
 #        ('180514','sweep_duplexer_2piTL'),
 #        ('180514','sweep_duplexer_2piTL_2'),
 #        ('180503','sweep_high_control'),
-#        ('180513','sweep_high_control')s,
+#        ('180513','sweep_high_control'),
 #        ('180503','sweep_high_duplexer_2pi'),
 #        ('180513','sweep_high_duplexer_2piTL'),
 #        ('180502','sweep_control'),
@@ -135,6 +170,9 @@ for date,id_string in [
 #       ('180513','sweep_low_duplexer_2piTLnoD'),
 #       ('180513','sweep_low_duplexer_2piTL'),
         ]:
+    # }}}
+
+    # {{{ plot labels
     if date == '180514' and id_string == 'sweep_control':
         label='control'
     elif date == '180514' and id_string == 'sweep_duplexer_2piTL':
@@ -159,59 +197,34 @@ for date,id_string in [
         label = 'Trial 8'
     elif date == '180601' and id_string == 'sweep_pomona_dpx':
         label = 'current pomona duplexer'
-    V_rms = process_series(date,id_string,V_AFG,pulse_threshold=0.1,noise_threshold=32)
-    fl.next('Output vs Input: Intermediate power, loglog')
-    V_rms.rename('power','$P_{in}$').set_units('$P_{in}$','W')
-    V_rms.name('$P_{out}$').set_units('W')
+    else:
+        label = id_string
+    # }}}
+
+    V_rms = process_series(date,id_string,V_AFG/atten_V,pulse_threshold=0.1,noise_threshold=2)
+    fl.next('Output vs Input: High power, loglog')
+   # V_rms.rename('power','$P_{in}$').set_units('$P_{in}$','W')
+   # V_rms.name('$P_{out}$').set_units('W')
     fl.plot(V_rms**2/50./atten_p,'-o',alpha=0.65,plottype='loglog',label="%s"%label) 
-    fl.next('log($P_{out}$) vs. log($V^{RMS}_{in}$)')
-    val = V_rms/atten_V
-    val.rename('$P_{in}$','setting').setaxis('setting',V_AFG).set_units('setting','Vrms')
-    fl.plot(val,'.',plottype='loglog',label="%s $V_{RMS}$"%label)
-    fl.next('log($V^{RMS}_{out}$) vs. log($V^{RMS}_{in}$)')
-    fl.plot(val,'.',plottype='loglog',label="%s $V{RMS}$"%label)
-    dB_value =  10*log10(V_rms.mean())
-    print '\n\n\n\n\n calculating dB for',id_string
-    print dB_value 
-    if date+id_string == '180514sweep_control':
-        k=0
-        dbdict = {}
-    dict_db = dict([(date+'_'+id_string,dB_value.data)])
-    dbdict.update(dict_db)
-    k += 1
-print k
-pprint.pprint(dbdict) 
+    # {{{ voltage plots, if needed
+#    fl.next('log($P_{out}$) vs. log($V^{RMS}_{in}$)')
+#    val = V_rms/atten_V
+#    val.rename('$P_{in}$','setting').setaxis('setting',V_AFG).set_units('setting','Vrms')
+#    fl.plot(val,'.',plottype='loglog',label="%s $V_{RMS}$"%label)
+#    fl.next('log($V^{RMS}_{out}$) vs. log($V^{RMS}_{in}$)')
+#    fl.plot(val,'.',plottype='loglog',label="%s $V{RMS}$"%label)
+    # }}}
+#    dB_value =  10*log10(V_rms.mean())
+#    print '\n\n\n\n\n calculating dB for',id_string
+#    print dB_value 
+#    if date+id_string == '180514sweep_control':
+#        k=0
+#        dbdict = {}
+#    dict_db = dict([(date+'_'+id_string,dB_value.data)])
+#    dbdict.update(dict_db)
+#    k += 1
+#print k
+#pprint.pprint(dbdict) 
 fl.show()
-#   V_start = raw_input("Input start of sweep in Vpp: ")
-#   V_start = float(V_start)
-#   print V_start
-#   V_stop = raw_input("Input stop of sweep in Vpp: ")
-#   V_stop = float(V_stop)
-#   print V_stop
-#   V_step = raw_input("Input number of steps: ")
-#   V_step = float(V_step)
-#   print V_step
-#   
-#   axis_spacing = raw_input("1 for log scale, 0 for linear scale: ")
-#   if axis_spacing == '1':
-#       V_start_log = log10(V_start)
-#       V_stop_log = log10(V_stop)
-#       V_AFG = logspace(V_start_log,V_stop_log,V_step)
-#       print "V_AFG(log10(%f),log10(%f),%f)"%(V_start,V_stop,V_step)
-#       print "V_AFG(%f,%f,%f)"%(log10(V_start),log10(V_stop),V_step)
-#       print V_AFG
-#   elif axis_spacing == '0':
-#       V_AFG = linspace(V_start,V_stop,V_step)
-#       print "V_AFG(%f,%f,%f)"%(V_start,V_stop,V_step)
-#       print V_AFG
-#   
-#   atten_choice = raw_input("1 for attenuation, 0 for no attenuation: ")
-#   if atten_choice == '1':
-#       atten_p = 10**(-40./10.)
-#       atten_V = 10**(-40./20.)
-#   elif atten_choice == '0':
-#       atten_p = 1
-#       atten_V = 1
-#   print "power, Voltage attenuation factors = %f, %f"%(atten_p,atten_V) 
 
 
