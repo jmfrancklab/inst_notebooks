@@ -126,8 +126,8 @@ def process_series(date,id_string,V_AFG,pulse_threshold,noise_threshold):
     # }}}
     # {{{   no user input (must check/update before running)
 V_start = 0.01
-V_stop = 1.45 
-V_step = 50
+V_stop = 0.01321941
+V_step = 5
 V_start_log = log10(V_start)
 V_stop_log = log10(V_stop)
 V_step_log = V_step
@@ -135,26 +135,24 @@ V_AFG = logspace(V_start_log,V_stop_log,V_step)
 print "V_AFG(log10(%f),log10(%f),%f)"%(V_start,V_stop,V_step)
 print "V_AFG(%f,%f,%f)"%(log10(V_start),log10(V_stop),V_step)
 #Ignore attenuation here, does not correspond to the corrections we apply later
-atten_p = 10**(-40./10.)
-atten_V = 10**(-40./20.)
+atten_p = 1
+atten_V = 1
     # }}}
 
     # {{{ call files
 for date,id_string in [
-        ('180514','sweep_high_control'),
-        ('180514','sweep_high_duplexer_2piTL')
-#        ('180514','sweep_control'),
-#        ('180514','sweep_duplexer_2piTL'),
-#        ('180531','sweep_pomona_dpx_testing'),
-#        ('180531','sweep_pomona_dpx_testing2'),
-#        ('180531','sweep_pomona_dpx_testing3'),
-#        ('180601','sweep_pomona_dpx_testing'),
-#        ('180601','sweep_pomona_dpx_testing2'),
-#        ('180601','sweep_pomona_dpx_testing3'),
-#        ('180601','sweep_pomona_dpx_testing4'),
-#        ('180601','sweep_pomona_dpx'),
-#        ('180514','sweep_control'),
-#        ('180514','sweep_duplexer_2piTL'),
+#        ('180514','sweep_high_control'),
+#        ('180514','sweep_high_duplexer_2piTL')
+        ('180514','sweep_control'),
+        ('180514','sweep_duplexer_2piTL'),
+        ('180531','sweep_pomona_dpx_testing'),
+        ('180531','sweep_pomona_dpx_testing2'),
+        ('180531','sweep_pomona_dpx_testing3'),
+        ('180601','sweep_pomona_dpx_testing'),
+        ('180601','sweep_pomona_dpx_testing2'),
+        ('180601','sweep_pomona_dpx_testing3'),
+        ('180601','sweep_pomona_dpx_testing4'),
+        ('180601','sweep_pomona_dpx'),
 #        ('180514','sweep_duplexer_2piTL_2'),
 #        ('180503','sweep_high_control'),
 #        ('180513','sweep_high_control'),
@@ -201,11 +199,10 @@ for date,id_string in [
     # }}}
 
     V_rms = process_series(date,id_string,V_AFG/atten_V,pulse_threshold=0.1,noise_threshold=37)
-    fl.next('Output vs Input: High power, loglog')
-   # V_rms.rename('power','$P_{in}$').set_units('$P_{in}$','W')
-   # V_rms.name('$P_{out}$').set_units('W')
-    fl.plot(V_rms**2/50./atten_p,'.',alpha=0.65,plottype='loglog',label="%s"%label) 
-    axhline(0.00316, alpha=0.7, color='purple') #LNA Maximum limit without damange (+5 dBm) 
+    fl.next('Troubleshooting Shielded Duplexer at Low Power, loglog')
+    V_rms.rename('power','$P_{in}$').set_units('$P_{in}$','W')
+    V_rms.name('$P_{out}$').set_units('W')
+    fl.plot(V_rms**2/50./atten_p,'-o',alpha=0.65,plottype='loglog',label="%s"%label) 
     # {{{ voltage plots, if needed
 #    fl.next('log($P_{out}$) vs. log($V^{RMS}_{in}$)')
 #    val = V_rms/atten_V
@@ -214,17 +211,17 @@ for date,id_string in [
 #    fl.next('log($V^{RMS}_{out}$) vs. log($V^{RMS}_{in}$)')
 #    fl.plot(val,'.',plottype='loglog',label="%s $V{RMS}$"%label)
     # }}}
-#    dB_value =  10*log10(V_rms.mean())
-#    print '\n\n\n\n\n calculating dB for',id_string
-#    print dB_value 
-#    if date+id_string == '180514sweep_control':
-#        k=0
-#        dbdict = {}
-#    dict_db = dict([(date+'_'+id_string,dB_value.data)])
-#    dbdict.update(dict_db)
-#    k += 1
-#print k
-#pprint.pprint(dbdict) 
+    dB_value =  10*log10(V_rms.mean())
+    print '\n\n\n\n\n calculating dB for',id_string
+    print dB_value 
+    if date+id_string == '180514sweep_control':
+        k=0
+        dbdict = {}
+    dict_db = dict([(date+'_'+id_string,dB_value.data)])
+    dbdict.update(dict_db)
+    k += 1
+print k
+pprint.pprint(dbdict) 
 fl.show()
 
 
