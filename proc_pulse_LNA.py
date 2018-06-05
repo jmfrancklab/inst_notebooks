@@ -110,16 +110,15 @@ atten_V = 1
 #print "Axis spacing: Log"
 
 for date,id_string in [
-        ('180601','sweep_pomona_dpx_cascade12'),
-#        ('180527','sweep_cascade12'),
-#        ('180528','sweep_cascade12'),
+#        ('180601','sweep_pomona_dpx_cascade12'),
+        ('180528','sweep_cascade12'),
 #        ('180526','sweep_test_LNA1'),
 #        ('180526','sweep_test_LNA2'),
 #        ('180526','sweep_test_LNA3'),
         ]:
     LNA_power = gen_power_data(date,id_string,V_AFG,pulse_threshold=0.1)
 
-fl.next('Power Curve')
+fl.next('Power Curve: LNA #3, PP processing')
 fl.plot(LNA_power,'.',plottype='loglog')
 print LNA_power
 c, result = LNA_power.polyfit('$P_{in}$',force_y_intercept=0)
