@@ -1,4 +1,5 @@
 from pyspecdata import *
+import pprint
 #import winsound
 #import logging
 #init_logging(level=logging.DEBUG)
@@ -110,8 +111,6 @@ for date,id_string in [
 #        ('180514','sweep_high_duplexer_2piTL')
         ('180514','sweep_control'),
         ('180514','sweep_duplexer_2piTL'),
-        ('180514','sweep_duplexer_2piTL_2'),
-        ('180531','sweep_pomona_dpx'),
         ('180531','sweep_pomona_dpx_testing'),
         ('180531','sweep_pomona_dpx_testing2'),
         ('180531','sweep_pomona_dpx_testing3'),
@@ -119,7 +118,7 @@ for date,id_string in [
         ('180601','sweep_pomona_dpx_testing2'),
         ('180601','sweep_pomona_dpx_testing3'),
         ('180601','sweep_pomona_dpx_testing4'),
-       ('180601','sweep_pomona_dpx'),
+        ('180601','sweep_pomona_dpx'),
 #        ('180514','sweep_control'),
 #        ('180514','sweep_duplexer_2piTL'),
 #        ('180514','sweep_duplexer_2piTL_2'),
@@ -141,7 +140,6 @@ for date,id_string in [
     elif date == '180514' and id_string == 'sweep_duplexer_2piTL':
         label = 'previous duplexer'
     elif date == '180514' and id_string == 'sweep_duplexer_2piTL_2':
-
         label = 'previous duplexer 2'
     elif date == '180531' and id_string == 'sweep_pomona_dpx':
         label = 'pomona duplexer'
@@ -161,19 +159,28 @@ for date,id_string in [
         label = 'Trial 8'
     elif date == '180601' and id_string == 'sweep_pomona_dpx':
         label = 'current pomona duplexer'
-
     V_rms = process_series(date,id_string,V_AFG,pulse_threshold=0.1,noise_threshold=32)
     fl.next('Output vs Input: Intermediate power, loglog')
     V_rms.rename('power','$P_{in}$').set_units('$P_{in}$','W')
     V_rms.name('$P_{out}$').set_units('W')
-    fl.plot(V_rms**2/50./atten_p,'.',alpha=0.65,plottype='loglog',label="%s"%label) 
+    fl.plot(V_rms**2/50./atten_p,'-o',alpha=0.65,plottype='loglog',label="%s"%label) 
     fl.next('log($P_{out}$) vs. log($V^{RMS}_{in}$)')
     val = V_rms/atten_V
     val.rename('$P_{in}$','setting').setaxis('setting',V_AFG).set_units('setting','Vrms')
     fl.plot(val,'.',plottype='loglog',label="%s $V_{RMS}$"%label)
     fl.next('log($V^{RMS}_{out}$) vs. log($V^{RMS}_{in}$)')
     fl.plot(val,'.',plottype='loglog',label="%s $V{RMS}$"%label)
-
+    dB_value =  10*log10(V_rms.mean())
+    print '\n\n\n\n\n calculating dB for',id_string
+    print dB_value 
+    if date+id_string == '180514sweep_control':
+        k=0
+        dbdict = {}
+    dict_db = dict([(date+'_'+id_string,dB_value.data)])
+    dbdict.update(dict_db)
+    k += 1
+print k
+pprint.pprint(dbdict) 
 fl.show()
 #   V_start = raw_input("Input start of sweep in Vpp: ")
 #   V_start = float(V_start)
