@@ -42,38 +42,49 @@ def gen_power_data(date,id_string,V_AFG,pulse_threshold,noise_threshold,
         print 'Control pulse limits in microsec: %f, %f'%(p0_lim1/1e-6,p0_lim2/1e-6)
         return (V_rms0)**2./50.
     p_len = len(V_AFG)
-    for j in range(1,p_len+1):
-        print "loading signal",j
-        j_str = str(j)
-        d = nddata_hdf5(date+'_'+id_string+'.h5/capture'+j_str+'_'+date,
+    filename = date+'_'+id_string+'.h5'
+    try:
+        analytic_signal = nddata_hdf5(filename+'/accumulated_'+date,
                 directory=getDATADIR(exp_type='test_equip'))
-        d.set_units('t','s')
-        if j == 1:
-            raw_signal = (ndshape(d) + ('power',p_len)).alloc()
-            raw_signal.setaxis('t',d.getaxis('t')).set_units('t','s')
-            raw_signal.setaxis('power',(V_AFG/2.0/sqrt(2))**2/50.).set_units('power','W')
-        raw_signal['power',j-1]=d
-        capture_list = [1,p_len]
-        plot_captures(capture_list,'RAW',j,d,2)
-        d.ft('t',shift=True)
+        analytic_signal.set_units('t','s')
+    except:
+        print "accumulated data was not found, pulling individual captures"
+        for j in xrange(1,p_len+1):
+            print "loading signal",j
+            j_str = str(j)
+            d = nddata_hdf5(filename+'/capture'+j_str+'_'+date,
+                    directory=getDATADIR(exp_type='test_equip'))
+            d.set_units('t','s')
+            if j == 1:
+                raw_signal = (ndshape(d) + ('power',p_len)).alloc()
+                raw_signal.setaxis('t',d.getaxis('t')).set_units('t','s')
+                raw_signal.setaxis('power',(V_AFG/2.0/sqrt(2))**2/50.).set_units('power','W')
+            raw_signal['power',j-1]=d
+            capture_list = [1,p_len]
+            plot_captures(capture_list,'RAW',j,d,2)
+            d.ft('t',shift=True)
 
-        plot_captures(capture_list,'RAW FT',j,abs(d),2)
-        d = d['t':(0,None)]
-        d['t':(0,5e6)] = 0
-        d['t':(25e6,None)] = 0
-        plot_captures(capture_list,'ANALYTIC FT',j,abs(d),2)
-        d.ift('t')
-        d *= 2
-        plot_captures(capture_list,'ANALYTIC',j,abs(d),2)
-        #I only want to do the following for d['ch',0] (control, ch1)3
-        #NOT d['ch',1], since I want to define the power axis values for ch2
-        #as values I generate for ch1
-        if j == 1:
-            analytic_signal = (ndshape(d) + ('power',p_len)).alloc()
-            analytic_signal.setaxis('t',d.getaxis('t')).set_units('t','s')
-            #Do I need to do this? Isn't it arbitrary?
-            analytic_signal.setaxis('power',(V_AFG/2/sqrt(2))**2/50.)
-        analytic_signal['power',j-1]=d
+            plot_captures(capture_list,'RAW FT',j,abs(d),2)
+            d = d['t':(0,None)]
+            d['t':(0,5e6)] = 0
+            d['t':(25e6,None)] = 0
+            plot_captures(capture_list,'ANALYTIC FT',j,abs(d),2)
+            d.ift('t')
+            d *= 2
+            plot_captures(capture_list,'ANALYTIC',j,abs(d),2)
+            #I only want to do the following for d['ch',0] (control, ch1)3
+            #NOT d['ch',1], since I want to define the power axis values for ch2
+            #as values I generate for ch1
+            if j == 1:
+                analytic_signal = (ndshape(d) + ('power',p_len)).alloc()
+                analytic_signal.setaxis('t',d.getaxis('t')).set_units('t','s')
+                #Do I need to do this? Isn't it arbitrary?
+                analytic_signal.setaxis('power',(V_AFG/2/sqrt(2))**2/50.)
+            analytic_signal['power',j-1]=d
+        analytic_signal.name('accumulated_'+date)
+        analytic_signal.labels('ch',r_[1,2])
+        analytic_signal.hdf5_write(filename,
+                directory=getDATADIR(exp_type='test_equip'))
     print "Done loading signal for %s \n\n"%id_string 
     power0 = return_signal_power(analytic_signal['ch',0])
     # {{{ what is this?
