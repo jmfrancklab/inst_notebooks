@@ -126,7 +126,7 @@ def process_series(date,id_string,V_AFG,pulse_threshold,noise_threshold):
     # }}}
     # {{{   no user input (must check/update before running)
 V_start = 0.01
-V_stop = 0.01321941
+V_stop = 0.01321941 
 V_step = 5
 V_start_log = log10(V_start)
 V_stop_log = log10(V_stop)
@@ -135,8 +135,8 @@ V_AFG = logspace(V_start_log,V_stop_log,V_step)
 print "V_AFG(log10(%f),log10(%f),%f)"%(V_start,V_stop,V_step)
 print "V_AFG(%f,%f,%f)"%(log10(V_start),log10(V_stop),V_step)
 #Ignore attenuation here, does not correspond to the corrections we apply later
-atten_p = 1
-atten_V = 1
+atten_p = 1#0**(-40./10.)
+atten_V = 1#0**(-40./20.)
     # }}}
 
     # {{{ call files
@@ -199,10 +199,10 @@ for date,id_string in [
     # }}}
 
     V_rms = process_series(date,id_string,V_AFG/atten_V,pulse_threshold=0.1,noise_threshold=37)
-    fl.next('Troubleshooting Shielded Duplexer at Low Power, loglog')
+    fl.next('Troubleshooting Shielded Duplexer at Low Power, loglog (RMS processing)')
     V_rms.rename('power','$P_{in}$').set_units('$P_{in}$','W')
     V_rms.name('$P_{out}$').set_units('W')
-    fl.plot(V_rms**2/50./atten_p,'-o',alpha=0.65,plottype='loglog',label="%s"%label) 
+    fl.plot((V_rms)**2/50./atten_p,'-o',alpha=0.65,plottype='loglog',label="%s"%label) 
     # {{{ voltage plots, if needed
 #    fl.next('log($P_{out}$) vs. log($V^{RMS}_{in}$)')
 #    val = V_rms/atten_V
@@ -211,17 +211,17 @@ for date,id_string in [
 #    fl.next('log($V^{RMS}_{out}$) vs. log($V^{RMS}_{in}$)')
 #    fl.plot(val,'.',plottype='loglog',label="%s $V{RMS}$"%label)
     # }}}
-    dB_value =  10*log10(V_rms.mean())
-    print '\n\n\n\n\n calculating dB for',id_string
-    print dB_value 
-    if date+id_string == '180514sweep_control':
-        k=0
-        dbdict = {}
-    dict_db = dict([(date+'_'+id_string,dB_value.data)])
-    dbdict.update(dict_db)
-    k += 1
-print k
-pprint.pprint(dbdict) 
+#    dB_value =  10*log10(V_rms.mean())
+#    print '\n\n\n\n\n calculating dB for',id_string
+#    print dB_value 
+#    if date+id_string == '180514sweep_control':
+#        k=0
+#        dbdict = {}
+#    dict_db = dict([(date+'_'+id_string,dB_value.data)])
+#    dbdict.update(dict_db)
+#    k += 1
+#print k
+#pprint.pprint(dbdict) 
 fl.show()
 
 
