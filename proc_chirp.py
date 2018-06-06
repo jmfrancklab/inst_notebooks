@@ -7,18 +7,7 @@ f_axis = linspace(100e3,500e3,100) # must match sweep_frequencies_sqw
 with figlist_var(filename='chirp.pdf') as fl:
     expno=0
     for date, id_string in [
-            ('180531','chirp_TL'),
-            ('180531','chirp_TL_2'),
-            ('180531','chirp_TL_3'),
-            ('180531','chirp_TL_4'),
-#            ('180530','chirp_1'),
-#            ('180530','chirp_11'),
-#            ('180530','chirp_2'),
-#            ('180530','chirp_2954'),
-#            ('180530','chirp_2955'),
-#            ('180530','chirp_1492'),
-#            ('180530','chirp_2955teflon'),
-#            ('180530','chirp_2954_821pf'),
+            ('180605','chirp_probe_L'),
             ]:
 
         try:
