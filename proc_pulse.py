@@ -1,12 +1,70 @@
 from pyspecdata import *
+fl = figlist_var()
+import os
+import sys
 import pprint
+from collections import OrderedDict
 #import winsound
 #import logging
 #init_logging(level=logging.DEBUG)
-fl = figlist_var()
 
-def process_series(date,id_string,V_AFG,pulse_threshold,noise_threshold):
-    """Process a series of pulse data.
+#{{{ Choose parameter input (script or user) 
+params_choice = int(sys.argv[1])
+if params_choice == 0:
+    print "Choosing script-defined parameters..."
+    print "(make sure parameters are what you want)\n"
+    V_start = 0.01
+    V_stop = 0.01321941
+    V_step = 5
+    V_start_log = log10(V_start)
+    V_stop_log = log10(V_stop)
+    V_step_log = V_step
+    V_AFG = logspace(V_start_log,V_stop_log,V_step)
+    print "V_AFG(log10(%f),log10(%f),%f)"%(V_start,V_stop,V_step)
+    print "V_AFG(%f,%f,%f)"%(log10(V_start),log10(V_stop),V_step)
+    atten_p = 1
+    atten_V = 1
+    print "power, Voltage attenuation factors = %f, %f"%(atten_p,atten_V) 
+elif params_choice == 1:
+    print "Requesting user input..."
+    V_start = raw_input("Input start of sweep in Vpp: ")
+    V_start = float(V_start)
+    print V_start
+    V_stop = raw_input("Input stop of sweep in Vpp: ")
+    V_stop = float(V_stop)
+    print V_stop
+    V_step = raw_input("Input number of steps: ")
+    V_step = float(V_step)
+    print V_step
+
+    axis_spacing = raw_input("1 for log scale, 0 for linear scale: ")
+    if axis_spacing == '1':
+        V_start_log = log10(V_start)
+        V_stop_log = log10(V_stop)
+        V_AFG = logspace(V_start_log,V_stop_log,V_step)
+        print "V_AFG(log10(%f),log10(%f),%f)"%(V_start,V_stop,V_step)
+        print "V_AFG(%f,%f,%f)"%(log10(V_start),log10(V_stop),V_step)
+        print V_AFG
+    elif axis_spacing == '0':
+        V_AFG = linspace(V_start,V_stop,V_step)
+
+        print "V_AFG(%f,%f,%f)"%(V_start,V_stop,V_step)
+        print V_AFG
+
+    atten_choice = raw_input("1 for attenuation, 0 for no attenuation: ")
+    if atten_choice == '1':
+        atten_p = 10**(-40./10.)
+        atten_V = 10**(-40./20.)
+    elif atten_choice == '0':
+        atten_p = 1
+        atten_V = 1
+    print "power, Voltage attenuation factors = %f, %f"%(atten_p,atten_V) 
+# }}}
+# {{{ Signal processing function
+def gen_power_data(date, id_string, V_AFG, rms_method=True,
+        pulse_threshold=0.5):
+    """Process a series of pulse data to produce output vs input power set
+    ready for plotting.
     
     Lumping this as a function so we can do things like divide series, etc.
 
@@ -18,12 +76,17 @@ def process_series(date,id_string,V_AFG,pulse_threshold,noise_threshold):
         filename is called date_id_string
     V_AFG: array
         list of voltage settings used on the AFG 
+    rms_method: boolean
+        if True, calls rms_signal_to_power() which returns power of input data set 
+        by subtracting V_RMS noise from V_RMS pulse and converting the difference to
+        power.
+        if False, calls pp_signal_to_power() which returns power of input data set
+        by subtracting minimum V from maximum V within the pulse length, and converting
+        the difference (V_PP) to power. Original method used for processing such data 
+        sets until 06/2018.
     pulse_threshold: float 
         determines cut-off limit for calculating pulse power;
         this number is multiplied by the maximum V_{RMS} in the pulse width.
-    noise_threshold: float
-        determines cut-off limit for calculating noise power;
-        this number is multiplied by the minimum V_{RMS} in the capture, outside of pulse width.
 
     Returns
     -------
@@ -31,128 +94,121 @@ def process_series(date,id_string,V_AFG,pulse_threshold,noise_threshold):
         Generated from the analytic signal for each capture,
         has noise outside of pulse width subtracted out.
     """
+    #{{{ RMS function: calculates power by subtracting RMS noise from RMS signal, both analytic
+    def rms_signal_to_power(data,ch):
+        "find the pulse, calculate the noise and signal powers and subtract them"
+        pulse0_slice = abs(data['power',-1]).contiguous(lambda x: x>pulse_threshold*x.data.max())
+        pulse0_slice = pulse0_slice[0,:]
+        pulse_limits = pulse0_slice + r_[0.6e-6,-0.6e-6]
+        noise_limits = pulse0_slice - r_[0.6e-6,-0.6e-6]
+        p0_lim1,p0_lim2 = pulse_limits
+        n0_lim1,n0_lim2 = noise_limits
+        Vn1_rms0 = sqrt((abs(data['t':(0,n0_lim1)]
+            )**2).mean('t',return_error=False))
+        Vn2_rms0 = sqrt((abs(data['t':(0,n0_lim2)]
+            )**2).mean('t',return_error=False))
+        Vn_rms0 = (Vn1_rms0 + Vn2_rms0)/2.
+        V_rms0 = sqrt((abs(data['t':tuple(pulse0_slice)]
+            )**2).mean('t',return_error=False))
+        V_rms0 -= Vn_rms0
+        print 'CH',ch,'Noise limits in microsec: %f, %f'%(n0_lim1/1e-6,n0_lim2/1e-6)
+        print 'CH',ch,'Pulse limits in microsec: %f, %f'%(p0_lim1/1e-6,p0_lim2/1e-6)
+        return (V_rms0)**2./50.
+    #}}}
+    #{{{ PP method: calculates power by subtract min from max analytic signal within pulse slice
+    def pp_signal_to_power(data,ch):
+        pulse0_max = abs(data['power',-1].data.max())
+        pulse0_slice = abs(data['power',-1]).contiguous(lambda x: x>pulse_threshold*x.data.max())
+        pulse0_slice = pulse0_slice[0,:]  
+        pulse0_slice += r_[0.6e-6,-0.6e-6]
+        pulse0_limits = tuple(pulse0_slice)
+        p0_lim1,p0_lim2 = pulse0_limits
+        print 'CH',ch,'Pulse limits in microsec: %f, %f'%(p0_lim1/1e-6,p0_lim2/1e-6)
+        #Important point: Should this be modified to make it so that we are calculate V_pp from the
+        #   raw data and not the analytic signal, as we had this method originally? 
+        V_pp0 = data['t':tuple(pulse0_slice)].run(max,'t')
+        V_pp0 -= data['t':tuple(pulse0_slice)].run(min,'t')
+        return (V_pp0)**2./50. 
+    #}}}    
     p_len = len(V_AFG)
     V_calib = 0.694*V_AFG
-    fl.next('Channel 1, 1')
-    for j in range(1,p_len+1):
-        print "loading signal",j
-        j_str = str(j)
-        d = nddata_hdf5(date+'_'+id_string+'.h5/capture'+j_str+'_'+date,
+    filename = date+'_'+id_string+'.h5'
+    try:
+        analytic_signal = nddata_hdf5(filename+'/accumulated_'+date,
                 directory=getDATADIR(exp_type='test_equip'))
-        d.set_units('t','s')
-        if j == 1:
-            raw_signal = (ndshape(d) + ('power',p_len)).alloc()
-            raw_signal.setaxis('t',d.getaxis('t')).set_units('t','s')
-            raw_signal.setaxis('power',((V_calib/2.0/sqrt(2))**2/50.))
-        raw_signal['power',j-1] = d
-        if j == 1:
-            fl.next('Channel 1, 1')
-            fl.plot(d['ch',0], alpha=0.5, label="label %s"%id_string)
-        d.ft('t',shift=True)
-        d = d['t':(0,None)]
-        d['t':(0,5e6)] = 0
-        d['t':(25e6,None)] = 0
-        d.ift('t')
-        d *= 2
-        if j == 1:
-            analytic_signal = (ndshape(d) + ('power',p_len)).alloc()
-            analytic_signal.setaxis('t',d.getaxis('t')).set_units('t','s')
-            analytic_signal.setaxis('power',(V_calib/2/sqrt(2))**2/50.)
-        analytic_signal['power',j-1] = abs(d)
+        analytic_signal.set_units('t','s')
+    except:
+        print "accumulated data was not found, pulling individual captures"
+        for j in xrange(1,p_len+1):
+            print "loading signal",j
+            j_str = str(j)
+            d = nddata_hdf5(filename+'/capture'+j_str+'_'+date,
+                    directory=getDATADIR(exp_type='test_equip'))
+            d.set_units('t','s')
+            if j == 1:
+                raw_signal = (ndshape(d) + ('power',p_len)).alloc()
+                raw_signal.setaxis('t',d.getaxis('t')).set_units('t','s')
+                raw_signal.setaxis('power',((V_calib/2.0/sqrt(2))**2/50.)).set_units('power','W')
+            raw_signal['power',j-1] = d
+            d.ft('t',shift=True)
+            d = d['t':(0,None)]
+            d['t':(0,5e6)] = 0
+            d['t':(25e6,None)] = 0
+            d.ift('t')
+            d *= 2
+            if j == 1:
+                analytic_signal = (ndshape(d) + ('power',p_len)).alloc()
+                analytic_signal.setaxis('t',d.getaxis('t')).set_units('t','s')
+                analytic_signal.setaxis('power',(V_calib/2/sqrt(2))**2/50.)
+            analytic_signal['power',j-1] = d
+        analytic_signal.name('accumulated_'+date)
+        analytic_signal.labels('ch',r_[1,2])
+        analytic_signal.hdf5_write(filename,
+                directory=getDATADIR(exp_type='test_equip'))
     fl.next('analytic')
-    fl.plot(analytic_signal['ch',0]['power',-1])
+    fl.plot(abs(analytic_signal['ch',0]['power',-1]),label=id_string)
+    highest_power = abs(analytic_signal['power',-1])
+    for ch in xrange(0,2):
+        this_data = highest_power['ch',ch]
+        pulse0_slice = this_data.contiguous(lambda x: x>pulse_threshold*x.data.max())
+        pulse0_slice = tuple(pulse0_slice[0,:])
+        fl.plot(this_data['t':pulse0_slice]['t',r_[0,-1]],'o',label='CH%s'%str(ch))
     print "Done loading signal for %s \n\n"%id_string 
-    pulse0_slice = abs(analytic_signal['ch',0]['power',-1]).contiguous(lambda x: x>pulse_threshold*x.data.max())
-    pulse0_slice = pulse0_slice[0,:]
-    pulse0_slice += r_[0.6e-6,-0.6e-6]
-    pulse0_limits = tuple(pulse0_slice)
-    p0_lim1,p0_lim2 = pulse0_limits
-    print p0_lim1,p0_lim2
-    noise0_slice = abs(analytic_signal['ch',0]['power',-1]).contiguous(lambda x: x>noise_threshold*x.data.min())
-    noise0_slice = noise0_slice[0,:]
-    noise0_limits = tuple(noise0_slice)
-    print noise0_slice
-    n0_lim1,n0_lim2 = noise0_limits
-    print n0_lim1
-    print n0_lim2
-    Vn1_rms0 = (abs(analytic_signal['ch',0]['t':(0,n0_lim1)]))**2
-    Vn1_rms0 = Vn1_rms0.mean('t',return_error=False)
-    Vn1_rms0 = sqrt(Vn1_rms0)
-    Vn2_rms0 = (abs(analytic_signal['ch',0]['t':(n0_lim2,None)]))**2
-    Vn2_rms0 = Vn2_rms0.mean('t',return_error=False)
-    Vn2_rms0 = sqrt(Vn2_rms0)
-    Vn_rms0 = (Vn1_rms0 + Vn2_rms0)/2.
-    V_rms0 = (abs(analytic_signal['ch',0]['t':tuple(pulse0_slice)]))**2
-    V_rms0 = V_rms0.mean('t',return_error=False)
-    V_rms0 = sqrt(V_rms0)
-    V_rms0 -= Vn_rms0
-    print 'Noise limits in microsec: %f, %f'%(n0_lim1/1e-6,n0_lim2/1e-6)
-    print 'Pulse limits in microsec: %f, %f'%(p0_lim1/1e-6,p0_lim2/1e-6)
-    return V_rms0
-
-##Must comment out one of the following before running 
-    # {{{ user input
-#V_start = raw_input("Input start of sweep in Vpp: ")
-#V_start = float(V_start)
-#print V_start
-#V_stop = raw_input("Input stop of sweep in Vpp: ")
-#V_stop = float(V_stop)
-#print V_stop
-#V_step = raw_input("Input number of steps: ")
-#V_step = float(V_step)
-#print V_step
-#
-#axis_spacing = raw_input("1 for log scale, 0 for linear scale: ")
-#if axis_spacing == '1':
-#    V_start_log = log10(V_start)
-#    V_stop_log = log10(V_stop)
-#    V_AFG = logspace(V_start_log,V_stop_log,V_step)
-#    print "V_AFG(log10(%f),log10(%f),%f)"%(V_start,V_stop,V_step)
-#    print "V_AFG(%f,%f,%f)"%(log10(V_start),log10(V_stop),V_step)
-#    print V_AFG
-#elif axis_spacing == '0':
-#    V_AFG = linspace(V_start,V_stop,V_step)
-#    print "V_AFG(%f,%f,%f)"%(V_start,V_stop,V_step)
-#    print V_AFG
-#
-#atten_choice = raw_input("1 for attenuation, 0 for no attenuation: ")
-#if atten_choice == '1':
-#    atten_p = 10**(-40./10.)
-#    atten_V = 10**(-40./20.)
-#elif atten_choice == '0':
-#    atten_p = 1
-#    atten_V = 1
-#print "power, Voltage attenuation factors = %f, %f"%(atten_p,atten_V) 
-    # }}}
-    # {{{   no user input (must check/update before running)
-V_start = 0.01
-V_stop = 0.01321941 
-V_step = 5
-V_start_log = log10(V_start)
-V_stop_log = log10(V_stop)
-V_step_log = V_step
-V_AFG = logspace(V_start_log,V_stop_log,V_step)
-print "V_AFG(log10(%f),log10(%f),%f)"%(V_start,V_stop,V_step)
-print "V_AFG(%f,%f,%f)"%(log10(V_start),log10(V_stop),V_step)
-#Ignore attenuation here, does not correspond to the corrections we apply later
-atten_p = 1#0**(-40./10.)
-atten_V = 1#0**(-40./20.)
-    # }}}
-
-    # {{{ call files
+    if rms_method:
+        power0 = rms_signal_to_power(analytic_signal['ch',0],ch=1)
+    if not rms_method:
+        power0 = abs(pp_signal_to_power(analytic_signal['ch',0],ch=1))
+    return_power = power0
+    return_power.name('$P_{out}$')#.set_units('W')  #***IMPORTANT!***
+    return return_power
+#}}}
+# {{{ Call files
 for date,id_string in [
 #        ('180514','sweep_high_control'),
 #        ('180514','sweep_high_duplexer_2piTL')
         ('180514','sweep_control'),
-        ('180514','sweep_duplexer_2piTL'),
-        ('180531','sweep_pomona_dpx_testing'),
-        ('180531','sweep_pomona_dpx_testing2'),
-        ('180531','sweep_pomona_dpx_testing3'),
-        ('180601','sweep_pomona_dpx_testing'),
-        ('180601','sweep_pomona_dpx_testing2'),
-        ('180601','sweep_pomona_dpx_testing3'),
+#        ('180514','sweep_duplexer_2piTL'),
+#        ('180531','sweep_pomona_dpx_testing'),
+#        ('180531','sweep_pomona_dpx_testing2'),
+#        ('180531','sweep_pomona_dpx_testing3'),
+#        ('180601','sweep_pomona_dpx_testing'),
+#        ('180601','sweep_pomona_dpx_testing2'),
+#        ('180601','sweep_pomona_dpx_testing3'),
         ('180601','sweep_pomona_dpx_testing4'),
+#        ('180607','sweep_pomona_dpx_5steps'),
+#        ('180607','sweep_pomona_dpx_5steps_2'),
+#        ('180607','sweep_pomona_dpx_5steps_3'),
+#        ('180607','sweep_pomona_dpx_5steps_4'),
+#        ('180607','sweep_pomona_dpx_5steps_5'),
+#        ('180607','sweep_pomona_dpx_5steps_6'),
+#        ('180607','sweep_pomona_dpx_5steps_8'),
         ('180601','sweep_pomona_dpx'),
+        ('180607','sweep_pomona_dpx_5steps_9'),
+        ('180607','sweep_pomona_dpx_5steps_9_2'),
+        ('180607','sweep_pomona_dpx_5steps_9_3'),
+##        ('180607','sweep_pomona_dpx_5steps_7'),
+##        ('180607','sweep_pomona_dpx_5steps_7_2'),
+##        ('180607','sweep_pomona_dpx_5steps_7_3'),
 #        ('180514','sweep_duplexer_2piTL_2'),
 #        ('180503','sweep_high_control'),
 #        ('180513','sweep_high_control'),
@@ -167,9 +223,8 @@ for date,id_string in [
 #       ('180513','sweep_low_duplexer_2piTLnoD'),
 #       ('180513','sweep_low_duplexer_2piTL'),
         ]:
-    # }}}
-
-    # {{{ plot labels
+# }}}
+# {{{ Assign plot labels based on file name
     if date == '180514' and id_string == 'sweep_control':
         label='control'
     elif date == '180514' and id_string == 'sweep_duplexer_2piTL':
@@ -194,34 +249,49 @@ for date,id_string in [
         label = 'Trial 8'
     elif date == '180601' and id_string == 'sweep_pomona_dpx':
         label = 'current pomona duplexer'
+    elif date == '180607' and id_string == 'sweep_pomona_dpx_5steps_7':
+        label = 'current pomona duplexer_rerun1'
+    elif date == '180607' and id_string == 'sweep_pomona_dpx_5steps_7_2':
+        label = 'current pomona duplexer_rerun2'
+    elif date == '180607' and id_string == 'sweep_pomona_dpx_5steps_7_3':
+        label = 'current pomona duplexer_rerun3'
+    elif date == '180607' and id_string == 'sweep_pomona_dpx_5steps_9':
+        label = 'Trial 8_rerun1'
+    elif date == '180607' and id_string == 'sweep_pomona_dpx_5steps_9_2':
+        label = 'Trial 8_rerun2'
+    elif date == '180607' and id_string == 'sweep_pomona_dpx_5steps_9_3':
+        label = 'Trial 8_rerun3'
     else:
         label = id_string
-    # }}}
-
-    V_rms = process_series(date,id_string,V_AFG/atten_V,pulse_threshold=0.1,noise_threshold=37)
-    fl.next('Troubleshooting Shielded Duplexer at Low Power, loglog (RMS processing)')
-    V_rms.rename('power','$P_{in}$').set_units('$P_{in}$','W')
-    V_rms.name('$P_{out}$').set_units('W')
-    fl.plot((V_rms)**2/50./atten_p,'-o',alpha=0.65,plottype='loglog',label="%s"%label) 
-    # {{{ voltage plots, if needed
-#    fl.next('log($P_{out}$) vs. log($V^{RMS}_{in}$)')
-#    val = V_rms/atten_V
-#    val.rename('$P_{in}$','setting').setaxis('setting',V_AFG).set_units('setting','Vrms')
-#    fl.plot(val,'.',plottype='loglog',label="%s $V_{RMS}$"%label)
-#    fl.next('log($V^{RMS}_{out}$) vs. log($V^{RMS}_{in}$)')
-#    fl.plot(val,'.',plottype='loglog',label="%s $V{RMS}$"%label)
-    # }}}
-#    dB_value =  10*log10(V_rms.mean())
-#    print '\n\n\n\n\n calculating dB for',id_string
-#    print dB_value 
-#    if date+id_string == '180514sweep_control':
-#        k=0
-#        dbdict = {}
-#    dict_db = dict([(date+'_'+id_string,dB_value.data)])
-#    dbdict.update(dict_db)
-#    k += 1
-#print k
-#pprint.pprint(dbdict) 
+# }}}
+    power_plot = gen_power_data(date,id_string,V_AFG/atten_V,rms_method=True)
+    fl.next('Troubleshooting Shielded Duplexer at Low Power, loglog')
+    power_plot.rename('power','$P_{in}$ $(W)$')#.set_units('$P_{in}$','W')
+    power_plot.name('$P_{out}$ $(W)$')#.set_units('W')
+    fl.plot(power_plot,'-o',alpha=0.65,plottype='loglog',label="%s"%label) 
+#{{{ Relative dB calculations
+    dB_value =  10*log10(power_plot.mean())
+    print 'Calculating dB for',id_string
+    print dB_value 
+    if date+id_string == '180514sweep_control':
+        k=0
+        dbdict = {}
+        temp = []
+        ord_dbdictlist = []
+    dict_db = dict([(date+'_'+id_string,dB_value.data)])
+    dbdict.update(dict_db)
+    k += 1
+print "***dB calculations***"
+ord_dbdict = OrderedDict(sorted(dbdict.items(), key=lambda t: t[1]))
+for name,db in ord_dbdict.iteritems():
+    temp = [name,db]
+    ord_dbdictlist.append(temp)
+print "Non-relative dB:"
+pprint.pprint(ord_dbdictlist)
+r_db = array(ord_dbdictlist) 
+print "Relative dB:"
+for q in xrange(0,k):
+    val = float(r_db[q][1])-float(r_db[-1][1])
+    print r_db[q][0],'=',val
+#}}}
 fl.show()
-
-
