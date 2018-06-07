@@ -30,11 +30,11 @@ def acquire():
     #    g.voltscal(1,500e-3) #setting volt scale on channel 1 to 500 mV/div
         print "loaded GDS"
         ch1_waveform = g.waveform(ch=1)
-        ch2_waveform = g.waveform(ch=1)
+        ch2_waveform = g.waveform(ch=2)
         for j in range(num_averages-1):
             print "average #",j
             ch1_waveform += g.waveform(ch=1)
-            ch2_waveform += g.waveform(ch=1)
+            ch2_waveform += g.waveform(ch=2)
     data = concat([ch1_waveform,ch2_waveform],'ch').reorder('t')
     data /= num_averages
     # {{{ in case it pulled from an inactive channel
@@ -49,10 +49,10 @@ def acquire():
     j = 1
     try_again = True
     while try_again:
-        data_name = 'capture%d_180601'%j
+        data_name = 'capture%d_180607'%j
         data.name(data_name)
         try:
-            data.hdf5_write('180601_sweep_pomona_dpx_cascade12.h5')
+            data.hdf5_write('180607_sweep_pomona_dpx_5step.h5')
             try_again = False
             print "capture number",j
         except:
@@ -91,7 +91,7 @@ def gen_pulse(freq=14.5e6, width=4e-6, ch1_only=True):
             a[this_ch].burst = True
             a.set_burst(per=100e-3) #effectively sets duty cycle (100msec b/w bursts)
 #            set_amp = 1
-            for set_amp in logspace(log10(0.01),log10(0.86),40):
+            for set_amp in logspace(log10(0.01),log10(0.01321941),5):
                a[this_ch].ampl=set_amp
                raw_input("Turn on amp then continue")
                acquire() 
