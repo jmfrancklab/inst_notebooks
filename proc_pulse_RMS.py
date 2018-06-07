@@ -19,64 +19,83 @@ def plot_captures(capture_list,plot_str,current_j,data,how_many_ch):
                 fl.plot(data['ch',ch_no],alpha=0.2,label='CH%d'%k)
     return
 
-def gen_power_data(date,id_string,V_AFG,pulse_threshold,noise_threshold):
+def gen_power_data(date, id_string, V_AFG, rms_method=True,
+        pulse_threshold=0.5):
+    def return_signal_power(data):
+        "find the pulse, calculate the noise and signal powers and subtract them"
+        pulse0_slice = abs(analytic_signal['ch',0]['power',-1]).contiguous(lambda x: x>pulse_threshold*x.data.max())
+        assert pulse0_slice.shape[0] == 1
+        pulse0_slice = pulse0_slice[0,:]
+        pulse_limits = pulse0_slice + r_[0.6e-6,-0.6e-6]
+        noise_limits = pulse0_slice - r_[0.6e-6,-0.6e-6]
+        p0_lim1,p0_lim2 = pulse_limits
+        n0_lim1,n0_lim2 = noise_limits
+        Vn1_rms0 = sqrt((abs(analytic_signal['ch',0]['t':(0,n0_lim1)]
+            )**2).mean('t',return_error=False))
+        Vn2_rms0 = sqrt((abs(analytic_signal['ch',0]['t':(0,n0_lim2)]
+            )**2).mean('t',return_error=False))
+        Vn_rms0 = (Vn1_rms0 + Vn2_rms0)/2.
+        V_rms0 = sqrt((abs(analytic_signal['ch',0]['t':tuple(pulse0_slice)]
+            )**2).mean('t',return_error=False))
+        V_rms0 -= Vn_rms0
+        print 'Control noise limits in microsec: %f, %f'%(n0_lim1/1e-6,n0_lim2/1e-6)
+        print 'Control pulse limits in microsec: %f, %f'%(p0_lim1/1e-6,p0_lim2/1e-6)
+        return (V_rms0)**2./50.
     p_len = len(V_AFG)
-    for j in range(1,p_len+1):
-        print "loading signal",j
-        j_str = str(j)
-        d = nddata_hdf5(date+'_'+id_string+'.h5/capture'+j_str+'_'+date,
+    filename = date+'_'+id_string+'.h5'
+    try:
+        analytic_signal = nddata_hdf5(filename+'/accumulated_'+date,
                 directory=getDATADIR(exp_type='test_equip'))
-        d.set_units('t','s')
-        if j == 1:
-            raw_signal = (ndshape(d) + ('power',p_len)).alloc()
-            raw_signal.setaxis('t',d.getaxis('t')).set_units('t','s')
-            raw_signal.setaxis('power',(V_AFG/2.0/sqrt(2))**2/50.).set_units('power','W')
-        raw_signal['power',j-1]=d
-        capture_list = [1,p_len]
-        plot_captures(capture_list,'RAW',j,d,2)
-        d.ft('t',shift=True)
-
-        plot_captures(capture_list,'RAW FT',j,abs(d),2)
-        d = d['t':(0,None)]
-        d['t':(0,5e6)] = 0
-        d['t':(25e6,None)] = 0
-        plot_captures(capture_list,'ANALYTIC FT',j,abs(d),2)
-        d.ift('t')
-        d *= 2
-        plot_captures(capture_list,'ANALYTIC',j,abs(d),2)
-        #I only want to do the following for d['ch',0] (control, ch1)3
-        #NOT d['ch',1], since I want to define the power axis values for ch2
-        #as values I generate for ch1
-        if j == 1:
-            analytic_signal = (ndshape(d) + ('power',p_len)).alloc()
-            analytic_signal.setaxis('t',d.getaxis('t')).set_units('t','s')
-            #Do I need to do this? Isn't it arbitrary?
-            analytic_signal.setaxis('power',(V_AFG/2/sqrt(2))**2/50.)
-        analytic_signal['power',j-1]=d
+        analytic_signal.set_units('t','s')
+    except:
+        print "accumulated data was not found, pulling individual captures"
+        for j in xrange(1,p_len+1):
+            print "loading signal",j
+            j_str = str(j)
+            d = nddata_hdf5(filename+'/capture'+j_str+'_'+date,
+                    directory=getDATADIR(exp_type='test_equip'))
+            d.set_units('t','s')
+            if j == 1:
+                raw_signal = (ndshape(d) + ('power',p_len)).alloc()
+                raw_signal.setaxis('t',d.getaxis('t')).set_units('t','s')
+                raw_signal.setaxis('power',(V_AFG/2.0/sqrt(2))**2/50.).set_units('power','W')
+            raw_signal['power',j-1]=d
+            capture_list = [1,p_len]
+            plot_captures(capture_list,'RAW',j,d,2)
+            d.ft('t',shift=True)
+            plot_captures(capture_list,'RAW FT',j,abs(d),2)
+            d = d['t':(0,None)]
+            d['t':(0,5e6)] = 0
+            d['t':(25e6,None)] = 0
+            plot_captures(capture_list,'ANALYTIC FT',j,abs(d),2)
+            d.ift('t')
+            d *= 2
+            plot_captures(capture_list,'ANALYTIC',j,abs(d),2)
+            #I only want to do the following for d['ch',0] (control, ch1)3
+            #NOT d['ch',1], since I want to define the power axis values for ch2
+            #as values I generate for ch1
+            if j == 1:
+                analytic_signal = (ndshape(d) + ('power',p_len)).alloc()
+                analytic_signal.setaxis('t',d.getaxis('t')).set_units('t','s')
+                #Do I need to do this? Isn't it arbitrary?
+                analytic_signal.setaxis('power',(V_AFG/2/sqrt(2))**2/50.)
+            analytic_signal['power',j-1]=d
+        analytic_signal.name('accumulated_'+date)
+        analytic_signal.labels('ch',r_[1,2])
+        analytic_signal.hdf5_write(filename,
+                directory=getDATADIR(exp_type='test_equip'))
+    fl.next('first and last')
+    fl.plot(abs(analytic_signal['power',r_[0,-1]]))
+    highest_power = abs(analytic_signal['power',-1])
+    for ch in xrange(0,2):
+        this_data = highest_power['ch',ch]
+        pulse0_slice = this_data.contiguous(lambda x: x>pulse_threshold*x.data.max())
+        assert len(pulse0_slice) == 1
+        pulse0_slice = tuple(pulse0_slice[0,:])
+        fl.plot(this_data['t':pulse0_slice]['t',r_[0,-1]],'o')
     print "Done loading signal for %s \n\n"%id_string 
-    pulse0_slice = abs(analytic_signal['ch',0]['power',-1]).contiguous(lambda x: x>pulse_threshold*x.data.max())
-    pulse0_slice = pulse0_slice[0,:]
-    pulse0_slice += r_[0.6e-6,-0.6e-6]
-    pulse0_limits = tuple(pulse0_slice)
-    p0_lim1,p0_lim2 = pulse0_limits
-    noise0_slice = abs(analytic_signal['ch',0]['power',-1]).contiguous(lambda x: x>noise_threshold*x.data.min())
-    noise0_slice = noise0_slice[0,:]
-    noise0_limits = tuple(noise0_slice)
-    n0_lim1,n0_lim2 = noise0_limits
-    Vn1_rms0 = (abs(analytic_signal['ch',0]['t':(0,n0_lim1)]))**2
-    Vn1_rms0 = Vn1_rms0.mean('t',return_error=False)
-    Vn1_rms0 = sqrt(Vn1_rms0)
-    Vn2_rms0 = (abs(analytic_signal['ch',0]['t':(n0_lim2,None)]))**2
-    Vn2_rms0 = Vn2_rms0.mean('t',return_error=False)
-    Vn2_rms0 = sqrt(Vn2_rms0)
-    Vn_rms0 = (Vn1_rms0 + Vn2_rms0)/2.
-    V_rms0 = (abs(analytic_signal['ch',0]['t':tuple(pulse0_slice)]))**2
-    V_rms0 = V_rms0.mean('t',return_error=False)
-    V_rms0 = sqrt(V_rms0)
-    V_rms0 -= Vn_rms0
-    print 'Control noise limits in microsec: %f, %f'%(n0_lim1/1e-6,n0_lim2/1e-6)
-    print 'Control pulse limits in microsec: %f, %f'%(p0_lim1/1e-6,p0_lim2/1e-6)
-   #Calculate atten_factor using exact attenuation of VY574681722
+    power0 = return_signal_power(analytic_signal['ch',0])
+    # {{{ what is this?
     VinPP = 500.e-3
     VoutPP = 4.20e-3
     VinRMS = (VinPP)/(2*sqrt(2))
@@ -84,34 +103,10 @@ def gen_power_data(date,id_string,V_AFG,pulse_threshold,noise_threshold):
     Pin_ = ((VinRMS)**2)/50.
     Pout_ = ((VoutRMS)**2)/50.
     atten_factor_P = (Pout_)/(Pin_)
-    power0 = ((V_rms0)**2./50.)*atten_factor_P
+    # }}}
+    power0 /= atten_factor_P
     print power0.data
-    s = analytic_signal['ch',1] 
-    s.rename('power','power_in').setaxis('power_in',power0.data).set_units('power_in','W')
-    pulse1_slice = abs(s['power_in',-1]).contiguous(lambda x: x>pulse_threshold*x.data.max())
-    pulse1_slice = pulse1_slice[0,:]
-    pulse1_slice += r_[0.6e-6,-0.6e-6]
-    pulse1_limits = tuple(pulse1_slice) 
-    p1_lim1,p1_lim2 = pulse1_limits
-    noise1_slice = abs(s['power_in',-1]).contiguous(lambda x: x>noise_threshold*x.data.min())
-    noise1_slice = noise1_slice[0,:]
-    noise1_limits = tuple(noise1_slice) 
-    n1_lim1,n1_lim2 = noise1_limits
-    Vn1_rms1 = (abs(analytic_signal['ch',1]['t':(0,n1_lim1)]))**2
-    Vn1_rms1 = Vn1_rms1.mean('t',return_error=False)
-    Vn1_rms1 = sqrt(abs(Vn1_rms1))
-    Vn2_rms1 = (abs(analytic_signal['ch',1]['t':(n1_lim2,None)]))**2
-    Vn2_rms1 = Vn2_rms1.mean('t',return_error=False)
-    Vn2_rms1 = sqrt(abs(Vn2_rms1))
-    Vn_rms1 = (Vn1_rms1+Vn2_rms1)/2.
-    V_rms1 = (abs(analytic_signal['ch',1]['t':tuple(pulse1_slice)]))**2
-
-    V_rms1 = V_rms1.mean('t',return_error=False)
-    V_rms1 = sqrt(abs(V_rms1))
-    V_rms1 -= Vn_rms1
-    print 'Amplifier noise limits in microsec: %f, %f'%(n1_lim1/1e-6,n1_lim2/1e-6)
-    print 'Amplifier pulse limits in microsec: %f, %f'%(p1_lim1/1e-6,p1_lim2/1e-6)
-    power1 = (V_rms1)**2./50.
+    power1 = return_signal_power(analytic_signal['ch',1])
     power_amp = power1
     power_amp.name('$P_{out}$').set_units('W')  #***IMPORTANT!***
     power_amp.rename('power','$P_{in}$').setaxis('$P_{in}$',power0.data).set_units('$P_{in}$','W')
@@ -141,10 +136,10 @@ for date,id_string in [
 #        ('180526','sweep_test_LNA2'),
         ('180526','sweep_test_LNA3'),
         ]:
-    LNA_power = gen_power_data(date,id_string,V_AFG,pulse_threshold=0.1,noise_threshold=10.)
+    LNA_power = gen_power_data(date,id_string,V_AFG)
 #    truncate_LNAp = LNA_power['$P_{in}$':((1e2*1e-12),None)]
     fl.next('Power Curve: LNA #3, RMS processing')
-    fl.plot(LNA_power,'.',plottype='loglog')           
+    fl.plot(LNA_power,'.',plottype='loglog')
     c,result = LNA_power.polyfit('$P_{in}$',force_y_intercept=0)
     fl.plot(result,plottype='loglog')
     print "\n \n \nprinting results for ",id_string
