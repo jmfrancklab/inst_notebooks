@@ -19,8 +19,8 @@ def plot_captures(capture_list,plot_str,current_j,data,how_many_ch):
                 fl.plot(data['ch',ch_no],alpha=0.2,label='CH%d'%k)
     return
 
-def gen_power_data(date,id_string,V_AFG,pulse_threshold,noise_threshold,
-        rms_method=True):
+def gen_power_data(date, id_string, V_AFG, rms_method=True,
+        pulse_threshold=0.5):
     def return_signal_power(data):
         "find the pulse, calculate the noise and signal powers and subtract them"
         pulse0_slice = abs(analytic_signal['ch',0]['power',-1]).contiguous(lambda x: x>pulse_threshold*x.data.max())
@@ -63,7 +63,6 @@ def gen_power_data(date,id_string,V_AFG,pulse_threshold,noise_threshold,
             capture_list = [1,p_len]
             plot_captures(capture_list,'RAW',j,d,2)
             d.ft('t',shift=True)
-
             plot_captures(capture_list,'RAW FT',j,abs(d),2)
             d = d['t':(0,None)]
             d['t':(0,5e6)] = 0
@@ -85,6 +84,15 @@ def gen_power_data(date,id_string,V_AFG,pulse_threshold,noise_threshold,
         analytic_signal.labels('ch',r_[1,2])
         analytic_signal.hdf5_write(filename,
                 directory=getDATADIR(exp_type='test_equip'))
+    fl.next('first and last')
+    fl.plot(abs(analytic_signal['power',r_[0,-1]]))
+    highest_power = abs(analytic_signal['power',-1])
+    for ch in xrange(0,2):
+        this_data = highest_power['ch',ch]
+        pulse0_slice = this_data.contiguous(lambda x: x>pulse_threshold*x.data.max())
+        assert len(pulse0_slice) == 1
+        pulse0_slice = tuple(pulse0_slice[0,:])
+        fl.plot(this_data['t':pulse0_slice]['t',r_[0,-1]],'o')
     print "Done loading signal for %s \n\n"%id_string 
     power0 = return_signal_power(analytic_signal['ch',0])
     # {{{ what is this?
@@ -128,7 +136,7 @@ for date,id_string in [
 #        ('180526','sweep_test_LNA2'),
         ('180526','sweep_test_LNA3'),
         ]:
-    LNA_power = gen_power_data(date,id_string,V_AFG,pulse_threshold=0.1,noise_threshold=10.)
+    LNA_power = gen_power_data(date,id_string,V_AFG)
 #    truncate_LNAp = LNA_power['$P_{in}$':((1e2*1e-12),None)]
     fl.next('Power Curve: LNA #3, RMS processing')
     fl.plot(LNA_power,'.',plottype='loglog')
