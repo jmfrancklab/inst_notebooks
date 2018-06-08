@@ -40,10 +40,10 @@ def acquire():
     j = 1
     try_again = True
     while try_again:
-        data_name = 'capture%d_180605'%j
+        data_name = 'capture%d_180606'%j
         data.name(data_name)
         try:
-            data.hdf5_write('180605_noise_cascade12_2CH.h5')
+            data.hdf5_write('180606_sine_LNA1_2CH.h5')
             try_again = False
             print "capture number",j
         except:

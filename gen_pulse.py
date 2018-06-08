@@ -52,7 +52,7 @@ def acquire():
         data_name = 'capture%d_180607'%j
         data.name(data_name)
         try:
-            data.hdf5_write('180607_sweep_pomona_dpx_5step.h5')
+            data.hdf5_write('180607_sweep_pomona_dpx_5steps_7_3.h5')
             try_again = False
             print "capture number",j
         except:
@@ -66,7 +66,7 @@ def acquire():
     fl.plot(data)
 
 
-def gen_pulse(freq=14.5e6, width=4e-6, ch1_only=True):
+def gen_pulse(freq=15e6, width=4e-6, ch1_only=True):
     with AFG() as a:
         a.reset()
         rate = freq*4
@@ -91,10 +91,10 @@ def gen_pulse(freq=14.5e6, width=4e-6, ch1_only=True):
             a[this_ch].burst = True
             a.set_burst(per=100e-3) #effectively sets duty cycle (100msec b/w bursts)
 #            set_amp = 1
-            for set_amp in logspace(log10(0.01),log10(0.01321941),5):
+            for set_amp in logspace(log10(0.01),log10(1.45082878e-02),5):
                a[this_ch].ampl=set_amp
-               raw_input("Turn on amp then continue")
+               #raw_input("Turn on amp then continue")
                acquire() 
 gen_pulse()
-
-
+#logspace(log10(0.01),log10(0.01321941),5)
+#logspace(log10(0.01),log10(1.45082878e-02),5)
