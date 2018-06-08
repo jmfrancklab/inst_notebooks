@@ -7,7 +7,11 @@ from collections import OrderedDict
 #import winsound
 #import logging
 #init_logging(level=logging.DEBUG)
-
+rms_method=True
+if rms_method:
+    method = 'RMS'
+if not rms_method:
+    method = 'PP'
 #{{{ Choose parameter input (script or user) 
 params_choice = int(sys.argv[1])
 if params_choice == 0:
@@ -25,6 +29,8 @@ if params_choice == 0:
     atten_p = 1
     atten_V = 1
     print "power, Voltage attenuation factors = %f, %f"%(atten_p,atten_V) 
+    rms_method=True
+    print "***Processing method:",method,"***\n"
 elif params_choice == 1:
     print "Requesting user input..."
     V_start = raw_input("Input start of sweep in Vpp: ")
@@ -58,8 +64,15 @@ elif params_choice == 1:
     elif atten_choice == '0':
         atten_p = 1
         atten_V = 1
-    print "power, Voltage attenuation factors = %f, %f"%(atten_p,atten_V) 
-# }}}
+    print "power, Voltage attenuation factors = %f, %f"%(atten_p,atten_V)
+
+    method_choice = raw_input("1 for PP method, 0 for RMS method: ")
+    if method_choice == '1':
+        rms_method = False
+    elif method_chocie == '0':
+        rms_method = True
+    print "***Processing method:",method,"***\n"
+        # }}}
 # {{{ Signal processing function
 def gen_power_data(date, id_string, V_AFG, rms_method=True,
         pulse_threshold=0.5):
@@ -97,38 +110,38 @@ def gen_power_data(date, id_string, V_AFG, rms_method=True,
     #{{{ RMS function: calculates power by subtracting RMS noise from RMS signal, both analytic
     def rms_signal_to_power(data,ch):
         "find the pulse, calculate the noise and signal powers and subtract them"
-        pulse0_slice = abs(data['power',-1]).contiguous(lambda x: x>pulse_threshold*x.data.max())
-        pulse0_slice = pulse0_slice[0,:]
-        pulse_limits = pulse0_slice + r_[0.6e-6,-0.6e-6]
-        noise_limits = pulse0_slice - r_[0.6e-6,-0.6e-6]
-        p0_lim1,p0_lim2 = pulse_limits
-        n0_lim1,n0_lim2 = noise_limits
-        Vn1_rms0 = sqrt((abs(data['t':(0,n0_lim1)]
+        pulse_slice = abs(data['power',-1]).contiguous(lambda x: x>pulse_threshold*x.data.max())
+        pulse_slice = pulse_slice[0,:]
+        pulse_limits = pulse_slice + r_[0.6e-6,-0.6e-6]
+        noise_limits = pulse_slice - r_[0.6e-6,-0.6e-6]
+        p_lim1,p_lim2 = pulse_limits
+        n_lim1,n_lim2 = noise_limits
+        Vn1_rms = sqrt((abs(data['t':(0,n_lim1)]
             )**2).mean('t',return_error=False))
-        Vn2_rms0 = sqrt((abs(data['t':(0,n0_lim2)]
+        Vn2_rms = sqrt((abs(data['t':(0,n_lim2)]
             )**2).mean('t',return_error=False))
-        Vn_rms0 = (Vn1_rms0 + Vn2_rms0)/2.
-        V_rms0 = sqrt((abs(data['t':tuple(pulse0_slice)]
+        Vn_rms = (Vn1_rms + Vn2_rms)/2.
+        V_rms = sqrt((abs(data['t':tuple(pulse_slice)]
             )**2).mean('t',return_error=False))
-        V_rms0 -= Vn_rms0
-        print 'CH',ch,'Noise limits in microsec: %f, %f'%(n0_lim1/1e-6,n0_lim2/1e-6)
-        print 'CH',ch,'Pulse limits in microsec: %f, %f'%(p0_lim1/1e-6,p0_lim2/1e-6)
-        return (V_rms0)**2./50.
+        V_rms -= Vn_rms
+        print 'CH',ch,'Noise limits in microsec: %f, %f'%(n_lim1/1e-6,n_lim2/1e-6)
+        print 'CH',ch,'Pulse limits in microsec: %f, %f'%(p_lim1/1e-6,p_lim2/1e-6)
+        return (V_rms)**2./50.
     #}}}
     #{{{ PP method: calculates power by subtract min from max analytic signal within pulse slice
     def pp_signal_to_power(data,ch):
-        pulse0_max = abs(data['power',-1].data.max())
-        pulse0_slice = abs(data['power',-1]).contiguous(lambda x: x>pulse_threshold*x.data.max())
-        pulse0_slice = pulse0_slice[0,:]  
-        pulse0_slice += r_[0.6e-6,-0.6e-6]
-        pulse0_limits = tuple(pulse0_slice)
-        p0_lim1,p0_lim2 = pulse0_limits
-        print 'CH',ch,'Pulse limits in microsec: %f, %f'%(p0_lim1/1e-6,p0_lim2/1e-6)
+        pulse_max = abs(data['power',-1].data.max())
+        pulse_slice = abs(data['power',-1]).contiguous(lambda x: x>pulse_threshold*x.data.max())
+        pulse_slice = pulse_slice[0,:]  
+        pulse_slice += r_[0.6e-6,-0.6e-6]
+        pulse_limits = tuple(pulse_slice)
+        p_lim1,p_lim2 = pulse_limits
+        print 'CH',ch,'Pulse limits in microsec: %f, %f'%(p_lim1/1e-6,p_lim2/1e-6)
         #Important point: Should this be modified to make it so that we are calculate V_pp from the
         #   raw data and not the analytic signal, as we had this method originally? 
-        V_pp0 = data['t':tuple(pulse0_slice)].run(max,'t')
-        V_pp0 -= data['t':tuple(pulse0_slice)].run(min,'t')
-        return (V_pp0)**2./50. 
+        V_pp = data['t':tuple(pulse_slice)].run(max,'t')
+        V_pp -= data['t':tuple(pulse_slice)].run(min,'t')
+        return (V_pp)**2./50. 
     #}}}    
     p_len = len(V_AFG)
     V_calib = 0.694*V_AFG
@@ -173,7 +186,7 @@ def gen_power_data(date, id_string, V_AFG, rms_method=True,
         pulse0_slice = this_data.contiguous(lambda x: x>pulse_threshold*x.data.max())
         pulse0_slice = tuple(pulse0_slice[0,:])
         fl.plot(this_data['t':pulse0_slice]['t',r_[0,-1]],'o',label='CH%s'%str(ch))
-    print "Done loading signal for %s \n\n"%id_string 
+    print "Done loading signal for %s"%id_string 
     if rms_method:
         power0 = rms_signal_to_power(analytic_signal['ch',0],ch=1)
     if not rms_method:
@@ -264,15 +277,14 @@ for date,id_string in [
     else:
         label = id_string
 # }}}
-    power_plot = gen_power_data(date,id_string,V_AFG/atten_V,rms_method=True)
-    fl.next('Troubleshooting Shielded Duplexer at Low Power, loglog')
+    power_plot = gen_power_data(date,id_string,V_AFG/atten_V,rms_method)
+    fl.next('Troubleshooting Shielded Duplexer at Low Power, loglog (%s method)'%method)
     power_plot.rename('power','$P_{in}$ $(W)$')#.set_units('$P_{in}$','W')
     power_plot.name('$P_{out}$ $(W)$')#.set_units('W')
     fl.plot(power_plot,'-o',alpha=0.65,plottype='loglog',label="%s"%label) 
 #{{{ Relative dB calculations
     dB_value =  10*log10(power_plot.mean())
-    print 'Calculating dB for',id_string
-    print dB_value 
+    print 'Calculating dB for',id_string,':',dB_value.data
     if date+id_string == '180514sweep_control':
         k=0
         dbdict = {}
@@ -281,7 +293,7 @@ for date,id_string in [
     dict_db = dict([(date+'_'+id_string,dB_value.data)])
     dbdict.update(dict_db)
     k += 1
-print "***dB calculations***"
+print "***dB values***"
 ord_dbdict = OrderedDict(sorted(dbdict.items(), key=lambda t: t[1]))
 for name,db in ord_dbdict.iteritems():
     temp = [name,db]
