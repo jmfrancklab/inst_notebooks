@@ -8,10 +8,6 @@ from collections import OrderedDict
 #import logging
 #init_logging(level=logging.DEBUG)
 rms_method=True
-if rms_method:
-    method = 'RMS'
-if not rms_method:
-    method = 'PP'
 #{{{ Choose parameter input (script or user) 
 params_choice = int(sys.argv[1])
 if params_choice == 0:
@@ -30,7 +26,11 @@ if params_choice == 0:
     atten_V = 1
     print "power, Voltage attenuation factors = %f, %f"%(atten_p,atten_V) 
     rms_method=True
-    print "***Processing method:",method,"***\n"
+    if rms_method:
+        method = 'RMS'
+    if not rms_method:
+        method = 'PP'
+    print "*** Processing method:",method,"***\n"
 elif params_choice == 1:
     print "Requesting user input..."
     V_start = raw_input("Input start of sweep in Vpp: ")
@@ -53,7 +53,6 @@ elif params_choice == 1:
         print V_AFG
     elif axis_spacing == '0':
         V_AFG = linspace(V_start,V_stop,V_step)
-
         print "V_AFG(%f,%f,%f)"%(V_start,V_stop,V_step)
         print V_AFG
 
@@ -71,7 +70,11 @@ elif params_choice == 1:
         rms_method = False
     elif method_chocie == '0':
         rms_method = True
-    print "***Processing method:",method,"***\n"
+    if rms_method:
+        method = 'RMS'
+    if not rms_method:
+        method = 'PP'
+    print "*** Processing method:",method,"***\n"
         # }}}
 # {{{ Signal processing function
 def gen_power_data(date, id_string, V_AFG, rms_method=True,
