@@ -4,12 +4,15 @@ import os
 import sys
 #4096 points
 # {{{ constants measured elsewhere
-gain_factor_amp1 = 521.817303                          #LNA1 gain factor
+gain_factor_amp1 = 541.0965116596406                          #LNA1 gain factor
+#gain_factor_amp1 = 521.817303                          #LNA1 gain factor
 gain_factor_amp2 = 530.83648352                        #LNA2 gain factor
 gain_factor_amp3 = 524.42584615                        #LNA3 gain factor
-gain_factor_both = 174549.75561175                     #LNA1,LNA2 gain factor
-gain_factor_dpx = 0.7156772659294433                       #Duplexer gain factor
-gain_factor_tot = gain_factor_both*gain_factor_dpx
+gain_factor_casc12_ = 203383.76725939914
+gain_factor_casc12 = 174549.75561175                   #LNA1,LNA2 gain factor
+gain_factor_dpx_ = 0.6141065062411988
+gain_factor_dpx = 0.7156772659294433                  #Duplexer gain factor
+gain_factor_tot = 124899.29473784272 
 scope_noise = 4.4578468934e-19                         # pulled from the gain=1.0 calculation of the
                                                         # scope noise, below
 atten_factor = 7.056e-5
@@ -17,7 +20,6 @@ T = 273.15 + 20.
 power_signal_AFG = ((50.e-3)/(sqrt(2)*2))**2./50.
 test_signal_power = power_signal_AFG * atten_factor
 # }}}
-
     # {{{ integration arguments
 width_choice = int(sys.argv[1])
 if width_choice == 1:
@@ -33,8 +35,11 @@ elif width_choice == 4:
     integration_center = 1.45e7
     integration_width = 5.28e6
 elif width_choice == 5:
-    integration_center = 3.0e6 
-    integration_width = 1.0e6
+    integration_center = 43.47655e6 
+    integration_width = 15.14685e6
+elif width_choice == 6:
+    integration_center = 14.5e6 
+    integration_width = 0.1e6
     # }}}
 
 def load_noise(date,id_string,captures):
@@ -68,21 +73,18 @@ captures = linspace(0,100,100)
 power_dens_CH1_dict = {}
 power_dens_CH2_dict = {}
 
-    # {{{ call files
+# {{{ call files
 for date,id_string,numchan,gain_factor in [
         ('180605','noise_LNA1_2CH',2,gain_factor_amp1),
-        ('180605','noise_LNA2_2CH',2,gain_factor_amp2),
-        ('180605','noise_LNA3_2CH',2,gain_factor_amp3),
-        ('180605','noise_cascade12_2CH',2,gain_factor_both),
-        ('180527','noise_LNA1_noavg',1,gain_factor_amp1),
-        ('180527','noise_LNA2_noavg',1,gain_factor_amp2),
-        ('180527','noise_LNA3_noavg',1,gain_factor_amp3),
 #        ('180523','sine_LNA_noavg',1,gain_factor_amp1),
-#        ('180527','noise_cascade12_2',2,gain_factor_both),
-#        ('180528','sine_cascade12_2',2,gain_factor_both),
-#        ('180601','noise_pomona_dpx_cascade12_2CH',2,gain_factor_tot),
-#        ('180604','sine_pomona_dpx_cascade12_2CH',2,gain_factor_tot),
-#        ('180526','AFG_terminator_2',2,gain_factor_both),
+#        ('180606','sine_LNA1_2CH',2,gain_factor_amp1),
+#        ('180605','noise_LNA2_2CH',2,gain_factor_amp2),
+#        ('180605','noise_LNA3_2CH',2,gain_factor_amp3),
+#        ('180527','noise_cascade12_2',2,gain_factor_casc12_), #this did not use splitter
+#        ('180528','sine_cascade12_2',2,gain_factor_casc12_),
+#        ('180601','noise_pomona_dpx_cascade12_2CH',2,gain_factor_casc12_*gain_factor_dpx_),
+#        ('180604','sine_pomona_dpx_cascade12_2CH',2,gain_factor_casc12_*gain_factor_dpx_),
+#        ('180526','AFG_terminator_2',2,gain_factor_casc12),
 #        ('180526','AFG_terminator_2',2,gain_factor_amp1),
 #        ('180526','AFG_terminator_2',2,gain_factor_amp2),
 #        ('180526','AFG_terminator_2',2,gain_factor_amp3),
@@ -133,17 +135,17 @@ for date,id_string,numchan,gain_factor in [
         label = 'undetermined'
     label += ' (g=%0.1e)'%gain_factor
         # }}}
-    print "\nLOADING:",id_string
-    print "for",id_string,"label is",label
+    print "\n*** LOADING:",id_string,"***"
+    print "FILE LABEL IS:\t\t",label
     # {{{ calculate positive frequency noise power spectral density
     s = load_noise(date,id_string,captures)
     acq_time = diff(s.getaxis('t')[r_[0,-1]])[0]
-    print "acquisition time for",id_string,"is",acq_time
-    print "dwell time for",id_string,"is",diff(s.getaxis('t')[r_[0,1]])[0]
+    print "ACQUISITION TIME IS:\t",acq_time
+    print "DWELL TIME IS:      \t",diff(s.getaxis('t')[r_[0,1]])[0]
     s.ft('t',shift=True)
     s = abs(s)**2         #mod square
     s.mean('capture', return_error=False)
-    s.convolve('t',1e6) # we do this before chopping things up, since it uses
+#    s.convolve('t',9e5) # we do this before chopping things up, since it uses
     #                      fft and assumes that the signal is periodic (at this
     #                      point, the signal at both ends is very close to
     #                      zero, so that's good
@@ -151,12 +153,14 @@ for date,id_string,numchan,gain_factor in [
     s /= 50.              # divide by resistance, gives units: W*s, or W/Hz
     s /= acq_time         # divide by acquisition time
     s *= 2                # because the power is split over negative and positive frequencies
-#    if gain_factor != 1: # if we're not talking about the scope noise
-#        s -= scope_noise
+    if gain_factor != 1: # if we're not talking about the scope noise
+        s -= scope_noise
     s /= gain_factor      # divide by gain factor, found from power curve -->
     #                       now we have input-referred power
     # }}}
     interval = tuple(integration_center+r_[-1,1]*integration_width)
+    startf,stopf = tuple(interval)
+    print "INTEGRATION INTERVAL:",startf/1e6,"to",stopf/1e6,"MHz"
     if 'ch' not in s.dimlabels:
         # {{{ a hack to create a fake ch axis
         t_label = s.getaxis('t')
@@ -173,7 +177,7 @@ for date,id_string,numchan,gain_factor in [
     if gain_factor == 1.0:
         print "Noise coming from the scope is",s['t':interval]['ch',0].mean('t', return_error=False).data
     else:
-        fl.next('Input-referred Power Spectral Density, semilog')
+        fl.next('Power Spectral Density, Input-referred to first preamp')
         s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
         s_slice.name('$S_{xx}(\\nu)$').set_units('W/Hz')
         fl.plot(s['t':(0e6,250e6)]['ch',0], alpha=0.5, label="%s"%label, plottype='semilogy')
@@ -182,16 +186,15 @@ for date,id_string,numchan,gain_factor in [
         axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
         # {{{ calculates power at input of component over specified frequency interval
         if numchan == 2:
-            print id_string,"CH1 power",str(interval)," Hz = ",s['t':interval]['ch',0].integrate('t')
-            print id_string,"CH2 power (only for test signal)",str(interval)," Hz = ",s['t':interval]['ch',1].integrate('t')*atten_factor*gain_factor
-            power_dens_CH2_dict[id_string] = (s['t':interval]['ch',1].integrate('t').data)*atten_factor*gain_factor
+            print "CH1 POWER IS:",s['t':interval]['ch',0].integrate('t')*gain_factor*(1./gain_factor_casc12_)
+            print "CH2 POWER IS:",s['t':interval]['ch',1].integrate('t')*gain_factor*atten_factor*gain_factor_dpx_
+            power_dens_CH2_dict[id_string] = (s['t':interval]['ch',1].integrate('t').data)
         # }}}
         power_dens_CH1_dict[id_string] = s['t':interval]['ch',0].integrate('t').data
         expand_x()
-        print "CH1 noise power over",str(interval)," Hz : ",s['t':interval]['ch',0].integrate('t').data
-        print "thermal noise power over",str(interval)," Hz : ",k_B*T*float(interval[-1]-interval[0])
-        print "NOISE FIGURE : ",(s['t':interval]['ch',0].integrate('t').data)/(k_B*T*float(interval[-1]-interval[0]))
-        print "END",id_string
+        print "THERMAL NOISE POWER IS:",k_B*T*float(interval[-1]-interval[0])
+#        print "NOISE FIGURE IS:",(s['t':interval]['ch',0].integrate('t').data)/(k_B*T*float(interval[-1]-interval[0]))
+        print "*** EXITING:",id_string,"***"
 #print "error is %0.12f"%(((power_dens_CH1_dict['sine_pomona_dpx_cascade12_2CH'] - power_dens_CH1_dict['noise_pomona_dpx_cascade12_2CH'] - power_dens_CH2_dict['sine_pomona_dpx_cascade12_2CH'])/power_dens_CH2_dict['sine_pomona_dpx_cascade12_2CH'])*100)
 fl.show()
 
