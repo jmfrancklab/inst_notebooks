@@ -27,8 +27,8 @@ if params_choice == 0:
     print "Choosing script-defined parameters..."
     print "(make sure parameters are what you want)\n"
     V_start = 0.01
-    V_stop = 0.01321941
-    V_step = 5
+    V_stop = 0.86
+    V_step = 40 
     V_start_log = log10(V_start)
     V_stop_log = log10(V_stop)
     V_step_log = V_step
@@ -36,7 +36,7 @@ if params_choice == 0:
     print "V_AFG(log10(%f),log10(%f),%f)"%(V_start,V_stop,V_step)
     print "V_AFG(%f,%f,%f)"%(log10(V_start),log10(V_stop),V_step)
 
-    rms_method=False
+    rms_method=True
     if rms_method:
         method = 'RMS'
     if not rms_method:
@@ -209,9 +209,9 @@ def gen_power_data(date, id_string, V_AFG, rms_method,
 #}}}
 atten_factor = 7.056e-5
 for date,id_string in [
-        ('180607','sweep_cascade12'),
-        ('180526','sweep_test_LNA1'),
-        ('180526','sweep_test_LNA2'),
+#        ('180607','sweep_cascade12'),
+#        ('180526','sweep_test_LNA1'),
+#        ('180526','sweep_test_LNA2'),
         ('180526','sweep_test_LNA3'),
         ]:
     power_plot = gen_power_data(date,id_string,V_AFG,rms_method)

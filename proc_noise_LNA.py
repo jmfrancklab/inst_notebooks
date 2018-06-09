@@ -4,10 +4,9 @@ import os
 import sys
 #4096 points
 # {{{ constants measured elsewhere
-gain_factor_amp1 = 541.0965116596406                          #LNA1 gain factor
-#gain_factor_amp1 = 521.817303                          #LNA1 gain factor
-gain_factor_amp2 = 530.83648352                        #LNA2 gain factor
-gain_factor_amp3 = 524.42584615                        #LNA3 gain factor
+gain_factor_amp1 = 521.27172202                         #LNA1 gain factor
+gain_factor_amp2 = 529.98023528                        #LNA2 gain factor
+gain_factor_amp3 = 523.73589899                        #LNA3 gain factor
 gain_factor_casc12_ = 203383.76725939914
 gain_factor_casc12 = 174549.75561175                   #LNA1,LNA2 gain factor
 gain_factor_dpx_ = 0.6141065062411988
@@ -20,7 +19,7 @@ T = 273.15 + 20.
 power_signal_AFG = ((50.e-3)/(sqrt(2)*2))**2./50.
 test_signal_power = power_signal_AFG * atten_factor
 # }}}
-    # {{{ integration arguments
+    # {{{ Command line arguments for integration interval 
 width_choice = int(sys.argv[1])
 if width_choice == 1:
     integration_center = 1.452e7
@@ -33,13 +32,19 @@ elif width_choice == 3:
     integration_width = 2.2e6
 elif width_choice == 4:
     integration_center = 1.45e7
-    integration_width = 5.28e6
+    integration_width = 6.28e6
 elif width_choice == 5:
     integration_center = 43.47655e6 
     integration_width = 15.14685e6
 elif width_choice == 6:
     integration_center = 14.5e6 
     integration_width = 0.1e6
+elif width_choice == 20:
+    integration_center = 20.e6 
+    integration_width = 6.4e6
+elif width_choice == 25:
+    integration_center = 25.e6 
+    integration_width = 6.3e6
     # }}}
 
 def load_noise(date,id_string,captures):
@@ -75,7 +80,35 @@ power_dens_CH2_dict = {}
 
 # {{{ call files
 for date,id_string,numchan,gain_factor in [
-        ('180605','noise_LNA1_2CH',2,gain_factor_amp1),
+#        ('180608','sine_20_casc12_auto',2,gain_factor_amp1),
+#        ('180608','sine_20_LNA2_auto_2',2,gain_factor_amp1),
+#        ('180608','sine_20_LNA2_auto',2,gain_factor_amp1),
+#        ('180608','sine_20_LNA1_auto_2',2,gain_factor_amp1),
+#        ('180608','sine_20_LNA1_auto',2,gain_factor_amp1),
+#        ('180608','sine_14p5_LNA1_auto',2,gain_factor_amp1),
+#        ('180608','sine_14p5_LNA2_auto',2,gain_factor_amp2),
+#        ('180608','sine_14p5_casc12_auto',2,gain_factor_amp3),
+#        ('180608','sine_14p5_pmdpx_auto',2,gain_factor_amp3),
+#        ('180608','sine_14p5_pmdpx_casc12_auto',2,gain_factor_amp3),
+#        ('180608','noise_pmdpx_casc12_auto',2,gain_factor_amp3),
+#        ('180608','noise_pmdpx_auto',2,gain_factor_amp3),
+#        ('180608','sine_25_casc12_auto',2,gain_factor_amp1),
+        ('180608','sine_14p5_casc12_auto_2',2,gain_factor_amp2),
+        ('180608','noise_casc12_auto',2,gain_factor_amp3),
+#        ('180608','noise_LNA3_auto',2,gain_factor_amp3),
+#        ('180608','sine_25_LNA2_auto',2,gain_factor_amp1),
+        ('180608','sine_14p5_LNA2_auto_3',2,gain_factor_amp2),
+        ('180608','noise_LNA2_auto',2,gain_factor_amp2),
+#        ('180608','sine_25_LNA1_auto',2,gain_factor_amp1),
+        ('180608','sine_14p5_LNA1_auto_3',2,gain_factor_amp1),
+        ('180608','noise_LNA1_auto',2,gain_factor_amp1),
+#        ('180605','noise_LNA1_2CH',2,gain_factor_amp1),
+#        ('180608','noise_LNA1',2,gain_factor_amp1),
+#        ('180608','noise_LNA1_200',2,gain_factor_amp1),
+#        ('180608','noise_LNA1_2',2,gain_factor_amp1),
+#        ('180608','noise_LNA1_CH3trig',2,gain_factor_amp1),
+#        ('180608','noise_LNA1_CH1trig',2,gain_factor_amp1),
+#        ('180608','noise_LNA2',2,gain_factor_amp2),
 #        ('180523','sine_LNA_noavg',1,gain_factor_amp1),
 #        ('180606','sine_LNA1_2CH',2,gain_factor_amp1),
 #        ('180605','noise_LNA2_2CH',2,gain_factor_amp2),
@@ -131,8 +164,30 @@ for date,id_string,numchan,gain_factor in [
         label = 'Pomona duplexer-cascade #1,#2, 0 avg/cap, bw=250 MHz, noise'
     elif id_string == 'sine_pomona_dpx_cascade12_2CH':
         label = 'Pomona duplexer-cascade #1,#2, 0 avg/cap, bw=250 MHz, 14.5 MHz sine'
+    elif id_string == 'noise_LNA1_auto':
+        label = 'LNA#1, noise'
+    elif id_string == 'noise_LNA2_auto':
+        label = 'LNA#2, noise'
+    elif id_string == 'noise_LNA3_auto':
+        label = 'LNA#3, noise'
+    elif id_string == 'noise_casc12_auto':
+        label = 'Cascade(LNA#1,LNA#2), noise'
+    elif id_string == 'noise_pmdpx_auto':
+        label = 'Pomona duplexer, noise'
+    elif id_string == 'noise_pmdpx_casc12_auto':
+        label = 'Pomona duplexer-cascade(#1,#2), noise'
+    elif id_string == 'sine_14p5_pmdpx_casc12_auto':
+        label = 'Pomona duplexer-cascade(#1,#2), 14.5 MHz sine'
+    elif id_string == 'sine_14p5_casc12_auto':
+        label = 'Cascade(LNA#1,LNA#2), 14.5 MHz sine'
+    elif id_string == 'sine_14p5_pmdpx_auto':
+        label = 'Pomona duplexer, 14.5 MHz sine'
+    elif id_string == 'sine_14p5_LNA1_auto':
+        label = 'LNA#1, sine 14.5 MHz'
+    elif id_string == 'sine_14p5_LNA2_auto':
+        label = 'LNA#2, sine 14.5 MHz'
     else:
-        label = 'undetermined'
+        label = date+id_string 
     label += ' (g=%0.1e)'%gain_factor
         # }}}
     print "\n*** LOADING:",id_string,"***"
@@ -145,7 +200,7 @@ for date,id_string,numchan,gain_factor in [
     s.ft('t',shift=True)
     s = abs(s)**2         #mod square
     s.mean('capture', return_error=False)
-#    s.convolve('t',9e5) # we do this before chopping things up, since it uses
+    s.convolve('t',1.5e6) # we do this before chopping things up, since it uses
     #                      fft and assumes that the signal is periodic (at this
     #                      point, the signal at both ends is very close to
     #                      zero, so that's good
@@ -153,9 +208,9 @@ for date,id_string,numchan,gain_factor in [
     s /= 50.              # divide by resistance, gives units: W*s, or W/Hz
     s /= acq_time         # divide by acquisition time
     s *= 2                # because the power is split over negative and positive frequencies
-    if gain_factor != 1: # if we're not talking about the scope noise
-        s -= scope_noise
-    s /= gain_factor      # divide by gain factor, found from power curve -->
+#    if gain_factor != 1: # if we're not talking about the scope noise
+#        s -= scope_noise
+#    s /= gain_factor      # divide by gain factor, found from power curve -->
     #                       now we have input-referred power
     # }}}
     interval = tuple(integration_center+r_[-1,1]*integration_width)
@@ -171,11 +226,13 @@ for date,id_string,numchan,gain_factor in [
         s.set_units('t',t_units)
         # }}}
     try:
-        s_slice = s['t':interval]['ch',0]
+        s_slice = s['t':interval]['ch',0] #CH1=DUT
+    #{{{ for scope noise test
     except:
         raise ValueError(strm("problem trying to pull the slice, shape of s is",ndshape(s),"numchan is",numchan))
     if gain_factor == 1.0:
         print "Noise coming from the scope is",s['t':interval]['ch',0].mean('t', return_error=False).data
+        #}}}
     else:
         fl.next('Power Spectral Density, Input-referred to first preamp')
         s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
@@ -186,14 +243,15 @@ for date,id_string,numchan,gain_factor in [
         axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
         # {{{ calculates power at input of component over specified frequency interval
         if numchan == 2:
-            print "CH1 POWER IS:",s['t':interval]['ch',0].integrate('t')*gain_factor*(1./gain_factor_casc12_)
-            print "CH2 POWER IS:",s['t':interval]['ch',1].integrate('t')*gain_factor*atten_factor*gain_factor_dpx_
+            #CH1=DUT, CH2=REF
+            print "CH1 POWER IS:",s['t':interval]['ch',0].integrate('t')
+            print "CH2 POWER IS:",s['t':interval]['ch',1].integrate('t')*atten_factor
             power_dens_CH2_dict[id_string] = (s['t':interval]['ch',1].integrate('t').data)
         # }}}
         power_dens_CH1_dict[id_string] = s['t':interval]['ch',0].integrate('t').data
         expand_x()
         print "THERMAL NOISE POWER IS:",k_B*T*float(interval[-1]-interval[0])
-#        print "NOISE FIGURE IS:",(s['t':interval]['ch',0].integrate('t').data)/(k_B*T*float(interval[-1]-interval[0]))
+        print "NOISE FIGURE IS:",(s['t':interval]['ch',0].integrate('t').data)/(k_B*T*float(interval[-1]-interval[0]))
         print "*** EXITING:",id_string,"***"
 #print "error is %0.12f"%(((power_dens_CH1_dict['sine_pomona_dpx_cascade12_2CH'] - power_dens_CH1_dict['noise_pomona_dpx_cascade12_2CH'] - power_dens_CH2_dict['sine_pomona_dpx_cascade12_2CH'])/power_dens_CH2_dict['sine_pomona_dpx_cascade12_2CH'])*100)
 fl.show()

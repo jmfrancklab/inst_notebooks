@@ -21,7 +21,7 @@ with SerialInstrument('GDS-3254') as s:
 with SerialInstrument('AFG-2225') as s:
     print s.respond('*idn?')
 
-def acquire():
+def acquire(x):
     datalist = []
     print "about to load GDS"
     num_averages = 16
@@ -46,27 +46,14 @@ def acquire():
             if j == len(datalist):
                 raise ValueError("None of the time axes returned by the scope are finite, which probably means no traces are active??")
     # }}}
-    j = 1
-    try_again = True
-    while try_again:
-        data_name = 'capture%d_180607'%j
-        data.name(data_name)
-        try:
-            data.hdf5_write('180607_sweep_pomona_dpx_5steps_7_3.h5')
-            try_again = False
-            print "capture number",j
-        except:
-            print "name taken, trying again..."
-            j += 1
-            try_again = True
+    data_name = 'capture%d_180608'%x
+    data.name(data_name)
+    data.hdf5_write('180608_testing.h5')
     print "name of data",data.name()
     print "units should be",data.get_units('t')
     print "shape of data",ndshape(data)
-    fl.next('Dual-channel data')
-    fl.plot(data)
 
-
-def gen_pulse(freq=15e6, width=4e-6, ch1_only=True):
+def gen_pulse(freq=14.5e6, width=4e-6, ch1_only=True):
     with AFG() as a:
         a.reset()
         rate = freq*4
@@ -91,10 +78,14 @@ def gen_pulse(freq=15e6, width=4e-6, ch1_only=True):
             a[this_ch].burst = True
             a.set_burst(per=100e-3) #effectively sets duty cycle (100msec b/w bursts)
 #            set_amp = 1
-            for set_amp in logspace(log10(0.01),log10(1.45082878e-02),5):
-               a[this_ch].ampl=set_amp
-               #raw_input("Turn on amp then continue")
-               acquire() 
+            amp_range = logspace(log10(0.01),log10(1.45e-2),5)
+            for x in xrange(0,len(amp_range)):
+                for set_amp in amp_range:
+                    a[this_ch].ampl=set_amp
+                    print "entering capture",x,"at amplitude",set_amp
+                    acquire(x)
+#            for set_amp in logspace(log10(0.01),log10(1.45082878e-02),5):
+#               a[this_ch].ampl=set_amp
+#               #raw_input("Turn on amp then continue")
+#               acquire() 
 gen_pulse()
-#logspace(log10(0.01),log10(0.01321941),5)
-#logspace(log10(0.01),log10(1.45082878e-02),5)
