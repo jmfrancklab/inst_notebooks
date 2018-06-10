@@ -1,15 +1,29 @@
 from Instruments import *
 from pyspecdata import *
 import time
+from timeit import default_timer as timer
 from serial.tools.list_ports import comports
 import serial
+import pprint
 from scipy import signal
 
 #raw_input("Warning --> Detach from amplifier before proceeding further (set AFG before hooking up, since it generates cw)")
-
+print "Starting timer..."
+start = timer()
 acquire = False
 
 fl = figlist_var()
+
+#{{{ This is where amplitude spacing is declared
+amp_space = logspace(log10(0.01),log10(0.89),40)
+acq_space = range(1,len(amp_space)+1) #includes left, excludes right
+acq_amp_dict = {}
+for x,y in zip(acq_space,amp_space):
+    temp=dict([(x,y)])
+    acq_amp_dict.update(temp)
+print "Capture number: amplitude in mVpp:"
+pprint.pprint(acq_amp_dict)
+#}}}
 
 print "These are the instruments available:"
 SerialInstrument(None)
@@ -46,12 +60,16 @@ def acquire(x):
             if j == len(datalist):
                 raise ValueError("None of the time axes returned by the scope are finite, which probably means no traces are active??")
     # }}}
-    data_name = 'capture%d_180608'%x
+    data_name = 'capture%d_180609'%x
     data.name(data_name)
-    data.hdf5_write('180608_testing.h5')
+    data.hdf5_write('180609_sweep_pmdpx_casc12.h5')
+    print "capture number",x
     print "name of data",data.name()
     print "units should be",data.get_units('t')
     print "shape of data",ndshape(data)
+    fl.next('Dual-channel data')
+    fl.plot(data)
+    return
 
 def gen_pulse(freq=14.5e6, width=4e-6, ch1_only=True):
     with AFG() as a:
@@ -78,14 +96,10 @@ def gen_pulse(freq=14.5e6, width=4e-6, ch1_only=True):
             a[this_ch].burst = True
             a.set_burst(per=100e-3) #effectively sets duty cycle (100msec b/w bursts)
 #            set_amp = 1
-            amp_range = logspace(log10(0.01),log10(1.45e-2),5)
-            for x in xrange(0,len(amp_range)):
-                for set_amp in amp_range:
-                    a[this_ch].ampl=set_amp
-                    print "entering capture",x,"at amplitude",set_amp
-                    acquire(x)
-#            for set_amp in logspace(log10(0.01),log10(1.45082878e-02),5):
-#               a[this_ch].ampl=set_amp
-#               #raw_input("Turn on amp then continue")
-#               acquire() 
+            for acq_no,set_amp in acq_amp_dict.items():
+               a[this_ch].ampl=set_amp
+               raw_input("Adjust scope settings, continue")
+               acquire(acq_no)
 gen_pulse()
+end = timer()
+print "time:",(end-start),"s"
