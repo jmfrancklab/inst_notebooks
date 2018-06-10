@@ -7,11 +7,13 @@ import sys
 gain_factor_amp1 = 521.27172202                         #LNA1 gain factor
 gain_factor_amp2 = 529.98023528                        #LNA2 gain factor
 gain_factor_amp3 = 523.73589899                        #LNA3 gain factor
-gain_factor_casc12_ = 203383.76725939914
-gain_factor_casc12 = 174549.75561175                   #LNA1,LNA2 gain factor
+#gain_factor_casc12_ = 203383.76725939914
+#gain_factor_casc12 = 174549.75561175 
+gain_factor_casc12 = 193879.86939256                  #LNA1,LNA2 gain factor
 gain_factor_dpx_ = 0.6141065062411988
 gain_factor_dpx = 0.7156772659294433                  #Duplexer gain factor
-gain_factor_tot = 124899.29473784272 
+#gain_factor_tot = 113984.00001949
+gain_factor_tot = 120618.95681133 
 scope_noise = 4.4578468934e-19                         # pulled from the gain=1.0 calculation of the
                                                         # scope noise, below
 atten_factor = 7.056e-5
@@ -90,18 +92,19 @@ for date,id_string,numchan,gain_factor in [
 #        ('180608','sine_14p5_casc12_auto',2,gain_factor_amp3),
 #        ('180608','sine_14p5_pmdpx_auto',2,gain_factor_amp3),
 #        ('180608','sine_14p5_pmdpx_casc12_auto',2,gain_factor_amp3),
-#        ('180608','noise_pmdpx_casc12_auto',2,gain_factor_amp3),
+        ('180608','noise_pmdpx_casc12_auto',2,gain_factor_casc12),
+        ('180608','noise_pmdpx_casc12_auto',2,gain_factor_tot),
 #        ('180608','noise_pmdpx_auto',2,gain_factor_amp3),
-#        ('180608','sine_25_casc12_auto',2,gain_factor_amp1),
-        ('180608','sine_14p5_casc12_auto_2',2,gain_factor_amp2),
-        ('180608','noise_casc12_auto',2,gain_factor_amp3),
+#        ('180608','sine_25_casc12_auto',2,gain_factor_casc12),
+#        ('180608','sine_14p5_casc12_auto_2',2,gain_factor_amp2),
+##        ('180608','noise_casc12_auto',2,gain_factor_casc12),
 #        ('180608','noise_LNA3_auto',2,gain_factor_amp3),
 #        ('180608','sine_25_LNA2_auto',2,gain_factor_amp1),
-        ('180608','sine_14p5_LNA2_auto_3',2,gain_factor_amp2),
-        ('180608','noise_LNA2_auto',2,gain_factor_amp2),
+#        ('180608','sine_14p5_LNA2_auto_3',2,gain_factor_amp2),
+##        ('180608','noise_LNA2_auto',2,gain_factor_amp2),
 #        ('180608','sine_25_LNA1_auto',2,gain_factor_amp1),
-        ('180608','sine_14p5_LNA1_auto_3',2,gain_factor_amp1),
-        ('180608','noise_LNA1_auto',2,gain_factor_amp1),
+#        ('180608','sine_14p5_LNA1_auto_3',2,gain_factor_amp1),
+##        ('180608','noise_LNA1_auto',2,gain_factor_amp1),
 #        ('180605','noise_LNA1_2CH',2,gain_factor_amp1),
 #        ('180608','noise_LNA1',2,gain_factor_amp1),
 #        ('180608','noise_LNA1_200',2,gain_factor_amp1),
@@ -210,7 +213,7 @@ for date,id_string,numchan,gain_factor in [
     s *= 2                # because the power is split over negative and positive frequencies
 #    if gain_factor != 1: # if we're not talking about the scope noise
 #        s -= scope_noise
-#    s /= gain_factor      # divide by gain factor, found from power curve -->
+    s /= gain_factor      # divide by gain factor, found from power curve -->
     #                       now we have input-referred power
     # }}}
     interval = tuple(integration_center+r_[-1,1]*integration_width)
@@ -244,14 +247,16 @@ for date,id_string,numchan,gain_factor in [
         # {{{ calculates power at input of component over specified frequency interval
         if numchan == 2:
             #CH1=DUT, CH2=REF
-            print "CH1 POWER IS:",s['t':interval]['ch',0].integrate('t')
+            print "CH1 POWER IS:",s['t':interval]['ch',0].integrate('t')*gain_factor
             print "CH2 POWER IS:",s['t':interval]['ch',1].integrate('t')*atten_factor
             power_dens_CH2_dict[id_string] = (s['t':interval]['ch',1].integrate('t').data)
         # }}}
         power_dens_CH1_dict[id_string] = s['t':interval]['ch',0].integrate('t').data
         expand_x()
         print "THERMAL NOISE POWER IS:",k_B*T*float(interval[-1]-interval[0])
-        print "NOISE FIGURE IS:",(s['t':interval]['ch',0].integrate('t').data)/(k_B*T*float(interval[-1]-interval[0]))
+        NF = (s['t':interval]['ch',0].integrate('t').data)/(k_B*T*float(interval[-1]-interval[0]))
+        print "NOISE FIGURE IS:",NF
+        print "EFFECTIVE TEMPERATURE IS:",(293.0*(NF-1))
         print "*** EXITING:",id_string,"***"
 #print "error is %0.12f"%(((power_dens_CH1_dict['sine_pomona_dpx_cascade12_2CH'] - power_dens_CH1_dict['noise_pomona_dpx_cascade12_2CH'] - power_dens_CH2_dict['sine_pomona_dpx_cascade12_2CH'])/power_dens_CH2_dict['sine_pomona_dpx_cascade12_2CH'])*100)
 fl.show()

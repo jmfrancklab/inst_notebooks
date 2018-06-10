@@ -21,7 +21,7 @@ def plot_captures(capture_list,plot_str,current_j,data,how_many_ch):
                 fl.plot(data['ch',ch_no],alpha=0.2,label='CH%d'%k)
     return
 #}}}
-#{{{ Choose parameter input (script or user) 
+#{{{ Choose parameter input (script=0 or user=1) 
 params_choice = int(sys.argv[1])
 if params_choice == 0:
     print "Choosing script-defined parameters..."
@@ -209,10 +209,15 @@ def gen_power_data(date, id_string, V_AFG, rms_method,
 #}}}
 atten_factor = 7.056e-5
 for date,id_string in [
-#        ('180607','sweep_cascade12'),
+        ('180609','sweep_casc12_3'),
+        ('180609','sweep_pmdpx_casc12_3'),
+        ('180609','sweep_casc12_2'),
+        ('180609','sweep_casc12'),
+        ('180609','sweep_pmdpx_casc12'),
+        ('180607','sweep_cascade12'),
 #        ('180526','sweep_test_LNA1'),
 #        ('180526','sweep_test_LNA2'),
-        ('180526','sweep_test_LNA3'),
+#        ('180526','sweep_test_LNA3'),
         ]:
     power_plot = gen_power_data(date,id_string,V_AFG,rms_method)
 #    truncate_LNAp = LNA_power['$P_{in}$':((1e2*1e-12),None)]
