@@ -92,12 +92,12 @@ power_dens_CH2_dict = {}
 
 # {{{ call files
 for date,id_string,numchan,gain_factor in [
-        ('180610','noise_LNA1',2,gain_factor_amp1),
-        ('180610','noise_pmdpx_LNA1',2,gain_factor_damp1),
-        ('180610','noise_LNA2',2,gain_factor_amp2),
-        ('180610','noise_pmdpx_LNA2',2,gain_factor_damp2),
-        ('180610','noise_casc12',2,gain_factor_casc12),
-        ('180610','noise_pmdpx_casc12',2,gain_factor_dcasc12),
+#        ('180610','noise_LNA1',2,gain_factor_amp1),
+#        ('180610','noise_pmdpx_LNA1',2,gain_factor_damp1),
+#        ('180610','noise_LNA2',2,gain_factor_amp2),
+#        ('180610','noise_pmdpx_LNA2',2,gain_factor_damp2),
+#        ('180610','noise_casc12',2,gain_factor_casc12),
+#        ('180610','noise_pmdpx_casc12',2,gain_factor_dcasc12),
 #        ('180608','sine_20_casc12_auto',2,gain_factor_casc12),
 #        ('180608','sine_20_LNA2_auto_2',2,gain_factor_amp2),
 #        ('180608','sine_20_LNA2_auto',2,gain_factor_amp2),
@@ -105,9 +105,9 @@ for date,id_string,numchan,gain_factor in [
 #        ('180608','sine_20_LNA1_auto',2,gain_factor_amp1),
 #        ('180608','sine_14p5_LNA1_auto',2,gain_factor_amp1),
 #        ('180608','sine_14p5_LNA2_auto',2,gain_factor_amp2),
-#        ('180608','sine_14p5_casc12_auto',2,gain_factor_amp3),
+        ('180608','sine_14p5_casc12_auto',2,gain_factor_casc12),
 #        ('180608','sine_14p5_pmdpx_auto',2,gain_factor_amp3),
-#        ('180608','sine_14p5_pmdpx_casc12_auto',2,gain_factor_amp3),
+        ('180608','sine_14p5_pmdpx_casc12_auto',2,gain_factor_casc12),
 #        ('180608','noise_pmdpx_casc12_auto',2,gain_factor_casc12),
 #        ('180608','noise_pmdpx_casc12_auto',2,gain_factor_tot),
 #        ('180608','noise_pmdpx_auto',2,gain_factor_),
@@ -231,7 +231,7 @@ for date,id_string,numchan,gain_factor in [
     s.ft('t',shift=True)
     s = abs(s)**2         #mod square
     s.mean('capture', return_error=False)
-    s.convolve('t',5e6) # we do this before chopping things up, since it uses
+    s.convolve('t',1e6) # we do this before chopping things up, since it uses
     #                      fft and assumes that the signal is periodic (at this
     #                      point, the signal at both ends is very close to
     #                      zero, so that's good
@@ -265,12 +265,12 @@ for date,id_string,numchan,gain_factor in [
         print "Noise coming from the scope is",s['t':interval]['ch',0].mean('t', return_error=False).data
         #}}}
     else:
-        fl.next('Power Spectral Density, Input-referred')
+        fl.next('Power Spectral Density, Input-referred by cascade gain')
         s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
         s_slice.name('$S_{xx}(\\nu)$').set_units('W/Hz')
         fl.plot(s['t':(0e6,250e6)]['ch',0], alpha=0.5, label="%s"%label, plottype='semilogy')
-#        fl.plot(s_slice, alpha=0.3, color='black', label="integration slice",
-#                plottype='semilogy')
+        fl.plot(s_slice, alpha=0.3, color='black', label="integration slice",
+                plottype='semilogy')
         axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
         # {{{ calculates power at input of component over specified frequency interval
         if numchan == 2:
