@@ -81,6 +81,7 @@ elif params_choice == 1:
 # {{{ Signal processing function
 def gen_power_data(date, id_string, V_AFG, rms_method,
         pulse_threshold=0.5):
+    # {{{ documentation
     """Process a series of pulse data to produce output vs input power set
     ready for plotting.
     
@@ -111,6 +112,7 @@ def gen_power_data(date, id_string, V_AFG, rms_method,
     return_power : nddata
         output power (y-axis) vs input power (x-axis) for each capture
     """
+    #}}}
     #{{{ RMS function: calculates power by subtracting RMS noise from RMS signal, both analytic
     def rms_signal_to_power(data,ch):
         "find the pulse, calculate the noise and signal powers and subtract them"
@@ -182,6 +184,16 @@ def gen_power_data(date, id_string, V_AFG, rms_method,
         analytic_signal.labels('ch',r_[1,2])
         analytic_signal.hdf5_write(filename,
                 directory=getDATADIR(exp_type='test_equip'))
+        #{{{Optional - plots analytic pulse cut off 
+    fl.next('Lowest power, analytic')
+    fl.plot(abs(analytic_signal['ch',0]['power',0]),label=id_string)
+    fl.plot(abs(analytic_signal['ch',1]['power',0]),label=id_string)
+    lowest_power = abs(analytic_signal['power',0])
+    for ch in xrange(0,2):
+        this_data = lowest_power['ch',ch]
+        pulse0_slice = this_data.contiguous(lambda x: x>pulse_threshold*x.data.max())
+        pulse0_slice = tuple(pulse0_slice[0,:])
+        fl.plot(this_data['t':pulse0_slice]['t',r_[0,-1]],'o',label='CH%s'%str(ch))
     fl.next('Highest power, analytic')
     fl.plot(abs(analytic_signal['ch',0]['power',-1]),label=id_string)
     fl.plot(abs(analytic_signal['ch',1]['power',-1]),label=id_string)
@@ -191,6 +203,7 @@ def gen_power_data(date, id_string, V_AFG, rms_method,
         pulse0_slice = this_data.contiguous(lambda x: x>pulse_threshold*x.data.max())
         pulse0_slice = tuple(pulse0_slice[0,:])
         fl.plot(this_data['t':pulse0_slice]['t',r_[0,-1]],'o',label='CH%s'%str(ch))
+        #}}}
     print "DATA: %s"%id_string 
     #{{{ NOTE: ASSUMES CH1=REFERENCE AND CH2=DUT
     if rms_method:
@@ -203,28 +216,39 @@ def gen_power_data(date, id_string, V_AFG, rms_method,
         power1 = abs(pp_signal_to_power(analytic_signal['ch',1],ch=2))
         #}}}
     return_power = power1
-    return_power.name('$P_{out}$')#.set_units('W')
-    return_power.rename('power','$P_{in}$').setaxis('$P_{in}$',power0.data)#.set_units('$P_{in}$','W')
+    return_power.name('$P_{out}  (W)$')#.set_units('W')
+    return_power.rename('power','$P_{in}  (W)$').setaxis('$P_{in}  (W)$',power0.data)#.set_units('$P_{in}$','W')
     return return_power
 #}}}
 atten_factor = 7.056e-5
 for date,id_string in [
-        ('180609','sweep_casc12_3'),
-        ('180609','sweep_pmdpx_casc12_3'),
-        ('180609','sweep_casc12_2'),
-        ('180609','sweep_casc12'),
-        ('180609','sweep_pmdpx_casc12'),
-        ('180607','sweep_cascade12'),
-#        ('180526','sweep_test_LNA1'),
-#        ('180526','sweep_test_LNA2'),
-#        ('180526','sweep_test_LNA3'),
+        ('180610','sweep_LNA1'),
+        ('180610','sweep_pmdpx_LNA1'),
+        ('180610','sweep_LNA2'),
+        ('180610','sweep_pmdpx_LNA2'),
+        ('180610','sweep_casc12'),
+        ('180610','sweep_pmdpx_casc12'),
         ]:
+    # {{{ plot labels
+    if id_string == 'sweep_LNA1':
+        label = 'LNA #1'
+    elif id_string == 'sweep_pmdpx_LNA1':
+        label = 'LNA #1 + Duplexer'
+    elif id_string == 'sweep_LNA2':
+        label = 'LNA #2'
+    elif id_string == 'sweep_pmdpx_LNA2':
+        label = 'LNA #2 + Duplexer'
+    elif id_string == 'sweep_casc12':
+        label = 'Cascade (#1,#2)'
+    elif id_string == 'sweep_pmdpx_casc12':
+        label = 'Cascade (#1,#2) + Duplexer'
+        #}}}
     power_plot = gen_power_data(date,id_string,V_AFG,rms_method)
 #    truncate_LNAp = LNA_power['$P_{in}$':((1e2*1e-12),None)]
     fl.next('Power Curves (%s method)'%method)
-    fl.plot(power_plot,'.',label=date+id_string,plottype='loglog',)
-    c,result = power_plot.polyfit('$P_{in}$',force_y_intercept=0)
-    fl.plot(result,label='linear fit',plottype='loglog')
+    fl.plot(power_plot,'.',label='%s'%label,plottype='loglog',)
+    c,result = power_plot.polyfit('$P_{in}  (W)$',force_y_intercept=0)
+    fl.plot(result,label='gain = %0.2f'%(c[0][1]),plottype='loglog')
     print "Fit parameters for",id_string
     print c,'\n'
 fl.show()
