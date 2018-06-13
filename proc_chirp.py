@@ -7,17 +7,7 @@ f_axis = linspace(100e3,500e3,100) # must match sweep_frequencies_sqw
 with figlist_var(filename='chirp.pdf') as fl:
     expno=0
     for date, id_string in [
-            ('180606','chirp_probe_old_1'),
-            ('180606','chirp_probe_old_2'),
-            ('180606','chirp_probe_old_3'),
-            ('180606','chirp_probe_old_4'),
-            ('180606','chirp_probe_new_1'),
-            ('180606','chirp_probe_new_2'),
-            ('180606','chirp_probe_new_3'),
-            ('180606','chirp_probe_new_4'),
-            ('180606','chirp_probe_new_5'),
-            ('180606','chirp_probe_new_6'),
-            ('180606','chirp_probe_new_7'),
+            ('180612','chirp_pmprobe'),
             ]:
 
         try:
@@ -52,10 +42,10 @@ with figlist_var(filename='chirp.pdf') as fl:
         fl.plot(d['ch',0],'+',alpha=0.2,label='%s'%label)
         fl.next('channel 2')
         fl.plot(d['ch',1],'+',alpha=0.2,label='%s'%label)
-        fl.next('s11: analytic')
+        fl.next('$S_{11}$ : analytic')
 #        d.setaxis('t', lambda x: x-d.getaxis('t')[0])
-        fl.plot(2*abs(d['ch',1]/d['ch',0]),'-', alpha=0.38, label='%s'%label)
-        fl.next('s11: phase')
+        fl.plot(2*abs(d['ch',1]/d['ch',0]),'-', alpha=0.7, label='%s'%label)
+        fl.next('$S_{11}$ : phase')
 #        d.setaxis('t', lambda x: x-d.getaxis('t')[0])
         fl.plot((d['ch',1]/d['ch',0]).angle/pi, '.', alpha=0.2, label='%s'%label)
         expno += 1 
