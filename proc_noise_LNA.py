@@ -93,14 +93,17 @@ power_dens_CH2_dict = {}
 
 # {{{ call files
 for date,id_string,numchan,gain_factor in [
+        ('180612','noise_tpmprobe_pmdpx',2,gain_factor_pdcasc12),
+        ('180612','noise_ampoff_tpmprobe_pmdpx',2,gain_factor_pdcasc12),
+        ('180612','noise_amp_tpmprobe_pmdpx',2,gain_factor_pdcasc12),
 #        ('180612','sine_14p5_tpmprobe_pmdpx_casc12',2,gain_factor_pdcasc12),
-        ('180612','noise_tpmprobe_pmdpx_casc12_11',2,gain_factor_dcasc12),
+#        ('180612','noise_tpmprobe_pmdpx_casc12_11',2,gain_factor_dcasc12),
 #        ('180610','noise_LNA1',2,gain_factor_amp1),
 #        ('180610','noise_pmdpx_LNA1',2,gain_factor_damp1),
 #        ('180610','noise_LNA2',2,gain_factor_amp2),
 #        ('180610','noise_pmdpx_LNA2',2,gain_factor_damp2),
 #        ('180610','noise_casc12',2,gain_factor_casc12),
-        ('180610','noise_pmdpx_casc12',2,gain_factor_dcasc12),
+#        ('180610','noise_pmdpx_casc12',2,gain_factor_dcasc12),
 #        ('180608','sine_20_casc12_auto',2,gain_factor_casc12),
 #        ('180608','sine_20_LNA2_auto_2',2,gain_factor_amp2),
 #        ('180608','sine_20_LNA2_auto',2,gain_factor_amp2),
@@ -245,7 +248,7 @@ for date,id_string,numchan,gain_factor in [
     s *= 2                # because the power is split over negative and positive frequencies
 #    if gain_factor != 1: # if we're not talking about the scope noise
 #        s -= scope_noise
-    s /= gain_factor      # divide by gain factor, found from power curve -->
+#    s /= gain_factor      # divide by gain factor, found from power curve -->
     #                       now we have input-referred power
     # }}}
     interval = tuple(integration_center+r_[-1,1]*integration_width)

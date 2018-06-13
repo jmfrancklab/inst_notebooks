@@ -37,7 +37,7 @@ def acquire(x):
     #}}}
     data_name = 'capture%d_180612'%x
     data.name(data_name)
-    data.hdf5_write('180612_sine_14p5_tpmprobe_pmdpx_casc12.h5')
+    data.hdf5_write('180612_noise_tpmprobe_pmdpx.h5')
     print "capture number",x
     print "name of data",data.name()
     print "units should be",data.get_units('t')
