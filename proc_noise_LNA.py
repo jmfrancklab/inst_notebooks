@@ -4,12 +4,13 @@ import os
 import sys
 #4096 points
 # {{{ constants measured elsewhere
-gain_factor_amp1 = 525.94786172
-gain_factor_amp2 = 531.84920761
-gain_factor_casc12 = 171428.95568926
-gain_factor_damp1 = 318.5103874 
-gain_factor_damp2 = 325.65682308
-gain_factor_dcasc12 = 114008.55204672
+gain_factor_amp1 = 525.94786172         #LNA 2
+gain_factor_amp2 = 531.84920761         #LNA 1
+gain_factor_casc12 = 171428.95568926    #cascade (1 then 2)
+gain_factor_damp1 = 318.5103874         #duplexer,LNA 1 
+gain_factor_damp2 = 325.65682308        #duplexer,LNA 2 
+gain_factor_dcasc12 = 114008.55204672   #duplexer,cascade(1,2)
+gain_factor_pdcasc12 =45514.53212012    #probe,duplexer,cascade
 
 #gain_factor_amp1 = 521.27172202                         #LNA1 gain factor
 #gain_factor_amp2 = 529.98023528                        #LNA2 gain factor
@@ -31,29 +32,29 @@ test_signal_power = power_signal_AFG * atten_factor
     # {{{ Command line arguments for integration interval 
 width_choice = int(sys.argv[1])
 if width_choice == 1:
-    integration_center = 1.452e7
-    integration_width = 2.42e5
-elif width_choice == 2:
-    integration_center = 1.45e7
-    integration_width = 8.11e5
-elif width_choice == 3:
     integration_center = 1.45e7
     integration_width = 2.2e6
+elif width_choice == 2:
+    integration_center = 1.452e7
+    integration_width = 2.42e5
+elif width_choice == 3:
+    integration_center = 14.5e6 
+    integration_width = 5.7e6
 elif width_choice == 4:
     integration_center = 1.45e7
     integration_width = 6.28e6
 elif width_choice == 5:
-    integration_center = 43.47655e6 
-    integration_width = 15.14685e6
-elif width_choice == 6:
-    integration_center = 14.5e6 
-    integration_width = 0.1e6
+    integration_center = 1.45e7
+    integration_width = 8.11e5
 elif width_choice == 20:
     integration_center = 20.e6 
     integration_width = 6.4e6
 elif width_choice == 25:
     integration_center = 25.e6 
     integration_width = 6.3e6
+elif width_choice == 43:
+    integration_center = 43.47655e6 
+    integration_width = 15.14685e6
 elif width_choice == 55:
     integration_center = 55.e6 
     integration_width = 10.e6
@@ -92,12 +93,14 @@ power_dens_CH2_dict = {}
 
 # {{{ call files
 for date,id_string,numchan,gain_factor in [
+#        ('180612','sine_14p5_tpmprobe_pmdpx_casc12',2,gain_factor_pdcasc12),
+        ('180612','noise_tpmprobe_pmdpx_casc12_11',2,gain_factor_dcasc12),
 #        ('180610','noise_LNA1',2,gain_factor_amp1),
 #        ('180610','noise_pmdpx_LNA1',2,gain_factor_damp1),
 #        ('180610','noise_LNA2',2,gain_factor_amp2),
 #        ('180610','noise_pmdpx_LNA2',2,gain_factor_damp2),
 #        ('180610','noise_casc12',2,gain_factor_casc12),
-#        ('180610','noise_pmdpx_casc12',2,gain_factor_dcasc12),
+        ('180610','noise_pmdpx_casc12',2,gain_factor_dcasc12),
 #        ('180608','sine_20_casc12_auto',2,gain_factor_casc12),
 #        ('180608','sine_20_LNA2_auto_2',2,gain_factor_amp2),
 #        ('180608','sine_20_LNA2_auto',2,gain_factor_amp2),
@@ -105,15 +108,15 @@ for date,id_string,numchan,gain_factor in [
 #        ('180608','sine_20_LNA1_auto',2,gain_factor_amp1),
 #        ('180608','sine_14p5_LNA1_auto',2,gain_factor_amp1),
 #        ('180608','sine_14p5_LNA2_auto',2,gain_factor_amp2),
-        ('180608','sine_14p5_casc12_auto',2,gain_factor_casc12),
+##        ('180608','sine_14p5_casc12_auto',2,gain_factor_casc12),
 #        ('180608','sine_14p5_pmdpx_auto',2,gain_factor_amp3),
-        ('180608','sine_14p5_pmdpx_casc12_auto',2,gain_factor_casc12),
+#        ('180608','sine_14p5_pmdpx_casc12_auto',2,gain_factor_dcasc12),
 #        ('180608','noise_pmdpx_casc12_auto',2,gain_factor_casc12),
 #        ('180608','noise_pmdpx_casc12_auto',2,gain_factor_tot),
 #        ('180608','noise_pmdpx_auto',2,gain_factor_),
 #        ('180608','sine_25_casc12_auto',2,gain_factor_casc12),
 #        ('180608','sine_14p5_casc12_auto_2',2,gain_factor_amp2),
-##        ('180608','noise_casc12_auto',2,gain_factor_casc12),
+#        ('180608','noise_casc12_auto',2,gain_factor_casc12),
 #        ('180608','noise_LNA3_auto',2,gain_factor_amp3),
 #        ('180608','sine_25_LNA2_auto',2,gain_factor_amp1),
 #        ('180608','sine_14p5_LNA2_auto_3',2,gain_factor_amp2),
@@ -231,7 +234,8 @@ for date,id_string,numchan,gain_factor in [
     s.ft('t',shift=True)
     s = abs(s)**2         #mod square
     s.mean('capture', return_error=False)
-    s.convolve('t',1e6) # we do this before chopping things up, since it uses
+    width = 1e6
+    s.convolve('t',width) # we do this before chopping things up, since it uses
     #                      fft and assumes that the signal is periodic (at this
     #                      point, the signal at both ends is very close to
     #                      zero, so that's good
@@ -263,12 +267,13 @@ for date,id_string,numchan,gain_factor in [
         raise ValueError(strm("problem trying to pull the slice, shape of s is",ndshape(s),"numchan is",numchan))
     if gain_factor == 1.0:
         print "Noise coming from the scope is",s['t':interval]['ch',0].mean('t', return_error=False).data
+
         #}}}
     else:
-        fl.next('Power Spectral Density, Input-referred by cascade gain')
+        fl.next('Power Spectral Density, probe (convolution = %0.1e Hz)'%width)
         s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
         s_slice.name('$S_{xx}(\\nu)$').set_units('W/Hz')
-        fl.plot(s['t':(0e6,250e6)]['ch',0], alpha=0.5, label="%s"%label, plottype='semilogy')
+        fl.plot(s['t':(0,250e6)]['ch',0], alpha=0.5, label="%s"%label, plottype='semilogy')
         fl.plot(s_slice, alpha=0.3, color='black', label="integration slice",
                 plottype='semilogy')
         axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
@@ -287,5 +292,6 @@ for date,id_string,numchan,gain_factor in [
         print "EFFECTIVE TEMPERATURE IS:",(293.0*(NF-1))
         print "*** EXITING:",id_string,"***"
 #print "error is %0.12f"%(((power_dens_CH1_dict['sine_pomona_dpx_cascade12_2CH'] - power_dens_CH1_dict['noise_pomona_dpx_cascade12_2CH'] - power_dens_CH2_dict['sine_pomona_dpx_cascade12_2CH'])/power_dens_CH2_dict['sine_pomona_dpx_cascade12_2CH'])*100)
+
 fl.show()
 
