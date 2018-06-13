@@ -27,8 +27,8 @@ if params_choice == 0:
     print "Choosing script-defined parameters..."
     print "(make sure parameters are what you want)\n"
     V_start = 0.01
-    V_stop = 0.86
-    V_step = 40 
+    V_stop = 5 
+    V_step = 50 
     V_start_log = log10(V_start)
     V_stop_log = log10(V_stop)
     V_step_log = V_step
@@ -208,8 +208,9 @@ def gen_power_data(date, id_string, V_AFG, rms_method,
     #{{{ NOTE: ASSUMES CH1=REFERENCE AND CH2=DUT
     if rms_method:
         power0 = rms_signal_to_power(analytic_signal['ch',0],ch=1)
-        power0 *= atten_factor
+#        power0 *= atten_factor
         power1 = rms_signal_to_power(analytic_signal['ch',1],ch=2)
+        power1 /= atten_factor #for ENI test
     if not rms_method:
         power0 = abs(pp_signal_to_power(analytic_signal['ch',0],ch=1))
         power0 *= atten_factor
@@ -222,13 +223,15 @@ def gen_power_data(date, id_string, V_AFG, rms_method,
 #}}}
 atten_factor = 7.056e-5
 for date,id_string in [
+        ('180613','sweep_power_splitter_ENI'),
+#        ('180613','sweep_power_splitter'),
 #        ('180610','sweep_LNA1'),
 #        ('180610','sweep_pmdpx_LNA1'),
 #        ('180610','sweep_LNA2'),
 #        ('180610','sweep_pmdpx_LNA2'),
 #        ('180610','sweep_casc12'),
 #        ('180610','sweep_pmdpx_casc12'),
-        ('180612','sweep_tpmprobe_pmdpx_casc12_22'),
+#        ('180612','sweep_tpmprobe_pmdpx_casc12_22'),
 #        ('180612','sweep_tpmprobe_pmdpx_casc12'),
         ]:
     # {{{ plot labels
