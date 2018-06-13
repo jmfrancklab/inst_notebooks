@@ -27,8 +27,8 @@ if params_choice == 0:
     print "Choosing script-defined parameters..."
     print "(make sure parameters are what you want)\n"
     V_start = 0.01
-    V_stop = 5 
-    V_step = 50 
+    V_stop = 1.7 
+    V_step = 100 
     V_start_log = log10(V_start)
     V_stop_log = log10(V_stop)
     V_step_log = V_step
@@ -79,7 +79,7 @@ elif params_choice == 1:
     print "*** Processing method:",method,"***\n"
         # }}}
 # {{{ Signal processing function
-def gen_power_data(date, id_string, V_AFG, rms_method,
+def gen_power_data(date, id_string, V_AFG, rms_method, atten=1,
         pulse_threshold=0.5):
     # {{{ documentation
     """Process a series of pulse data to produce output vs input power set
@@ -210,10 +210,10 @@ def gen_power_data(date, id_string, V_AFG, rms_method,
         power0 = rms_signal_to_power(analytic_signal['ch',0],ch=1)
 #        power0 *= atten_factor
         power1 = rms_signal_to_power(analytic_signal['ch',1],ch=2)
-        power1 /= atten_factor #for ENI test
+        power1 /= atten #for ENI testing
     if not rms_method:
         power0 = abs(pp_signal_to_power(analytic_signal['ch',0],ch=1))
-        power0 *= atten_factor
+        power0 *= atten_factor #old code
         power1 = abs(pp_signal_to_power(analytic_signal['ch',1],ch=2))
         #}}}
     return_power = power1
@@ -222,9 +222,11 @@ def gen_power_data(date, id_string, V_AFG, rms_method,
     return return_power
 #}}}
 atten_factor = 7.056e-5
-for date,id_string in [
-        ('180613','sweep_power_splitter_ENI'),
-#        ('180613','sweep_power_splitter'),
+for date,id_string,atten in [
+#        ('180613','sweep_PS_ENI_probe_dpx',1),
+#        ('180613','sweep_PS_ENI_3',atten_factor),
+#        ('180613','sweep_power_splitter_ENI'),
+        ('180613','sweep_power_splitter',1),
 #        ('180610','sweep_LNA1'),
 #        ('180610','sweep_pmdpx_LNA1'),
 #        ('180610','sweep_LNA2'),
@@ -250,13 +252,13 @@ for date,id_string in [
     else:
         label = date+'_'+id_string
         #}}}
-    power_plot = gen_power_data(date,id_string,V_AFG,rms_method)
+    power_plot = gen_power_data(date,id_string,V_AFG,rms_method,atten)
 #    truncate_LNAp = LNA_power['$P_{in}$':((1e2*1e-12),None)]
     fl.next('Power Curves (%s method)'%method)
     fl.plot(power_plot,'.',label='%s'%label,plottype='loglog',)
-    c,result = power_plot.polyfit('$P_{in}  (W)$',force_y_intercept=0)
-    fl.plot(result,label='gain = %0.2f'%(c[0][1]),plottype='loglog')
-    print "Fit parameters for",id_string
-    print c,'\n'
+#    c,result = power_plot.polyfit('$P_{in}  (W)$',force_y_intercept=0)
+#    fl.plot(result,label='gain = %0.2f'%(c[0][1]),plottype='loglog')
+#    print "Fit parameters for",id_string
+#    print c,'\n'
 fl.show()
 
