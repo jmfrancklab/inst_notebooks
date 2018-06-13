@@ -15,7 +15,7 @@ acquire = False
 fl = figlist_var()
 
 #{{{ This is where amplitude spacing is declared
-amp_space = logspace(log10(0.2),log10(0.86),40)
+amp_space = logspace(log10(0.01),log10(0.86),40)
 acq_space = range(1,len(amp_space)+1) #includes left, excludes right
 acq_amp_dict = {}
 for x,y in zip(acq_space,amp_space):
@@ -60,9 +60,9 @@ def acquire(x):
             if j == len(datalist):
                 raise ValueError("None of the time axes returned by the scope are finite, which probably means no traces are active??")
     # }}}
-    data_name = 'capture%d_180610'%x
+    data_name = 'capture%d_180612'%x
     data.name(data_name)
-    data.hdf5_write('180610_sweep_pmdpx.h5')
+    data.hdf5_write('180612_sweep_tpmprobe_pmdpx_casc12_22.h5')
     print "capture number",x
     print "name of data",data.name()
     print "units should be",data.get_units('t')
