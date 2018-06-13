@@ -222,12 +222,14 @@ def gen_power_data(date, id_string, V_AFG, rms_method,
 #}}}
 atten_factor = 7.056e-5
 for date,id_string in [
-        ('180610','sweep_LNA1'),
-        ('180610','sweep_pmdpx_LNA1'),
-        ('180610','sweep_LNA2'),
-        ('180610','sweep_pmdpx_LNA2'),
-        ('180610','sweep_casc12'),
-        ('180610','sweep_pmdpx_casc12'),
+#        ('180610','sweep_LNA1'),
+#        ('180610','sweep_pmdpx_LNA1'),
+#        ('180610','sweep_LNA2'),
+#        ('180610','sweep_pmdpx_LNA2'),
+#        ('180610','sweep_casc12'),
+#        ('180610','sweep_pmdpx_casc12'),
+        ('180612','sweep_tpmprobe_pmdpx_casc12_22'),
+#        ('180612','sweep_tpmprobe_pmdpx_casc12'),
         ]:
     # {{{ plot labels
     if id_string == 'sweep_LNA1':
@@ -242,6 +244,8 @@ for date,id_string in [
         label = 'Cascade (#1,#2)'
     elif id_string == 'sweep_pmdpx_casc12':
         label = 'Cascade (#1,#2) + Duplexer'
+    else:
+        label = date+'_'+id_string
         #}}}
     power_plot = gen_power_data(date,id_string,V_AFG,rms_method)
 #    truncate_LNAp = LNA_power['$P_{in}$':((1e2*1e-12),None)]
