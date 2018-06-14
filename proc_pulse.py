@@ -13,9 +13,9 @@ params_choice = int(sys.argv[1])
 if params_choice == 0:
     print "Choosing script-defined parameters..."
     print "(make sure parameters are what you want)\n"
-    V_start = 0.01
-    V_stop = 0.01321941
-    V_step = 5
+    V_start = 0.01 
+    V_stop = 5 
+    V_step = 50 
     V_start_log = log10(V_start)
     V_stop_log = log10(V_stop)
     V_step_log = V_step
@@ -55,15 +55,6 @@ elif params_choice == 1:
         V_AFG = linspace(V_start,V_stop,V_step)
         print "V_AFG(%f,%f,%f)"%(V_start,V_stop,V_step)
         print V_AFG
-
-    atten_choice = raw_input("1 for attenuation, 0 for no attenuation: ")
-    if atten_choice == '1':
-        atten_p = 10**(-40./10.)
-        atten_V = 10**(-40./20.)
-    elif atten_choice == '0':
-        atten_p = 1
-        atten_V = 1
-    print "power, Voltage attenuation factors = %f, %f"%(atten_p,atten_V)
 
     method_choice = raw_input("1 for PP method, 0 for RMS method: ")
     if method_choice == '1':
@@ -182,7 +173,7 @@ def gen_power_data(date, id_string, V_AFG, atten, rms_method=True,
         analytic_signal.hdf5_write(filename,
                 directory=getDATADIR(exp_type='test_equip'))
     fl.next('analytic')
-    fl.plot(abs(analytic_signal['ch',0]['power',-1]),label=id_string)
+    fl.plot(abs(analytic_signal['ch',1]['power',-1]),label=id_string)
     highest_power = abs(analytic_signal['power',-1])
     for ch in xrange(0,2):
         this_data = highest_power['ch',ch]
@@ -191,18 +182,19 @@ def gen_power_data(date, id_string, V_AFG, atten, rms_method=True,
         fl.plot(this_data['t':pulse0_slice]['t',r_[0,-1]],'o',label='CH%s'%str(ch))
     print "Done loading signal for %s"%id_string 
     if rms_method:
-        power0 = rms_signal_to_power(analytic_signal['ch',0],ch=1)
+        power0 = rms_signal_to_power(analytic_signal['ch',1],ch=1)
         power0 /= atten
     if not rms_method:
-        power0 = abs(pp_signal_to_power(analytic_signal['ch',0],ch=1))
+        power0 = abs(pp_signal_to_power(analytic_signal['ch',1],ch=1))
     return_power = power0
     return_power.name('$P_{out}$')#.set_units('W')  #***IMPORTANT!***
     return return_power
 #}}}
 # {{{ Call files
 for date,id_string,atten in [
-        ('180513','sweep_high_control',1e-4),
-        ('180513','sweep_high_control',7.056e-5),
+        ('180614','sweep_PS_ENI_2',7.056e-5),
+        ('180614','sweep_PS_ENI',7.056e-5),
+        ('180613','sweep_power_splitter_ENI',7.056e-5),
         ]:
 # }}}
 # {{{ Assign plot labels based on file name
@@ -215,7 +207,7 @@ for date,id_string,atten in [
     fl.next('$P_{out}$ vs $P_{in}$: New processing code')
     power_plot.rename('power','$P_{in}$ $(W)$')#.set_units('$P_{in}$','W')
     power_plot.name('$P_{out}$ $(W)$')#.set_units('W')
-    fl.plot(power_plot,'.',alpha=0.65,label="%s"%label) 
+    fl.plot(power_plot,'.',alpha=0.65,label="%s"%label,plottype='loglog') 
 #{{{ Relative dB calculations
 #    dB_value =  10*log10(power_plot.mean())
 #    print 'Calculating dB for',id_string,':',dB_value.data
