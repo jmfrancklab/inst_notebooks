@@ -93,10 +93,11 @@ power_dens_CH2_dict = {}
 
 # {{{ call files
 for date,id_string,numchan,gain_factor in [
+        ('180614','noise_amp_dibox_tpmprobe_pmdpx_2ch',2,gain_factor_pdcasc12),
         ('180612','noise_tpmprobe_pmdpx',2,gain_factor_pdcasc12),
         ('180612','noise_ampoff_tpmprobe_pmdpx',2,gain_factor_pdcasc12),
         ('180612','noise_amp_tpmprobe_pmdpx',2,gain_factor_pdcasc12),
-#        ('180612','sine_14p5_tpmprobe_pmdpx_casc12',2,gain_factor_pdcasc12),
+#        ('180612','sine_14p5_tpm7.828665909282531e-13probe_pmdpx_casc12',2,gain_factor_pdcasc12),
 #        ('180612','noise_tpmprobe_pmdpx_casc12_11',2,gain_factor_dcasc12),
 #        ('180610','noise_LNA1',2,gain_factor_amp1),
 #        ('180610','noise_pmdpx_LNA1',2,gain_factor_damp1),
@@ -130,7 +131,7 @@ for date,id_string,numchan,gain_factor in [
 #        ('180605','noise_LNA1_2CH',2,gain_factor_amp1),
 #        ('180608','noise_LNA1',2,gain_factor_amp1),
 #        ('180608','noise_LNA1_200',2,gain_factor_amp1),
-#        ('180608','noise_LNA1_2',2,gain_factor_amp1),
+#        ('180608','noise_LNA7.828665909282531e-131_2',2,gain_factor_amp1),
 #        ('180608','noise_LNA1_CH3trig',2,gain_factor_amp1),
 #        ('180608','noise_LNA1_CH1trig',2,gain_factor_amp1),
 #        ('180608','noise_LNA2',2,gain_factor_amp2),
@@ -223,10 +224,18 @@ for date,id_string,numchan,gain_factor in [
         label = 'Cascade (#1,#2)'
     elif id_string == 'noise_pmdpx_casc12':
         label = 'Cascade (#1,#2) + Duplexer'
+    elif id_string == 'noise_tpmprobe_pmdpx_casc12_11':
+        label = 'Cascade (#1,#2) + Duplexer + Probe'
+    elif id_string == 'noise_tpmprobe_pmdpx':
+        label = 'Duplexer + Probe'
+    elif id_string == 'noise_ampoff_tpmprobe_pmdpx':
+        label = 'Duplexer + Probe + ENI(off)'
+    elif id_string == 'noise_amp_tpmprobe_pmdpx':
+        label = 'Duplexer + Probe + ENI(on)'
     else:
         label = date+id_string 
-    label += ' (g=%0.2f)'%gain_factor
-        # }}}
+    #label += ' (g=%0.2f)'%gain_factor
+   # }}}
     print "\n*** LOADING:",id_string,"***"
     print "FILE LABEL IS:\t\t",label
     # {{{ calculate positive frequency noise power spectral density
@@ -248,7 +257,8 @@ for date,id_string,numchan,gain_factor in [
     s *= 2                # because the power is split over negative and positive frequencies
 #    if gain_factor != 1: # if we're not talking about the scope noise
 #        s -= scope_noise
-#    s /= gain_factor      # divide by gain factor, found from power curve -->
+    s /= gain_factor      # divide by gain factor, found from power curve -->
+    s *= gain_factor_casc12
     #                       now we have input-referred power
     # }}}
     interval = tuple(integration_center+r_[-1,1]*integration_width)
@@ -273,12 +283,12 @@ for date,id_string,numchan,gain_factor in [
 
         #}}}
     else:
-        fl.next('Power Spectral Density, probe (convolution = %0.1e Hz)'%width)
+        fl.next('Power Spectral Density (convolution = %0.1e Hz)'%width)
         s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
         s_slice.name('$S_{xx}(\\nu)$').set_units('W/Hz')
         fl.plot(s['t':(0,250e6)]['ch',0], alpha=0.5, label="%s"%label, plottype='semilogy')
-        fl.plot(s_slice, alpha=0.3, color='black', label="integration slice",
-                plottype='semilogy')
+#        fl.plot(s_slice, alpha=0.8, color='black', label="integration slice",
+#                plottype='semilogy')
         axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
         # {{{ calculates power at input of component over specified frequency interval
         if numchan == 2:
