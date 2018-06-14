@@ -208,33 +208,40 @@ def gen_power_data(date, id_string, V_AFG, rms_method, atten=1,
     #{{{ NOTE: ASSUMES CH1=REFERENCE AND CH2=DUT
     if rms_method:
         power0 = rms_signal_to_power(analytic_signal['ch',0],ch=1)
-#        power0 *= atten_factor
+#        power0 *= atten    #for LNA testing
+                    #needed to multiply reference ch by attenuation
+                    #in order to generate proper O/I plot 
         power1 = rms_signal_to_power(analytic_signal['ch',1],ch=2)
         power1 /= atten #for ENI testing
     if not rms_method:
         power0 = abs(pp_signal_to_power(analytic_signal['ch',0],ch=1))
-        power0 *= atten_factor #old code
+        power0 *= atten #old code
         power1 = abs(pp_signal_to_power(analytic_signal['ch',1],ch=2))
         #}}}
+    control = power0
+    control.name('$P_{out}  (W)$')#.set_units('W')
+    control.rename('power','$P_{in}  (W)$').setaxis('$P_{in}  (W)$',power0.data)#.set_units('$P_{in}$','W')
     return_power = power1
     return_power.name('$P_{out}  (W)$')#.set_units('W')
     return_power.rename('power','$P_{in}  (W)$').setaxis('$P_{in}  (W)$',power0.data)#.set_units('$P_{in}$','W')
-    return return_power
+    return return_power,control
 #}}}
 atten_factor = 7.056e-5
 for date,id_string,atten in [
+#        ('180613','sweep_PS_dpx_2',1),
+#        ('180613','sweep_PS_dpx',1),
 #        ('180613','sweep_PS_ENI_probe_dpx',1),
-#        ('180613','sweep_PS_ENI_3',atten_factor),
+        ('180613','sweep_PS_ENI_3',atten_factor),
 #        ('180613','sweep_power_splitter_ENI'),
-        ('180613','sweep_power_splitter',1),
-#        ('180610','sweep_LNA1'),
-#        ('180610','sweep_pmdpx_LNA1'),
-#        ('180610','sweep_LNA2'),
-#        ('180610','sweep_pmdpx_LNA2'),
-#        ('180610','sweep_casc12'),
-#        ('180610','sweep_pmdpx_casc12'),
-#        ('180612','sweep_tpmprobe_pmdpx_casc12_22'),
-#        ('180612','sweep_tpmprobe_pmdpx_casc12'),
+#        ('180613','sweep_power_splitter',1),
+#        ('180610','sweep_LNA1',atten_factor),
+#        ('180610','sweep_pmdpx_LNA1',atten_factor),
+#        ('180610','sweep_LNA2',atten_factor),
+#        ('180610','sweep_pmdpx_LNA2',atten_factor),
+#        ('180610','sweep_casc12',atten_factor),
+#        ('180610','sweep_pmdpx_casc12',atten_factor),
+#        ('180612','sweep_tpmprobe_pmdpx_casc12_22',atten_factor),
+#        ('180612','sweep_tpmprobe_pmdpx_casc12',atten_factor),
         ]:
     # {{{ plot labels
     if id_string == 'sweep_LNA1':
@@ -249,16 +256,23 @@ for date,id_string,atten in [
         label = 'Cascade (#1,#2)'
     elif id_string == 'sweep_pmdpx_casc12':
         label = 'Cascade (#1,#2) + Duplexer'
+    elif id_string == 'sweep_PS_ENI_3':
+        label = 'ENI Amplifier'
+    elif id_string == 'sweep_PS_ENI_probe_dpx':
+        label = 'ENI Amplifier + probe + duplexer'
     else:
         label = date+'_'+id_string
         #}}}
-    power_plot = gen_power_data(date,id_string,V_AFG,rms_method,atten)
+    power_plot,control = gen_power_data(date,id_string,V_AFG,rms_method,atten)
 #    truncate_LNAp = LNA_power['$P_{in}$':((1e2*1e-12),None)]
     fl.next('Power Curves (%s method)'%method)
-    fl.plot(power_plot,'.',label='%s'%label,plottype='loglog',)
-#    c,result = power_plot.polyfit('$P_{in}  (W)$',force_y_intercept=0)
-#    fl.plot(result,label='gain = %0.2f'%(c[0][1]),plottype='loglog')
-#    print "Fit parameters for",id_string
-#    print c,'\n'
+    fl.plot(power_plot,'.',label='%s'%label,plottype='loglog')
+    fl.plot(control,'.',label='control',plottype='loglog')
+    c,result = power_plot.polyfit('$P_{in}  (W)$',force_y_intercept=0)
+    d,result_d = control.polyfit('$P_{in}  (W)$',force_y_intercept=0)
+    fl.plot(result,label='gain = %0.2f'%(c[0][1]),plottype='loglog')
+    fl.plot(result_d,label='gain = %0.2f'%(d[0][1]),plottype='loglog')
+    print "Fit parameters for",id_string
+    print c,'\n',d
 fl.show()
 

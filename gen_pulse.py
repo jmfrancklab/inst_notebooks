@@ -15,7 +15,7 @@ acquire = False
 fl = figlist_var()
 
 #{{{ This is where amplitude spacing is declared
-amp_space = logspace(log10(0.01),log10(5),50)
+amp_space = logspace(log10(1),log10(5),100)
 acq_space = range(1,len(amp_space)+1) #includes left, excludes right
 acq_amp_dict = {}
 for x,y in zip(acq_space,amp_space):
@@ -60,9 +60,9 @@ def acquire(x):
             if j == len(datalist):
                 raise ValueError("None of the time axes returned by the scope are finite, which probably means no traces are active??")
     # }}}
-    data_name = 'capture%d_180613'%x
+    data_name = 'capture%d_180614'%x
     data.name(data_name)
-    data.hdf5_write('180613_sweep_PS_probe_dpx.h5')
+    data.hdf5_write('180614_sweep_PS_ENI_2.h5')
     print "capture number",x
     print "name of data",data.name()
     print "units should be",data.get_units('t')
@@ -98,7 +98,7 @@ def gen_pulse(freq=14.5e6, width=4e-6, ch1_only=True):
 #            set_amp = 1
             for acq_no,set_amp in acq_amp_dict.items():
                a[this_ch].ampl=set_amp
-               raw_input("Adjust scope settings, continue")
+#               raw_input("Adjust scope settings, continue")
                acquire(acq_no)
 gen_pulse()
 end = timer()
