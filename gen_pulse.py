@@ -15,7 +15,7 @@ acquire = False
 fl = figlist_var()
 
 #{{{ This is where amplitude spacing is declared
-amp_space = logspace(log10(1),log10(5),100)
+amp_space = logspace(log10(1),log10(2),20)
 acq_space = range(1,len(amp_space)+1) #includes left, excludes right
 acq_amp_dict = {}
 for x,y in zip(acq_space,amp_space):
@@ -98,7 +98,7 @@ def gen_pulse(freq=14.5e6, width=4e-6, ch1_only=True):
 #            set_amp = 1
             for acq_no,set_amp in acq_amp_dict.items():
                a[this_ch].ampl=set_amp
-#               raw_input("Adjust scope settings, continue")
+               raw_input("Adjust scope settings, continue")
                acquire(acq_no)
 gen_pulse()
 end = timer()
