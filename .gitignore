@@ -6,3 +6,4 @@
 *.un~
 .gitignore~
 *.h5
+ipynb/auto_figures/
