@@ -93,6 +93,7 @@ power_dens_CH2_dict = {}
 
 # {{{ call files
 for date,id_string,numchan,gain_factor in [
+        ('180614','noise_amp_dibox_tpmprobe_pmdpx_2series',2,gain_factor_pdcasc12),
         ('180614','noise_amp_dibox_tpmprobe_pmdpx_2ch',2,gain_factor_pdcasc12),
         ('180612','noise_tpmprobe_pmdpx',2,gain_factor_pdcasc12),
         ('180612','noise_ampoff_tpmprobe_pmdpx',2,gain_factor_pdcasc12),
