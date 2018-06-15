@@ -8,14 +8,14 @@ from collections import OrderedDict
 #import logging
 #init_logging(level=logging.DEBUG)
 rms_method=True
-#{{{ Choose parameter input (script or user) 
+#{{{ Choose parameter input (0=script or 1=user) 
 params_choice = int(sys.argv[1])
 if params_choice == 0:
     print "Choosing script-defined parameters..."
     print "(make sure parameters are what you want)\n"
-    V_start = 0.01 
-    V_stop = 5 
-    V_step = 50 
+    V_start = 1 
+    V_stop = 2 
+    V_step = 20 
     V_start_log = log10(V_start)
     V_stop_log = log10(V_stop)
     V_step_log = V_step
@@ -192,9 +192,8 @@ def gen_power_data(date, id_string, V_AFG, atten, rms_method=True,
 #}}}
 # {{{ Call files
 for date,id_string,atten in [
+        ('180614','sweep_PS_ENI_dibox',7.056e-5),
         ('180614','sweep_PS_ENI_2',7.056e-5),
-        ('180614','sweep_PS_ENI',7.056e-5),
-        ('180613','sweep_power_splitter_ENI',7.056e-5),
         ]:
 # }}}
 # {{{ Assign plot labels based on file name
