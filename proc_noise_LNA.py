@@ -93,11 +93,11 @@ power_dens_CH2_dict = {}
 
 # {{{ call files
 for date,id_string,numchan,gain_factor in [
-        ('180614','noise_amp_dibox_tpmprobe_pmdpx_2series',2,gain_factor_pdcasc12),
-        ('180614','noise_amp_dibox_tpmprobe_pmdpx_2ch',2,gain_factor_pdcasc12),
         ('180612','noise_tpmprobe_pmdpx',2,gain_factor_pdcasc12),
-        ('180612','noise_ampoff_tpmprobe_pmdpx',2,gain_factor_pdcasc12),
         ('180612','noise_amp_tpmprobe_pmdpx',2,gain_factor_pdcasc12),
+        ('180614','noise_amp_dibox_tpmprobe_pmdpx_2ch',2,gain_factor_pdcasc12),
+        ('180614','noise_amp_dibox_tpmprobe_pmdpx_2series',2,gain_factor_pdcasc12),
+#        ('180612','noise_ampoff_tpmprobe_pmdpx',2,gain_factor_pdcasc12),
 #        ('180612','sine_14p5_tpm7.828665909282531e-13probe_pmdpx_casc12',2,gain_factor_pdcasc12),
 #        ('180612','noise_tpmprobe_pmdpx_casc12_11',2,gain_factor_dcasc12),
 #        ('180610','noise_LNA1',2,gain_factor_amp1),
@@ -233,6 +233,10 @@ for date,id_string,numchan,gain_factor in [
         label = 'Duplexer + Probe + ENI(off)'
     elif id_string == 'noise_amp_tpmprobe_pmdpx':
         label = 'Duplexer + Probe + ENI(on)'
+    elif id_string == 'noise_amp_dibox_tpmprobe_pmdpx_2series':
+        label = 'Duplexer + Probe + 2 (5xcrossed 1N4151) in series + ENI'
+    elif id_string == 'noise_amp_dibox_tpmprobe_pmdpx_2ch':
+        label = 'Duplexer + Probe + 1 5xcrossed 1N4151 in series + ENI'
     else:
         label = date+id_string 
     #label += ' (g=%0.2f)'%gain_factor
