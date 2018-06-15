@@ -192,18 +192,23 @@ def gen_power_data(date, id_string, V_AFG, atten, rms_method=True,
 #}}}
 # {{{ Call files
 for date,id_string,atten in [
+        ('180614','sweep_PS_ENI_3',7.056e-5),
         ('180614','sweep_PS_ENI_dibox',7.056e-5),
-        ('180614','sweep_PS_ENI_2',7.056e-5),
+        ('180614','sweep_PS_ENI_dibox_2series_2',7.056e-5),
         ]:
 # }}}
 # {{{ Assign plot labels based on file name
-    if date == '180513' and id_string == 'sweep_high_control':
-        label='Test 20180513, atten=%s'%(str(atten))
+    if id_string == 'sweep_PS_ENI_3':
+        label='ENI'
+    elif id_string == 'sweep_PS_ENI_dibox':
+        label='ENI, 1 set in series of 5x1N4151 crossed diodes'
+    elif id_string == 'sweep_PS_ENI_dibox_2series_2':
+        label='ENI, 2 sets in series of 5x1N4151 crossed diodes' 
     else:
         label = id_string
 # }}}
     power_plot = gen_power_data(date,id_string,V_AFG/atten_V,atten,rms_method)
-    fl.next('$P_{out}$ vs $P_{in}$: New processing code')
+    fl.next('$P_{out}$ vs $P_{in}$: Amp testing with diode box')
     power_plot.rename('power','$P_{in}$ $(W)$')#.set_units('$P_{in}$','W')
     power_plot.name('$P_{out}$ $(W)$')#.set_units('W')
     fl.plot(power_plot,'.',alpha=0.65,label="%s"%label,plottype='loglog') 
