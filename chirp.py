@@ -22,14 +22,14 @@ with AFG() as a:
     t = r_[0:4096]
     y = imag(exp(1j*2*pi*0.25*(1-0.5/4096.*t)*t))
     set_amp =3. 
+    set
     for this_ch in range(2):
         a[this_ch].digital_ndarray(y,rate=100e6)
         print "now, output on"
         a[this_ch].output = True
     for this_ch in range(2):
         a[this_ch].burst = True
-    a[0].ampl=set_amp
-    a[1].ampl=4.24
+        a[this_ch].ampl=set_amp
 
 datalist = []
 print "about to load GDS"
@@ -50,7 +50,7 @@ while try_again:
     data_name = 'capture%d'%j
     data.name(data_name)
     try:
-        data.hdf5_write('180615_chirp_TX_L.h5')
+        data.hdf5_write('180615_chirp_pi.h5')
         try_again = False
     except Exception as e:
         print e
