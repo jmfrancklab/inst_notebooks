@@ -253,6 +253,8 @@ for date,id_string,numchan,gain_factor in [
     fl.next("test ft")
     fl.plot(s['ch',0]['capture',0])
     fl.plot(s['ch',0]['capture',-1])
+    s = s['t':(0,None)]
+    d['t':
     fl.show()
     quit()
     acq_time = diff(s.getaxis('t')[r_[0,-1]])[0]
