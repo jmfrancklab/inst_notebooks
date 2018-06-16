@@ -28,7 +28,8 @@ with AFG() as a:
         a[this_ch].output = True
     for this_ch in range(2):
         a[this_ch].burst = True
-        a[this_ch].ampl=set_amp
+    a[0].ampl=set_amp
+    a[1].ampl=4.24
 
 datalist = []
 print "about to load GDS"
@@ -49,7 +50,7 @@ while try_again:
     data_name = 'capture%d'%j
     data.name(data_name)
     try:
-        data.hdf5_write('180612_chirp_pmrpobe.h5')
+        data.hdf5_write('180615_chirp_TX_L.h5')
         try_again = False
     except Exception as e:
         print e
