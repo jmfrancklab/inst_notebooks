@@ -1,17 +1,16 @@
 from pyspecdata import *
 #import logging
 #init_logging(level=logging.DEBUG)
-mixdown = 15e6
-capture_num = 1
-f_axis = linspace(100e3,500e3,100) # must match sweep_frequencies_sqw
+#{{{ boolean statement for processing data before modification to generate chirp
+#   that sets voltage of ref (CH1 of scope) and DUT (CH2 of scope) to same value
+corrected_volt = True
+#}}}
 with figlist_var(filename='chirp.pdf') as fl:
     expno=0
-    for date, id_string in [
-            ('180615','chirp_open'),
-            ('180615','chirp_short'),
-            ('180615','chirp_pi'),
+    for date, id_string,corrected_volt in [
+            ('180616','chirp_test',True),
             ]:
-
+#{{{ finding file
         try:
             try:
                 # capture2 only present when capture1 was bad
@@ -22,32 +21,39 @@ with figlist_var(filename='chirp.pdf') as fl:
                             directory=getDATADIR(exp_type='test_equip'))
         except:
             try:
-                # capture2 only present when capture1 was bad
+                # for captures of different file naming format
                 d = nddata_hdf5(date+'_'+id_string+'.h5/capture2',
                             directory=getDATADIR(exp_type='test_equip'))
             except:
                 d = nddata_hdf5(date+'_'+id_string+'.h5/capture1',
                             directory=getDATADIR(exp_type='test_equip'))
+                #}}}
         d.set_units('t','s')
-        d -= d['t':(0,3.5e-6)].runcopy(mean,'t')
+        fl.next('plot ch 0')
+        fl.plot(d['ch',0],alpha=0.15,label='raw data')
+        fl.next('plot ch 1')
+        fl.plot(d['ch',1],alpha=0.15,label='raw data')
         d.ft('t',shift=True)
         d = d['t':(0,100e6)] # throw out negative frequencies and low-pass
-        d.reorder('ch', first=False) # move ch last
+        d.reorder('ch', first=False) # move ch dimension last
         d.ift('t')
         ranges = abs(d)['ch',0].contiguous(lambda x: x > 0.09*x.data.max())
-        ranges = tuple(ranges[0,:].tolist())
-        d = d['t':ranges]
-        d.setaxis('t', lambda x: x-d.getaxis('t')[0])
-        d.setaxis('t', lambda x: 25e6-x*25e6/4096e-8).set_units('t','Hz')
+        ranges = ranges[0,:].tolist()
+        print 'Slicing chirp from',ranges[0]*1e6,'to',ranges[1]*1e6,'us...'
+        d = d['t':tuple(ranges)]
+        fl.next('plot ch 0')
+        fl.plot(d['ch',0],alpha=0.3,label='processed')
+        fl.next('plot ch 1')
+        fl.plot(d['ch',1],alpha=0.3,label='processed')
         label=id_string
-        fl.next('channel 1')
-        fl.plot(d['ch',0],'+',alpha=0.2,label='%s'%label)
-        fl.next('channel 2')
-        fl.plot(d['ch',1],'+',alpha=0.2,label='%s'%label)
+        d.setaxis('t', lambda x: x-d.getaxis('t')[0]) #
+        d.setaxis('t', lambda x: 25e6-x*25e6/4096e-8)
+        d.rename('t','f').set_units('f','Hz')
         fl.next('$S_{11}$ : analytic')
-#        d.setaxis('t', lambda x: x-d.getaxis('t')[0])
-        fl.plot(2*abs(d['ch',1]/d['ch',0]),'-', alpha=0.7, label='%s'%label)
+        if corrected_volt:
+            fl.plot(abs(d['ch',1]/d['ch',0]),'-', alpha=0.7, label='%s'%label)
+        if not corrected_volt:
+            fl.plot(2*abs(d['ch',1]/d['ch',0]),'-', alpha=0.7, label='%s'%label)
         fl.next('$S_{11}$ : phase')
-#        d.setaxis('t', lambda x: x-d.getaxis('t')[0])
         fl.plot((d['ch',1]/d['ch',0]).angle/pi, '.', alpha=0.2, label='%s'%label)
         expno += 1 
