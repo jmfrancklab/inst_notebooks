@@ -8,8 +8,11 @@ corrected_volt = True
 with figlist_var(filename='chirp.pdf') as fl:
     expno=0
     for date, id_string,corrected_volt in [
-#            ('180616','chirp_test',True),
-            ('180615','chirp_TX_L',False),
+            ('180616','chirp_test',True),
+            ('180616','chirp_test2',True),
+            ('180616','chirp_test3',True),
+            ('180616','chirp_test4',True),
+            ('180616','chirp_test5',True),
             ]:
 #{{{ finding file
         try:
@@ -40,7 +43,7 @@ with figlist_var(filename='chirp.pdf') as fl:
         d.ift('t')
         ranges = abs(d)['ch',0].contiguous(lambda x: x > 0.09*x.data.max())
         ranges = ranges[0,:].tolist()
-        print 'Slicing chirp from',ranges[0]*1e6,'to',ranges[1]*1e6,'us...'
+        print 'Slicing chirp for',id_string,'from',ranges[0]*1e6,'to',ranges[1]*1e6,'us...'
         d = d['t':tuple(ranges)]
         fl.next('plot ch 0')
         fl.plot(d['ch',0],alpha=0.3,label='processed')
