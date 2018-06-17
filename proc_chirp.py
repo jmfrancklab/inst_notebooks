@@ -8,11 +8,15 @@ corrected_volt = True
 with figlist_var(filename='chirp.pdf') as fl:
     expno=0
     for date, id_string,corrected_volt in [
-            ('180616','chirp_test',True),
-            ('180616','chirp_test2',True),
-            ('180616','chirp_test3',True),
-            ('180616','chirp_test4',True),
-            ('180616','chirp_test5',True),
+#            ('180616','chirp_test2',True),
+#            ('180616','chirp_test3',True),
+#            ('180616','chirp_test4',True),
+#            ('180616','chirp_test5',True),
+#            ('180616','chirp_pi',True),
+            ('180616','chirp_pi_open',True),
+            ('180616','chirp_pi_short',True),
+            ('180616','chirp_control_open',True),
+            ('180616','chirp_control_short',True),
             ]:
 #{{{ finding file
         try:
