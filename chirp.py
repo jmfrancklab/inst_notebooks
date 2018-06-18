@@ -17,7 +17,7 @@ with SerialInstrument('GDS-3254') as s:
 with SerialInstrument('AFG-2225') as s:
     print s.respond('*idn?')
 
-#{{{ 1 = choose amplitudes, otherwise defaults to 3 Vpp
+#{{{ no sys var = default (3 Vpp), 0 = define amplitudes, 1 = choose from amplitudes
 default = True
 try:
     sys.argv[1]
@@ -29,11 +29,27 @@ if default:
     volt_scale = 200e-3
 if not default:
     setup = int(sys.argv[1])
+    if setup == 0:
+    #{{{ Allows for user defined amplitude/voltage parameters
+        print "User defined amplitude"
+        print "250 mVpp displays best on 20 mV/div"
+        print "750 mVpp displays best on 50 mV/div"
+        print "1.5 Vpp displays best on 100 mV/div"
+        print "3 Vpp displays best on 200 mV/div"
+        print "7.5 Vpp displays best on 500 mV/div"
+        print "e.g., input 750 mVpp as 750e-3"
+        print "e.g., input 500 mV/div as 500e-3"
+        amp_choice = raw_input("Enter amplitude: ")
+        amp_choice = float(amp_choice)
+        ref_amp = amp_choice
+        volt_scale = raw_input("Enter volt/div: ")
+        volt_scale = float(volt_scale)
+#}}}
     if setup == 1:
+#{{{ The following amplitudes maximize display on scope, may facilitate processing
         print "Choose amplitude by entering corresponding number..."
-        print "1 = 25 mVpp \n2 = 75 mVpp \n3 = 1.5 Vpp \n4 = 3.0 Vpp \n5 = 7.6 Vpp"
+        print "1 = 250 mVpp \n2 = 750 mVpp \n3 = 1.5 Vpp \n4 = 3.0 Vpp \n5 = 7.6 Vpp"
         amp_choice = raw_input("Enter number: ")
-        #{{{ The following amplitudes maximize display on scope, may facilitate processing
         if amp_choice == '1':
             ref_amp = 0.25
             volt_scale = 20e-3
@@ -95,7 +111,7 @@ while try_again:
     data_name = 'capture%d'%j
     data.name(data_name)
     try:
-        data.hdf5_write('180616_chirp_control_short.h5')
+        data.hdf5_write('180617_chirp_pidi_open_300mVpp.h5')
         try_again = False
     except Exception as e:
         print e
