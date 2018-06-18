@@ -8,15 +8,19 @@ corrected_volt = True
 with figlist_var(filename='chirp.pdf') as fl:
     expno=0
     for date, id_string,corrected_volt in [
-#            ('180616','chirp_test2',True),
-#            ('180616','chirp_test3',True),
-#            ('180616','chirp_test4',True),
-#            ('180616','chirp_test5',True),
 #            ('180616','chirp_pi',True),
             ('180616','chirp_pi_open',True),
             ('180616','chirp_pi_short',True),
             ('180616','chirp_control_open',True),
             ('180616','chirp_control_short',True),
+#            ('180617','chirp_pidi_750mVpp',True),
+#            ('180617','chirp_pidi_open_750mVpp',True),
+#            ('180617','chirp_pidi_short_750mVpp',True),
+#            ('180617','chirp_pidi_3Vpp',True),
+#            ('180617','chirp_pidi_open_3Vpp',True),
+#            ('180617','chirp_pidi_short_3Vpp',True),
+            ('180617','chirp_pidi_open_300mVpp',True),
+            ('180617','chirp_pidi_short_300mVpp',True),
             ]:
 #{{{ finding file
         try:
@@ -37,9 +41,9 @@ with figlist_var(filename='chirp.pdf') as fl:
                             directory=getDATADIR(exp_type='test_equip'))
                 #}}}
         d.set_units('t','s')
-        fl.next('plot ch 0')
+        fl.next('plot ch 0 %s'%id_string)
         fl.plot(d['ch',0],alpha=0.15,label='raw data')
-        fl.next('plot ch 1')
+        fl.next('plot ch 1 %s'%id_string)
         fl.plot(d['ch',1],alpha=0.15,label='raw data')
         d.ft('t',shift=True)
         d = d['t':(0,100e6)] # throw out negative frequencies and low-pass
@@ -49,9 +53,9 @@ with figlist_var(filename='chirp.pdf') as fl:
         ranges = ranges[0,:].tolist()
         print 'Slicing chirp for',id_string,'from',ranges[0]*1e6,'to',ranges[1]*1e6,'us...'
         d = d['t':tuple(ranges)]
-        fl.next('plot ch 0')
+        fl.next('plot ch 0 %s'%id_string)
         fl.plot(d['ch',0],alpha=0.3,label='processed')
-        fl.next('plot ch 1')
+        fl.next('plot ch 1 %s'%id_string)
         fl.plot(d['ch',1],alpha=0.3,label='processed')
         label=id_string
         d.setaxis('t', lambda x: x-d.getaxis('t')[0]) #
