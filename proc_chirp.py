@@ -6,21 +6,33 @@ from pyspecdata import *
 corrected_volt = True
 #}}}
 with figlist_var(filename='chirp.pdf') as fl:
+    fl.next('$S_{11}$ : phase', legend=True)
     expno=0
     for date, id_string,corrected_volt in [
-#            ('180616','chirp_pi',True),
-            ('180616','chirp_pi_open',True),
-            ('180616','chirp_pi_short',True),
-            ('180616','chirp_control_open',True),
-            ('180616','chirp_control_short',True),
-#            ('180617','chirp_pidi_750mVpp',True),
-#            ('180617','chirp_pidi_open_750mVpp',True),
-#            ('180617','chirp_pidi_short_750mVpp',True),
-#            ('180617','chirp_pidi_3Vpp',True),
-#            ('180617','chirp_pidi_open_3Vpp',True),
-#            ('180617','chirp_pidi_short_3Vpp',True),
-            ('180617','chirp_pidi_open_300mVpp',True),
-            ('180617','chirp_pidi_short_300mVpp',True),
+            ('180619','chirp_low_pi_term',True),
+            ('180619','chirp_low_pi_open',True),
+#            ('180619','chirp_low_pi_short',True),
+            ('180619','chirp_high_pi_term',True),
+            ('180619','chirp_high_pi_open',True),
+#            ('180619','chirp_high_pi_short',True),
+            ('180619','chirp_control_term',True),
+            ('180619','chirp_control_open',True),
+            ('180619','chirp_control_short',True),
+            #{{{ old Sinkovits tests
+####            ('180616','chirp_pi',True),
+###            ('180616','chirp_pi_open',True),
+###            ('180616','chirp_pi_short',True),
+###            ('180616','chirp_control_open',True),
+###            ('180616','chirp_control_short',True),
+####            ('180617','chirp_pidi_750mVpp',True),
+####            ('180617','chirp_pidi_open_750mVpp',True),
+####            ('180617','chirp_pidi_short_750mVpp',True),
+####            ('180617','chirp_pidi_3Vpp',True),
+####            ('180617','chirp_pidi_open_3Vpp',True),
+####            ('180617','chirp_pidi_short_3Vpp',True),
+###            ('180617','chirp_pidi_open_300mVpp',True),
+###            ('180617','chirp_pidi_short_300mVpp',True),
+#}}}
             ]:
 #{{{ finding file
         try:
@@ -61,11 +73,22 @@ with figlist_var(filename='chirp.pdf') as fl:
         d.setaxis('t', lambda x: x-d.getaxis('t')[0]) #
         d.setaxis('t', lambda x: 25e6-x*25e6/4096e-8)
         d.rename('t','f').set_units('f','Hz')
-        fl.next('$S_{11}$ : analytic')
+        fl.next('$S_{11}$ : analytic amplitude')
+        ratio = d['ch',1]/d['ch',0]
+        plot_params = dict(alpha=0.3,
+                markersize=2,
+                label='%s'%label
+                )
+        if 'control' in label:
+            plot_params['color'] = 'k'
         if corrected_volt:
-            fl.plot(abs(d['ch',1]/d['ch',0]),'-', alpha=0.7, label='%s'%label)
+            fl.plot(abs(ratio),'.', **plot_params) 
         if not corrected_volt:
-            fl.plot(2*abs(d['ch',1]/d['ch',0]),'-', alpha=0.7, label='%s'%label)
+            fl.plot(2*abs(ratio),'.', **plot_params)
         fl.next('$S_{11}$ : phase')
-        fl.plot((d['ch',1]/d['ch',0]).angle/pi, '.', alpha=0.2, label='%s'%label)
+        fl.plot((ratio).angle/pi, '.', **plot_params)
         expno += 1 
+    fl.next('$S_{11}$ : phase')
+    gridandtick(gca())
+    fl.next('$S_{11}$ : analytic amplitude')
+    gridandtick(gca())
