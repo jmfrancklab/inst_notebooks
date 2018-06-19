@@ -93,9 +93,10 @@ power_dens_CH2_dict = {}
 
 # {{{ call files
 for date,id_string,numchan,gain_factor in [
-        ('180530','noise_dpx_cascade12_2CH',2,gain_factor_dcasc12),
-        ('180610','noise_pmdpx_casc12',2,gain_factor_dcasc12),
-        ('180608','sine_14p5_pmdpx_casc12_auto',2,gain_factor_dcasc12),
+        ('180618','pmdpx_casc12',2,gain_factor_dcasc12),
+        ('180618','probe_pmdpx_casc12',2,gain_factor_dcasc12),
+        ('180618','box_probe_pmdpx_casc12',2,gain_factor_dcasc12),
+        ('180618','amp_box_probe_pmdpx_casc12',2,gain_factor_dcasc12),
 #        ('180615','pulse_noise_amp_dibox_tpmprobe_pmdpx_casc12',2,gain_factor_dcasc12),
 #        ('180615','noise_amp_tpmprobe_pmdpx_casc12_2',2,gain_factor_dcasc12),
 #        ('180615','noise_amp_dibox_tpmprobe_pmdpx_casc12_3',2,gain_factor_dcasc12),
@@ -241,12 +242,14 @@ for date,id_string,numchan,gain_factor in [
         label = 'Duplexer + Probe + 2 (5xcrossed 1N4151) in series + ENI'
     elif id_string == 'noise_amp_dibox_tpmprobe_pmdpx_2ch':
         label = 'Duplexer + Probe + 1 5xcrossed 1N4151 in series + ENI'
-    elif id_string == 'noise_dpx_cascade12_2CH':
-        label = 'Unshielded duplexer, noise'
-    elif id_string == 'noise_pmdpx_casc12':
-        label = 'Shielded duplexer, noise'
-    elif id_string == 'sine_14p5_pmdpx_casc12_auto':
-        label = 'Shielded duplexer, 14.5 MHz sine'
+    elif id_string == 'pmdpx_casc12':
+        label = 'Cascade + Duplexer'
+    elif id_string == 'probe_pmdpx_casc12':
+        label = 'Cascade + Duplexer + Probe'
+    elif id_string == 'box_probe_pmdpx_casc12':
+        label = 'Cascade + Duplexer + Probe + Diode Box'
+    elif id_string == 'amp_box_probe_pmdpx_casc12':
+        label = 'Cascade + Duplexer + Probe + Diode Box + ENI'
     else:
         label = date+id_string 
     #label += ' (g=%0.2f)'%gain_factor
@@ -297,10 +300,10 @@ for date,id_string,numchan,gain_factor in [
 
         #}}}
     else:
-        fl.next('Power Spectral Density (Input-referred)')#(convolution = %0.1e Hz)'%width)
+        fl.next('Power Spectral Density (Input-referred) (convolution = %0.1e Hz)'%width)
         s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
         s_slice.name('$S_{xx}(\\nu)$').set_units('W/Hz')
-        fl.plot(s['t':(0,250e6)]['ch',0], alpha=0.8, label="%s"%label, plottype='semilogy')
+        fl.plot(s['t':(0,250e6)]['ch',0], alpha=0.65, label="%s"%label, plottype='semilogy')
 #        fl.plot(s_slice, alpha=0.8, color='black', label="integration slice",
 #                plottype='semilogy')
         axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
