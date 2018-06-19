@@ -93,11 +93,14 @@ power_dens_CH2_dict = {}
 
 # {{{ call files
 for date,id_string,numchan,gain_factor in [
-        ('180615','pulse_noise_amp_dibox_tpmprobe_pmdpx_casc12',2,gain_factor_dcasc12),
-        ('180615','noise_amp_tpmprobe_pmdpx_casc12_2',2,gain_factor_dcasc12),
-        ('180615','noise_amp_dibox_tpmprobe_pmdpx_casc12_3',2,gain_factor_dcasc12),
-        ('180615','noise_ampoff_dibox_tpmprobe_pmdpx_casc12_2',2,gain_factor_dcasc12),
-        ('180615','noise_dibox_tpmprobe_pmdpx_casc12_2',2,gain_factor_dcasc12),
+        ('180530','noise_dpx_cascade12_2CH',2,gain_factor_dcasc12),
+        ('180610','noise_pmdpx_casc12',2,gain_factor_dcasc12),
+        ('180608','sine_14p5_pmdpx_casc12_auto',2,gain_factor_dcasc12),
+#        ('180615','pulse_noise_amp_dibox_tpmprobe_pmdpx_casc12',2,gain_factor_dcasc12),
+#        ('180615','noise_amp_tpmprobe_pmdpx_casc12_2',2,gain_factor_dcasc12),
+#        ('180615','noise_amp_dibox_tpmprobe_pmdpx_casc12_3',2,gain_factor_dcasc12),
+#        ('180615','noise_ampoff_dibox_tpmprobe_pmdpx_casc12_2',2,gain_factor_dcasc12),
+#        ('180615','noise_dibox_tpmprobe_pmdpx_casc12_2',2,gain_factor_dcasc12),
 #        ('180615','noise_tpmprobe_pmdpx_casc12_2',2,gain_factor_dcasc12),
 #        ('180615','noise_tpmprobe_pmdpx_casc12',2,gain_factor_dcasc12),
 #        ('180612','noise_tpmprobe_pmdpx',2,gain_factor_dcasc12),
@@ -190,8 +193,6 @@ for date,id_string,numchan,gain_factor in [
         label = 'Duplexer-cascade #1,#2, 0 avg/cap, bw=250 MHz, noise'
     elif id_string == 'sine_dpx_cascade12':
         label = 'Duplexer-cascade #1,#2, 0 avg/cap, bw=250 MHz, 14.5 MHz sine'
-    elif id_string == 'noise_dpx_cascade12_2CH':
-        label = 'Duplexer-cascade #1,#2, 0 avg/cap, bw=250 MHz, noise'
     elif id_string == 'sine_dpx_cascade12_2CH':
         label = 'Duplexer-cascade #1,#2, 0 avg/cap, bw=250 MHz, 14.5 MHz sine'
     elif id_string == 'noise_pomona_dpx_cascade12_2CH':
@@ -210,8 +211,6 @@ for date,id_string,numchan,gain_factor in [
         label = 'Pomona duplexer, noise'
     elif id_string == 'noise_pmdpx_casc12_auto':
         label = 'Pomona duplexer-cascade(#1,#2), noise'
-    elif id_string == 'sine_14p5_pmdpx_casc12_auto':
-        label = 'Pomona duplexer-cascade(#1,#2), 14.5 MHz sine'
     elif id_string == 'sine_14p5_casc12_auto':
         label = 'Cascade(LNA#1,LNA#2), 14.5 MHz sine'
     elif id_string == 'sine_14p5_pmdpx_auto':
@@ -230,8 +229,6 @@ for date,id_string,numchan,gain_factor in [
         label = 'LNA #2 + Duplexer'
     elif id_string == 'noise_casc12':
         label = 'Cascade (#1,#2)'
-    elif id_string == 'noise_pmdpx_casc12':
-        label = 'Cascade (#1,#2) + Duplexer'
     elif id_string == 'noise_tpmprobe_pmdpx_casc12_11':
         label = 'Cascade (#1,#2) + Duplexer + Probe'
     elif id_string == 'noise_tpmprobe_pmdpx':
@@ -244,6 +241,12 @@ for date,id_string,numchan,gain_factor in [
         label = 'Duplexer + Probe + 2 (5xcrossed 1N4151) in series + ENI'
     elif id_string == 'noise_amp_dibox_tpmprobe_pmdpx_2ch':
         label = 'Duplexer + Probe + 1 5xcrossed 1N4151 in series + ENI'
+    elif id_string == 'noise_dpx_cascade12_2CH':
+        label = 'Unshielded duplexer, noise'
+    elif id_string == 'noise_pmdpx_casc12':
+        label = 'Shielded duplexer, noise'
+    elif id_string == 'sine_14p5_pmdpx_casc12_auto':
+        label = 'Shielded duplexer, 14.5 MHz sine'
     else:
         label = date+id_string 
     #label += ' (g=%0.2f)'%gain_factor
@@ -294,10 +297,10 @@ for date,id_string,numchan,gain_factor in [
 
         #}}}
     else:
-        fl.next('Power Spectral Density (convolution = %0.1e Hz)'%width)
+        fl.next('Power Spectral Density (Input-referred)')#(convolution = %0.1e Hz)'%width)
         s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
         s_slice.name('$S_{xx}(\\nu)$').set_units('W/Hz')
-        fl.plot(s['t':(0,250e6)]['ch',0], alpha=0.5, label="%s"%label, plottype='semilogy')
+        fl.plot(s['t':(0,250e6)]['ch',0], alpha=0.8, label="%s"%label, plottype='semilogy')
 #        fl.plot(s_slice, alpha=0.8, color='black', label="integration slice",
 #                plottype='semilogy')
         axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
