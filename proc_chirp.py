@@ -6,18 +6,28 @@ from pyspecdata import *
 corrected_volt = True
 #}}}
 with figlist_var(filename='chirp.pdf') as fl:
-    fl.next('$S_{11}$ : phase', legend=True)
+#    fl.next('$S_{11}$ : phase', legend=True)
     expno=0
     for date, id_string,corrected_volt in [
-            ('180619','chirp_low_pi_term',True),
-            ('180619','chirp_low_pi_open',True),
+#            ('180619','chirp_low_pi_term',True),
+#            ('180619','chirp_low_pi_open',True),
 #            ('180619','chirp_low_pi_short',True),
-            ('180619','chirp_high_pi_term',True),
-            ('180619','chirp_high_pi_open',True),
+            ('180619','chirp_avg_low_pi_term',True),
+            ('180619','chirp_avg_low_pi_open',True),
+#            ('180619','chirp_avg_low_pi_short',True),
+#            ('180619','chirp_high_pi_term',True),
+#            ('180619','chirp_high_pi_open',True),
 #            ('180619','chirp_high_pi_short',True),
-            ('180619','chirp_control_term',True),
-            ('180619','chirp_control_open',True),
-            ('180619','chirp_control_short',True),
+#            ('180619','chirp_avg_high_pi_term',True),
+            ('180619','chirp_avg_high_pi_open',True),
+#            ('180619','chirp_avg_high_pi_open_TRIAL',True),
+#            ('180619','chirp_avg_high_pi_short',True),
+#            ('180619','chirp_control_term',True),
+#            ('180619','chirp_control_open',True),
+#            ('180619','chirp_control_short',True),
+            ('180619','chirp_avg_control_term',True),
+            ('180619','chirp_avg_control_open',True),
+            ('180619','chirp_avg_control_short',True),
             #{{{ old Sinkovits tests
 ####            ('180616','chirp_pi',True),
 ###            ('180616','chirp_pi_open',True),
@@ -53,10 +63,10 @@ with figlist_var(filename='chirp.pdf') as fl:
                             directory=getDATADIR(exp_type='test_equip'))
                 #}}}
         d.set_units('t','s')
-        fl.next('plot ch 0 %s'%id_string)
-        fl.plot(d['ch',0],alpha=0.15,label='raw data')
-        fl.next('plot ch 1 %s'%id_string)
-        fl.plot(d['ch',1],alpha=0.15,label='raw data')
+#        fl.next('plot ch 0 %s'%id_string)
+#        fl.plot(d['ch',0],alpha=0.15,label='raw data')
+#        fl.next('plot ch 1 %s'%id_string)
+#        fl.plot(d['ch',1],alpha=0.15,label='raw data')
         d.ft('t',shift=True)
         d = d['t':(0,100e6)] # throw out negative frequencies and low-pass
         d.reorder('ch', first=False) # move ch dimension last
@@ -65,17 +75,17 @@ with figlist_var(filename='chirp.pdf') as fl:
         ranges = ranges[0,:].tolist()
         print 'Slicing chirp for',id_string,'from',ranges[0]*1e6,'to',ranges[1]*1e6,'us...'
         d = d['t':tuple(ranges)]
-        fl.next('plot ch 0 %s'%id_string)
-        fl.plot(d['ch',0],alpha=0.3,label='processed')
-        fl.next('plot ch 1 %s'%id_string)
-        fl.plot(d['ch',1],alpha=0.3,label='processed')
+#        fl.next('plot ch 0 %s'%id_string)
+#        fl.plot(d['ch',0],alpha=0.3,label='processed')
+#        fl.next('plot ch 1 %s'%id_string)
+#        fl.plot(d['ch',1],alpha=0.3,label='processed')
         label=id_string
         d.setaxis('t', lambda x: x-d.getaxis('t')[0]) #
         d.setaxis('t', lambda x: 25e6-x*25e6/4096e-8)
         d.rename('t','f').set_units('f','Hz')
         fl.next('$S_{11}$ : analytic amplitude')
         ratio = d['ch',1]/d['ch',0]
-        plot_params = dict(alpha=0.3,
+        plot_params = dict(alpha=0.1,
                 markersize=2,
                 label='%s'%label
                 )
