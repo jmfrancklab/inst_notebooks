@@ -35,9 +35,9 @@ def acquire(x):
             if j == len(datalist):
                 raise ValueError("None of the time axes returned by the scope are finite, which probably means no traces are active??")
     #}}}
-    data_name = 'capture%d_180618'%x
+    data_name = 'capture%d_180622'%x
     data.name(data_name)
-    data.hdf5_write('180618_amp_box_probe_pmdpx_casc12.h5')
+    data.hdf5_write('180622_txbox_probe_pmdpx_casc12.h5')
     print "capture number",x
     print "name of data",data.name()
     print "units should be",data.get_units('t')

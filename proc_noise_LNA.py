@@ -95,8 +95,10 @@ power_dens_CH2_dict = {}
 for date,id_string,numchan,gain_factor in [
         ('180618','pmdpx_casc12',2,gain_factor_dcasc12),
         ('180618','probe_pmdpx_casc12',2,gain_factor_dcasc12),
-        ('180618','box_probe_pmdpx_casc12',2,gain_factor_dcasc12),
-        ('180618','amp_box_probe_pmdpx_casc12',2,gain_factor_dcasc12),
+#        ('180618','box_probe_pmdpx_casc12',2,gain_factor_dcasc12),
+        ('180622','txbox_probe_pmdpx_casc12',2,gain_factor_dcasc12),
+#        ('180618','amp_box_probe_pmdpx_casc12',2,gain_factor_dcasc12),
+        ('180622','amp_txbox_probe_pmdpx_casc12',2,gain_factor_dcasc12),
 #        ('180615','pulse_noise_amp_dibox_tpmprobe_pmdpx_casc12',2,gain_factor_dcasc12),
 #        ('180615','noise_amp_tpmprobe_pmdpx_casc12_2',2,gain_factor_dcasc12),
 #        ('180615','noise_amp_dibox_tpmprobe_pmdpx_casc12_3',2,gain_factor_dcasc12),
