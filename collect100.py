@@ -16,43 +16,47 @@ print "done printing available instruments"
 with SerialInstrument('GDS-3254') as s:
     print s.respond('*idn?')
     
-def acquire(x):
+def collect(date,id_string,captures):
+    capture_length = len(captures)
+    start = timer()
     datalist = []
     print "about to load GDS"
     with GDS_scope() as g:
-    #    g.timscal(5e-6)  #setting time scale to 500 ns/div
-    #    g.voltscal(1,500e-3) #setting volt scale on channel 1 to 500 mV/div
         print "loaded GDS"
-        ch1_waveform = g.waveform(ch=1)
-        ch2_waveform = g.waveform(ch=2)
-    data = concat([ch1_waveform,ch2_waveform],'ch').reorder('t')
-    #{{{ in case pulled from inactive channel
-    if not isfinite(data.getaxis('t')[0]):
-        j = 0
-        while not isfinite(data.getaxis('t')[0]):
-            data.setaxis('t',datalist[j].getaxis('t'))
-            j+=1
-            if j == len(datalist):
-                raise ValueError("None of the time axes returned by the scope are finite, which probably means no traces are active??")
-    #}}}
-    data_name = 'capture%d_180622'%x
-    data.name(data_name)
-    data.hdf5_write('180622_txbox_probe_pmdpx_casc12.h5')
-    print "capture number",x
-    print "name of data",data.name()
-    print "units should be",data.get_units('t')
-    print "shape of data",ndshape(data)
-    return
-
-def gen_pulse(freq=14.5e6, width=4e-6, ch1_only=True):
-    raw_input("Confirm Sample Rate = 2.5 GSPS")
-    print "Starting collection..."
-    start = timer()
-    for x in xrange(0,101):
-        print "entering capture",x
-        acquire(x)
+        for x in xrange(1,capture_length+1):
+            print "entering capture",x
+            ch1_waveform = g.waveform(ch=1)
+            ch2_waveform = g.waveform(ch=2)
+            data = concat([ch1_waveform,ch2_waveform],'ch').reorder('t')
+            if x == 1:
+                channels = ((ndshape(data)) + ('capture',capture_length)).alloc()
+                channels.setaxis('t',data.getaxis('t')).set_units('t','s')
+                channels.setaxis('ch',data.getaxis('ch'))
+            channels['capture',x-1] = data
+            #{{{ in case pulled from inactive channel
+            if not isfinite(data.getaxis('t')[0]):
+                j = 0
+                while not isfinite(data.getaxis('t')[0]):
+                    data.setaxis('t',datalist[j].getaxis('t'))
+                    j+=1
+                    if j == len(datalist):
+                        raise ValueError("None of the time axes returned by the scope are finite, which probably means no traces are active??")
+            #}}}
+    s = channels
+    s.labels('capture',captures)
+    s.name('accumulated_'+date)
+    s.hdf5_write(date+'_'+id_string+'.h5')
+    print "name of data",s.name()
+    print "units should be",s.get_units('t')
+    print "shape of data",ndshape(s)
     return start
 
-start = gen_pulse()
+id_string = 'test_collection'
+date = '180623'
+captures = linspace(1,10,10)
+
+print "Starting collection..."
+capture_length = 10
+start = collect(date,id_string,captures)
 end = timer()
 print "Collection time:",(end-start),"s"
