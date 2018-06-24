@@ -87,15 +87,19 @@ def load_noise(date,id_string,captures):
                 directory=getDATADIR(exp_type='test_equip'))
     return s
 
-captures = linspace(0,10,10)
+captures = linspace(0,100,100)
 power_dens_CH1_dict = {}
 power_dens_CH2_dict = {}
 
 # {{{ call files
 for date,id_string,numchan,gain_factor in [
+        ('180623','pmdpx_casc12',2,gain_factor_dcasc12),
+        ('180623','probe_pmdpx_casc12',2,gain_factor_dcasc12),
+        ('180623','txbox_probe_pmdpx_casc12',2,gain_factor_dcasc12),
+        ('180623','amp_txbox_probe_pmdpx_casc12',2,gain_factor_dcasc12),
 #        ('180623','lowpass80_500MS_pmdpx_casc12',2,gain_factor_dcasc12),
 #        ('180623','lowpass80_1GS_pmdpx_casc12',2,gain_factor_dcasc12),
-#       ('180623','2p5GS_pmdpx_casc12',2,gain_factor_dcasc12),
+#        ('180623','2p5GS_pmdpx_casc12',2,gain_factor_dcasc12),
 #        ('180623','lowpass80_2p5GS_pmdpx_casc12',2,gain_factor_dcasc12),
 #        ('180623','lowpass32_2p5GS_pmdpx_casc12',2,gain_factor_dcasc12),
 #        ('180623','lowpass22_2p5GS_pmdpx_casc12',2,gain_factor_dcasc12),
@@ -103,10 +107,10 @@ for date,id_string,numchan,gain_factor in [
 #        ('180623','lowpass22_500MS_pmdpx_casc12',2,gain_factor_dcasc12),
 #        ('180618','pmdpx_casc12',2,gain_factor_dcasc12),
 #        ('180618','probe_pmdpx_casc12',2,gain_factor_dcasc12),
-#        ('180618','box_probe_pmdpx_casc12',2,gain_factor_dcasc12),
 #        ('180622','txbox_probe_pmdpx_casc12',2,gain_factor_dcasc12),
-#        ('180618','amp_box_probe_pmdpx_casc12',2,gain_factor_dcasc12),
 #        ('180622','amp_txbox_probe_pmdpx_casc12',2,gain_factor_dcasc12),
+#        ('180618','box_probe_pmdpx_casc12',2,gain_factor_dcasc12),
+#        ('180618','amp_box_probe_pmdpx_casc12',2,gain_factor_dcasc12),
 #        ('180615','noise_amp_tpmprobe_pmdpx_casc12_2',2,gain_factor_dcasc12),
 #        ('180615','noise_amp_dibox_tpmprobe_pmdpx_casc12_3',2,gain_factor_dcasc12),
 #        ('180615','noise_ampoff_dibox_tpmprobe_pmdpx_casc12_2',2,gain_factor_dcasc12),
