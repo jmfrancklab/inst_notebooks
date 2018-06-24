@@ -51,12 +51,11 @@ def collect(date,id_string,captures):
     print "shape of data",ndshape(s)
     return start
 
-id_string = 'test_collection'
 date = '180623'
-captures = linspace(1,10,10)
+id_string = 'amp2_txbox_probe_pmdpx_casc12'
+captures = linspace(1,100,100)
 
 print "Starting collection..."
-capture_length = 10
 start = collect(date,id_string,captures)
 end = timer()
 print "Collection time:",(end-start),"s"
