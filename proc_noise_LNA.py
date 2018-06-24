@@ -87,7 +87,7 @@ def load_noise(date,id_string,captures):
                 directory=getDATADIR(exp_type='test_equip'))
     return s
 
-captures = linspace(0,100,100)
+captures = linspace(0,10,10)
 power_dens_CH1_dict = {}
 power_dens_CH2_dict = {}
 
@@ -99,7 +99,6 @@ for date,id_string,numchan,gain_factor in [
         ('180622','txbox_probe_pmdpx_casc12',2,gain_factor_dcasc12),
 #        ('180618','amp_box_probe_pmdpx_casc12',2,gain_factor_dcasc12),
         ('180622','amp_txbox_probe_pmdpx_casc12',2,gain_factor_dcasc12),
-#        ('180615','pulse_noise_amp_dibox_tpmprobe_pmdpx_casc12',2,gain_factor_dcasc12),
 #        ('180615','noise_amp_tpmprobe_pmdpx_casc12_2',2,gain_factor_dcasc12),
 #        ('180615','noise_amp_dibox_tpmprobe_pmdpx_casc12_3',2,gain_factor_dcasc12),
 #        ('180615','noise_ampoff_dibox_tpmprobe_pmdpx_casc12_2',2,gain_factor_dcasc12),
@@ -111,92 +110,18 @@ for date,id_string,numchan,gain_factor in [
     ]:
     # }}}
     # {{{ plot labels
-    if id_string == 'sine_LNA_noavg':
-        label = '0 avg/cap, bw=250 MHz, 14.5 MHz sine'
-    elif id_string == 'noise_LNA1_noavg':
-        label = 'LNA#1, 0 avg/cap, bw=250 MHz, noise'
-    elif id_string == 'noise_LNA2_noavg':
-        label = 'LNA#2, 0 avg/cap, bw=250 MHz, noise'
-    elif id_string == 'noise_LNA3_noavg':
-        label = 'LNA#3, 0 avg/cap, bw=250 MHz, noise'
-    elif id_string == 'noise_LNA1_2CH':
-        label = 'LNA#1, 0 avg/cap, bw=250 MHz, noise, 6518'
-    elif id_string == 'noise_LNA2_2CH':
-        label = 'LNA#2, 0 avg/cap, bw=250 MHz, noise, 6518'
-    elif id_string == 'noise_LNA3_2CH':
-        label = 'LNA#3, 0 avg/cap, bw=250 MHz, noise, 6518'
-    elif id_string == 'noise_cascade12_2CH':
-        label = 'Cascade #1,#2, 0 avg/cap, bw=250 MHz, noise, 6518'
-    elif id_string == 'noise_cascade12_2':
-        label = 'Cascade #1,#2, 0 avg/cap, bw=250 MHz, noise'
-    elif id_string == 'noise_cascade21_2CH':
-        label = 'Cascade #2,#1, 0 avg/cap, bw=250 MHz, noise'
-    elif id_string == 'sine_cascade12_2':
-        label = 'Cascade #1,#2, 0 avg/cap, bw=250 MHz, 14.5 MHz sine'
-    elif id_string == 'AFG_terminator':
-        label = '0 avg/cap, bw=250 MHz, AFG terminator noise'
-    elif id_string == 'AFG_terminator_2':
-        label = '0 avg/cap, bw=250 MHz, AFG,coax,adapter terminator noise'
-    elif id_string == 'noise_dpx_cascade12':
-        label = 'Duplexer-cascade #1,#2, 0 avg/cap, bw=250 MHz, noise'
-    elif id_string == 'sine_dpx_cascade12':
-        label = 'Duplexer-cascade #1,#2, 0 avg/cap, bw=250 MHz, 14.5 MHz sine'
-    elif id_string == 'sine_dpx_cascade12_2CH':
-        label = 'Duplexer-cascade #1,#2, 0 avg/cap, bw=250 MHz, 14.5 MHz sine'
-    elif id_string == 'noise_pomona_dpx_cascade12_2CH':
-        label = 'Pomona duplexer-cascade #1,#2, 0 avg/cap, bw=250 MHz, noise'
-    elif id_string == 'sine_pomona_dpx_cascade12_2CH':
-        label = 'Pomona duplexer-cascade #1,#2, 0 avg/cap, bw=250 MHz, 14.5 MHz sine'
-    elif id_string == 'noise_LNA1_auto':
-        label = 'LNA#1, noise'
-    elif id_string == 'noise_LNA2_auto':
-        label = 'LNA#2, noise'
-    elif id_string == 'noise_LNA3_auto':
-        label = 'LNA#3, noise'
-    elif id_string == 'noise_casc12_auto':
-        label = 'Cascade(LNA#1,LNA#2), noise'
-    elif id_string == 'noise_pmdpx_auto':
-        label = 'Pomona duplexer, noise'
-    elif id_string == 'noise_pmdpx_casc12_auto':
-        label = 'Pomona duplexer-cascade(#1,#2), noise'
-    elif id_string == 'sine_14p5_casc12_auto':
-        label = 'Cascade(LNA#1,LNA#2), 14.5 MHz sine'
-    elif id_string == 'sine_14p5_pmdpx_auto':
-        label = 'Pomona duplexer, 14.5 MHz sine'
-    elif id_string == 'sine_14p5_LNA1_auto':
-        label = 'LNA#1, sine 14.5 MHz'
-    elif id_string == 'sine_14p5_LNA2_auto':
-        label = 'LNA#2, sine 14.5 MHz'
-    elif id_string == 'noise_LNA1':
-        label = 'LNA #1'
-    elif id_string == 'noise_pmdpx_LNA1':
-        label = 'LNA #1 + Duplexer'
-    elif id_string == 'noise_LNA2':
-        label = 'LNA #2'
-    elif id_string == 'noise_pmdpx_LNA2':
-        label = 'LNA #2 + Duplexer'
-    elif id_string == 'noise_casc12':
-        label = 'Cascade (#1,#2)'
-    elif id_string == 'noise_tpmprobe_pmdpx_casc12_11':
-        label = 'Cascade (#1,#2) + Duplexer + Probe'
-    elif id_string == 'noise_tpmprobe_pmdpx':
-        label = 'Duplexer + Probe'
-    elif id_string == 'noise_ampoff_tpmprobe_pmdpx':
-        label = 'Duplexer + Probe + ENI(off)'
-    elif id_string == 'noise_amp_tpmprobe_pmdpx':
-        label = 'Duplexer + Probe + ENI(on)'
-    elif id_string == 'noise_amp_dibox_tpmprobe_pmdpx_2series':
-        label = 'Duplexer + Probe + 2 (5xcrossed 1N4151) in series + ENI'
-    elif id_string == 'noise_amp_dibox_tpmprobe_pmdpx_2ch':
-        label = 'Duplexer + Probe + 1 5xcrossed 1N4151 in series + ENI'
-    elif id_string == 'pmdpx_casc12':
+    if id_string == 'pmdpx_casc12':
         label = 'Cascade + Duplexer'
     elif id_string == 'probe_pmdpx_casc12':
         label = 'Cascade + Duplexer + Probe'
     elif id_string == 'box_probe_pmdpx_casc12':
         label = 'Cascade + Duplexer + Probe + Diode Box'
+    elif id_string == 'txbox_probe_pmdpx_casc12':
+        label = 'Cascade + Duplexer + Probe + TX Diode Box'
     elif id_string == 'amp_box_probe_pmdpx_casc12':
         label = 'Cascade + Duplexer + Probe + Diode Box + ENI'
+    elif id_string == 'amp_txbox_probe_pmdpx_casc12':
+        label = 'Cascade + Duplexer + Probe + TX Diode Box + ENI'
     else:
         label = date+id_string 
     #label += ' (g=%0.2f)'%gain_factor
@@ -247,28 +172,31 @@ for date,id_string,numchan,gain_factor in [
 
         #}}}
     else:
-        fl.next('Power Spectral Density (Input-referred) (convolution = %0.1e Hz)'%width)
+        fl.next('FULL Power Spectral Density (Input-referred) (convolution = %0.1e Hz)'%width)
         s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
         s_slice.name('$S_{xx}(\\nu)$').set_units('W/Hz')
-        fl.plot(s['t':(0,250e6)]['ch',0], alpha=0.65, label="%s"%label, plottype='semilogy')
-#        fl.plot(s_slice, alpha=0.8, color='black', label="integration slice",
-#                plottype='semilogy')
+        fl.plot(s['ch',0], alpha=0.35, label="%s"%label, plottype='semilogy')
         axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
-        # {{{ calculates power at input of component over specified frequency interval
-        if numchan == 2:
-            #CH1=DUT, CH2=REF(signal) or NULL(noise)
-            print "CH1 POWER IS:",s['t':interval]['ch',0].integrate('t')
-            print "CH2 POWER IS:",s['t':interval]['ch',1].integrate('t')*atten_factor*gain_factor
-            power_dens_CH2_dict[id_string] = (s['t':interval]['ch',1].integrate('t').data)
-        # }}}
-        power_dens_CH1_dict[id_string] = s['t':interval]['ch',0].integrate('t').data
-        expand_x()
-        print "THERMAL NOISE POWER IS:",k_B*T*float(interval[-1]-interval[0])
-        NF = (s['t':interval]['ch',0].integrate('t').data)/(k_B*T*float(interval[-1]-interval[0]))
-        print "NOISE FIGURE IS:",NF
-        print "EFFECTIVE TEMPERATURE IS:",(293.0*(NF-1))
-        print "*** EXITING:",id_string,"***"
-#print "error is %0.12f"%(((power_dens_CH1_dict['sine_pomona_dpx_cascade12_2CH'] - power_dens_CH1_dict['noise_pomona_dpx_cascade12_2CH'] - power_dens_CH2_dict['sine_pomona_dpx_cascade12_2CH'])/power_dens_CH2_dict['sine_pomona_dpx_cascade12_2CH'])*100)
+        fl.next('Power Spectral Density (Input-referred) (convolution = %0.1e Hz)'%width)
+        fl.plot(s['t':(0,250e6)]['ch',0], alpha=0.35, label="%s"%label, plottype='semilogy')
+    #   fl.plot(s_slice, alpha=0.8, color='black', label="integration slice",
+    #      plottype='semilogy')
+        axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
+    #    # {{{ calculates power at input of component over specified frequency interval
+    #    if numchan == 2:
+    #        #CH1=DUT, CH2=REF(signal) or NULL(noise)
+    #        print "CH1 POWER IS:",s['t':interval]['ch',0].integrate('t')
+    #        print "CH2 POWER IS:",s['t':interval]['ch',1].integrate('t')*atten_factor*gain_factor
+    #        power_dens_CH2_dict[id_string] = (s['t':interval]['ch',1].integrate('t').data)
+    #        # }}}
+    #    power_dens_CH1_dict[id_string] = s['t':interval]['ch',0].integrate('t').data
+    #    expand_x()
+    #    print "THERMAL NOISE POWER IS:",k_B*T*float(interval[-1]-interval[0])
+    #    NF = (s['t':interval]['ch',0].integrate('t').data)/(k_B*T*float(interval[-1]-interval[0]))
+    #    print "NOISE FIGURE IS:",NF
+    #    print "EFFECTIVE TEMPERATURE IS:",(293.0*(NF-1))
+    #    print "*** EXITING:",id_string,"***"
+    #print "error is %0.12f"%(((power_dens_CH1_dict['sine_pomona_dpx_cascade12_2CH'] - power_dens_CH1_dict['noise_pomona_dpx_cascade12_2CH'] - power_dens_CH2_dict['sine_pomona_dpx_cascade12_2CH'])/power_dens_CH2_dict['sine_pomona_dpx_cascade12_2CH'])*100)
 
 fl.show()
 
