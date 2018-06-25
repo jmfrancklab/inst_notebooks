@@ -37,9 +37,9 @@ try:
 except:
     sys.argv[0]
 if default:
-    integration_center = 14.5e6
-    integration_width = 2e6
+    integration = False
 if not default:
+    integration = True
     width_choice = int(sys.argv[1])
     if width_choice == 1:
         integration_center = 1.45e7
@@ -107,33 +107,24 @@ power_dens_CH2_dict = {}
 
 # {{{ call files
 for date,id_string,numchan,gain_factor in [
-        ('180625','network_2p5G',2,gain_factor_dcasc12),
+#        ('180625','network_2p5G',2,gain_factor_dcasc12),
         ('180625','network_1G',2,gain_factor_dcasc12),
         ('180625','network_500M',2,gain_factor_dcasc12),
         ('180625','network_250M',2,gain_factor_dcasc12),
         ('180625','network_100M',2,gain_factor_dcasc12),
         ('180625','network_50M',2,gain_factor_dcasc12),
-        ('180625','network_25M',2,gain_factor_dcasc12),
-        ('180625','network_10M',2,gain_factor_dcasc12),
-        ('180625','network_5M',2,gain_factor_dcasc12),
-        ('180625','network_22MHz_2p5G',2,gain_factor_dcasc12),
-        ('180625','network_22MHz_1G',2,gain_factor_dcasc12),
+#        ('180625','network_22MHz_2p5G',2,gain_factor_dcasc12),
+#        ('180625','network_22MHz_1G',2,gain_factor_dcasc12),
         ('180625','network_22MHz_500M',2,gain_factor_dcasc12),
         ('180625','network_22MHz_250M',2,gain_factor_dcasc12),
         ('180625','network_22MHz_100M',2,gain_factor_dcasc12),
         ('180625','network_22MHz_50M',2,gain_factor_dcasc12),
-        ('180625','network_22MHz_25M',2,gain_factor_dcasc12),
-        ('180625','network_22MHz_10M',2,gain_factor_dcasc12),
-        ('180625','network_22MHz_5M',2,gain_factor_dcasc12),
 #        ('180625','network_22MHz_2p5G_2',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_1G_2',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_500M_2',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_250M_2',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_100M_2',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_50M_2',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_25M_2',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_10M_2',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_5M_2',2,gain_factor_dcasc12),
+        ('180625','network_22MHz_1G_2',2,gain_factor_dcasc12),
+        ('180625','network_22MHz_500M_2',2,gain_factor_dcasc12),
+        ('180625','network_22MHz_250M_2',2,gain_factor_dcasc12),
+        ('180625','network_22MHz_100M_2',2,gain_factor_dcasc12),
+        ('180625','network_22MHz_50M_2',2,gain_factor_dcasc12),
 #    ('180526','AFG_terminator_2',2,1.0),#   leave gain set to 1 so we can get the 
                                          #   absolute number here (not input-referred)
     ]:
@@ -166,7 +157,7 @@ for date,id_string,numchan,gain_factor in [
     s = abs(s)**2         #mod square
     s.mean('capture', return_error=False)
     width = 1e6
-    s.convolve('t',width) # we do this before chopping things up, since it uses
+    #s.convolve('t',width) # we do this before chopping things up, since it uses
     #                      fft and assumes that the signal is periodic (at this
     #                      point, the signal at both ends is very close to
     #                      zero, so that's good
@@ -179,53 +170,65 @@ for date,id_string,numchan,gain_factor in [
     s /= gain_factor      # divide by gain factor, found from power curve -->
     #                       now we have input-referred power
     # }}}
-    interval = tuple(integration_center+r_[-1,1]*integration_width)
-    startf,stopf = tuple(interval)
-    print "INTEGRATION INTERVAL:",startf/1e6,"to",stopf/1e6,"MHz"
-    if 'ch' not in s.dimlabels:
-        # {{{ a hack to create a fake ch axis
-        t_label = s.getaxis('t')
-        t_units = s.get_units('t')
-        s.setaxis('t',None)
-        s.chunk('t',['t','ch'],[-1,1])
-        s.setaxis('t',t_label)
-        s.set_units('t',t_units)
-        # }}}
-#    try:
-#        s_slice = s['t':interval]['ch',0] #CH1=DUT
-#    #{{{ for scope noise test
-#    except:
-#        raise ValueError(strm("problem trying to pull the slice, shape of s is",ndshape(s),"numchan is",numchan))
-#    if gain_factor == 1.0:
-#        print "Noise coming from the scope is",s['t':interval]['ch',0].mean('t', return_error=False).data
+    if not integration:
+        if '22MHz' in id_string: 
+            fl.next('Low-pass Power Spectral Density (Input-referred) (convolution = %0.1e Hz)'%width)
+            s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
+            fl.plot(s['ch',0], alpha=0.35, label="%s"%label, plottype='semilogy')
+            axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
+        elif '22MHz' not in id_string: 
+            fl.next('Power Spectral Density (Input-referred) (convolution = %0.1e Hz)'%width)
+            s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
+            fl.plot(s['ch',0], alpha=0.35, label="%s"%label, plottype='semilogy')
+            axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
+    if integration:
+        interval = tuple(integration_center+r_[-1,1]*integration_width)
+        startf,stopf = tuple(interval)
+        print "INTEGRATION INTERVAL:",startf/1e6,"to",stopf/1e6,"MHz"
+        if 'ch' not in s.dimlabels:
+            # {{{ a hack to create a fake ch axis
+            t_label = s.getaxis('t')
+            t_units = s.get_units('t')
+            s.setaxis('t',None)
+            s.chunk('t',['t','ch'],[-1,1])
+            s.setaxis('t',t_label)
+            s.set_units('t',t_units)
+            # }}}
+#        try:
+#            s_slice = s['t':interval]['ch',0] #CH1=DUT
+#        #{{{ for scope noise test
+#        except:
+#            raise ValueError(strm("problem trying to pull the slice, shape of s is",ndshape(s),"numchan is",numchan))
+#        if gain_factor == 1.0:
+#            print "Noise coming from the scope is",s['t':interval]['ch',0].mean('t', return_error=False).data
 #
-#        #}}}
-#    else:
-    fl.next('FULL Power Spectral Density (Input-referred) (convolution = %0.1e Hz)'%width)
-    s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
-#    s_slice.name('$S_{xx}(\\nu)$').set_units('W/Hz')
-    fl.plot(s['ch',0], alpha=0.35, label="%s"%label, plottype='semilogy')
-    axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
-#    fl.next('Power Spectral Density (Input-referred) (convolution = %0.1e Hz)'%width)
-#    fl.plot(s['t':(0,250e6)]['ch',0], alpha=0.35, label="%s"%label, plottype='semilogy')
-    #   fl.plot(s_slice, alpha=0.8, color='black', label="integration slice",
-    #      plottype='semilogy')
-    axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
-    #    # {{{ calculates power at input of component over specified frequency interval
-    #    if numchan == 2:
-    #        #CH1=DUT, CH2=REF(signal) or NULL(noise)
-    #        print "CH1 POWER IS:",s['t':interval]['ch',0].integrate('t')
-    #        print "CH2 POWER IS:",s['t':interval]['ch',1].integrate('t')*atten_factor*gain_factor
-    #        power_dens_CH2_dict[id_string] = (s['t':interval]['ch',1].integrate('t').data)
-    #        # }}}
-    #    power_dens_CH1_dict[id_string] = s['t':interval]['ch',0].integrate('t').data
-    #    expand_x()
-    #    print "THERMAL NOISE POWER IS:",k_B*T*float(interval[-1]-interval[0])
-    #    NF = (s['t':interval]['ch',0].integrate('t').data)/(k_B*T*float(interval[-1]-interval[0]))
-    #    print "NOISE FIGURE IS:",NF
-    #    print "EFFECTIVE TEMPERATURE IS:",(293.0*(NF-1))
-    #    print "*** EXITING:",id_string,"***"
-    #print "error is %0.12f"%(((power_dens_CH1_dict['sine_pomona_dpx_cascade12_2CH'] - power_dens_CH1_dict['noise_pomona_dpx_cascade12_2CH'] - power_dens_CH2_dict['sine_pomona_dpx_cascade12_2CH'])/power_dens_CH2_dict['sine_pomona_dpx_cascade12_2CH'])*100)
+#            #}}}
+#        else:
+        fl.next('FULL Power Spectral Density (Input-referred) (convolution = %0.1e Hz)'%width)
+        s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
+#        s_slice.name('$S_{xx}(\\nu)$').set_units('W/Hz')
+        fl.plot(s['ch',0], alpha=0.35, label="%s"%label, plottype='semilogy')
+        axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
+#        fl.next('Power Spectral Density (Input-referred) (convolution = %0.1e Hz)'%width)
+#        fl.plot(s['t':(0,250e6)]['ch',0], alpha=0.35, label="%s"%label, plottype='semilogy')
+        #   fl.plot(s_slice, alpha=0.8, color='black', label="integration slice",
+        #      plottype='semilogy')
+        axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
+        #    # {{{ calculates power at input of component over specified frequency interval
+        #    if numchan == 2:
+        #        #CH1=DUT, CH2=REF(signal) or NULL(noise)
+        #        print "CH1 POWER IS:",s['t':interval]['ch',0].integrate('t')
+        #        print "CH2 POWER IS:",s['t':interval]['ch',1].integrate('t')*atten_factor*gain_factor
+        #        power_dens_CH2_dict[id_string] = (s['t':interval]['ch',1].integrate('t').data)
+        #        # }}}
+        #    power_dens_CH1_dict[id_string] = s['t':interval]['ch',0].integrate('t').data
+        #    expand_x()
+        #    print "THERMAL NOISE POWER IS:",k_B*T*float(interval[-1]-interval[0])
+        #    NF = (s['t':interval]['ch',0].integrate('t').data)/(k_B*T*float(interval[-1]-interval[0]))
+        #    print "NOISE FIGURE IS:",NF
+        #    print "EFFECTIVE TEMPERATURE IS:",(293.0*(NF-1))
+        #    print "*** EXITING:",id_string,"***"
+        #print "error is %0.12f"%(((power_dens_CH1_dict['sine_pomona_dpx_cascade12_2CH'] - power_dens_CH1_dict['noise_pomona_dpx_cascade12_2CH'] - power_dens_CH2_dict['sine_pomona_dpx_cascade12_2CH'])/power_dens_CH2_dict['sine_pomona_dpx_cascade12_2CH'])*100)
 
 fl.show()
 
