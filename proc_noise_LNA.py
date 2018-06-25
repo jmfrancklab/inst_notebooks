@@ -108,23 +108,23 @@ power_dens_CH2_dict = {}
 # {{{ call files
 for date,id_string,numchan,gain_factor in [
 #        ('180625','network_2p5G',2,gain_factor_dcasc12),
-        ('180625','network_1G',2,gain_factor_dcasc12),
+#        ('180625','network_1G',2,gain_factor_dcasc12),
         ('180625','network_500M',2,gain_factor_dcasc12),
         ('180625','network_250M',2,gain_factor_dcasc12),
         ('180625','network_100M',2,gain_factor_dcasc12),
-        ('180625','network_50M',2,gain_factor_dcasc12),
+#        ('180625','network_50M',2,gain_factor_dcasc12),
 #        ('180625','network_22MHz_2p5G',2,gain_factor_dcasc12),
 #        ('180625','network_22MHz_1G',2,gain_factor_dcasc12),
         ('180625','network_22MHz_500M',2,gain_factor_dcasc12),
         ('180625','network_22MHz_250M',2,gain_factor_dcasc12),
         ('180625','network_22MHz_100M',2,gain_factor_dcasc12),
-        ('180625','network_22MHz_50M',2,gain_factor_dcasc12),
+#        ('180625','network_22MHz_50M',2,gain_factor_dcasc12),
 #        ('180625','network_22MHz_2p5G_2',2,gain_factor_dcasc12),
-        ('180625','network_22MHz_1G_2',2,gain_factor_dcasc12),
+#        ('180625','network_22MHz_1G_2',2,gain_factor_dcasc12),
         ('180625','network_22MHz_500M_2',2,gain_factor_dcasc12),
         ('180625','network_22MHz_250M_2',2,gain_factor_dcasc12),
         ('180625','network_22MHz_100M_2',2,gain_factor_dcasc12),
-        ('180625','network_22MHz_50M_2',2,gain_factor_dcasc12),
+#        ('180625','network_22MHz_50M_2',2,gain_factor_dcasc12),
 #    ('180526','AFG_terminator_2',2,1.0),#   leave gain set to 1 so we can get the 
                                          #   absolute number here (not input-referred)
     ]:
@@ -142,6 +142,12 @@ for date,id_string,numchan,gain_factor in [
         label = 'Cascade + Duplexer + Probe + Diode Box + ENI'
     elif id_string == 'amp_txbox_probe_pmdpx_casc12':
         label = 'Cascade + Duplexer + Probe + TX Diode Box + ENI'
+    elif id_string == 'network_100M':
+        label = 'Network noise, 100M Samples per second'
+    elif id_string == 'network_22MHz_100M':
+        label = 'Network noise, 22 MHz filter, 100M Samples per second'
+    elif id_string == 'network_22MHz_100M_2':
+        label = 'Network noise, 22 MHz filter, elapsed; 100M Samples per second'
     else:
         label = date+id_string 
     #label += ' (g=%0.2f)'%gain_factor
@@ -164,19 +170,19 @@ for date,id_string,numchan,gain_factor in [
     s = abs(s)['t':(0,None)]
     s /= 50.              # divide by resistance, gives units: W*s, or W/Hz
     s /= acq_time         # divide by acquisition time
-    s *= 2                # because the power is split over negative and positive frequencies
+    s *= 2               # because the power is split over negative and positive frequencies
 #    if gain_factor != 1: # if we're not talking about the scope noise
 #        s -= scope_noise
     s /= gain_factor      # divide by gain factor, found from power curve -->
     #                       now we have input-referred power
     # }}}
     if not integration:
-        if '22MHz' in id_string: 
-            fl.next('Low-pass Power Spectral Density (Input-referred) (convolution = %0.1e Hz)'%width)
-            s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
-            fl.plot(s['ch',0], alpha=0.35, label="%s"%label, plottype='semilogy')
-            axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
-        elif '22MHz' not in id_string: 
+#        if '22MHz' in id_string: 
+#            fl.next('Low-pass Power Spectral Density (Input-referred) (convolution = %0.1e Hz)'%width)
+#            s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
+#            fl.plot(s['ch',0], alpha=0.35, label="%s"%label, plottype='semilogy')
+#            axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
+#        elif '22MHz' not in id_string: 
             fl.next('Power Spectral Density (Input-referred) (convolution = %0.1e Hz)'%width)
             s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
             fl.plot(s['ch',0], alpha=0.35, label="%s"%label, plottype='semilogy')
