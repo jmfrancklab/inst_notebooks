@@ -38,7 +38,7 @@ def load_noise(date,id_string,captures):
 gain_factor_dcasc12 = 114008.55204672
 captures = linspace(0,100,100)
 for date,id_string,numchan,gain_factor in [
-        ('180625','network_22MHz_100M_2',2,gain_factor_dcasc12),
+        ('180625','network_22MHz_no_diodes_100M',2,gain_factor_dcasc12),
         ]:
     s = load_noise(date,id_string,captures)['ch',0]
     s.ft('t',shift=True)
