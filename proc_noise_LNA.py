@@ -10,7 +10,7 @@ gain_factor_casc12 = 171428.95568926    #cascade (1 then 2)
 gain_factor_damp1 = 318.5103874         #duplexer,LNA 1 
 gain_factor_damp2 = 325.65682308        #duplexer,LNA 2 
 gain_factor_dcasc12 = 114008.55204672   #duplexer,cascade(1,2)
-gain_factor_pdcasc12 =45514.53212012    #probe,duplexer,cascade
+gain_factor_pdcasc12 = 45514.53212012    #probe,duplexer,cascade
 
 #gain_factor_amp1 = 521.27172202                         #LNA1 gain factor
 #gain_factor_amp2 = 529.98023528                        #LNA2 gain factor
@@ -30,34 +30,48 @@ power_signal_AFG = ((50.e-3)/(sqrt(2)*2))**2./50.
 test_signal_power = power_signal_AFG * atten_factor
 # }}}
     # {{{ Command line arguments for integration interval 
-width_choice = int(sys.argv[1])
-if width_choice == 1:
-    integration_center = 1.45e7
-    integration_width = 2.2e6
-elif width_choice == 2:
-    integration_center = 1.452e7
-    integration_width = 2.42e5
-elif width_choice == 3:
-    integration_center = 14.5e6 
-    integration_width = 5.7e6
-elif width_choice == 4:
-    integration_center = 1.45e7
-    integration_width = 6.28e6
-elif width_choice == 5:
-    integration_center = 1.45e7
-    integration_width = 8.11e5
-elif width_choice == 20:
-    integration_center = 20.e6 
-    integration_width = 6.4e6
-elif width_choice == 25:
-    integration_center = 25.e6 
-    integration_width = 6.3e6
-elif width_choice == 43:
-    integration_center = 43.47655e6 
-    integration_width = 15.14685e6
-elif width_choice == 55:
-    integration_center = 55.e6 
-    integration_width = 10.e6
+default = True
+try:
+    sys.argv[1]
+    default = False
+except:
+    sys.argv[0]
+if default:
+    integration_center = 14.5e6
+    integration_width = 2e6
+if not default:
+    width_choice = int(sys.argv[1])
+    if width_choice == 1:
+        integration_center = 1.45e7
+        integration_width = 2.2e6
+    elif width_choice == 2:
+        integration_center = 1.452e7
+        integration_width = 2.42e5
+    elif width_choice == 3:
+        integration_center = 14.5e6 
+        integration_width = 5.7e6
+    elif width_choice == 4:
+        integration_center = 1.45e7
+        integration_width = 6.28e6
+    elif width_choice == 5:
+        integration_center = 1.45e7
+        integration_width = 8.11e5
+    elif width_choice == 20:
+        integration_center = 20.e6 
+        integration_width = 6.4e6
+    elif width_choice == 25:
+        integration_center = 25.e6 
+        integration_width = 6.3e6
+    elif width_choice == 43:
+        integration_center = 43.47655e6 
+        integration_width = 15.14685e6
+    elif width_choice == 55:
+        integration_center = 55.e6 
+        integration_width = 10.e6
+    else:
+        print "Unrecognized width choice"
+        integration_center = 14.5e6 
+        integration_width = 2.e6
     # }}}
 
 def load_noise(date,id_string,captures):
@@ -93,30 +107,33 @@ power_dens_CH2_dict = {}
 
 # {{{ call files
 for date,id_string,numchan,gain_factor in [
-        ('180623','pmdpx_casc12',2,gain_factor_dcasc12),
-        ('180623','probe_pmdpx_casc12',2,gain_factor_dcasc12),
-        ('180623','txbox_probe_pmdpx_casc12',2,gain_factor_dcasc12),
-        ('180623','amp_txbox_probe_pmdpx_casc12',2,gain_factor_dcasc12),
-#        ('180623','lowpass80_500MS_pmdpx_casc12',2,gain_factor_dcasc12),
-#        ('180623','lowpass80_1GS_pmdpx_casc12',2,gain_factor_dcasc12),
-#        ('180623','2p5GS_pmdpx_casc12',2,gain_factor_dcasc12),
-#        ('180623','lowpass80_2p5GS_pmdpx_casc12',2,gain_factor_dcasc12),
-#        ('180623','lowpass32_2p5GS_pmdpx_casc12',2,gain_factor_dcasc12),
-#        ('180623','lowpass22_2p5GS_pmdpx_casc12',2,gain_factor_dcasc12),
-#        ('180623','lowpass22_1GS_pmdpx_casc12',2,gain_factor_dcasc12),
-#        ('180623','lowpass22_500MS_pmdpx_casc12',2,gain_factor_dcasc12),
-#        ('180618','pmdpx_casc12',2,gain_factor_dcasc12),
-#        ('180618','probe_pmdpx_casc12',2,gain_factor_dcasc12),
-#        ('180622','txbox_probe_pmdpx_casc12',2,gain_factor_dcasc12),
-#        ('180622','amp_txbox_probe_pmdpx_casc12',2,gain_factor_dcasc12),
-#        ('180618','box_probe_pmdpx_casc12',2,gain_factor_dcasc12),
-#        ('180618','amp_box_probe_pmdpx_casc12',2,gain_factor_dcasc12),
-#        ('180615','noise_amp_tpmprobe_pmdpx_casc12_2',2,gain_factor_dcasc12),
-#        ('180615','noise_amp_dibox_tpmprobe_pmdpx_casc12_3',2,gain_factor_dcasc12),
-#        ('180615','noise_ampoff_dibox_tpmprobe_pmdpx_casc12_2',2,gain_factor_dcasc12),
-#        ('180615','noise_dibox_tpmprobe_pmdpx_casc12_2',2,gain_factor_dcasc12),
-#        ('180615','noise_tpmprobe_pmdpx_casc12_2',2,gain_factor_dcasc12),
-#        ('180615','noise_tpmprobe_pmdpx_casc12',2,gain_factor_dcasc12),
+        ('180625','network_2p5G',2,gain_factor_dcasc12),
+        ('180625','network_1G',2,gain_factor_dcasc12),
+        ('180625','network_500M',2,gain_factor_dcasc12),
+        ('180625','network_250M',2,gain_factor_dcasc12),
+        ('180625','network_100M',2,gain_factor_dcasc12),
+        ('180625','network_50M',2,gain_factor_dcasc12),
+        ('180625','network_25M',2,gain_factor_dcasc12),
+        ('180625','network_10M',2,gain_factor_dcasc12),
+        ('180625','network_5M',2,gain_factor_dcasc12),
+        ('180625','network_22MHz_2p5G',2,gain_factor_dcasc12),
+        ('180625','network_22MHz_1G',2,gain_factor_dcasc12),
+        ('180625','network_22MHz_500M',2,gain_factor_dcasc12),
+        ('180625','network_22MHz_250M',2,gain_factor_dcasc12),
+        ('180625','network_22MHz_100M',2,gain_factor_dcasc12),
+        ('180625','network_22MHz_50M',2,gain_factor_dcasc12),
+        ('180625','network_22MHz_25M',2,gain_factor_dcasc12),
+        ('180625','network_22MHz_10M',2,gain_factor_dcasc12),
+        ('180625','network_22MHz_5M',2,gain_factor_dcasc12),
+#        ('180625','network_22MHz_2p5G_2',2,gain_factor_dcasc12),
+#        ('180625','network_22MHz_1G_2',2,gain_factor_dcasc12),
+#        ('180625','network_22MHz_500M_2',2,gain_factor_dcasc12),
+#        ('180625','network_22MHz_250M_2',2,gain_factor_dcasc12),
+#        ('180625','network_22MHz_100M_2',2,gain_factor_dcasc12),
+#        ('180625','network_22MHz_50M_2',2,gain_factor_dcasc12),
+#        ('180625','network_22MHz_25M_2',2,gain_factor_dcasc12),
+#        ('180625','network_22MHz_10M_2',2,gain_factor_dcasc12),
+#        ('180625','network_22MHz_5M_2',2,gain_factor_dcasc12),
 #    ('180526','AFG_terminator_2',2,1.0),#   leave gain set to 1 so we can get the 
                                          #   absolute number here (not input-referred)
     ]:
@@ -174,26 +191,26 @@ for date,id_string,numchan,gain_factor in [
         s.setaxis('t',t_label)
         s.set_units('t',t_units)
         # }}}
-    try:
-        s_slice = s['t':interval]['ch',0] #CH1=DUT
-    #{{{ for scope noise test
-    except:
-        raise ValueError(strm("problem trying to pull the slice, shape of s is",ndshape(s),"numchan is",numchan))
-    if gain_factor == 1.0:
-        print "Noise coming from the scope is",s['t':interval]['ch',0].mean('t', return_error=False).data
-
-        #}}}
-    else:
-        fl.next('FULL Power Spectral Density (Input-referred) (convolution = %0.1e Hz)'%width)
-        s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
-        s_slice.name('$S_{xx}(\\nu)$').set_units('W/Hz')
-        fl.plot(s['ch',0], alpha=0.35, label="%s"%label, plottype='semilogy')
-        axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
-        fl.next('Power Spectral Density (Input-referred) (convolution = %0.1e Hz)'%width)
-        fl.plot(s['t':(0,250e6)]['ch',0], alpha=0.35, label="%s"%label, plottype='semilogy')
+#    try:
+#        s_slice = s['t':interval]['ch',0] #CH1=DUT
+#    #{{{ for scope noise test
+#    except:
+#        raise ValueError(strm("problem trying to pull the slice, shape of s is",ndshape(s),"numchan is",numchan))
+#    if gain_factor == 1.0:
+#        print "Noise coming from the scope is",s['t':interval]['ch',0].mean('t', return_error=False).data
+#
+#        #}}}
+#    else:
+    fl.next('FULL Power Spectral Density (Input-referred) (convolution = %0.1e Hz)'%width)
+    s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
+#    s_slice.name('$S_{xx}(\\nu)$').set_units('W/Hz')
+    fl.plot(s['ch',0], alpha=0.35, label="%s"%label, plottype='semilogy')
+    axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
+#    fl.next('Power Spectral Density (Input-referred) (convolution = %0.1e Hz)'%width)
+#    fl.plot(s['t':(0,250e6)]['ch',0], alpha=0.35, label="%s"%label, plottype='semilogy')
     #   fl.plot(s_slice, alpha=0.8, color='black', label="integration slice",
     #      plottype='semilogy')
-        axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
+    axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
     #    # {{{ calculates power at input of component over specified frequency interval
     #    if numchan == 2:
     #        #CH1=DUT, CH2=REF(signal) or NULL(noise)
