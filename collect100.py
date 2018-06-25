@@ -51,8 +51,8 @@ def collect(date,id_string,captures):
     print "shape of data",ndshape(s)
     return start
 
-date = '180623'
-id_string = 'amp2_txbox_probe_pmdpx_casc12'
+date = '180625'
+id_string = 'network_22MHz_5M_2'
 captures = linspace(1,100,100)
 
 print "Starting collection..."
