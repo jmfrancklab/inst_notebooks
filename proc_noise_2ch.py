@@ -29,7 +29,7 @@ T = 273.15 + 20.
 power_signal_AFG = ((50.e-3)/(sqrt(2)*2))**2./50.
 test_signal_power = power_signal_AFG * atten_factor
 # }}}
-    # {{{ Command line arguments for integration interval 
+    # {{{ command line arguments for integration interval 
 default = True
 try:
     sys.argv[1]
@@ -73,7 +73,7 @@ if not default:
         integration_center = 14.5e6 
         integration_width = 2.e6
     # }}}
-
+#{{{ loads noise into accumulated data file for faster processing
 def load_noise(date,id_string,captures):
     cap_len = len(captures)
     filename = date+'_'+id_string+'.h5'
@@ -100,18 +100,19 @@ def load_noise(date,id_string,captures):
         s.hdf5_write(filename,
                 directory=getDATADIR(exp_type='test_equip'))
     return s
-
+# }}}
 captures = linspace(0,100,100)
 power_dens_CH1_dict = {}
 power_dens_CH2_dict = {}
 
 # {{{ call files
 for date,id_string,numchan,gain_factor in [
-        ('180625','network_no_diodes_2p5G',2,gain_factor_dcasc12),
-        ('180625','network_no_diodes_1G',2,gain_factor_dcasc12),
-        ('180625','network_no_diodes_500M',2,gain_factor_dcasc12),
-        ('180625','network_no_diodes_250M',2,gain_factor_dcasc12),
-        ('180625','network_no_diodes_100M',2,gain_factor_dcasc12),
+        ('180625','network_22MHz_pulse_noise',2,gain_factor_dcasc12),
+#        ('180625','network_no_diodes_2p5G',2,gain_factor_dcasc12),
+#        ('180625','network_no_diodes_1G',2,gain_factor_dcasc12),
+#        ('180625','network_no_diodes_500M',2,gain_factor_dcasc12),
+#        ('180625','network_no_diodes_250M',2,gain_factor_dcasc12),
+#        ('180625','network_no_diodes_100M',2,gain_factor_dcasc12),
 #        ('180625','network_2p5G',2,gain_factor_dcasc12),
 #        ('180625','network_1G',2,gain_factor_dcasc12),
 #        ('180625','network_500M',2,gain_factor_dcasc12),
@@ -188,6 +189,7 @@ for date,id_string,numchan,gain_factor in [
     s /= gain_factor      # divide by gain factor, found from power curve -->
     #                       now we have input-referred power
     # }}}
+    #{{{ processing without integration over frequency band
     if not integration:
 #        if '22MHz' in id_string: 
 #            fl.next('Low-pass Power Spectral Density (Input-referred) (convolution = %0.1e Hz)'%width)
@@ -199,6 +201,8 @@ for date,id_string,numchan,gain_factor in [
             s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
             fl.plot(s['ch',0], alpha=0.35, label="%s"%label, plottype='semilogy')
             axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
+            #}}}
+    #{{{ processing with integration over frequency bands
     if integration:
         interval = tuple(integration_center+r_[-1,1]*integration_width)
         startf,stopf = tuple(interval)
@@ -247,6 +251,6 @@ for date,id_string,numchan,gain_factor in [
         #    print "EFFECTIVE TEMPERATURE IS:",(293.0*(NF-1))
         #    print "*** EXITING:",id_string,"***"
         #print "error is %0.12f"%(((power_dens_CH1_dict['sine_pomona_dpx_cascade12_2CH'] - power_dens_CH1_dict['noise_pomona_dpx_cascade12_2CH'] - power_dens_CH2_dict['sine_pomona_dpx_cascade12_2CH'])/power_dens_CH2_dict['sine_pomona_dpx_cascade12_2CH'])*100)
-
+        #}}}
 fl.show()
 
