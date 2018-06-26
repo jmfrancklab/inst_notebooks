@@ -10,7 +10,7 @@ gain_factor_casc12 = 171428.95568926    #cascade (1 then 2)
 gain_factor_damp1 = 318.5103874         #duplexer,LNA 1 
 gain_factor_damp2 = 325.65682308        #duplexer,LNA 2 
 gain_factor_dcasc12 = 114008.55204672   #duplexer,cascade(1,2)
-gain_factor_pdcasc12 = 45514.53212012    #probe,duplexer,cascade
+gain_factor_pdcasc12 =45514.53212012    #probe,duplexer,cascade
 
 #gain_factor_amp1 = 521.27172202                         #LNA1 gain factor
 #gain_factor_amp2 = 529.98023528                        #LNA2 gain factor
@@ -29,7 +29,7 @@ T = 273.15 + 20.
 power_signal_AFG = ((50.e-3)/(sqrt(2)*2))**2./50.
 test_signal_power = power_signal_AFG * atten_factor
 # }}}
-    # {{{ Command line arguments for integration interval 
+    # {{{ command line arguments for integration interval 
 default = True
 try:
     sys.argv[1]
@@ -73,7 +73,7 @@ if not default:
         integration_center = 14.5e6 
         integration_width = 2.e6
     # }}}
-
+#{{{ loads noise into accumulated data file for faster processing
 def load_noise(date,id_string,captures):
     cap_len = len(captures)
     filename = date+'_'+id_string+'.h5'
@@ -100,94 +100,56 @@ def load_noise(date,id_string,captures):
         s.hdf5_write(filename,
                 directory=getDATADIR(exp_type='test_equip'))
     return s
+#}}}
+    #{{{ generate power spectral density function 
+def generate_psd(data,acq_time,gain_factor):
+    data.ft('t')
+    data = abs(data)**2         #mod square
+    data.mean('capture', return_error=False)
+    width = 1e6
+#    data.convolve('t',width)
+    data = abs(data)['t':(0,None)]
+    data /= 50.              # divide by resistance, gives units: W*s, or W/Hz
+    data /= acq_time         # divide by acquisition time
+    data *= 2                # because the power is split over negative and positive frequencies
+#     if gain_factor != 1: # if we're not talking about the scope noise
+#         s -= scope_noise
+    data /= gain_factor      # divide by gain factor, found from power curve -->
+    return data,width
+    # }}}
 
 captures = linspace(0,100,100)
 power_dens_CH1_dict = {}
 power_dens_CH2_dict = {}
 
-# {{{ call files
 for date,id_string,numchan,gain_factor in [
-        ('180625','network_no_diodes_2p5G',2,gain_factor_dcasc12),
-        ('180625','network_no_diodes_1G',2,gain_factor_dcasc12),
-        ('180625','network_no_diodes_500M',2,gain_factor_dcasc12),
-        ('180625','network_no_diodes_250M',2,gain_factor_dcasc12),
-        ('180625','network_no_diodes_100M',2,gain_factor_dcasc12),
-#        ('180625','network_2p5G',2,gain_factor_dcasc12),
-#        ('180625','network_1G',2,gain_factor_dcasc12),
-#        ('180625','network_500M',2,gain_factor_dcasc12),
-#        ('180625','network_250M',2,gain_factor_dcasc12),
-#        ('180625','network_100M',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_2p5G',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_1G',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_500M',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_250M',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_100M',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_no_diodes_2p5G',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_no_diodes_1G',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_no_diodes_500M',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_no_diodes_250M',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_no_diodes_100M',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_2p5G_2',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_1G_2',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_500M_2',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_250M_2',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_100M_2',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_no_diodes_2p5G_2',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_no_diodes_1G_2',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_no_diodes_500M_2',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_no_diodes_250M_2',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_no_diodes_100M_2',2,gain_factor_dcasc12),
-#    ('180526','AFG_terminator_2',2,1.0),#   leave gain set to 1 so we can get the 
-                                         #   absolute number here (not input-referred)
+        ('180625','network_22MHz_pulse_noise',2,gain_factor_dcasc12),
     ]:
-    # }}}
-    # {{{ plot labels
-    if id_string == 'pmdpx_casc12':
-        label = 'Cascade + Duplexer'
-    elif id_string == 'probe_pmdpx_casc12':
-        label = 'Cascade + Duplexer + Probe'
-    elif id_string == 'box_probe_pmdpx_casc12':
-        label = 'Cascade + Duplexer + Probe + Diode Box'
-    elif id_string == 'txbox_probe_pmdpx_casc12':
-        label = 'Cascade + Duplexer + Probe + TX Diode Box'
-    elif id_string == 'amp_box_probe_pmdpx_casc12':
-        label = 'Cascade + Duplexer + Probe + Diode Box + ENI'
-    elif id_string == 'amp_txbox_probe_pmdpx_casc12':
-        label = 'Cascade + Duplexer + Probe + TX Diode Box + ENI'
-    elif id_string == 'network_100M':
-        label = 'Network noise, 100M Samples per second'
-    elif id_string == 'network_22MHz_100M':
-        label = 'Network noise, 22 MHz filter, 100M Samples per second'
-    elif id_string == 'network_22MHz_100M_2':
-        label = 'Network noise, 22 MHz filter, elapsed; 100M Samples per second'
-    else:
-        label = date+id_string 
-    #label += ' (g=%0.2f)'%gain_factor
-   # }}}
     print "\n*** LOADING:",id_string,"***"
-    print "FILE LABEL IS:\t\t",label
-    # {{{ calculate positive frequency noise power spectral density
-    s = load_noise(date,id_string,captures)
-    acq_time = diff(s.getaxis('t')[r_[0,-1]])[0]
-    print "ACQUISITION TIME IS:\t",acq_time
-    print "DWELL TIME IS:      \t",diff(s.getaxis('t')[r_[0,1]])[0]
-    s.ft('t',shift=True)
-    s = abs(s)**2         #mod square
-    s.mean('capture', return_error=False)
-    width = 1e6
-    #s.convolve('t',width) # we do this before chopping things up, since it uses
-    #                      fft and assumes that the signal is periodic (at this
-    #                      point, the signal at both ends is very close to
-    #                      zero, so that's good
-    s = abs(s)['t':(0,None)]
-    s /= 50.              # divide by resistance, gives units: W*s, or W/Hz
-    s /= acq_time         # divide by acquisition time
-    s *= 2               # because the power is split over negative and positive frequencies
-#    if gain_factor != 1: # if we're not talking about the scope noise
-#        s -= scope_noise
-    s /= gain_factor      # divide by gain factor, found from power curve -->
-    #                       now we have input-referred power
-    # }}}
+    d = load_noise(date,id_string,captures)['ch',0]
+    print ndshape(d)
+    # Preliminary processing, from gen_power_data()
+    raw_signal = (ndshape(d)).alloc()
+    raw_signal.setaxis('t',d.getaxis('t')).set_units('t','s')
+    raw_signal.setaxis('capture',d.getaxis('capture'))
+    d.ft('t',shift=True)
+    d = d['t':(0,None)]
+    d['t':(0,5e6)] = 0
+    d['t':(25e6,None)] = 0
+    d.ift('t')
+    y = d['capture',1]
+    fl.next('pulse, noise slice')
+    fl.plot(y)
+    noise_slice = (24e-6,70e-6)
+    fl.plot(y['t':noise_slice]['t',r_[0,-1]],'o')
+    deadtime = d['t':noise_slice]
+    fl.show()
+    quit()
+    acq_time = noise_slice[1]-noise_slice[0] 
+    print acq_time
+    print ndshape(deadtime)
+    power_density,width = generate_psd(deadtime,acq_time,gain_factor)
+    #{{{ processing without integration over frequency band
     if not integration:
 #        if '22MHz' in id_string: 
 #            fl.next('Low-pass Power Spectral Density (Input-referred) (convolution = %0.1e Hz)'%width)
@@ -196,9 +158,11 @@ for date,id_string,numchan,gain_factor in [
 #            axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
 #        elif '22MHz' not in id_string: 
             fl.next('Power Spectral Density (Input-referred) (convolution = %0.1e Hz)'%width)
-            s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
-            fl.plot(s['ch',0], alpha=0.35, label="%s"%label, plottype='semilogy')
+            power_density.name('$S_{xx}(\\nu)$').set_units('W/Hz')
+            fl.plot(power_density, alpha=0.35, plottype='semilogy')
             axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
+            #}}}
+    #{{{ processing with integration over frequency bands
     if integration:
         interval = tuple(integration_center+r_[-1,1]*integration_width)
         startf,stopf = tuple(interval)
@@ -247,6 +211,6 @@ for date,id_string,numchan,gain_factor in [
         #    print "EFFECTIVE TEMPERATURE IS:",(293.0*(NF-1))
         #    print "*** EXITING:",id_string,"***"
         #print "error is %0.12f"%(((power_dens_CH1_dict['sine_pomona_dpx_cascade12_2CH'] - power_dens_CH1_dict['noise_pomona_dpx_cascade12_2CH'] - power_dens_CH2_dict['sine_pomona_dpx_cascade12_2CH'])/power_dens_CH2_dict['sine_pomona_dpx_cascade12_2CH'])*100)
-
+        #}}}
 fl.show()
 
