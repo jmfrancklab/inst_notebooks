@@ -52,7 +52,7 @@ def collect(date,id_string,captures):
     return start
 
 date = '180625'
-id_string = 'network_no_diodes_100M'
+id_string = 'network_22MHz_pulse_noise_2'
 captures = linspace(1,100,100)
 
 print "Starting collection..."
