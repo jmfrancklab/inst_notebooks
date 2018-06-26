@@ -38,13 +38,15 @@ def load_noise(date,id_string,captures):
 gain_factor_dcasc12 = 114008.55204672
 captures = linspace(0,100,100)
 for date,id_string,numchan,gain_factor in [
-        ('180625','network_22MHz_no_diodes_100M',2,gain_factor_dcasc12),
+        ('180626','AFG_pulse_noise',2,gain_factor_dcasc12),
+        ('180626','AFG_22MHz_pulse_noise',2,gain_factor_dcasc12),
+#        ('180626','network_22MHz_pulse_noise',2,gain_factor_dcasc12),
         ]:
     s = load_noise(date,id_string,captures)['ch',0]
     s.ft('t',shift=True)
     s = abs(s['t':(0,30e6)]).run(log10)
     width = 0.01e6
     s.convolve('t',width)
-    fl.next('image')
+    fl.next('image %s'%id_string)
     fl.image(s.real,interpolation='bicubic')
 fl.show()

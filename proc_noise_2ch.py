@@ -107,7 +107,18 @@ power_dens_CH2_dict = {}
 
 # {{{ call files
 for date,id_string,numchan,gain_factor in [
-        ('180625','network_22MHz_pulse_noise',2,gain_factor_dcasc12),
+#        ('180626','AFG_pulse_noise',2,gain_factor_dcasc12),
+#        ('180626','AFG_22MHz_pulse_noise',2,gain_factor_dcasc12),
+#        ('180625','network_22MHz_100M',2,gain_factor_dcasc12),
+        ('180625','network_22MHz_100M_2',2,gain_factor_dcasc12),
+#        ('180626','network_22MHz_on',2,gain_factor_dcasc12),
+#        ('180626','network_22MHz_off',2,gain_factor_dcasc12),
+        ('180626','network_22MHz_on_newcnx',2,gain_factor_dcasc12),
+#        ('180626','network_22MHz_off_newcnx',2,gain_factor_dcasc12),
+        ('180626','network_22MHz_pulse_noise_newcnx',2,gain_factor_dcasc12),
+        ('180626','network_22MHz_pulse_noise_atten',2,gain_factor_dcasc12),
+#        ('180626','network_22MHz_pulse_noise_2',2,gain_factor_dcasc12),
+#        ('180626','network_22MHz_pulse_noise_3',2,gain_factor_dcasc12),
 #        ('180625','network_no_diodes_2p5G',2,gain_factor_dcasc12),
 #        ('180625','network_no_diodes_1G',2,gain_factor_dcasc12),
 #        ('180625','network_no_diodes_500M',2,gain_factor_dcasc12),
@@ -121,7 +132,6 @@ for date,id_string,numchan,gain_factor in [
 #        ('180625','network_22MHz_2p5G',2,gain_factor_dcasc12),
 #        ('180625','network_22MHz_1G',2,gain_factor_dcasc12),
 #        ('180625','network_22MHz_500M',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_250M',2,gain_factor_dcasc12),
 #        ('180625','network_22MHz_100M',2,gain_factor_dcasc12),
 #        ('180625','network_22MHz_no_diodes_2p5G',2,gain_factor_dcasc12),
 #        ('180625','network_22MHz_no_diodes_1G',2,gain_factor_dcasc12),
@@ -176,7 +186,7 @@ for date,id_string,numchan,gain_factor in [
     s = abs(s)**2         #mod square
     s.mean('capture', return_error=False)
     width = 1e6
-    #s.convolve('t',width) # we do this before chopping things up, since it uses
+    s.convolve('t',width) # we do this before chopping things up, since it uses
     #                      fft and assumes that the signal is periodic (at this
     #                      point, the signal at both ends is very close to
     #                      zero, so that's good
