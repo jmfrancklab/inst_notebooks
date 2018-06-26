@@ -107,8 +107,7 @@ def generate_psd(data,acq_time,gain_factor):
     data = abs(data)**2         #mod square
     data.mean('capture', return_error=False)
     width = 1e6
-#    data.convolve('t',width)
-    data = abs(data)['t':(0,None)]
+    data.convolve('t',width)
     data /= 50.              # divide by resistance, gives units: W*s, or W/Hz
     data /= acq_time         # divide by acquisition time
     data *= 2                # because the power is split over negative and positive frequencies
@@ -123,7 +122,16 @@ power_dens_CH1_dict = {}
 power_dens_CH2_dict = {}
 
 for date,id_string,numchan,gain_factor in [
-        ('180625','network_22MHz_pulse_noise',2,gain_factor_dcasc12),
+#        ('180626','network_22MHz_pulse_noise',2,gain_factor_dcasc12),
+#        ('180626','network_22MHz_pulse_noise_atten_250M_2',2,gain_factor_dcasc12),
+#            ('180626','network_22MHz_pulse_noise_atten2_100M',2,gain_factor_dcasc12),
+#            ('180626','network_22MHz_pulse_noise_atten2_2_100M',2,gain_factor_dcasc12),
+#            ('180626','network_22MHz_pulse_noise_atten2_3_100M',2,gain_factor_dcasc12),
+#            ('180626','network_22MHz_pulse_noise_atten3_100M',2,gain_factor_dcasc12),
+#            ('180626','network_22MHz_pulse_noise_atten3_2_100M',2,gain_factor_dcasc12),
+#            ('180626','network_22MHz_pulse_noise_atten3_3_100M',2,gain_factor_dcasc12),
+            ('180626','network_22MHz_pulse_noise_atten3_4_100M',2,gain_factor_dcasc12),
+            ('180626','network_22MHz_pulse_noise_atten3_5_100M',2,gain_factor_dcasc12),
     ]:
     print "\n*** LOADING:",id_string,"***"
     d = load_noise(date,id_string,captures)['ch',0]
@@ -134,26 +142,32 @@ for date,id_string,numchan,gain_factor in [
     raw_signal.setaxis('capture',d.getaxis('capture'))
     d.ft('t',shift=True)
     d = d['t':(0,None)]
-    d['t':(0,5e6)] = 0
-    d['t':(25e6,None)] = 0
+
+#    d.ift('t')
+#    fl.next('plot')
+#    fl.plot(d)
+#    fl.show()
+#    quit()
+
+    #d['t':(0,10e6)] = 0
+    d['t':(20e6,None)] = 0
     d.ift('t')
     y = d['capture',1]
-    fl.next('pulse, noise slice')
+    fl.next('plot')
     fl.plot(y)
-    noise_slice = (24e-6,70e-6)
-    fl.plot(y['t':noise_slice]['t',r_[0,-1]],'o')
+    noise_slice = (170e-6,250e-6)
     deadtime = d['t':noise_slice]
-    fl.show()
-    quit()
-    acq_time = noise_slice[1]-noise_slice[0] 
-    print acq_time
+    fl.next('deadtime %s'%id_string)
+    fl.plot(deadtime)
+    acq_time = diff(raw_signal.getaxis('t')[r_[0,-1]])[0]
+    print acq_time 
     print ndshape(deadtime)
-    power_density,width = generate_psd(deadtime,acq_time,gain_factor)
+    dt_power_density,width = generate_psd(deadtime,acq_time,gain_factor)
     #{{{ processing without integration over frequency band
     if not integration:
             fl.next('Power Spectral Density (Input-referred) (convolution = %0.1e Hz)'%width)
-            power_density.name('$S_{xx}(\\nu)$').set_units('W/Hz')
-            fl.plot(power_density, alpha=0.35, plottype='semilogy')
+            dt_power_density.name('$S_{xx}(\\nu)$').set_units('W/Hz')
+            fl.plot(dt_power_density, alpha=0.35, plottype='semilogy')
             axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
             #}}}
     #{{{ processing with integration over frequency bands
