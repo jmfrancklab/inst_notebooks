@@ -151,12 +151,6 @@ for date,id_string,numchan,gain_factor in [
     power_density,width = generate_psd(deadtime,acq_time,gain_factor)
     #{{{ processing without integration over frequency band
     if not integration:
-#        if '22MHz' in id_string: 
-#            fl.next('Low-pass Power Spectral Density (Input-referred) (convolution = %0.1e Hz)'%width)
-#            s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
-#            fl.plot(s['ch',0], alpha=0.35, label="%s"%label, plottype='semilogy')
-#            axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
-#        elif '22MHz' not in id_string: 
             fl.next('Power Spectral Density (Input-referred) (convolution = %0.1e Hz)'%width)
             power_density.name('$S_{xx}(\\nu)$').set_units('W/Hz')
             fl.plot(power_density, alpha=0.35, plottype='semilogy')
