@@ -110,13 +110,13 @@ for date,id_string,numchan,gain_factor in [
 #        ('180626','AFG_pulse_noise',2,gain_factor_dcasc12),
 #        ('180626','AFG_22MHz_pulse_noise',2,gain_factor_dcasc12),
 #        ('180625','network_22MHz_100M',2,gain_factor_dcasc12),
-        ('180625','network_22MHz_100M_2',2,gain_factor_dcasc12),
+#        ('180625','network_22MHz_100M_2',2,gain_factor_dcasc12),
 #        ('180626','network_22MHz_on',2,gain_factor_dcasc12),
 #        ('180626','network_22MHz_off',2,gain_factor_dcasc12),
-        ('180626','network_22MHz_on_newcnx',2,gain_factor_dcasc12),
+#        ('180626','network_22MHz_on_newcnx',2,gain_factor_dcasc12),
 #        ('180626','network_22MHz_off_newcnx',2,gain_factor_dcasc12),
-        ('180626','network_22MHz_pulse_noise_newcnx',2,gain_factor_dcasc12),
-        ('180626','network_22MHz_pulse_noise_atten',2,gain_factor_dcasc12),
+#        ('180626','network_22MHz_pulse_noise_newcnx',2,gain_factor_dcasc12),
+#        ('180626','network_22MHz_pulse_noise_atten',2,gain_factor_dcasc12),
 #        ('180626','network_22MHz_pulse_noise_2',2,gain_factor_dcasc12),
 #        ('180626','network_22MHz_pulse_noise_3',2,gain_factor_dcasc12),
 #        ('180625','network_no_diodes_2p5G',2,gain_factor_dcasc12),
@@ -131,8 +131,8 @@ for date,id_string,numchan,gain_factor in [
 #        ('180625','network_100M',2,gain_factor_dcasc12),
 #        ('180625','network_22MHz_2p5G',2,gain_factor_dcasc12),
 #        ('180625','network_22MHz_1G',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_500M',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_100M',2,gain_factor_dcasc12),
+        ('180625','network_22MHz_500M',2,gain_factor_dcasc12),
+        ('180625','network_22MHz_100M',2,gain_factor_dcasc12),
 #        ('180625','network_22MHz_no_diodes_2p5G',2,gain_factor_dcasc12),
 #        ('180625','network_22MHz_no_diodes_1G',2,gain_factor_dcasc12),
 #        ('180625','network_22MHz_no_diodes_500M',2,gain_factor_dcasc12),
@@ -140,9 +140,9 @@ for date,id_string,numchan,gain_factor in [
 #        ('180625','network_22MHz_no_diodes_100M',2,gain_factor_dcasc12),
 #        ('180625','network_22MHz_2p5G_2',2,gain_factor_dcasc12),
 #        ('180625','network_22MHz_1G_2',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_500M_2',2,gain_factor_dcasc12),
+        ('180625','network_22MHz_500M_2',2,gain_factor_dcasc12),
 #        ('180625','network_22MHz_250M_2',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_100M_2',2,gain_factor_dcasc12),
+        ('180625','network_22MHz_100M_2',2,gain_factor_dcasc12),
 #        ('180625','network_22MHz_no_diodes_2p5G_2',2,gain_factor_dcasc12),
 #        ('180625','network_22MHz_no_diodes_1G_2',2,gain_factor_dcasc12),
 #        ('180625','network_22MHz_no_diodes_500M_2',2,gain_factor_dcasc12),
@@ -167,6 +167,16 @@ for date,id_string,numchan,gain_factor in [
         label = 'Cascade + Duplexer + Probe + TX Diode Box + ENI'
     elif id_string == 'network_100M':
         label = 'Network noise, 100M Samples per second'
+    elif id_string == 'network_2p5G':
+        label = 'Network noise, 2.5G Samples per second'
+    elif id_string == 'network_22MHz_2p5G':
+        label = 'Network noise, 22 MHz filter, 2.5G Samples per second'
+    elif id_string == 'network_22MHz_2p5G_2':
+        label = 'Network noise, 22 MHz filter, elapsed; 2.5G Samples per second'
+    elif id_string == 'network_22MHz_500M':
+        label = 'Network noise, 22 MHz filter, 500M Samples per second'
+    elif id_string == 'network_22MHz_500M_2':
+        label = 'Network noise, 22 MHz filter, elapsed; 500M Samples per second'
     elif id_string == 'network_22MHz_100M':
         label = 'Network noise, 22 MHz filter, 100M Samples per second'
     elif id_string == 'network_22MHz_100M_2':
