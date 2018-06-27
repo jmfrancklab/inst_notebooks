@@ -179,7 +179,7 @@ def gen_power_data(date, id_string, V_AFG, atten, rms_method=True,
         this_data = highest_power['ch',ch]
         pulse0_slice = this_data.contiguous(lambda x: x>pulse_threshold*x.data.max())
         pulse0_slice = tuple(pulse0_slice[0,:])
-        fl.plot(this_data['t':pulse0_slice]['t',r_[0,-1]],'o',label='CH%s'%str(ch))
+        fl.plot(['t':pulse0_slice]['t',r_[0,-1]],'o',label='CH%s'%str(ch))
     print "Done loading signal for %s"%id_string 
     if rms_method:
         power0 = rms_signal_to_power(analytic_signal['ch',1],ch=1)
