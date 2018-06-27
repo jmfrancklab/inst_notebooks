@@ -131,7 +131,7 @@ for date,id_string,numchan,gain_factor in [
 #            ('180626','network_22MHz_pulse_noise_atten3_2_100M',2,gain_factor_dcasc12),
 #            ('180626','network_22MHz_pulse_noise_atten3_3_100M',2,gain_factor_dcasc12),
             ('180626','network_22MHz_pulse_noise_atten3_4_100M',2,gain_factor_dcasc12),
-            ('180626','network_22MHz_pulse_noise_atten3_5_100M',2,gain_factor_dcasc12),
+#            ('180626','network_22MHz_pulse_noise_atten3_5_100M',2,gain_factor_dcasc12),
     ]:
     print "\n*** LOADING:",id_string,"***"
     d = load_noise(date,id_string,captures)['ch',0]
@@ -142,20 +142,21 @@ for date,id_string,numchan,gain_factor in [
     raw_signal.setaxis('capture',d.getaxis('capture'))
     d.ft('t',shift=True)
     d = d['t':(0,None)]
-
-#    d.ift('t')
-#    fl.next('plot')
-#    fl.plot(d)
-#    fl.show()
-#    quit()
-
-    #d['t':(0,10e6)] = 0
     d['t':(20e6,None)] = 0
     d.ift('t')
     y = d['capture',1]
-    fl.next('plot')
-    fl.plot(y)
+    y.name('Volts')
+    fl.next('Processed, 14.5 MHz pulse')
+    fl.plot(y,alpha=0.5,label='without 5 MHz high pass')
+    y.ft('t')
+    y['t':(0,10e6)] = 0
+    y.ift('t')
+    fl.plot(y,alpha=0.5,label='with 5 MHz high pass')
     noise_slice = (170e-6,250e-6)
+    fl.plot(y['t':noise_slice]['t',r_[0,-1]],'o',color='black',alpha=0.4,label='noise slice')
+    fl.show()
+    quit()
+
     deadtime = d['t':noise_slice]
     fl.next('deadtime %s'%id_string)
     fl.plot(deadtime)
