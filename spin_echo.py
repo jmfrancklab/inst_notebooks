@@ -164,7 +164,7 @@ def spin_echo(freq = 14.5e6, p90 = 2.8e-6, d1 = 50e-6, ch1_only=True):
 #}}}
 
 date = '180627'
-id_string = 'test_se_amp_4'
+id_string = 'test_se_amp_6'
 captures = linspace(1,100,100)
 
 t1,t2,t3,t4,t5 = spin_echo()
