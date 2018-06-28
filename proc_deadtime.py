@@ -132,7 +132,10 @@ for date,id_string,numchan,gain_factor in [
 #            ('180626','network_22MHz_pulse_noise_atten3_3_100M',2,gain_factor_dcasc12),
 #            ('180626','network_22MHz_pulse_noise_atten3_4_100M',2,gain_factor_dcasc12),
 #            ('180626','network_22MHz_pulse_noise_atten3_5_100M',2,gain_factor_dcasc12),
-            ('180627','test_se_amp_4',2,gain_factor_dcasc12),
+#            ('180627','test_se_amp_3',2,gain_factor_dcasc12),
+#            ('180627','test_se_amp_4',2,gain_factor_dcasc12),
+            ('180627','test_se_amp_5',2,gain_factor_dcasc12),
+            ('180627','test_se_amp_6',2,gain_factor_dcasc12),
     ]:
     if id_string == 'network_22MHz_pulse_noise_atten2_100M':
         label = 'Early capture'
@@ -155,7 +158,7 @@ for date,id_string,numchan,gain_factor in [
     y = d['capture',1]
     y.name('Volts')
     fl.next('Processed, 14.5 MHz pulse')
-    fl.plot(y,alpha=0.5)
+    fl.plot(y,alpha=0.3)
     noise_slice = (190e-6,250e-6)
     after_deadtime = d['t':noise_slice]
     fl.next('after deadtime %s'%id_string)
