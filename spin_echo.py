@@ -158,13 +158,13 @@ def spin_echo(freq = 14.5e6, p90 = 2.8e-6, d1 = 50e-6, ch1_only=True):
             a[this_ch].output = True
             a[this_ch].burst = True
             end_out = timer()
-            #a.set_burst(per=1) #per=T2 of sample
+            a.set_burst(per=100e-3) #per=T2 of sample
             #}}}
     return start_seq,end_seq,end_loadseq,start_out,end_out
 #}}}
 
 date = '180627'
-id_string = 'test_se'
+id_string = 'test_se_amp_4'
 captures = linspace(1,100,100)
 
 t1,t2,t3,t4,t5 = spin_echo()

@@ -39,11 +39,11 @@ def load_noise(date,id_string,captures):
 gain_factor = 1
 captures = linspace(1,100,100)
 for date,id_string,numchan,gain_factor in [
-        ('180627','test_se',2,gain_factor),
+        ('180627','test_se_amp_4',2,gain_factor),
         ]:
     s = load_noise(date,id_string,captures)['ch',0]
     s.ft('t',shift=True)
-    im = abs(s['t':(0,30e6)]).run(log10)
+    im = abs(s['t':(5e6,30e6)]).run(log10)
 #    width = 0.01e6
 #    im.convolve('t',width)
     fl.next('image %s'%id_string)

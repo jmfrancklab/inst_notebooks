@@ -124,19 +124,22 @@ power_dens_CH2_dict = {}
 for date,id_string,numchan,gain_factor in [
 #        ('180626','network_22MHz_pulse_noise',2,gain_factor_dcasc12),
 #        ('180626','network_22MHz_pulse_noise_atten_250M_2',2,gain_factor_dcasc12),
-            ('180626','network_22MHz_pulse_noise_atten2_100M',2,gain_factor_dcasc12),
+#            ('180626','network_22MHz_pulse_noise_atten2_100M',2,gain_factor_dcasc12),
 #            ('180626','network_22MHz_pulse_noise_atten2_2_100M',2,gain_factor_dcasc12),
 #            ('180626','network_22MHz_pulse_noise_atten2_3_100M',2,gain_factor_dcasc12),
 #            ('180626','network_22MHz_pulse_noise_atten3_100M',2,gain_factor_dcasc12),
 #            ('180626','network_22MHz_p_ulse_noise_atten3_2_100M',2,gain_factor_dcasc12),
 #            ('180626','network_22MHz_pulse_noise_atten3_3_100M',2,gain_factor_dcasc12),
 #            ('180626','network_22MHz_pulse_noise_atten3_4_100M',2,gain_factor_dcasc12),
-            ('180626','network_22MHz_pulse_noise_atten3_5_100M',2,gain_factor_dcasc12),
+#            ('180626','network_22MHz_pulse_noise_atten3_5_100M',2,gain_factor_dcasc12),
+            ('180627','test_se_amp_4',2,gain_factor_dcasc12),
     ]:
     if id_string == 'network_22MHz_pulse_noise_atten2_100M':
         label = 'Early capture'
     elif id_string == 'network_22MHz_pulse_noise_atten3_5_100M':
         label = 'Latest'
+    else :
+        label = date+'_'+id_string
     print "\n*** LOADING:",id_string,"***"
     d = load_noise(date,id_string,captures)['ch',0]
     print ndshape(d)
@@ -153,7 +156,7 @@ for date,id_string,numchan,gain_factor in [
     y.name('Volts')
     fl.next('Processed, 14.5 MHz pulse')
     fl.plot(y,alpha=0.5)
-    noise_slice = (170e-6,250e-6)
+    noise_slice = (190e-6,250e-6)
     after_deadtime = d['t':noise_slice]
     fl.next('after deadtime %s'%id_string)
     fl.plot(after_deadtime)
