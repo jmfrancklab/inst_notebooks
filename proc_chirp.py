@@ -9,25 +9,9 @@ with figlist_var(filename='chirp.pdf') as fl:
 #    fl.next('$S_{11}$ : phase', legend=True)
     expno=0
     for date, id_string,corrected_volt in [
-#            ('180619','chirp_low_pi_term',True),
-#            ('180619','chirp_low_pi_open',True),
-#            ('180619','chirp_low_pi_short',True),
-            ('180619','chirp_avg_low_pi_term',True),
-            ('180619','chirp_avg_low_pi_open',True),
-#            ('180619','chirp_avg_low_pi_short',True),
-#            ('180619','chirp_high_pi_term',True),
-#            ('180619','chirp_high_pi_open',True),
-#            ('180619','chirp_high_pi_short',True),
-#            ('180619','chirp_avg_high_pi_term',True),
-            ('180619','chirp_avg_high_pi_open',True),
-#            ('180619','chirp_avg_high_pi_open_TRIAL',True),
-#            ('180619','chirp_avg_high_pi_short',True),
-#            ('180619','chirp_control_term',True),
-#            ('180619','chirp_control_open',True),
-#            ('180619','chirp_control_short',True),
-            ('180619','chirp_avg_control_term',True),
-            ('180619','chirp_avg_control_open',True),
-            ('180619','chirp_avg_control_short',True),
+            ('180628','chirp_probe_in_magnet',True), #had splitter on - used term
+            ('180628','chirp_probe_in_magnet_2',True), #removed splitter - how it should be
+            ('180628','chirp_probe_and_sample_in_magnet',True), #removed splitter - how it should be
             #{{{ old Sinkovits tests
 ####            ('180616','chirp_pi',True),
 ###            ('180616','chirp_pi_open',True),
