@@ -54,8 +54,8 @@ def acquire(date,id_string,captures):
         for x in xrange(1,cap_len+1):
             print "entering capture",x
             ch1_waveform = g.waveform(ch=1)
-            ch2_waveform = g.waveform(ch=2)
-            data = concat([ch1_waveform,ch2_waveform],'ch').reorder('t')
+#            ch2_waveform = g.waveform(ch=2)
+            data = concat([ch1_waveform],'ch').reorder('t')
             if x == 1:
                 channels = ((ndshape(data)) + ('capture',cap_len)).alloc()
                 channels.setaxis('t',data.getaxis('t')).set_units('t','s')
@@ -158,14 +158,15 @@ def spin_echo(freq = 14.5e6, p90 = 2.8e-6, d1 = 50e-6, ch1_only=True):
             a[this_ch].output = True
             a[this_ch].burst = True
             end_out = timer()
-            a.set_burst(per=100e-3) #per=T2 of sample
+            d_interseq = 5*200e-3
+            a.set_burst(per=d_interseq) #per=T2 of sample
             #}}}
     return start_seq,end_seq,end_loadseq,start_out,end_out
 #}}}
 
-date = '180627'
-id_string = 'test_se_amp_6'
-captures = linspace(1,100,100)
+date = '180628'
+id_string = 'spin_echo_exp2'
+captures = linspace(1,10000,10000)
 
 t1,t2,t3,t4,t5 = spin_echo()
 start_acq = timer()
