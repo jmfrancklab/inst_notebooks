@@ -9,12 +9,12 @@ from scipy import signal
 acquire = False
 fl = figlist_var()
 
-print "These are the instruments available:"
-SerialInstrument(None)
-print "done printing available instruments"
-
-with SerialInstrument('GDS-3254') as s:
-    print s.respond('*idn?')
+#print "These are the instruments available:"
+#SerialInstrument(None)
+#print "done printing available instruments"
+#
+#with SerialInstrument('GDS-3254') as s:
+#    print s.respond('*idn?')
     
 def collect(date,id_string,captures):
     capture_length = len(captures)
@@ -26,8 +26,7 @@ def collect(date,id_string,captures):
         for x in xrange(1,capture_length+1):
             print "entering capture",x
             ch1_waveform = g.waveform(ch=1)
-            ch2_waveform = g.waveform(ch=2)
-            data = concat([ch1_waveform,ch2_waveform],'ch').reorder('t')
+            data = concat([ch1_waveform],'ch').reorder('t')
             if x == 1:
                 channels = ((ndshape(data)) + ('capture',capture_length)).alloc()
                 channels.setaxis('t',data.getaxis('t')).set_units('t','s')
@@ -51,8 +50,8 @@ def collect(date,id_string,captures):
     print "shape of data",ndshape(s)
     return start
 
-date = '180626'
-id_string = 'network_22MHz_pulse_noise_atten3_5_100M'
+date = '180628'
+id_string = 'noise_AFG_off_amp_off_sample_in_magnet_on'
 captures = linspace(1,100,100)
 
 print "Starting collection..."

@@ -134,8 +134,13 @@ for date,id_string,numchan,gain_factor in [
 #            ('180626','network_22MHz_pulse_noise_atten3_5_100M',2,gain_factor_dcasc12),
 #            ('180627','test_se_amp_3',2,gain_factor_dcasc12),
 #            ('180627','test_se_amp_4',2,gain_factor_dcasc12),
-            ('180627','test_se_amp_5',2,gain_factor_dcasc12),
-            ('180627','test_se_amp_6',2,gain_factor_dcasc12),
+#            ('180627','test_se_amp_5',2,gain_factor_dcasc12),
+#            ('180627','test_se_amp_6',2,gain_factor_dcasc12),
+#            ('180628','test_se_amp_4',2,gain_factor_dcasc12),
+#            ('180628','test_se_amp_5',2,gain_factor_dcasc12),
+#            ('180628','test_se_amp_11',2,gain_factor_dcasc12),
+            ('180628','test_se_amp_12',2,gain_factor_dcasc12), 
+            ('180628','spin_echo_exp',2,gain_factor_dcasc12), 
     ]:
     if id_string == 'network_22MHz_pulse_noise_atten2_100M':
         label = 'Early capture'
@@ -144,7 +149,7 @@ for date,id_string,numchan,gain_factor in [
     else :
         label = date+'_'+id_string
     print "\n*** LOADING:",id_string,"***"
-    d = load_noise(date,id_string,captures)['ch',0]
+    d = load_noise(date,id_string,captures)['ch',0]['capture':(0,100)]
     print ndshape(d)
     # Preliminary processing, from gen_power_data()
     raw_signal = (ndshape(d)).alloc()
@@ -155,14 +160,14 @@ for date,id_string,numchan,gain_factor in [
     d['t':(20e6,None)] = 0
     d['t':(0,10e6)] = 0
     d.ift('t')
-    y = d['capture',1]
+    y = d
     y.name('Volts')
     fl.next('Processed, 14.5 MHz pulse')
     fl.plot(y,alpha=0.3)
-    noise_slice = (190e-6,250e-6)
+    noise_slice = (200e-6,250e-6)
     after_deadtime = d['t':noise_slice]
-    fl.next('after deadtime %s'%id_string)
-    fl.plot(after_deadtime)
+#    fl.next('after deadtime %s'%id_string)
+#    fl.plot(after_deadtime)
     acq_time = diff(raw_signal.getaxis('t')[r_[0,-1]])[0]
     print acq_time 
     dt_power_density,width = generate_psd(after_deadtime,acq_time,gain_factor)
