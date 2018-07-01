@@ -117,7 +117,7 @@ def generate_psd(data,acq_time,gain_factor):
     return data,width
     # }}}
 
-captures = linspace(0,100,100)
+captures = linspace(0,500,500)
 power_dens_CH1_dict = {}
 power_dens_CH2_dict = {}
 
@@ -139,44 +139,43 @@ for date,id_string,numchan,gain_factor in [
 #            ('180628','test_se_amp_4',2,gain_factor_dcasc12),
 #            ('180628','test_se_amp_5',2,gain_factor_dcasc12),
 #            ('180628','test_se_amp_11',2,gain_factor_dcasc12),
-            ('180628','test_se_amp_12',2,gain_factor_dcasc12), 
-            ('180628','spin_echo_exp',2,gain_factor_dcasc12), 
+            #('180628','test_se_amp_12',2,gain_factor_dcasc12), 
+            #('180628','spin_echo_exp',2,gain_factor_dcasc12), 
+            ('180630','spin_echo_exp_block2',2,gain_factor_dcasc12), 
     ]:
-    if id_string == 'network_22MHz_pulse_noise_atten2_100M':
-        label = 'Early capture'
-    elif id_string == 'network_22MHz_pulse_noise_atten3_5_100M':
-        label = 'Latest'
-    else :
-        label = date+'_'+id_string
+    label = date+'_'+id_string
     print "\n*** LOADING:",id_string,"***"
-    d = load_noise(date,id_string,captures)['ch',0]['capture':(0,100)]
+    d = load_noise(date,id_string,captures)['ch',0]['capture':(0,500)]
     print ndshape(d)
     # Preliminary processing, from gen_power_data()
     raw_signal = (ndshape(d)).alloc()
     raw_signal.setaxis('t',d.getaxis('t')).set_units('t','s')
     raw_signal.setaxis('capture',d.getaxis('capture'))
+    raw_signal = d
     d.ft('t',shift=True)
     d = d['t':(0,None)]
-    d['t':(20e6,None)] = 0
-    d['t':(0,10e6)] = 0
+    #d['t':(20e6,None)] = 0
+    #d['t':(0,10e6)] = 0
     d.ift('t')
     y = d
     y.name('Volts')
-    fl.next('Processed, 14.5 MHz pulse')
-    fl.plot(y,alpha=0.3)
+    #fl.next('Processed, 14.5 MHz pulse')
+    #fl.plot(y,alpha=0.3)
     noise_slice = (200e-6,250e-6)
     after_deadtime = d['t':noise_slice]
-#    fl.next('after deadtime %s'%id_string)
-#    fl.plot(after_deadtime)
-    acq_time = diff(raw_signal.getaxis('t')[r_[0,-1]])[0]
+    #fl.next('after deadtime %s'%id_string)
+    #fl.plot(after_deadtime)
+    acq_time = diff(after_deadtime.getaxis('t')[r_[0,-1]])[0]
     print acq_time 
-    dt_power_density,width = generate_psd(after_deadtime,acq_time,gain_factor)
+    dt_power_density,width = generate_psd(d,acq_time,gain_factor)
     #{{{ processing without integration over frequency band
     if not integration:
             fl.next('Power Spectral Density (Input-referred)')
             dt_power_density.name('$S_{xx}(\\nu)$').set_units('W/Hz')
             fl.plot(dt_power_density, alpha=0.35, label='%s'%label, plottype='semilogy' )
             axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
+            fl.show()
+            quit()
             #}}}
     #{{{ processing with integration over frequency bands
     if integration:
