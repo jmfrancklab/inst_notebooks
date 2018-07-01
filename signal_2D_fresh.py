@@ -3,13 +3,13 @@ import os
 import sys
 import matplotlib.style
 import matplotlib as mpl
-from logging import DEBUG
+#from logging import DEBUG
 
-init_logging(level=DEBUG)
+#init_logging(level=DEBUG)
 
 mpl.rcParams['image.cmap'] = 'jet'
 
-date,id_string,numchan,gain_factor = ('180628','spin_echo_exp2_cont2',1,1)
+date,id_string,numchan,gain_factor = ('180630','spin_echo_exp_block3',2,1)
 filename = date+'_'+id_string+'.h5'
 nodename = "accumulated_"+date
 ## {{{ to store a truncated file
@@ -40,10 +40,10 @@ with figlist_var() as fl:
     #s *= s.fromaxis('t',lambda x: exp(-1j*2*pi*resonance_freq)
     fl.next('Raw signal')
     fl.image(s)
-    logger.info('plotted raw signal')
+    #logger.info('plotted raw signal')
     fl.next('Filtered')
     fl.image(s_filt)
-    logger.info('plotted filtered signal')
+    #logger.info('plotted filtered signal')
     fl.next('filtered, cropped log')
     fl.image(s_filt.C.cropped_log())
-    logger.info('plotted cropped log signal')
+    #logger.info('plotted cropped log signal')

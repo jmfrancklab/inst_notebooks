@@ -8,7 +8,7 @@ from scipy import signal
 
 fl = figlist_var()
     
-def collect(date,id_string,captures,block_index):
+def collect(date,id_string,captures):
     cap_len = len(captures)
     datalist = []
     print "about to load GDS"
@@ -35,7 +35,7 @@ def collect(date,id_string,captures,block_index):
     # }}}
     s = channels
     s.labels('capture',captures)
-    s.name('block_'+str(block_index))
+    s.name('accumulated_'+date)
     s.hdf5_write(date+'_'+id_string+'.h5')
     print "name of data",s.name()
     print "units should be",s.get_units('t')
@@ -43,9 +43,9 @@ def collect(date,id_string,captures,block_index):
     return
 
 date = '180630'
-id_string = 'spin_echo_test_2'
-captures = linspace(1,6,6)
-collect(date,id_string,captures,block_index=2) # as of now, last variable is node index
+id_string = 'spin_echo_exp_block5'
+captures = linspace(1,300,300)
+collect(date,id_string,captures) # as of now, last variable is node index
                                    # and this needs to be updated with run 
 ##{{{ this is code that can be used to generate all at once,
 ##       but personally feel uncomfortable with delay between writing to node
