@@ -54,8 +54,8 @@ def acquire(date,id_string,captures):
         for x in xrange(1,cap_len+1):
             print "entering capture",x
             ch1_waveform = g.waveform(ch=1)
-#            ch2_waveform = g.waveform(ch=2)
-            data = concat([ch1_waveform],'ch').reorder('t')
+            ch2_waveform = g.waveform(ch=2)
+            data = concat([ch1_waveform,ch2_waveform],'ch').reorder('t')
             if x == 1:
                 channels = ((ndshape(data)) + ('capture',cap_len)).alloc()
                 channels.setaxis('t',data.getaxis('t')).set_units('t','s')
@@ -72,7 +72,7 @@ def acquire(date,id_string,captures):
     # }}}
     s = channels
     s.labels('capture',captures)
-    s.name('accumulated_'+date)
+    s.name('block'+date)
     s.hdf5_write(date+'_'+id_string+'.h5')
     print "name of data",s.name()
     print "units should be",s.get_units('t')
@@ -80,7 +80,7 @@ def acquire(date,id_string,captures):
     return
 #}}}
 #{{{ spin echo function
-def spin_echo(freq = 14.5e6, p90 = 2.8e-6, d1 = 50e-6, ch1_only=True):
+def spin_echo(freq = 14.5e6, p90 = 2.8e-6, d1 = 62e-6, ch1_only=True):
 #{{{ documentation
     r'''generates spin echo (90 - delay - 180) pulse sequence, defined by
     the frequency, 90 time, and delay time, and outputs on scope.
@@ -120,10 +120,6 @@ def spin_echo(freq = 14.5e6, p90 = 2.8e-6, d1 = 50e-6, ch1_only=True):
 
     pts_seq = int((pts_p90 + pts_d1 + pts_p180)/4 + 0.5)*4
 
-    freq = 14.5e6
-    p90 = 2.8e-6
-    d1 = 50.e-6
-    
     rate = freq*4
     t_seq = p90 + d1 + 2*p90
     pts_seq = int(t_seq*rate/4 + 0.5)*4
@@ -164,9 +160,9 @@ def spin_echo(freq = 14.5e6, p90 = 2.8e-6, d1 = 50e-6, ch1_only=True):
     return start_seq,end_seq,end_loadseq,start_out,end_out
 #}}}
 
-date = '180628'
-id_string = 'spin_echo_exp2'
-captures = linspace(1,10000,10000)
+date = '180630'
+id_string = 'spin_echo_test'
+captures = linspace(1,6000,6000)
 
 t1,t2,t3,t4,t5 = spin_echo()
 start_acq = timer()
