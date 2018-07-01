@@ -46,6 +46,7 @@ def acquire(date,id_string,captures):
     #}}}
     cap_len = len(captures)
     datalist = []
+    #cap_time = zeros(cap_len)
     print "about to load GDS"
     with GDS_scope() as g:
     #    g.timscal(5e-6)  #setting time scale to 500 ns/div
@@ -53,6 +54,7 @@ def acquire(date,id_string,captures):
         print "loaded GDS"
         for x in xrange(1,cap_len+1):
             print "entering capture",x
+            #cap_time[x-1] = timer() - start_acq
             ch1_waveform = g.waveform(ch=1)
             ch2_waveform = g.waveform(ch=2)
             data = concat([ch1_waveform,ch2_waveform],'ch').reorder('t')
@@ -60,6 +62,7 @@ def acquire(date,id_string,captures):
                 channels = ((ndshape(data)) + ('capture',cap_len)).alloc()
                 channels.setaxis('t',data.getaxis('t')).set_units('t','s')
                 channels.setaxis('ch',data.getaxis('ch'))
+#              channels.setaxis('cap_time',cap_time).set_units('t','s')
             channels['capture',x-1] = data
     # {{{ in case it pulled from an inactive channel
     if not isfinite(data.getaxis('t')[0]):
@@ -72,7 +75,7 @@ def acquire(date,id_string,captures):
     # }}}
     s = channels
     s.labels('capture',captures)
-    s.name('block'+date)
+    s.name('block_1')
     s.hdf5_write(date+'_'+id_string+'.h5')
     print "name of data",s.name()
     print "units should be",s.get_units('t')
@@ -161,10 +164,15 @@ def spin_echo(freq = 14.5e6, p90 = 2.8e-6, d1 = 62e-6, ch1_only=True):
 #}}}
 
 date = '180630'
-id_string = 'spin_echo_test'
-captures = linspace(1,6000,6000)
+id_string = 'spin_echo_test_2'
+captures = linspace(1,6,6)
 
+#{{{ these are used in the collect_until program
+sweep_time = 3072 #[s] - get this from xepr parameters for current sweep
+capture_time = 1518 #[s] - approx, from timing captures for desired capture length 
+#}}}
 t1,t2,t3,t4,t5 = spin_echo()
+raw_input("Start magnetic field sweep")
 start_acq = timer()
 acquire(date,id_string,captures)
 end_acq = timer()
