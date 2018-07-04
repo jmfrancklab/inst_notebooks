@@ -6,7 +6,7 @@ mpl.rcParams['image.cmap'] = 'jet'
 #{{{ SNR calculation
 ## Physical constants
 mu = 4*pi*1e-7 #[T*m/Amp]
-gH = 2*pi*gammabar_H #[Hz/T]
+gH = 2*pi*gammabar_H #[rad*Hz/T]
 kB = 1.381e-23 #[J/K]
 hbar = 6.626e-34/2/pi #[J*s]
 nuclear_spin = 0.5 #angular momentum
@@ -30,16 +30,17 @@ N = 2*55*6.02e23*1e3 #[1H spins/m^3]
 M = N*gH*omega_resonant*hbar**2*(nuclear_spin*(nuclear_spin+1))/2/kB/temperature #[Magnetization]
 ## Calculating B1, 90-time, signal
 B1 = sqrt(pulse_power*Q*mu/volume_coil/2/omega_resonant)
-tau_90 = pi/B1/gH
-print tau_90
+omega1 = B1*gH
+time90 = pi/2/omega1
+print time90
 volume_sample = pi*length*((4.93e-3-2*0.53e-3)/2)**2
 V_signal = omega_resonant*M*(B1/sqrt(pulse_power))*volume_sample*sqrt(resistance)
 #}}}
 ### Where simulation begins
-time_space = linspace(1.3e-8,2.3e-8,50) #Initially, I wanted 25,000 pulse lengths
+time_space = linspace(1e-6,5e-6,50) #Initially, I wanted 25,000 pulse lengths
 #{{{ generating the frequency axis so that centers out at resonant f
 f_center = f_resonant                   #center of freq axis
-f_len = 50                             #want 500 frequency points
+f_len = 100                             #want 500 frequency points
 f_spacer = 10.e3                        #axis spacing of 10[kHz]
 f_start = f_center - (f_len/2)*f_spacer #determine starting freq
 f_space = []
@@ -63,24 +64,21 @@ nd_offset = nddata((offset_space),('offset'))
 this_t = time_space
 this_f = freq_space 
 
-print pi/2/omega_resonant
-
 ### Most important part of simulation below --
 column = []
 signal_array = []
-M = N*gH*f_resonant*2*pi*hbar**2*(nuclear_spin*(nuclear_spin+1))/2/kB/temperature #[Magnetization]
 b1 = sqrt(pulse_power*Q*mu/volume_coil/2/(f_resonant*2*pi))
 for f in this_f:
     delta_f0 = f - f_resonant
     delta_b0 = delta_f0*2*pi/gH
-    argument = b1/sqrt(delta_b0**2 + b1**2)
+    b_rot = sqrt(delta_b0**2 + b1**2) 
+    argument = b1/b_rot
     angle = math.asin(argument)
     print angle
     column = []
     for t in this_t:
-        this_b1 = (pi/2)*math.sin(angle)/gH/t 
-        #b1 = math.sin(angle)*pi/2/gH/t
-        signal = (f_resonant*2*pi)*M*((this_b1)/sqrt(pulse_power))*volume_sample*sqrt(resistance)
+        this_b1 = b_rot*math.sin(b_rot*gH*t)
+        signal = (f_resonant*2*pi)*M*(this_b1/sqrt(pulse_power))*volume_sample*sqrt(resistance)
         column.append(signal)
         print shape(column)
         print shape(signal_array)
@@ -97,39 +95,7 @@ nd_signal.set_units('offset','Hz')
 nd_signal.name('signal')
 print nd_signal
 print "finished"
-fl.next('image')
-fl.image(nd_signal)
-fl.show()
-quit()
-quit()
-#for t in this_t:
-#    print "****",t,"****"
-#    print list(this_t).index(t)
-#    b1 = pi/t/gH
-#    #column[list(this_t).index(t)] = []
-#    column = []
-#    print shape(column)
-#    for f in this_f:
-#        M = N*gH*f*2*pi*hbar**2*(nuclear_spin*(nuclear_spin+1))/2/kB/temperature #[Magnetization]
-#        signal = (f*2*pi)*M*(b1/sqrt(pulse_power))*volume_sample*sqrt(resistance)
-#        #column[list(this_t).index(t)].append(signal)
-#        column.append(signal)
-#    #signal_array[list(this_f).index(f)].append(column)
-#    signal_array.append(column)
-#    print "My printing"
-#    print shape(column)
-#    print shape(signal_array)
-#print shape(signal_array)
-nd_signal = nddata(array(signal_array),['90 time','offset'])
-nd_signal.setaxis('90 time',nd_time90.getaxis('90 time'))
-nd_signal.setaxis('offset',nd_offset.getaxis('offset'))
-print nd_signal
-raw_input('proceed')
-nd_signal.set_units('90 time','s')
-nd_signal.set_units('offset','Hz')
-nd_signal.name('signal')
-print nd_signal
-print "finished"
+nd_signal.reorder('90 time')
 fl.next('image')
 fl.image(nd_signal)
 fl.show()
