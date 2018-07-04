@@ -1,7 +1,9 @@
 from pyspecdata import *
+import pprint
+pp = pprint.PrettyPrinter(indent=2)
 fl = figlist_var()
 mpl.rcParams['image.cmap'] = 'jet'
-#{{{ Carried over from NMR SNR calculations -- can be reduced/cleaned up
+#{{{ SNR calculation
 ## Physical constants
 mu = 4*pi*1e-7 #[T*m/Amp]
 gH = 2*pi*gammabar_H #[Hz/T]
@@ -34,24 +36,25 @@ V_signal = omega_resonant*M*(B1/sqrt(pulse_power))*volume_sample*sqrt(resistance
 #}}}
 ### Where simulation begins
 time_space = linspace(1e-6,9e-6,25) #Initially, I wanted 25,000 pulse lengths
-freq_space = linspace(-1e6*2*pi,1e6*2*pi,25) #and 6,000 offset frequencies
+freq_space = linspace(-1e6*2*pi,1e6*2*pi,50) #and 6,000 offset frequencies
 f_array = omega_resonant - freq_space
 nd_time = nddata((time_space),('pulse_length'))
 nd_omega = nddata((f_array/2/pi),('offset'))
-# Practice axes - save for troubleshooting
+#{{{ Practice axes - save for troubleshooting
 #this_t = linspace(1,26,25)
 #this_f = linspace(-5,5,60)
 # Practice axes, but more realistic
 #this_t = linspace(1e-6,9e-6,25)
 #this_f = linspace(-1e6,1e6,60)
+#}}}
 this_t = time_space
 this_f = f_array
 
 column = []
-for x in xrange(len(this_t)):
-    empty_array = []
-    column.append(empty_array)
-print shape(column)
+#for x in xrange(len(this_t)):
+#    empty_array = []
+#    column.append(empty_array)
+#print shape(column)
 
 ### Most important part of simulation below --
 
@@ -60,26 +63,37 @@ for t in this_t:
     print "****",t,"****"
     print list(this_t).index(t) #this is cool
     b1 = pi/t/gH
-    column[list(this_t).index(t)] = []
+    #column[list(this_t).index(t)] = []
+    column = []
     print shape(column)
     for f in this_f:
         signal = (omega_resonant-f)*M*(b1/sqrt(pulse_power))*volume_sample*sqrt(resistance)
-        column[list(this_t).index(t)].append(signal)
+        #column[list(this_t).index(t)].append(signal)
+        column.append(signal)
     #signal_array[list(this_f).index(f)].append(column)
-        signal_array.append(column)
+    signal_array.append(column)
+    print "My printing"
+    print shape(column)
+    print shape(signal_array)
+    pp.pprint(signal_array)
 print shape(signal_array) # I think this is what I want...
-
-signal_nd = nddata(array(signal_array),['signal','90 time','offset'])
-
+signal_nd = nddata(array(signal_array),['90 time','offset'])
 signal_nd.setaxis('90 time',nd_time.getaxis('pulse_length'))
-signal_nd.setaxis('offset',nd_omega.getaxis('offset'))
+signal_nd.setaxis('offset',14.5e6-nd_omega.getaxis('offset'))
+print signal_nd
+print "finished"
+quit()
 signal_nd.set_units('90 time','s')
 signal_nd.set_units('offset','Hz')
 signal_nd.name('signal')
 
 print ndshape(signal_nd)
+fl.next('signal,time,offset')
+fl.image(signal_nd)
 signal_nd.reorder('offset')
 print ndshape(signal_nd)
+fl.next('offset,signal,time')
+fl.image(signal_nd)
 
 
 #fl.next('Signal simulation')
@@ -88,6 +102,6 @@ print ndshape(signal_nd)
 #fl.next('contour')
 #fl.plot(signal_nd)
 
-#fl.show()
+fl.show()
 
 
