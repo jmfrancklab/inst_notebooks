@@ -1,5 +1,6 @@
 from pyspecdata import *
 fl = figlist_var()
+mpl.rcParams['image.cmap'] = 'jet'
 #{{{ Carried over from NMR SNR calculations -- can be reduced/cleaned up
 ## Physical constants
 mu = 4*pi*1e-7 #[T*m/Amp]
@@ -36,7 +37,7 @@ time_space = linspace(1e-6,9e-6,25) #Initially, I wanted 25,000 pulse lengths
 freq_space = linspace(-1e6*2*pi,1e6*2*pi,25) #and 6,000 offset frequencies
 f_array = omega_resonant - freq_space
 nd_time = nddata((time_space),('pulse_length'))
-nd_omega = nddata((f_array),('offset'))
+nd_omega = nddata((f_array/2/pi),('offset'))
 # Practice axes - save for troubleshooting
 #this_t = linspace(1,26,25)
 #this_f = linspace(-5,5,60)
@@ -68,12 +69,25 @@ for t in this_t:
         signal_array.append(column)
 print shape(signal_array) # I think this is what I want...
 
-signal_nd = nddata(array(signal_array),['signal','pulse_time','freq'])
+signal_nd = nddata(array(signal_array),['signal','90 time','offset'])
 
-signal_nd.setaxis('pulse_time',nd_time.getaxis('pulse_length'))
-signal_nd.setaxis('freq',nd_omega.getaxis('offset'))
+signal_nd.setaxis('90 time',nd_time.getaxis('pulse_length'))
+signal_nd.setaxis('offset',nd_omega.getaxis('offset'))
+signal_nd.set_units('90 time','s')
+signal_nd.set_units('offset','Hz')
+signal_nd.name('signal')
 
-fl.next('Test')
-fl.image(signal_nd)
+print ndshape(signal_nd)
+signal_nd.reorder('offset')
+print ndshape(signal_nd)
 
-fl.show()
+
+#fl.next('Signal simulation')
+#fl.image(signal_nd, x_first = True)
+#signal_nd.contour
+#fl.next('contour')
+#fl.plot(signal_nd)
+
+#fl.show()
+
+
