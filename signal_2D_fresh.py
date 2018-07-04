@@ -12,7 +12,7 @@ fl = figlist_var()
 # for JF - how can I pull the dimension of just one axis of an nddata?
 
 average = False #Make true to calculate average in time domain 
-reference = True #For calculating carrier frequency from reference channel
+reference = False #For calculating carrier frequency from reference channel
 for date,id_string,numchan,gain_factor,captures in [
         #{{{ test for signal on 180630
     ('180630','spin_echo_exp_block1',2,1,6000), 
@@ -43,6 +43,11 @@ for date,id_string,numchan,gain_factor,captures in [
         s = nddata_hdf5(filename+'/'+nodename,
             directory=getDATADIR(exp_type='test_equip'))['ch',1]
         s.set_units('t','s')
+        s.name('Volts')
+        fl.next('Spin Echo')
+        fl.plot(s['capture',1],alpha=0.3)
+        fl.show()
+        quit()
         pulse_threshold = 0.5
         pulse_slice = (s['capture',-1]).contiguous(lambda x: x>pulse_threshold*x.data.max())
         pulse_slice = pulse_slice[0,:]
@@ -78,20 +83,20 @@ for date,id_string,numchan,gain_factor,captures in [
             s.ft('t',shift=True)
             s = s['t':(0,15.5e6)]
             s.setaxis('t',lambda x: x - 14.5e6 - 16.95e3)
-            #fl.next('FT of raw signal')
-            #fl.image(abs(s))
-            #s_filt = s.C
-            #s_filt['t':(None,-1e6)] = 0
+            fl.next('FT of raw signal')
+            fl.image(abs(s))
+            s_filt = s.C
+            s_filt['t':(None,-1e6)] = 0
             s.ift('t')
-            #s_filt.ift('t')
-            #s *= s.fromaxis('t',lambda x: exp(-1j*2*pi*resonance_freq)
-            #fl.next('Raw signal')
-            #fl.image(s)
-            #logger.info('plotted raw signal')
-            #fl.next('Filtered')
-            #fl.image(s_filt)
-            #logger.info('plotted filtered signal')
-            #fl.next('filtered, cropped log')
-            #fl.image(s_filt.C.cropped_log())
-            #logger.info('plotted cropped log signal')
+            s_filt.ift('t')
+            s *= s.fromaxis('t',lambda x: exp(-1j*2*pi*resonance_freq))
+            fl.next('Raw signal')
+            fl.image(s)
+            logger.info('plotted raw signal')
+            fl.next('Filtered')
+            fl.image(s_filt)
+            logger.info('plotted filtered signal')
+            fl.next('filtered, cropped log')
+            fl.image(s_filt.C.cropped_log())
+            logger.info('plotted cropped log signal')
 fl.show()
