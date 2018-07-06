@@ -9,28 +9,9 @@ with figlist_var(filename='chirp.pdf') as fl:
 #    fl.next('$S_{11}$ : phase', legend=True)
     expno=0
     for date, id_string,corrected_volt in [
-            #('180628','chirp_probe_in_magnet',True), #had splitter on - used term
-            #('180628','chirp_probe_in_magnet_2',True), #removed splitter - how it should be
-            ('180628','chirp_probe_and_sample_in_magnet',True), #removed splitter - how it should be
-            #('180702','chirp_probe_in_magnet_off',True), #removed splitter - how it should be
-            #('180702','chirp_probe_sample_in_magnet_off',True), #removed splitter - how it should be
-            #('180702','chirp_probe_in_magnet_off_EPRon',True), #removed splitter - how it should be
-            #('180702','chirp_probe_sample_in_magnet_off_EPRon',True), #removed splitter - how it should be
-            #{{{ old Sinkovits tests
-####            ('180616','chirp_pi',True),
-###            ('180616','chirp_pi_open',True),
-###            ('180616','chirp_pi_short',True),
-###            ('180616','chirp_control_open',True),
-###            ('180616','chirp_control_short',True),
-####            ('180617','chirp_pidi_750mVpp',True),
-####            ('180617','chirp_pidi_open_750mVpp',True),
-####            ('180617','chirp_pidi_short_750mVpp',True),
-####            ('180617','chirp_pidi_3Vpp',True),
-####            ('180617','chirp_pidi_open_3Vpp',True),
-####            ('180617','chirp_pidi_short_3Vpp',True),
-###            ('180617','chirp_pidi_open_300mVpp',True),
-###            ('180617','chirp_pidi_short_300mVpp',True),
-#}}}
+            #('180706','chirp_probe_magnet',True),   # B_0 = 3399.55 G, no sample
+            ('180706','chirp_probes_magnet',True),   # B_0 = 3399.55 G, sample   
+            ('180706','chirp_probes_magnet_2',True),   # B_0 = 3410.55 G, sample   
             ]:
 #{{{ finding file
         try:
