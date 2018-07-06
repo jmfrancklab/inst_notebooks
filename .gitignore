@@ -7,3 +7,4 @@
 .gitignore~
 *.h5
 ipynb/auto_figures/
+ipynb/*.pdf
