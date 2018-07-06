@@ -21,6 +21,7 @@ omega_resonant = f_resonant*2*pi
 df = (14.9353e6 - 14.0719e6) #[Hz]
 Q = f_resonant/df
 print Q
+quit()
 ## Other parameters
 pulse_power = 51.87 #[W]
 temperature = 290 #[K]

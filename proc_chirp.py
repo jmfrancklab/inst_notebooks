@@ -9,9 +9,13 @@ with figlist_var(filename='chirp.pdf') as fl:
 #    fl.next('$S_{11}$ : phase', legend=True)
     expno=0
     for date, id_string,corrected_volt in [
-            ('180628','chirp_probe_in_magnet',True), #had splitter on - used term
-            ('180628','chirp_probe_in_magnet_2',True), #removed splitter - how it should be
+            #('180628','chirp_probe_in_magnet',True), #had splitter on - used term
+            #('180628','chirp_probe_in_magnet_2',True), #removed splitter - how it should be
             ('180628','chirp_probe_and_sample_in_magnet',True), #removed splitter - how it should be
+            #('180702','chirp_probe_in_magnet_off',True), #removed splitter - how it should be
+            #('180702','chirp_probe_sample_in_magnet_off',True), #removed splitter - how it should be
+            #('180702','chirp_probe_in_magnet_off_EPRon',True), #removed splitter - how it should be
+            #('180702','chirp_probe_sample_in_magnet_off_EPRon',True), #removed splitter - how it should be
             #{{{ old Sinkovits tests
 ####            ('180616','chirp_pi',True),
 ###            ('180616','chirp_pi_open',True),
@@ -69,7 +73,7 @@ with figlist_var(filename='chirp.pdf') as fl:
         d.rename('t','f').set_units('f','Hz')
         fl.next('$S_{11}$ : analytic amplitude')
         ratio = d['ch',1]/d['ch',0]
-        plot_params = dict(alpha=0.1,
+        plot_params = dict(alpha=0.4,
                 markersize=2,
                 label='%s'%label
                 )
