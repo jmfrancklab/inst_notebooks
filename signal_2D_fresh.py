@@ -80,23 +80,31 @@ for date,id_string,numchan,gain_factor,captures in [
             fl.plot(q.imag,alpha=0.25,label=id_string)
         #}}}
         if not average:
+            print "print 1"
+            print ndshape(s)
             s.ft('t',shift=True)
             s = s['t':(0,15.5e6)]
+            print "print 2"
+            print ndshape(s)
             s.setaxis('t',lambda x: x - 14.5e6 - 16.95e3)
-            fl.next('FT of raw signal')
-            fl.image(abs(s))
+            #fl.next('FT of raw signal')
+            #fl.image(abs(s))
             s_filt = s.C
             s_filt['t':(None,-1e6)] = 0
+            print "print 3"
+            print ndshape(s_filt)
             s.ift('t')
             s_filt.ift('t')
-            s *= s.fromaxis('t',lambda x: exp(-1j*2*pi*resonance_freq))
-            fl.next('Raw signal')
-            fl.image(s)
-            logger.info('plotted raw signal')
-            fl.next('Filtered')
-            fl.image(s_filt)
-            logger.info('plotted filtered signal')
-            fl.next('filtered, cropped log')
-            fl.image(s_filt.C.cropped_log())
-            logger.info('plotted cropped log signal')
+            print "print 4"
+            print ndshape(s_filt)
+            #s *= s.fromaxis('t',lambda x: exp(-1j*2*pi*resonance_freq))
+            #fl.next('Raw signal')
+            #fl.image(s)
+            #logger.info('plotted raw signal')
+            #fl.next('Filtered')
+            #fl.image(s_filt)
+            #logger.info('plotted filtered signal')
+            #fl.next('filtered, cropped log')
+            #fl.image(s_filt.C.cropped_log())
+            #logger.info('plotted cropped log signal')
 fl.show()

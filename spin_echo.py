@@ -83,7 +83,7 @@ def acquire(date,id_string,captures):
     return
 #}}}
 #{{{ spin echo function
-def spin_echo(freq = 14.5e6, p90 = 2.8e-6, d1 = 62e-6, ch1_only=True):
+def spin_echo(freq = 14.445e6, p90 = 2.27e-6, d1 = 63.794e-6, ch1_only=True):
 #{{{ documentation
     r'''generates spin echo (90 - delay - 180) pulse sequence, defined by
     the frequency, 90 time, and delay time, and outputs on scope.
@@ -112,30 +112,23 @@ def spin_echo(freq = 14.5e6, p90 = 2.8e-6, d1 = 62e-6, ch1_only=True):
     #}}}
     start_seq = timer()
     #{{{ generating sequence array; want to do this once 
-    rate = freq*4
-    t_seq = p90 + d1 + 2*p90
-    pts_seq = int(t_seq*rate/4 + 0.5)*4
+    rate = freq*4                                           # rate set on AFG
+    t_seq = p90 + d1 + 2*p90                                # time length of entire pulse sequence
+    pts_seq = int(t_seq*rate/4 + 0.5)*4                     # no. points needed for this time length at given rate
     
-    t_sp = t_seq/pts_seq
-    pts_p90 = int(p90/t_sp/4 + 0.5)*4
-    pts_d1 = int(d1/t_sp/4 + 0.5)*4
-    pts_p180 = int(2*p90/t_sp/4 + 0.5)*4
+    t_sp = t_seq/pts_seq                                    # time between each point in sequence
+    pts_p90 = int(p90/t_sp/4 + 0.5)*4                       # no. points needed for 90 pulse (fit to integer of 4)
+    pts_d1 = int(d1/t_sp/4 + 0.5)*4                         # no. points needed for tau (90-180 delay) (int of 4)
+    pts_p180 = int(2*p90/t_sp/4 + 0.5)*4                    # no. points needed for 180 pulse (int of 4)
 
-    pts_seq = int((pts_p90 + pts_d1 + pts_p180)/4 + 0.5)*4
+    pts_seq = int((pts_p90 + pts_d1 + pts_p180)/4 + 0.5)*4  # no. points for entire sequence as int of 4 
 
-    rate = freq*4
-    t_seq = p90 + d1 + 2*p90
-    pts_seq = int(t_seq*rate/4 + 0.5)*4
-    
-    t_sp = t_seq/pts_seq
-    pts_p90 = int(p90/t_sp/4 + 0.5)*4
-    pts_d1 = int(d1/t_sp/4 + 0.5)*4
-    pts_p180 = int(2*p90/t_sp/4 + 0.5)*4
-
-    pts_seq = int((pts_p90 + pts_d1 + pts_p180)/4 + 0.5)*4
-    
-    assert pts_seq < 4097
-    
+    assert pts_seq < 4097                                   # no. points total must be less than 4097
+    print t_sp
+    print pts_p90
+    print pts_d1
+    print pts_p180
+    print pts_seq
     y = zeros(pts_seq)
     y[0::4] = 0
     y[1::4] = 1
