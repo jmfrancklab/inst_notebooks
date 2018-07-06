@@ -107,43 +107,61 @@ power_dens_CH2_dict = {}
 
 # {{{ call files
 for date,id_string,numchan,gain_factor in [
-        ('180628','noise_AFG_off_amp_off_sample_in_magnet_on',1,gain_factor_dcasc12),
-        ('180628','noise_AFG_off_amp_off_sample_in_magnet_off',1,gain_factor_dcasc12),
+#        ('180625','network_no_diodes_2p5G',2,gain_factor_dcasc12),
+#        ('180625','network_no_diodes_1G',2,gain_factor_dcasc12),
+#        ('180625','network_no_diodes_500M',2,gain_factor_dcasc12#),
+#        ('180625','network_no_diodes_250M',2,gain_factor_dcasc12),
+#        ('180625','network_no_diodes_100M',2,gain_factor_dcasc12),
+        ('180625','network_2p5G',2,gain_factor_dcasc12),
+        ('180625','network_22MHz_2p5G_2',2,gain_factor_dcasc12),
+        ('180625','network_1G',2,gain_factor_dcasc12),
+        ('180625','network_22MHz_1G_2',2,gain_factor_dcasc12),
+        ('180625','network_500M',2,gain_factor_dcasc12),
+        ('180625','network_22MHz_500M_2',2,gain_factor_dcasc12),
+        ('180625','network_250M',2,gain_factor_dcasc12),
+        ('180625','network_22MHz_250M_2',2,gain_factor_dcasc12),
+        ('180625','network_100M',2,gain_factor_dcasc12),
+        ('180625','network_22MHz_100M_2',2,gain_factor_dcasc12),
+#        ('180625','network_22MHz_no_diodes_2p5G',2,gain_factor_dcasc12),
+#        ('180625','network_22MHz_no_diodes_1G',2,gain_factor_dcasc12),
+#        ('180625','network_22MHz_no_diodes_500M',2,gain_factor_dcasc12),
+#        ('180625','network_22MHz_no_diodes_250M',2,gain_factor_dcasc12),
+#        ('180625','network_22MHz_no_diodes_100M',2,gain_factor_dcasc12),
+#        ('180625','network_22MHz_2p5G_2',2,gain_factor_dcasc12),
+#        ('180625','network_22MHz_1G_2',2,gain_factor_dcasc12),
+#        ('180625','network_22MHz_500M_2',2,gain_factor_dcasc12),
+#        ('180625','network_22MHz_250M_2',2,gain_factor_dcasc12),
+#        ('180625','network_22MHz_100M_2',2,gain_factor_dcasc12),
+#        ('180625','network_22MHz_no_diodes_2p5G_2',2,gain_factor_dcasc12),
+#        ('180625','network_22MHz_no_diodes_1G_2',2,gain_factor_dcasc12),
+#        ('180625','network_22MHz_no_diodes_500M_2',2,gain_factor_dcasc12),
+#        ('180625','network_22MHz_no_diodes_250M_2',2,gain_factor_dcasc12),
+#        ('180625','network_22MHz_no_diodes_100M_2',2,gain_factor_dcasc12),
 #    ('180526','AFG_terminator_2',2,1.0),#   leave gain set to 1 so we can get the 
                                          #   absolute number here (not input-referred)
     ]:
     # }}}
     # {{{ plot labels
-    if id_string == 'pmdpx_casc12':
-        label = 'Cascade + Duplexer'
-    elif id_string == 'probe_pmdpx_casc12':
-        label = 'Cascade + Duplexer + Probe'
-    elif id_string == 'box_probe_pmdpx_casc12':
-        label = 'Cascade + Duplexer + Probe + Diode Box'
-    elif id_string == 'txbox_probe_pmdpx_casc12':
-        label = 'Cascade + Duplexer + Probe + TX Diode Box'
-    elif id_string == 'amp_box_probe_pmdpx_casc12':
-        label = 'Cascade + Duplexer + Probe + Diode Box + ENI'
-    elif id_string == 'amp_txbox_probe_pmdpx_casc12':
-        label = 'Cascade + Duplexer + Probe + TX Diode Box + ENI'
-    elif id_string == 'network_100M':
-        label = 'Network noise, 100M Samples per second'
-    elif id_string == 'network_2p5G':
-        label = 'Network noise, 2.5G Samples per second'
-    elif id_string == 'network_22MHz_2p5G':
-        label = 'Network noise, 22 MHz filter, 2.5G Samples per second'
+    if id_string == 'network_2p5G':
+        label = 'Noise, 2.5 GSa/sec'
     elif id_string == 'network_22MHz_2p5G_2':
-        label = 'Network noise, 22 MHz filter, elapsed; 2.5G Samples per second'
-    elif id_string == 'network_22MHz_500M':
-        label = 'Network noise, 22 MHz filter, 500M Samples per second'
+        label = 'Noise, 22 MHz filter, 2.5 GSa/sec'
+    elif id_string == 'network_1G':
+        label = 'Noise, 1 GSa/sec'
+    elif id_string == 'network_22MHz_1G_2':
+        label = 'Noise, 22 MHz filter, 1 GSa/sec'
+    elif id_string == 'network_500M':
+        label = 'Noise, 500 MSa/sec'
     elif id_string == 'network_22MHz_500M_2':
-        label = 'Network noise, 22 MHz filter, elapsed; 500M Samples per second'
+        label = 'Noise, 22 MHz filter, 500 MSa/sec'
+    elif id_string == 'network_250M':
+        label = 'Noise, 250 MSa/sec'
     elif id_string == 'network_22MHz_250M_2':
-        label = 'Network noise, 22 MHz filter, elapsed; 250M Samples per second'
-    elif id_string == 'network_22MHz_100M':
-        label = 'Network noise, 22 MHz filter, 100M Samples per second'
+        label = 'Noise, 22 MHz filter, 250 MSa/sec'
+    elif id_string == 'network_100M':
+        label = 'Noise, 100 MSa/sec'
     elif id_string == 'network_22MHz_100M_2':
-        label = 'Network noise, 22 MHz filter, elapsed; 100M Samples per second'
+        label = 'Noise, 22 MHz filter, 100 MSa/sec'
     else:
         label = date+id_string 
     #label += ' (g=%0.2f)'%gain_factor
@@ -180,7 +198,7 @@ for date,id_string,numchan,gain_factor in [
 #            fl.plot(s['ch',0], alpha=0.35, label="%s"%label, plottype='semilogy')
 #            axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
 #        elif '22MHz' not in id_string: 
-            fl.next('Power Spectral Density (Input-referred) (convolution = %0.1e Hz)'%width)
+            fl.next('Network Noise Power Spectral Density (Input-referred) (convolution = %0.1e Hz)'%width)
             s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
             fl.plot(s['ch',0], alpha=0.35, label="%s"%label, plottype='semilogy')
             axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
