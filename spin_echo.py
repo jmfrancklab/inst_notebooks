@@ -83,7 +83,7 @@ def acquire(date,id_string,captures):
     return
 #}}}
 #{{{ spin echo function with phase cycling capability
-def spin_echo(freq = 14.4917e6, p90 = 2.592e-6, d1 = 63.794e-6, T1 = 200e-3, max_delay = True, complex_exp = True, ph_cyc = True):
+def spin_echo(avg_captures, freq = 14.4917e6, p90 = 2.592e-6, d1 = 63.794e-6, T1 = 200e-3, max_delay = True, complex_exp = True, ph_cyc = True):
 #{{{ documentation
     r'''generates spin echo (90 - delay - 180) pulse sequence, defined by
     the frequency, 90 time, and delay time, and outputs on scope.
@@ -200,52 +200,52 @@ def spin_echo(freq = 14.4917e6, p90 = 2.592e-6, d1 = 63.794e-6, T1 = 200e-3, max
             a[this_ch].ampl = 10.
             #{{{ for phase cycling
             start_ph = timer()
-            if ph_cyc:
-                for ph2 in xrange(0,4,2):
-                    for ph1 in xrange(4):
-                        y_ph = y.copy()
-                        y_ph[int(points_90+points_d1+1):-2] *= exp(1j*pi/2*ph2)
-                        y_ph[1:int(points_90)] *= exp(1j*pi/2*ph1)
-                        a[this_ch].ampl = 20.e-3
-                        a[this_ch].digital_ndarray(y_ph, rate=rate)
-                        a[this_ch].burst = True
-                        a[this_ch].ampl = 10.
-                        time.sleep(d_interseq)
-                        with GDS_scope() as g:
-                            ch1_wf = g.waveform(ch=1)
-                            ch2_wf = g.waveform(ch=2)
-                        this_capture = concat([ch1_wf,ch2_wf],'ch').reorder('t')
-                        print this_capture
-                        print ndshape(this_capture)
-                        if (ph1 == 0 + ph2 == 0):
-                            data = ndshape([4,2,25000,2],['ph1','ph2','t','ch']).alloc()
-                            data.setaxis('t',this_capture.getaxis('t')).set_units('t','s')
-                            data.setaxis('ch',this_capture.getaxis('ch'))
-                        if ph2 == 2:
-                            data['ph1',int(ph1)]['ph2',1] = this_capture
-                        else:
-                            data['ph1',int(ph1)]['ph2',int(ph2)] = this_capture
-                        print "**********"
-                        print "ph1",ph1
-                        print "ph2",ph2
-                        print "**********"
-                        data.setaxis('ph1',int(ph1))
-                        data.setaxis('ph2',int(ph2))
-                data.name("this_capture")
-                data.hdf5_write(date+"_"+id_string+".h5")
-                end_ph = timer()
+            for x in xrange(averages):
+                if ph_cyc:
+                    for ph2 in xrange(0,4,2):
+                        for ph1 in xrange(4):
+                            y_ph = y.copy()
+                            y_ph[int(points_90+points_d1+1):-2] *= exp(1j*pi/2*ph2)
+                            y_ph[1:int(points_90)] *= exp(1j*pi/2*ph1)
+                            a[this_ch].ampl = 20.e-3
+                            a[this_ch].digital_ndarray(y_ph, rate=rate)
+                            a[this_ch].burst = True
+                            a[this_ch].ampl = 10.
+                            time.sleep(d_interseq)
+                            with GDS_scope() as g:
+                                ch1_wf = g.waveform(ch=1)
+                                ch2_wf = g.waveform(ch=2)
+                            this_capture = concat([ch1_wf,ch2_wf],'ch').reorder('t')
+                            print this_capture
+                            print ndshape(this_capture)
+                            if (ph1 == 0 + ph2 == 0):
+                                data = ndshape([averages,4,2,25000,2],['average','ph1','ph2','t','ch']).alloc()
+                                data.setaxis('t',this_capture.getaxis('t')).set_units('t','s')
+                                data.setaxis('ch',this_capture.getaxis('ch'))
+                            if ph2 == 2:
+                                data['average',x]['ph1',int(ph1)]['ph2',1] = this_capture
+                            else:
+                                data['average',x]['ph1',int(ph1)]['ph2',int(ph2)] = this_capture
+                            print "**********"
+                            print "ph1",ph1
+                            print "ph2",ph2
+                            print "**********"
+                            data.setaxis('average',int(x)+1)
+                            data.setaxis('ph1',int(ph1))
+                            data.setaxis('ph2',int(ph2))
+    data.name("this_capture")
+    data.hdf5_write(date+"_"+id_string+".h5")
                 #}}}
+    end_ph = timer()
     return start_ph,end_ph 
 #}}}
 
 date = '180708'
 id_string = 'spin_echo_test'
-t1,t2 = spin_echo()
+averages =2 
+t1,t2 = spin_echo(avg_captures = averages)
 #raw_input("Start magnetic field sweep")
 #start_acq = timer()
 #acquire(date,id_string,captures)
 #end_acq = timer()
-print "Time to generate sequence array:",t2-t1,"s"
-#print "Time to generate + load sequence into AFG:",t3-t1,"s"
-#print "Time to output sequence:",t5-t4,"s"
-#print "Time for captures:",end_acq - start_acq,"s"
+print "Time:",t2-t1,"s"
