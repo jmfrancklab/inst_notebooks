@@ -112,31 +112,36 @@ for date,id_string,numchan,gain_factor in [
 #        ('180625','network_no_diodes_500M',2,gain_factor_dcasc12#),
 #        ('180625','network_no_diodes_250M',2,gain_factor_dcasc12),
 #        ('180625','network_no_diodes_100M',2,gain_factor_dcasc12),
-        ('180625','network_2p5G',2,gain_factor_dcasc12),
-        ('180625','network_22MHz_2p5G_2',2,gain_factor_dcasc12),
-        ('180625','network_1G',2,gain_factor_dcasc12),
-        ('180625','network_22MHz_1G_2',2,gain_factor_dcasc12),
-        ('180625','network_500M',2,gain_factor_dcasc12),
-        ('180625','network_22MHz_500M_2',2,gain_factor_dcasc12),
-        ('180625','network_250M',2,gain_factor_dcasc12),
-        ('180625','network_22MHz_250M_2',2,gain_factor_dcasc12),
-        ('180625','network_100M',2,gain_factor_dcasc12),
-        ('180625','network_22MHz_100M_2',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_no_diodes_2p5G',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_no_diodes_1G',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_no_diodes_500M',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_no_diodes_250M',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_no_diodes_100M',2,gain_factor_dcasc12),
+#        ('180625','network_2p5G',2,gain_factor_dcasc12),
 #        ('180625','network_22MHz_2p5G_2',2,gain_factor_dcasc12),
+#        ('180625','network_1G',2,gain_factor_dcasc12),
 #        ('180625','network_22MHz_1G_2',2,gain_factor_dcasc12),
+#        ('180625','network_500M',2,gain_factor_dcasc12),
 #        ('180625','network_22MHz_500M_2',2,gain_factor_dcasc12),
+#        ('180625','network_250M',2,gain_factor_dcasc12),
 #        ('180625','network_22MHz_250M_2',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_100M_2',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_no_diodes_2p5G_2',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_no_diodes_1G_2',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_no_diodes_500M_2',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_no_diodes_250M_2',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_no_diodes_100M_2',2,gain_factor_dcasc12),
+#        ('180625','network_100M',2,gain_factor_dcasc12),
+        ('180625','network_22MHz_100M',2,gain_factor_dcasc12),
+        ('180625','network_22MHz_100M_2',2,gain_factor_dcasc12),
+#        ('180709','network_1',2,gain_factor_dcasc12),
+#        ('180709','network_2',2,gain_factor_dcasc12),
+#        ('180709','network_3',2,gain_factor_dcasc12),
+#        ('180709','network_4',2,gain_factor_dcasc12),
+        #('180709','network_5',2,gain_factor_dcasc12),
+#        ('180709','network_6',2,gain_factor_dcasc12),
+#        ('180709','network_7',2,gain_factor_dcasc12),
+#        ('180709','network_8',2,gain_factor_dcasc12),
+#        ('180709','network_9',2,gain_factor_dcasc12),
+#        ('180709','network_9_2',2,gain_factor_dcasc12),
+        ('180709','network_9_3',2,gain_factor_dcasc12),
+#        ('180709','control_pulse',2,1.0),
+        ('180709','control_pulse_3',2,1.0),
+#        ('180709','control_pulse_22MHz',2,1.0),
+#        ('180709','control_pulse_22MHz_2',2,1.0),
+#        ('180709','control_pulse_22MHz_3',2,1.0),
+#        ('180709','control_pulse_22MHz_4',2,1.0),
+#        ('180709','control_pulse_22MHz_delay',2,1.0),
+        ('180709','control_pulse_22MHz_delay_zoom',2,1.0),
 #    ('180526','AFG_terminator_2',2,1.0),#   leave gain set to 1 so we can get the 
                                          #   absolute number here (not input-referred)
     ]:
@@ -170,14 +175,24 @@ for date,id_string,numchan,gain_factor in [
     print "FILE LABEL IS:\t\t",label
     # {{{ calculate positive frequency noise power spectral density
     s = load_noise(date,id_string,captures)
+    #fl.next('plot')
+    #fl.plot(s)
+    #fl.next('new plot')
+    #fl.plot(s)
+    u = s.C['t':(161e-6,None)]
     acq_time = diff(s.getaxis('t')[r_[0,-1]])[0]
+    u_acq_time = diff(u.getaxis('t')[r_[0,-1]])[0]
+    print acq_time
+    print "\t"
+    print u_acq_time
+    print "\t"
     print "ACQUISITION TIME IS:\t",acq_time
     print "DWELL TIME IS:      \t",diff(s.getaxis('t')[r_[0,1]])[0]
     s.ft('t',shift=True)
     s = abs(s)**2         #mod square
     s.mean('capture', return_error=False)
     width = 1e6
-    s.convolve('t',width) # we do this before chopping things up, since it uses
+#    s.convolve('t',width) # we do this before chopping things up, since it uses
     #                      fft and assumes that the signal is periodic (at this
     #                      point, the signal at both ends is very close to
     #                      zero, so that's good
@@ -191,6 +206,14 @@ for date,id_string,numchan,gain_factor in [
     #                       now we have input-referred power
     # }}}
     #{{{ processing without integration over frequency band
+    u.ft('t',shift=True)
+    u = abs(u)**2
+    u.mean('capture', return_error = False)
+    u = abs(u)['t':(0,None)]
+    u /= 50.
+    u /= u_acq_time
+    u *= 2
+    u /= gain_factor
     if not integration:
 #        if '22MHz' in id_string: 
 #            fl.next('Low-pass Power Spectral Density (Input-referred) (convolution = %0.1e Hz)'%width)
@@ -201,6 +224,10 @@ for date,id_string,numchan,gain_factor in [
             fl.next('Network Noise Power Spectral Density (Input-referred) (convolution = %0.1e Hz)'%width)
             s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
             fl.plot(s['ch',0], alpha=0.35, label="%s"%label, plottype='semilogy')
+            axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
+            fl.next('Network Noise (Dead time) Power Spectral Density (Input-referred) (convolution = %0.1e Hz)'%width)
+            u.name('$S_{xx}(\\nu)$').set_units('W/Hz')
+            fl.plot(u['ch',0], alpha=0.35, label="%s"%label, plottype='semilogy')
             axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
             #}}}
     #{{{ processing with integration over frequency bands
