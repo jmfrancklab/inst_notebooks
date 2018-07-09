@@ -205,39 +205,37 @@ def spin_echo(avg_captures, freq = 14.4247e6, p90 = 2.63e-6, d1 = 63.794e-6, T1 
                     for ph2 in xrange(0,4,2):
                         for ph1 in xrange(4):
                             y_ph = y.copy()
-                            y_ph[int(points_90+points_d1+1):-2] *= exp(1j*pi/2*ph2)
                             y_ph[1:int(points_90)] *= exp(1j*pi/2*ph1)
+                            y_ph[int(points_90+points_d1+1):-2] *= exp(1j*pi/2*ph2)
                             a[this_ch].ampl = 20.e-3
-                            a[this_ch].digital_ndarray(y_ph, rate=rate)
+                            a[this_ch].digital_ndarray(y_ph.real, rate=rate)
                             a[this_ch].burst = True
                             a[this_ch].ampl = 10.
+                            raw_input("continue")
                             time.sleep(d_interseq)
                             print "Acquiring..."
                             with GDS_scope() as g:
                                 ch1_wf = g.waveform(ch=1)
                                 ch2_wf = g.waveform(ch=2)
-                            this_capture = concat([ch1_wf,ch2_wf],'ch').reorder('t')
-                            print this_capture
-                            print ndshape(this_capture)
-                            if (ph1 == 0 + ph2 == 0):
-                                data = ndshape([averages,4,2,25000,2],['average','ph1','ph2','t','ch']).alloc()
-                                data.setaxis('t',this_capture.getaxis('t')).set_units('t','s')
-                                data.setaxis('ch',this_capture.getaxis('ch'))
-                            if ph2 == 2:
-                                data['average',x]['ph1',int(ph1)]['ph2',1] = this_capture
-                            else:
-                                data['average',x]['ph1',int(ph1)]['ph2',int(ph2)] = this_capture
+                            if (ph1 == 0 and ph2 == 0):
+                                t_axis = ch1_wf.getaxis('t')
+                                data = ndshape([averages,4,2,len(t_axis),2],['average','ph1','ph2','t','ch']).alloc()
+                                data.setaxis('t',t_axis).set_units('t','s')
+                                data.setaxis('ch',r_[1,2])
+                                data.setaxis('ph1',r_[0:4])
+                                data.setaxis('ph2',r_[0,2])
+                                data.setaxis('averages',r_[0:averages]+1)
+                            data['average',x]['ph1':ph1]['ph2':ph2]['ch',0] = ch1_wf
+                            # alternative is to do ['ph1',ph1]['ph2',ph2/2]
+                            data['average',x]['ph1':ph1]['ph2':ph2]['ch',1] = ch2_wf
                             print "**********"
                             print "ph1",ph1
                             print "ph2",ph2
                             print "**********"
-                            data.setaxis('average',int(x)+1)
-                            data.setaxis('ph1',int(ph1))
-                            data.setaxis('ph2',int(ph2))
                             print "Done acquiring"
+            #}}}
     data.name("this_capture")
     data.hdf5_write(date+"_"+id_string+".h5")
-                #}}}
     end_ph = timer()
     return start_ph,end_ph 
 #}}}

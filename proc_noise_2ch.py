@@ -107,27 +107,15 @@ power_dens_CH2_dict = {}
 
 # {{{ call files
 for date,id_string,numchan,gain_factor in [
-#        ('180625','network_no_diodes_2p5G',2,gain_factor_dcasc12),
-#        ('180625','network_no_diodes_1G',2,gain_factor_dcasc12),
-#        ('180625','network_no_diodes_500M',2,gain_factor_dcasc12#),
-#        ('180625','network_no_diodes_250M',2,gain_factor_dcasc12),
-#        ('180625','network_no_diodes_100M',2,gain_factor_dcasc12),
-#        ('180625','network_2p5G',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_2p5G_2',2,gain_factor_dcasc12),
-#        ('180625','network_1G',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_1G_2',2,gain_factor_dcasc12),
-#        ('180625','network_500M',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_500M_2',2,gain_factor_dcasc12),
-#        ('180625','network_250M',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_250M_2',2,gain_factor_dcasc12),
-#        ('180625','network_100M',2,gain_factor_dcasc12),
-        ('180625','network_22MHz_100M',2,gain_factor_dcasc12),
+        #('180709','control_pulse_22MHz_2p5GSPS',2,1.0),
+       # ('180709','control_pulse_22MHz_250MSPS',2,1.0),
+#        ('180625','network_22MHz_100M',2,gain_factor_dcasc12),
         ('180625','network_22MHz_100M_2',2,gain_factor_dcasc12),
 #        ('180709','network_1',2,gain_factor_dcasc12),
 #        ('180709','network_2',2,gain_factor_dcasc12),
 #        ('180709','network_3',2,gain_factor_dcasc12),
 #        ('180709','network_4',2,gain_factor_dcasc12),
-        #('180709','network_5',2,gain_factor_dcasc12),
+        ('180709','network_5',2,gain_factor_dcasc12),
 #        ('180709','network_6',2,gain_factor_dcasc12),
 #        ('180709','network_7',2,gain_factor_dcasc12),
 #        ('180709','network_8',2,gain_factor_dcasc12),
@@ -141,8 +129,8 @@ for date,id_string,numchan,gain_factor in [
 #        ('180709','control_pulse_22MHz_3',2,1.0),
 #        ('180709','control_pulse_22MHz_4',2,1.0),
 #        ('180709','control_pulse_22MHz_delay',2,1.0),
-        ('180709','control_pulse_22MHz_100MSPS',2,1.0),
-#        ('180709','control_pulse_22MHz_delay_zoom',2,1.0),
+#        ('180709','control_pulse_22MHz_100MSPS',2,1.0),
+        ('180709','control_pulse_22MHz_100MSPS_2',2,1.0),
 #    ('180526','AFG_terminator_2',2,1.0),#   leave gain set to 1 so we can get the 
                                          #   absolute number here (not input-referred)
     ]:
@@ -178,9 +166,14 @@ for date,id_string,numchan,gain_factor in [
     s = load_noise(date,id_string,captures)
     #fl.next('plot')
     #fl.plot(s)
+    #fl.show()
+    #quit()
+    u = s.C['t':(161.0636e-6,None)]
+    #u = s.C['t':(23.2826e-6,None)]
     #fl.next('new plot')
-    #fl.plot(s)
-    u = s.C['t':(161e-6,None)]
+    #fl.plot(u)
+    #fl.show()
+    #quit()
     acq_time = diff(s.getaxis('t')[r_[0,-1]])[0]
     u_acq_time = diff(u.getaxis('t')[r_[0,-1]])[0]
     print acq_time
