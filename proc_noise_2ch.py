@@ -135,13 +135,14 @@ for date,id_string,numchan,gain_factor in [
 #        ('180709','network_9_2',2,gain_factor_dcasc12),
         ('180709','network_9_3',2,gain_factor_dcasc12),
 #        ('180709','control_pulse',2,1.0),
-        ('180709','control_pulse_3',2,1.0),
+#        ('180709','control_pulse_3',2,1.0),
 #        ('180709','control_pulse_22MHz',2,1.0),
 #        ('180709','control_pulse_22MHz_2',2,1.0),
 #        ('180709','control_pulse_22MHz_3',2,1.0),
 #        ('180709','control_pulse_22MHz_4',2,1.0),
 #        ('180709','control_pulse_22MHz_delay',2,1.0),
-        ('180709','control_pulse_22MHz_delay_zoom',2,1.0),
+        ('180709','control_pulse_22MHz_100MSPS',2,1.0),
+#        ('180709','control_pulse_22MHz_delay_zoom',2,1.0),
 #    ('180526','AFG_terminator_2',2,1.0),#   leave gain set to 1 so we can get the 
                                          #   absolute number here (not input-referred)
     ]:
