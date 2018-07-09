@@ -83,7 +83,7 @@ def acquire(date,id_string,captures):
     return
 #}}}
 #{{{ spin echo function with phase cycling capability
-def spin_echo(avg_captures, freq = 14.4917e6, p90 = 2.592e-6, d1 = 63.794e-6, T1 = 200e-3, max_delay = True, complex_exp = True, ph_cyc = True):
+def spin_echo(avg_captures, freq = 14.4247e6, p90 = 2.63e-6, d1 = 63.794e-6, T1 = 200e-3, max_delay = True, complex_exp = True, ph_cyc = True):
 #{{{ documentation
     r'''generates spin echo (90 - delay - 180) pulse sequence, defined by
     the frequency, 90 time, and delay time, and outputs on scope.
@@ -212,6 +212,7 @@ def spin_echo(avg_captures, freq = 14.4917e6, p90 = 2.592e-6, d1 = 63.794e-6, T1
                             a[this_ch].burst = True
                             a[this_ch].ampl = 10.
                             time.sleep(d_interseq)
+                            print "Acquiring..."
                             with GDS_scope() as g:
                                 ch1_wf = g.waveform(ch=1)
                                 ch2_wf = g.waveform(ch=2)
@@ -233,6 +234,7 @@ def spin_echo(avg_captures, freq = 14.4917e6, p90 = 2.592e-6, d1 = 63.794e-6, T1
                             data.setaxis('average',int(x)+1)
                             data.setaxis('ph1',int(ph1))
                             data.setaxis('ph2',int(ph2))
+                            print "Done acquiring"
     data.name("this_capture")
     data.hdf5_write(date+"_"+id_string+".h5")
                 #}}}
@@ -241,8 +243,8 @@ def spin_echo(avg_captures, freq = 14.4917e6, p90 = 2.592e-6, d1 = 63.794e-6, T1
 #}}}
 
 date = '180708'
-id_string = 'spin_echo_test'
-averages =2 
+id_string = 'spin_echo'
+averages = 15 
 t1,t2 = spin_echo(avg_captures = averages)
 #raw_input("Start magnetic field sweep")
 #start_acq = timer()
