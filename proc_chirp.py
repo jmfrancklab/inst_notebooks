@@ -10,8 +10,11 @@ with figlist_var(filename='chirp.pdf') as fl:
     expno=0
     for date, id_string,corrected_volt in [
             #('180706','chirp_probe_magnet',True),   # B_0 = 3399.55 G, no sample
-            ('180706','chirp_probes_magnet',True),   # B_0 = 3399.55 G, sample   
-            ('180706','chirp_probes_magnet_2',True),   # B_0 = 3410.55 G, sample   
+            #('180706','chirp_probes_magnet',True),   # B_0 = 3399.55 G, sample   
+            #('180706','chirp_probes_magnet_2',True),   # B_0 = 3410.55 G, sample   
+            #('180708','chirp_probes_magnet',True),   # B_0 = 3410.55 G, sample   
+            ('180708','chirp_probes_magnet_repeat',True),   # B_0 = 3410.55 G, sample   
+            ('180708','chirp_probes_magnet_2',True),   # B_0 = 3410.55 G, sample   
             ]:
 #{{{ finding file
         try:
