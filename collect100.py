@@ -32,6 +32,7 @@ def collect(date,id_string,captures):
                 channels.setaxis('t',data.getaxis('t')).set_units('t','s')
                 channels.setaxis('ch',data.getaxis('ch'))
             channels['capture',x-1] = data
+            time.sleep(1)
             #{{{ in case pulled from inactive channel
             if not isfinite(data.getaxis('t')[0]):
                 j = 0
@@ -50,8 +51,9 @@ def collect(date,id_string,captures):
     print "shape of data",ndshape(s)
     return start
 
-date = '180628'
-id_string = 'noise_AFG_off_amp_off_sample_in_magnet_on'
+date = '180709'
+id_string = 'control_pulse_22MHz_delay_zoom'
+#id_string = 'network_9_4'
 captures = linspace(1,100,100)
 
 print "Starting collection..."
