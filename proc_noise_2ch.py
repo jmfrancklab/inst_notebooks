@@ -104,7 +104,10 @@ for date,id_string,numchan,gain_factor in [
         #('180710','spectrometer_noise_AFG_2',2,gain_factor_dcasc12),
         ('180710','spectrometer_noise_AFG_magnet',2,gain_factor_dcasc12),
         ('180710','spectrometer_noise_AFG_smagnet',2,gain_factor_dcasc12),
+        ('180710','spectrometer_noise_50ohm_smagnet',2,gain_factor_dcasc12),
+        #('180710','spectrometer_noise_AFG_smagnet_4',2,gain_factor_dcasc12),
         #('180710','spectrometer_noise_AFG_smagnet_2',2,gain_factor_dcasc12),
+        #('180710','spectrometer_noise_AFG_smagnet_3',2,gain_factor_dcasc12),
         #{{{ older files
         #('180709','control_SE',2,1.0),
         #('180709','control_SE_250MSPS',2,1.0),
@@ -133,7 +136,9 @@ for date,id_string,numchan,gain_factor in [
     # }}}
     # {{{ plot labels
     plot_params = False # toggle this to use plot params preset below
-    if '_smagnet' in id_string:
+    if '_50ohm_smagnet' in id_string:
+        label = 'spec noise, 50$\Omega$, magnet, sample'
+    elif '_smagnet' in id_string:
         label = 'spec noise, AFG, magnet, sample'
     elif '_magnet' in id_string:
         label = 'spec noise, AFG, magnet'
@@ -274,7 +279,7 @@ for date,id_string,numchan,gain_factor in [
         u_filt['t':(20e6,None)] = 0
         u_filt = abs(u_filt)['t':(0,None)]**2
         u_filt.mean('capture', return_error = False)
-        u_filt.convolve('t',width)
+        #u_filt.convolve('t',width)
         u_filt /= 50.
         u_filt /= u_acq_time
         u_filt *= 2
@@ -286,7 +291,7 @@ for date,id_string,numchan,gain_factor in [
                 s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
                 fl.plot(s['ch',0],alpha=0.35,label='%s'%label,plottype='semilogy')
                 axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
-                fl.next('Network Noise Power Spectral Density, Input-referred')
+                fl.next('Network Noise Power Spectral Density, Input-referred($\sigma$=%0.3f kHz)'%(width*1e-3))
                 u.name('$S_{xx}(\\nu)$').set_units('W/Hz')
                 fl.plot(u['ch',0],alpha=0.35,label='%s'%label,plottype='semilogy')
                 axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
