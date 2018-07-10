@@ -108,10 +108,15 @@ power_dens_CH2_dict = {}
 # {{{ call files
 for date,id_string,numchan,gain_factor in [
         ('180709','control_SE',2,1.0),
+        ('180709','control_SE_nofilter',2,1.0),
         ('180709','control_SE_250MSPS',2,1.0),
+        ('180709','control_SE_250MSPS_nofilter',2,1.0),
         ('180709','control_SE_500MSPS',2,1.0),
+        ('180709','control_SE_500MSPS_nofilter',2,1.0),
         ('180709','control_SE_1GSPS',2,1.0),
+        ('180709','control_SE_1GSPS_nofilter',2,1.0),
         ('180709','control_SE_2p5GSPS',2,1.0),
+        ('180709','control_SE_2p5GSPS_nofilter',2,1.0),
 #        ('180709','control_pulse_22MHz_2p5GSPS',2,1.0),
        # ('180709','control_pulse_22MHz_250MSPS',2,1.0),
 #        ('180625','network_22MHz_100M',2,gain_factor_dcasc12),
@@ -163,12 +168,14 @@ for date,id_string,numchan,gain_factor in [
     #fl.plot(s)
     #fl.show()
     #quit()
-    if id_string == 'control_SE':
-        u = s.C['t':(159.0e-6,None)]   #100 MSPS
-    elif id_string == 'control_SE_250MSPS':
+    if '250MSPS' in id_string:
         u = s.C['t':(40e-6,None)]       #250 MSPS
-    elif id_string == 'control_SE_500MSPS':
+    elif '500MSPS' in id_string:
         u = s.C['t':(0,35e-6)]          #500 MSPS
+    elif id_string == 'control_SE':
+        u = s.C['t':(159.0e-6,None)]   #100 MSPS
+    elif id_string == 'control_SE_nofilter':
+        u = s.C['t':(159.0e-6,None)]   #100 MSPS
     else:
         u = s.C
     #fl.next('new plot')
