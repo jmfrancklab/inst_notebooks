@@ -99,12 +99,17 @@ power_dens_CH2_dict = {}
 
 # {{{ call files
 for date,id_string,numchan,gain_factor in [
-        ('180710','spectrometer_noise_50ohm',2,gain_factor_dcasc12),
-        ('180710','spectrometer_noise_AFG',2,gain_factor_dcasc12),
+        #('180710','spectrometer_noise_50ohm',2,gain_factor_dcasc12),
+        #('180710','spectrometer_noise_AFG',2,gain_factor_dcasc12),
         #('180710','spectrometer_noise_AFG_2',2,gain_factor_dcasc12),
-        ('180710','spectrometer_noise_AFG_magnet',2,gain_factor_dcasc12),
-        ('180710','spectrometer_noise_AFG_smagnet',2,gain_factor_dcasc12),
-        ('180710','spectrometer_noise_50ohm_smagnet',2,gain_factor_dcasc12),
+        #('180710','spectrometer_noise_AFG_magnet',2,gain_factor_dcasc12),
+        #('180710','spectrometer_noise_AFG_smagnet',2,gain_factor_dcasc12),
+        #('180710','spectrometer_noise_50ohm_smagnet',2,gain_factor_dcasc12),
+        ('180710','spectrometer_noise_AFG_magnet_2mVd',2,gain_factor_dcasc12),
+        ('180710','spectrometer_noise_AFG_magnet_5mVd',2,gain_factor_dcasc12),
+        ('180710','spectrometer_noise_AFG_magnet_10mVd',2,gain_factor_dcasc12),
+        ('180710','spectrometer_noise_AFG_magnet_20mVd',2,gain_factor_dcasc12),
+        ('180710','spectrometer_noise_AFG_magnet_50mVd',2,gain_factor_dcasc12),
         #('180710','spectrometer_noise_AFG_smagnet_4',2,gain_factor_dcasc12),
         #('180710','spectrometer_noise_AFG_smagnet_2',2,gain_factor_dcasc12),
         #('180710','spectrometer_noise_AFG_smagnet_3',2,gain_factor_dcasc12),
@@ -136,7 +141,17 @@ for date,id_string,numchan,gain_factor in [
     # }}}
     # {{{ plot labels
     plot_params = False # toggle this to use plot params preset below
-    if '_50ohm_smagnet' in id_string:
+    if '2mVd' in id_string:
+        label = 'spec noise, 50$\Omega$, magnet, 2 mV/div'
+    elif '5mVd' in id_string:
+        label = 'spec noise, 50$\Omega$, magnet, 5 mV/div'
+    elif '10mVd' in id_string:
+        label = 'spec noise, 50$\Omega$, magnet, 10 mV/div'
+    elif '20mVd' in id_string:
+        label = 'spec noise, 50$\Omega$, magnet, 20 mV/div'
+    elif '50mVd' in id_string:
+        label = 'spec noise, 50$\Omega$, magnet, 50 mV/div'
+    elif '_50ohm_smagnet' in id_string:
         label = 'spec noise, 50$\Omega$, magnet, sample'
     elif '_smagnet' in id_string:
         label = 'spec noise, AFG, magnet, sample'
@@ -262,7 +277,7 @@ for date,id_string,numchan,gain_factor in [
     u.ft('t',shift=True)
     u = abs(u)['t':(0,None)]**2
     u.mean('capture', return_error = False)
-    #u.convolve('t',width)
+    u.convolve('t',width)
     u /= 50.
     u /= u_acq_time
     u *= 2
@@ -279,7 +294,7 @@ for date,id_string,numchan,gain_factor in [
         u_filt['t':(20e6,None)] = 0
         u_filt = abs(u_filt)['t':(0,None)]**2
         u_filt.mean('capture', return_error = False)
-        #u_filt.convolve('t',width)
+        u_filt.convolve('t',width)
         u_filt /= 50.
         u_filt /= u_acq_time
         u_filt *= 2
@@ -291,7 +306,7 @@ for date,id_string,numchan,gain_factor in [
                 s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
                 fl.plot(s['ch',0],alpha=0.35,label='%s'%label,plottype='semilogy')
                 axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
-                fl.next('Network Noise Power Spectral Density, Input-referred($\sigma$=%0.3f kHz)'%(width*1e-3))
+                fl.next('Network Noise Power Spectral Density, Input-referred ($\sigma$=%0.3f kHz)'%(width*1e-3))
                 u.name('$S_{xx}(\\nu)$').set_units('W/Hz')
                 fl.plot(u['ch',0],alpha=0.35,label='%s'%label,plottype='semilogy')
                 axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
