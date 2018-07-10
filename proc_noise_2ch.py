@@ -99,6 +99,13 @@ power_dens_CH2_dict = {}
 
 # {{{ call files
 for date,id_string,numchan,gain_factor in [
+        ('180710','spectrometer_noise_50ohm',2,gain_factor_dcasc12),
+        ('180710','spectrometer_noise_AFG',2,gain_factor_dcasc12),
+        #('180710','spectrometer_noise_AFG_2',2,gain_factor_dcasc12),
+        ('180710','spectrometer_noise_AFG_magnet',2,gain_factor_dcasc12),
+        ('180710','spectrometer_noise_AFG_smagnet',2,gain_factor_dcasc12),
+        #('180710','spectrometer_noise_AFG_smagnet_2',2,gain_factor_dcasc12),
+        #{{{ older files
         #('180709','control_SE',2,1.0),
         #('180709','control_SE_250MSPS',2,1.0),
         #('180709','control_SE_500MSPS',2,1.0),
@@ -109,50 +116,34 @@ for date,id_string,numchan,gain_factor in [
         #('180709','control_SE_500MSPS_nofilter',2,1.0),
         #('180709','control_SE_1GSPS_nofilter',2,1.0),
         #('180709','control_SE_2p5GSPS_nofilter',2,1.0),
-        ('180709','network_SE_full',2,gain_factor_dcasc12),
-        ('180709','network_SE_full_250MSPS',2,gain_factor_dcasc12),
-        ('180709','network_SE_full_500MSPS',2,gain_factor_dcasc12),
-        ('180709','network_SE_full_1GSPS',2,gain_factor_dcasc12),
-        ('180709','network_SE_full_2p5GSPS',2,gain_factor_dcasc12),
-        ('180709','network_SE',2,gain_factor_dcasc12),
-        ('180709','network_SE_250MSPS',2,gain_factor_dcasc12),
-        ('180709','network_SE_500MSPS',2,gain_factor_dcasc12),
-        ('180709','network_SE_1GSPS',2,gain_factor_dcasc12),
-        ('180709','network_SE_2p5GSPS',2,gain_factor_dcasc12),
-        #{{{ older files
-#        ('180709','control_pulse_22MHz_2p5GSPS',2,1.0),
-       # ('180709','control_pulse_22MHz_250MSPS',2,1.0),
-#        ('180625','network_22MHz_100M',2,gain_factor_dcasc12),
-#        ('180625','network_22MHz_100M_2',2,gain_factor_dcasc12),
-#        ('180709','network_1',2,gain_factor_dcasc12),
-#        ('180709','network_2',2,gain_factor_dcasc12),
-#        ('180709','network_3',2,gain_factor_dcasc12),
-#        ('180709','network_4',2,gain_factor_dcasc12),
-        #('180709','network_5',2,gain_factor_dcasc12),
-#        ('180709','network_6',2,gain_factor_dcasc12),
-#        ('180709','network_7',2,gain_factor_dcasc12),
-#        ('180709','network_8',2,gain_factor_dcasc12),
-#        ('180709','network_9',2,gain_factor_dcasc12),
-#        ('180709','network_9_2',2,gain_factor_dcasc12),
-        #('180709','network_9_3',2,gain_factor_dcasc12),
-#        ('180709','control_pulse',2,1.0),
-#        ('180709','control_pulse_3',2,1.0),
-#        ('180709','control_pulse_22MHz',2,1.0),
-#        ('180709','control_pulse_22MHz_2',2,1.0),
-#        ('180709','control_pulse_22MHz_3',2,1.0),
-#        ('180709','control_pulse_22MHz_4',2,1.0),
-#        ('180709','control_pulse_22MHz_delay',2,1.0),
-#        ('180709','control_pulse_22MHz_100MSPS',2,1.0),
-        #('180709','control_pulse_22MHz_100MSPS_2',2,1.0),
+        #('180709','network_SE_full',2,gain_factor_dcasc12),
+        #('180709','network_SE_full_250MSPS',2,gain_factor_dcasc12),
+        #('180709','network_SE_full_500MSPS',2,gain_factor_dcasc12),
+        #('180709','network_SE_full_1GSPS',2,gain_factor_dcasc12),
+        #('180709','network_SE_full_2p5GSPS',2,gain_factor_dcasc12),
+        #('180709','network_SE',2,gain_factor_dcasc12),
+        #('180709','network_SE_250MSPS',2,gain_factor_dcasc12),
+        #('180709','network_SE_500MSPS',2,gain_factor_dcasc12),
+        #('180709','network_SE_1GSPS',2,gain_factor_dcasc12),
+        #('180709','network_SE_2p5GSPS',2,gain_factor_dcasc12),
 #    ('180526','AFG_terminator_2',2,1.0),#   leave gain set to 1 so we can get the 
                                          #   absolute number here (not input-referred)
+                                         #}}}
     ]:
     # }}}
-    #}}}
     # {{{ plot labels
-    plot_params = False # toggle this to use plot params or not
+    plot_params = False # toggle this to use plot params preset below
+    if '_smagnet' in id_string:
+        label = 'spec noise, AFG, magnet, sample'
+    elif '_magnet' in id_string:
+        label = 'spec noise, AFG, magnet'
+    elif 'spectrometer_noise_AFG' in id_string:
+        label = 'spec noise, AFG'
+    elif '50ohm' in id_string:
+        label = 'spec noise, 50$\Omega$'
+    #{{{ plotting parameters -- for older files
     #{{{ plotting AFG waveform, attn, power splitter, with low pass filter
-    if id_string == 'control_SE':
+    elif id_string == 'control_SE':
         plot_params = dict(label = 'Waveform, 100 MSPS', color = 'blue', alpha=0.15, plottype='semilogy')
     elif id_string == 'control_SE_250MSPS':
         plot_params = dict(label = 'Waveform, 250 MSPS', color = 'orange', alpha=0.15, plottype='semilogy')
@@ -198,6 +189,8 @@ for date,id_string,numchan,gain_factor in [
         plot_params = dict(label = 'Network, 1 GSPS', color ='#d62728', alpha=0.25, plottype='semilogy')
     elif id_string == 'network_SE_full_2p5GSPS':
         plot_params = dict(label = 'Network, 2.5 GSPS', color ='#9467bd', alpha=0.25, plottype='semilogy')
+        #}}}
+        #}}}
     else:
         label = date+'_'+id_string 
         #}}}
@@ -209,7 +202,11 @@ for date,id_string,numchan,gain_factor in [
     #fl.plot(s)
     #fl.show()
     #quit()
-    if '250MSPS' in id_string:
+    #{{{ slicing
+    if 'spectrometer_noise' in id_string:
+        u = s.C['t':(124e-6,None)]
+        #{{{ old slicing
+    elif '250MSPS' in id_string:
         u = s.C['t':(40e-6,None)]       #250 MSPS
     elif '500MSPS' in id_string:
         u = s.C['t':(0,35e-6)]          #500 MSPS
@@ -221,8 +218,10 @@ for date,id_string,numchan,gain_factor in [
         u = s.C['t':(159.0e-6,None)]   #100 MSPS
     elif id_string == 'network_SE_full':
         u = s.C['t':(100.0e-6,None)]   #100 MSPS
+        #}}}
     else:
         u = s.C
+        #}}}
     #fl.next('new plot')
     #fl.plot(u)
     #fl.show()
@@ -238,7 +237,7 @@ for date,id_string,numchan,gain_factor in [
     s.ft('t',shift=True)
     s = abs(s)['t':(0,None)]**2   #mod square and throw out negative frequencies
     s.mean('capture', return_error=False)
-    width = 1e6
+    width = 0.04e6
     #s.convolve('t',width) # we do this before chopping things up, since it uses
     #                      fft and assumes that the signal is periodic (at this
     #                      point, the signal at both ends is very close to
@@ -258,22 +257,22 @@ for date,id_string,numchan,gain_factor in [
     u.ft('t',shift=True)
     u = abs(u)['t':(0,None)]**2
     u.mean('capture', return_error = False)
-    u.convolve('t',width)
+    #u.convolve('t',width)
     u /= 50.
     u /= u_acq_time
     u *= 2
     u /= gain_factor
     #}}}
-    filtering = False
+    filtering = True
     #{{{ calculate PSD for filtered u
     if filtering:
         u_filt.ft('t',shift=True)
         ##fl.plot(u_filt['capture',1])
         ##fl.show()
         ##quit()
-        #u_filt.convolve('t',width)
         u_filt = abs(u_filt)['t':(0,None)]**2
         u_filt.mean('capture', return_error = False)
+        u_filt.convolve('t',width)
         u_filt /= 50.
         u_filt /= u_acq_time
         u_filt *= 2
@@ -285,10 +284,15 @@ for date,id_string,numchan,gain_factor in [
                 s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
                 fl.plot(s['ch',0],alpha=0.35,label='%s'%label,plottype='semilogy')
                 axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
-                fl.next('Power Spectral Density with 22 MHz input filter (Noise)')
+                fl.next('Network Noise Power Spectral Density, Input-referred')
                 u.name('$S_{xx}(\\nu)$').set_units('W/Hz')
                 fl.plot(u['ch',0],alpha=0.35,label='%s'%label,plottype='semilogy')
                 axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
+                if filtering:
+                    fl.next('Digitally-Filtered Network Noise Power Spectral Density, Input-referred ($\sigma$=%0.3f kHz)'%(width*1e-3))
+                    u_filt.name('$S_{xx}(\\nu)$').set_units('W/Hz')
+                    fl.plot(u_filt['ch',0],alpha=0.35,label='%s'%label,plottype='semilogy')
+                    axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
             if plot_params:
                 fl.next('Network Noise Power Spectral Density (Input-referred) (convolution = %0.1e Hz)'%width)
                 s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
