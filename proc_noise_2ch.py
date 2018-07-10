@@ -109,14 +109,15 @@ power_dens_CH2_dict = {}
 for date,id_string,numchan,gain_factor in [
         ('180709','control_SE',2,1.0),
         ('180709','control_SE_nofilter',2,1.0),
-        ('180709','control_SE_250MSPS',2,1.0),
-        ('180709','control_SE_250MSPS_nofilter',2,1.0),
-        ('180709','control_SE_500MSPS',2,1.0),
-        ('180709','control_SE_500MSPS_nofilter',2,1.0),
-        ('180709','control_SE_1GSPS',2,1.0),
-        ('180709','control_SE_1GSPS_nofilter',2,1.0),
-        ('180709','control_SE_2p5GSPS',2,1.0),
-        ('180709','control_SE_2p5GSPS_nofilter',2,1.0),
+        # need to include those with double hash tag
+        ##('180709','control_SE_250MSPS',2,1.0),
+        ##('180709','control_SE_250MSPS_nofilter',2,1.0),
+        ##('180709','control_SE_500MSPS',2,1.0),
+        ##('180709','control_SE_500MSPS_nofilter',2,1.0),
+        ##('180709','control_SE_1GSPS',2,1.0),
+        ##('180709','control_SE_1GSPS_nofilter',2,1.0),
+        ##('180709','control_SE_2p5GSPS',2,1.0),
+        ##('180709','control_SE_2p5GSPS_nofilter',2,1.0),
 #        ('180709','control_pulse_22MHz_2p5GSPS',2,1.0),
        # ('180709','control_pulse_22MHz_250MSPS',2,1.0),
 #        ('180625','network_22MHz_100M',2,gain_factor_dcasc12),
@@ -145,9 +146,10 @@ for date,id_string,numchan,gain_factor in [
                                          #   absolute number here (not input-referred)
     ]:
     # }}}
+    
     # {{{ plot labels
     if id_string == 'control_SE':
-        label = 'SE noise, 100 MSPS'
+        plot_params = dict(label = 'SE noise, 100 MSPS', color = 'blue', alpha=0.15, linestyle='--',plottype='semilogy')
     elif id_string == 'control_SE_250MSPS':
         label = 'SE noise, 250 MSPS'
     elif id_string == 'control_SE_500MSPS':
@@ -156,12 +158,21 @@ for date,id_string,numchan,gain_factor in [
         label = 'SE noise, 1 GSPS'
     elif id_string == 'control_SE_2p5GSPS':
         label = 'SE noise, 2.5 GSPS'
+    elif id_string == 'control_SE_nofilter':
+        plot_params = dict(label = 'SE noise, 100 MSPS, no 22 MHz filter', color = 'blue', alpha=0.14, plottype='semilogy')
+    elif id_string == 'control_SE_250MSPS_nofilter':
+        label = 'SE noise, 250 MSPS, no 22 MHz filter'
+    elif id_string == 'control_SE_500MSPS_nofilter':
+        label = 'SE noise, 500 MSPS, no 22 MHz filter'
+    elif id_string == 'control_SE_1GSPS_nofilter':
+        label = 'SE noise, 1 GSPS, no 22 MHz filter'
+    elif id_string == 'control_SE_2p5GSPS_nofilter':
+        label = 'SE noise, 2.5 GSPS, no 22 MHz filter'
     else:
         label = date+'_'+id_string 
     #label += ' (g=%0.2f)'%gain_factor
    # }}}
     print "\n*** LOADING:",id_string,"***"
-    print "FILE LABEL IS:\t\t",label
     # {{{ calculate positive frequency noise power spectral density
     s = load_noise(date,id_string,captures)
     #fl.next('plot')
@@ -223,11 +234,11 @@ for date,id_string,numchan,gain_factor in [
 #        elif '22MHz' not in id_string: 
             fl.next('Network Noise Power Spectral Density (Input-referred) (convolution = %0.1e Hz)'%width)
             s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
-            fl.plot(s['ch',0], alpha=0.35, label="%s"%label, plottype='semilogy')
+            fl.plot(s['ch',0],**plot_params)
             axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
             fl.next('Power Spectral Density with 22 MHz input filter (Noise)')
             u.name('$S_{xx}(\\nu)$').set_units('W/Hz')
-            fl.plot(u['ch',0], alpha=0.35, label="%s"%label, plottype='semilogy')
+            fl.plot(u['ch',0],**plot_params)
             axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
             #}}}
     #{{{ processing with integration over frequency bands
