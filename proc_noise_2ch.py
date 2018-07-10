@@ -2,6 +2,10 @@ from pyspecdata import *
 fl = figlist_var()
 import os
 import sys
+matplotlib.rcParams['legend.fontsize'] ='xx-small'
+
+matplotlib.rcParams['legend.labelspacing'] = 0.2 
+matplotlib.legend 
 #4096 points
 # {{{ constants measured elsewhere
 gain_factor_amp1 = 525.94786172         #LNA 2
@@ -107,26 +111,27 @@ power_dens_CH2_dict = {}
 
 # {{{ call files
 for date,id_string,numchan,gain_factor in [
-        ('180709','network_SE',2,gain_factor_dcasc12),
-        ('180709','network_SE_full',2,gain_factor_dcasc12),
-        ('180709','network_SE_250MSPS',2,gain_factor_dcasc12),
-        ('180709','network_SE_full_250MSPS',2,gain_factor_dcasc12),
-        ('180709','network_SE_500MSPS',2,gain_factor_dcasc12),
-        ('180709','network_SE_full_500MSPS',2,gain_factor_dcasc12),
-        ('180709','network_SE_1GSPS',2,gain_factor_dcasc12),
-        ('180709','network_SE_full_1GSPS',2,gain_factor_dcasc12),
-        ('180709','network_SE_2p5GSPS',2,gain_factor_dcasc12),
-        ('180709','network_SE_full_2p5GSPS',2,gain_factor_dcasc12),
         ('180709','control_SE',2,1.0),
-        ('180709','control_SE_nofilter',2,1.0),
         ('180709','control_SE_250MSPS',2,1.0),
-        ('180709','control_SE_250MSPS_nofilter',2,1.0),
         ('180709','control_SE_500MSPS',2,1.0),
-        ('180709','control_SE_500MSPS_nofilter',2,1.0),
         ('180709','control_SE_1GSPS',2,1.0),
-        ('180709','control_SE_1GSPS_nofilter',2,1.0),
         ('180709','control_SE_2p5GSPS',2,1.0),
+        ('180709','control_SE_nofilter',2,1.0),
+        ('180709','control_SE_250MSPS_nofilter',2,1.0),
+        ('180709','control_SE_500MSPS_nofilter',2,1.0),
+        ('180709','control_SE_1GSPS_nofilter',2,1.0),
         ('180709','control_SE_2p5GSPS_nofilter',2,1.0),
+        ('180709','network_SE_full',2,gain_factor_dcasc12),
+        ('180709','network_SE_full_250MSPS',2,gain_factor_dcasc12),
+        ('180709','network_SE_full_500MSPS',2,gain_factor_dcasc12),
+        ('180709','network_SE_full_1GSPS',2,gain_factor_dcasc12),
+        ('180709','network_SE_full_2p5GSPS',2,gain_factor_dcasc12),
+        ('180709','network_SE',2,gain_factor_dcasc12),
+        ('180709','network_SE_250MSPS',2,gain_factor_dcasc12),
+        ('180709','network_SE_500MSPS',2,gain_factor_dcasc12),
+        ('180709','network_SE_1GSPS',2,gain_factor_dcasc12),
+        ('180709','network_SE_2p5GSPS',2,gain_factor_dcasc12),
+        #{{{ older files
 #        ('180709','control_pulse_22MHz_2p5GSPS',2,1.0),
        # ('180709','control_pulse_22MHz_250MSPS',2,1.0),
 #        ('180625','network_22MHz_100M',2,gain_factor_dcasc12),
@@ -158,28 +163,56 @@ for date,id_string,numchan,gain_factor in [
     
     # {{{ plot labels
     plot_params = False # toggle this to use plot params or not
+    #{{{ plotting AFG waveform, attn, power splitter, with low pass filter
     if id_string == 'control_SE':
-        plot_params = dict(label = 'SE noise, 100 MSPS', color = 'blue', alpha=0.15, linestyle='--',plottype='semilogy')
+        plot_params = dict(label = 'Waveform, 100 MSPS', color = 'blue', alpha=0.15, plottype='semilogy')
     elif id_string == 'control_SE_250MSPS':
-        plot_params = dict(label = 'SE noise, 250 MSPS', color = 'orange', alpha=0.15, linestyle='--',plottype='semilogy')
+        plot_params = dict(label = 'Waveform, 250 MSPS', color = 'orange', alpha=0.15, plottype='semilogy')
     elif id_string == 'control_SE_500MSPS':
-        plot_params = dict(label = 'SE noise, 500 MSPS', color = 'green', alpha=0.15, linestyle='--',plottype='semilogy')
+        plot_params = dict(label = 'Waveform, 500 MSPS', color = 'green', alpha=0.15, plottype='semilogy')
     elif id_string == 'control_SE_1GSPS':
-        plot_params = dict(label = 'SE noise, 1 GSPS', color = 'red', alpha=0.15, linestyle='--',plottype='semilogy')
+        plot_params = dict(label = 'Waveform, 1 GSPS', color = 'red', alpha=0.15, plottype='semilogy')
     elif id_string == 'control_SE_2p5GSPS':
-        plot_params = dict(label = 'SE noise, 2.5 GSPS', color = 'purple', alpha=0.15, linestyle='--',plottype='semilogy')
+        plot_params = dict(label = 'Waveform, 2.5 GSPS', color = 'purple', alpha=0.15, plottype='semilogy')
+        #}}}
+    #{{{ plotting AFG waveform, attn, power splitter, no input low pass filter
     elif id_string == 'control_SE_nofilter':
-        plot_params = dict(label = 'SE noise, 100 MSPS, no 22 MHz filter', color = 'blue', alpha=0.14, plottype='semilogy')
+        plot_params = dict(label = 'Waveform, no filter, 100 MSPS', color = 'blue', alpha=0.15, linestyle=':', plottype='semilogy')
     elif id_string == 'control_SE_250MSPS_nofilter':
-        plot_params = dict(label = 'SE noise, 250 MSPS, no 22 MHz filter', color = 'orange', alpha=0.14, plottype='semilogy')
+        plot_params = dict(label = 'Waveform, no filter, 250 MSPS', color = 'orange', alpha=0.15, linestyle=':', plottype='semilogy')
     elif id_string == 'control_SE_500MSPS_nofilter':
-        plot_params = dict(label = 'SE noise, 500 MSPS, no 22 MHz filter', color = 'green', alpha=0.15, plottype='semilogy')
+        plot_params = dict(label = 'Waveform, no filter, 500 MSPS', color = 'green', alpha=0.15, linestyle=':', plottype='semilogy')
     elif id_string == 'control_SE_1GSPS_nofilter':
-        plot_params = dict(label = 'SE noise, 1 GSPS, no 22 MHz filter', color = 'red', alpha=0.15, plottype='semilogy')
+        plot_params = dict(label = 'Waveform, no filter, 1 GSPS', color = 'red', alpha=0.15, linestyle=':', plottype='semilogy')
     elif id_string == 'control_SE_2p5GSPS_nofilter':
-        plot_params = dict(label = 'SE noise, 2.5 GSPS, no 22 MHz filter', color = 'purple', alpha=0.15, plottype='semilogy')
+        plot_params = dict(label = 'Waveform, no filter, 2.5 GSPS', color = 'purple', alpha=0.15, linestyle=':', plottype='semilogy')
+        #}}}
+    #{{{ plotting network, up to ENI amplifier with 50 ohm input
+    elif id_string == 'network_SE':
+        plot_params = dict(label = '50$\Omega$ input ENI, 100 MSPS', color = '#1f77b4', alpha=0.2, linestyle='--', plottype='semilogy')
+    elif id_string == 'network_SE_250MSPS':
+        plot_params = dict(label = '50$\Omega$ input ENI, 250 MSPS', color ='#ff7f0e', alpha=0.2, linestyle='--', plottype='semilogy')
+    elif id_string == 'network_SE_500MSPS':
+        plot_params = dict(label = '50$\Omega$ input ENI, 500 MSPS', color = '#2ca02c', alpha=0.2, linestyle='--', plottype='semilogy')
+    elif id_string == 'network_SE_1GSPS':
+        plot_params = dict(label = '50$\Omega$ input ENI, 1 GSPS', color ='#d62728', alpha=0.2, linestyle='--', plottype='semilogy')
+    elif id_string == 'network_SE_2p5GSPS':
+        plot_params = dict(label = '50$\Omega$ input ENI, 2.5 GSPS', color ='#9467bd', alpha=0.2, linestyle='--', plottype='semilogy')
+        #}}}
+    #{{{ plotting network, everything but magnet and sample
+    elif id_string == 'network_SE_full':
+        plot_params = dict(label = 'Network, 100 MSPS', color = '#1f77b4', alpha=0.2, plottype='semilogy')
+    elif id_string == 'network_SE_full_250MSPS':
+        plot_params = dict(label = 'Network, 250 MSPS', color ='#ff7f0e', alpha=0.2, plottype='semilogy')
+    elif id_string == 'network_SE_full_500MSPS':
+        plot_params = dict(label = 'Network, 500 MSPS', color = '#2ca02c', alpha=0.2, plottype='semilogy')
+    elif id_string == 'network_SE_full_1GSPS':
+        plot_params = dict(label = 'Network, 1 GSPS', color ='#d62728', alpha=0.2, plottype='semilogy')
+    elif id_string == 'network_SE_full_2p5GSPS':
+        plot_params = dict(label = 'Network, 2.5 GSPS', color ='#9467bd', alpha=0.2, plottype='semilogy')
     else:
         label = date+'_'+id_string 
+        #}}}
     #label += ' (g=%0.2f)'%gain_factor
    # }}}
     print "\n*** LOADING:",id_string,"***"
@@ -241,7 +274,7 @@ for date,id_string,numchan,gain_factor in [
                 s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
                 fl.plot(s['ch',0],alpha=0.35,label='%s'%label,plottype='semilogy')
                 axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
-                fl.next('Power Spectral Density with 22 MHz input filter (Noise)')
+                fl.next('Power Spectral Density with 22 MHz input filter (Noise)',legend=False)
                 u.name('$S_{xx}(\\nu)$').set_units('W/Hz')
                 fl.plot(u['ch',0],alpha=0.35,label='%s'%label,plottype='semilogy')
                 axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
@@ -250,7 +283,7 @@ for date,id_string,numchan,gain_factor in [
                 s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
                 fl.plot(s['ch',0],**plot_params)
                 axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
-                fl.next('Power Spectral Density with 22 MHz input filter (Noise)')
+                fl.next('Power Spectral Density with 22 MHz input filter (Noise)',legend=False)
                 u.name('$S_{xx}(\\nu)$').set_units('W/Hz')
                 fl.plot(u['ch',0],**plot_params)
                 axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
