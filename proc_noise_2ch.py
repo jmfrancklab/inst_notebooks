@@ -270,6 +270,8 @@ for date,id_string,numchan,gain_factor in [
         ##fl.plot(u_filt['capture',1])
         ##fl.show()
         ##quit()
+        u_filt['t':(None,10e6)] = 0
+        u_filt['t':(20e6,None)] = 0
         u_filt = abs(u_filt)['t':(0,None)]**2
         u_filt.mean('capture', return_error = False)
         u_filt.convolve('t',width)
