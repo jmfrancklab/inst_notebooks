@@ -108,6 +108,15 @@ power_dens_CH2_dict = {}
 # {{{ call files
 for date,id_string,numchan,gain_factor in [
         ('180709','network_SE',2,gain_factor_dcasc12),
+        ('180709','network_SE_full',2,gain_factor_dcasc12),
+        ('180709','network_SE_250MSPS',2,gain_factor_dcasc12),
+        ('180709','network_SE_full_250MSPS',2,gain_factor_dcasc12),
+        ('180709','network_SE_500MSPS',2,gain_factor_dcasc12),
+        ('180709','network_SE_full_500MSPS',2,gain_factor_dcasc12),
+        ('180709','network_SE_1GSPS',2,gain_factor_dcasc12),
+        ('180709','network_SE_full_1GSPS',2,gain_factor_dcasc12),
+        ('180709','network_SE_2p5GSPS',2,gain_factor_dcasc12),
+        ('180709','network_SE_full_2p5GSPS',2,gain_factor_dcasc12),
         ('180709','control_SE',2,1.0),
         ('180709','control_SE_nofilter',2,1.0),
         ('180709','control_SE_250MSPS',2,1.0),
@@ -158,7 +167,7 @@ for date,id_string,numchan,gain_factor in [
     elif id_string == 'control_SE_1GSPS':
         plot_params = dict(label = 'SE noise, 1 GSPS', color = 'red', alpha=0.15, linestyle='--',plottype='semilogy')
     elif id_string == 'control_SE_2p5GSPS':
-        plot_params = dict(label = 'SE noise, 2.5 GSPS', color = 'brown', alpha=0.15, linestyle='--',plottype='semilogy')
+        plot_params = dict(label = 'SE noise, 2.5 GSPS', color = 'purple', alpha=0.15, linestyle='--',plottype='semilogy')
     elif id_string == 'control_SE_nofilter':
         plot_params = dict(label = 'SE noise, 100 MSPS, no 22 MHz filter', color = 'blue', alpha=0.14, plottype='semilogy')
     elif id_string == 'control_SE_250MSPS_nofilter':
@@ -168,7 +177,7 @@ for date,id_string,numchan,gain_factor in [
     elif id_string == 'control_SE_1GSPS_nofilter':
         plot_params = dict(label = 'SE noise, 1 GSPS, no 22 MHz filter', color = 'red', alpha=0.15, plottype='semilogy')
     elif id_string == 'control_SE_2p5GSPS_nofilter':
-        plot_params = dict(label = 'SE noise, 2.5 GSPS, no 22 MHz filter', color = 'brown', alpha=0.15, plottype='semilogy')
+        plot_params = dict(label = 'SE noise, 2.5 GSPS, no 22 MHz filter', color = 'purple', alpha=0.15, plottype='semilogy')
     else:
         label = date+'_'+id_string 
     #label += ' (g=%0.2f)'%gain_factor
