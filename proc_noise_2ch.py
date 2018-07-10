@@ -141,30 +141,18 @@ for date,id_string,numchan,gain_factor in [
     ]:
     # }}}
     # {{{ plot labels
-    if id_string == 'network_2p5G':
-        label = 'Noise, 2.5 GSa/sec'
-    elif id_string == 'network_22MHz_2p5G_2':
-        label = 'Noise, 22 MHz filter, 2.5 GSa/sec'
-    elif id_string == 'network_1G':
-        label = 'Noise, 1 GSa/sec'
-    elif id_string == 'network_22MHz_1G_2':
-        label = 'Noise, 22 MHz filter, 1 GSa/sec'
-    elif id_string == 'network_500M':
-        label = 'Noise, 500 MSa/sec'
-    elif id_string == 'network_22MHz_500M_2':
-        label = 'Noise, 22 MHz filter, 500 MSa/sec'
-    elif id_string == 'network_250M':
-        label = 'Noise, 250 MSa/sec'
-    elif id_string == 'network_22MHz_250M_2':
-        label = 'Noise, 22 MHz filter, 250 MSa/sec'
-    elif id_string == 'network_100M':
-        label = 'Noise, 100 MSa/sec'
-    elif id_string == 'network_22MHz_100M_2':
-        label = 'Noise, 22 MHz filter, 100 MSa/sec (June 25)'
-    elif id_string == 'network_5':
-        label = 'Noise, 22 MHz filter, 100 MSa/sec'
+    if id_string == 'control_SE':
+        label = 'SE noise, 100 MSPS'
+    elif id_string == 'control_SE_250MSPS':
+        label = 'SE noise, 250 MSPS'
+    elif id_string == 'control_SE_500MSPS':
+        label = 'SE noise, 500 MSPS'
+    elif id_string == 'control_SE_1GSPS':
+        label = 'SE noise, 1 GSPS'
+    elif id_string == 'control_SE_2p5GSPS':
+        label = 'SE noise, 2.5 GSPS'
     else:
-        label = date+id_string 
+        label = date+'_'+id_string 
     #label += ' (g=%0.2f)'%gain_factor
    # }}}
     print "\n*** LOADING:",id_string,"***"
@@ -230,7 +218,7 @@ for date,id_string,numchan,gain_factor in [
             s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
             fl.plot(s['ch',0], alpha=0.35, label="%s"%label, plottype='semilogy')
             axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
-            fl.next('Network Noise (Dead time) Power Spectral Density (Input-referred) (convolution = %0.1e Hz)'%width)
+            fl.next('Power Spectral Density with 22 MHz input filter (Noise)')
             u.name('$S_{xx}(\\nu)$').set_units('W/Hz')
             fl.plot(u['ch',0], alpha=0.35, label="%s"%label, plottype='semilogy')
             axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
