@@ -3,9 +3,7 @@ fl = figlist_var()
 import os
 import sys
 matplotlib.rcParams['legend.fontsize'] ='xx-small'
-
 matplotlib.rcParams['legend.labelspacing'] = 0.2 
-matplotlib.legend 
 #4096 points
 # {{{ constants measured elsewhere
 gain_factor_amp1 = 525.94786172         #LNA 2
@@ -16,16 +14,6 @@ gain_factor_damp2 = 325.65682308        #duplexer,LNA 2
 gain_factor_dcasc12 = 114008.55204672   #duplexer,cascade(1,2)
 gain_factor_pdcasc12 = 45514.53212012    #probe,duplexer,cascade
 
-#gain_factor_amp1 = 521.27172202                         #LNA1 gain factor
-#gain_factor_amp2 = 529.98023528                        #LNA2 gain factor
-#gain_factor_amp3 = 523.73589899                        #LNA3 gain factor
-##gain_factor_casc12_ = 203383.76725939914
-##gain_factor_casc12 = 174549.75561175 
-#gain_factor_casc12 = 193879.86939256                  #LNA1,LNA2 gain factor
-#gain_factor_dpx_ = 0.6141065062411988
-#gain_factor_dpx = 0.7156772659294433                  #Duplexer gain factor
-##gain_factor_tot = 113984.00001949
-#gain_factor_tot = 120618.95681133 
 scope_noise = 4.4578468934e-19                         # pulled from the gain=1.0 calculation of the
                                                         # scope noise, below
 atten_factor = 7.056e-5
@@ -160,7 +148,7 @@ for date,id_string,numchan,gain_factor in [
                                          #   absolute number here (not input-referred)
     ]:
     # }}}
-    
+    #}}}
     # {{{ plot labels
     plot_params = False # toggle this to use plot params or not
     #{{{ plotting AFG waveform, attn, power splitter, with low pass filter
@@ -229,8 +217,10 @@ for date,id_string,numchan,gain_factor in [
         u = s.C['t':(159.0e-6,None)]   #100 MSPS
     elif id_string == 'control_SE_nofilter':
         u = s.C['t':(159.0e-6,None)]   #100 MSPS
-    elif '100MSPS' in plot_params['label']:
+    elif id_string == 'network_SE':
         u = s.C['t':(159.0e-6,None)]   #100 MSPS
+    elif id_string == 'network_SE_full':
+        u = s.C['t':(100.0e-6,None)]   #100 MSPS
     else:
         u = s.C
     #fl.next('new plot')
@@ -244,13 +234,12 @@ for date,id_string,numchan,gain_factor in [
     print u_acq_time
     print "\t"
     print "ACQUISITION TIME IS:\t",acq_time
-    print "DWELL TIME IS:      \t",diff(s.getaxis('t')[r_[0,1]])[0]
     #{{{ calculate PSD for s
     s.ft('t',shift=True)
     s = abs(s)['t':(0,None)]**2   #mod square and throw out negative frequencies
     s.mean('capture', return_error=False)
     width = 1e6
-#    s.convolve('t',width) # we do this before chopping things up, since it uses
+    #s.convolve('t',width) # we do this before chopping things up, since it uses
     #                      fft and assumes that the signal is periodic (at this
     #                      point, the signal at both ends is very close to
     #                      zero, so that's good
@@ -259,17 +248,36 @@ for date,id_string,numchan,gain_factor in [
     s *= 2               # because the power is split over negative and positive frequencies
 #    if gain_factor != 1: # if we're not talking about the scope noise
 #        s -= scope_noise
-    s /= gain_factor      # divide by gain factor, found from power curve -->
-    #                       now we have input-referred power
+    s /= gain_factor      # input referred power
+    #                       
     # }}}
     #{{{ calculate PSD for u 
+    u_filt = u.C
+    ##fl.next('plot')
+    ##fl.plot(u['capture',1])
     u.ft('t',shift=True)
     u = abs(u)['t':(0,None)]**2
     u.mean('capture', return_error = False)
+    u.convolve('t',width)
     u /= 50.
     u /= u_acq_time
     u *= 2
     u /= gain_factor
+    #}}}
+    filtering = False
+    #{{{ calculate PSD for filtered u
+    if filtering:
+        u_filt.ft('t',shift=True)
+        ##fl.plot(u_filt['capture',1])
+        ##fl.show()
+        ##quit()
+        #u_filt.convolve('t',width)
+        u_filt = abs(u_filt)['t':(0,None)]**2
+        u_filt.mean('capture', return_error = False)
+        u_filt /= 50.
+        u_filt /= u_acq_time
+        u_filt *= 2
+        u_filt /= gain_factor
     #}}}
     if not integration:
             if not plot_params:
@@ -290,6 +298,11 @@ for date,id_string,numchan,gain_factor in [
                 u.name('$S_{xx}(\\nu)$').set_units('W/Hz')
                 fl.plot(u['ch',0],**plot_params)
                 axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
+                if filtering:
+                    fl.next('Digitally-Filtered Network Noise Power Spectral Density, Input-referred')
+                    u_filt.name('$S_{xx}(\\nu)$').set_units('W/Hz')
+                    fl.plot(u_filt['ch',0],**plot_params)
+                    axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
             #}}}
     #{{{ processing with integration over frequency bands
     if integration:
