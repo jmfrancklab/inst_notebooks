@@ -51,9 +51,9 @@ def collect(date,id_string,captures):
     print "shape of data",ndshape(s)
     return start
 
-date = '180709'
+date = '180710'
 #id_string = 'control_pulse_22MHz_2p5GSPS_zoom'
-id_string = 'network_SE_full_2p5GSPS'
+id_string = 'spectrometer_noise_AFG_smagnet_2'
 #id_string = 'network_9_4'
 captures = linspace(1,100,100)
 
