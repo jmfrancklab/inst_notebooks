@@ -111,16 +111,16 @@ power_dens_CH2_dict = {}
 
 # {{{ call files
 for date,id_string,numchan,gain_factor in [
-        ('180709','control_SE',2,1.0),
-        ('180709','control_SE_250MSPS',2,1.0),
-        ('180709','control_SE_500MSPS',2,1.0),
-        ('180709','control_SE_1GSPS',2,1.0),
-        ('180709','control_SE_2p5GSPS',2,1.0),
-        ('180709','control_SE_nofilter',2,1.0),
-        ('180709','control_SE_250MSPS_nofilter',2,1.0),
-        ('180709','control_SE_500MSPS_nofilter',2,1.0),
-        ('180709','control_SE_1GSPS_nofilter',2,1.0),
-        ('180709','control_SE_2p5GSPS_nofilter',2,1.0),
+        #('180709','control_SE',2,1.0),
+        #('180709','control_SE_250MSPS',2,1.0),
+        #('180709','control_SE_500MSPS',2,1.0),
+        #('180709','control_SE_1GSPS',2,1.0),
+        #('180709','control_SE_2p5GSPS',2,1.0),
+        #('180709','control_SE_nofilter',2,1.0),
+        #('180709','control_SE_250MSPS_nofilter',2,1.0),
+        #('180709','control_SE_500MSPS_nofilter',2,1.0),
+        #('180709','control_SE_1GSPS_nofilter',2,1.0),
+        #('180709','control_SE_2p5GSPS_nofilter',2,1.0),
         ('180709','network_SE_full',2,gain_factor_dcasc12),
         ('180709','network_SE_full_250MSPS',2,gain_factor_dcasc12),
         ('180709','network_SE_full_500MSPS',2,gain_factor_dcasc12),
@@ -189,34 +189,33 @@ for date,id_string,numchan,gain_factor in [
         #}}}
     #{{{ plotting network, up to ENI amplifier with 50 ohm input
     elif id_string == 'network_SE':
-        plot_params = dict(label = '50$\Omega$ input ENI, 100 MSPS', color = '#1f77b4', alpha=0.2, linestyle='--', plottype='semilogy')
+        plot_params = dict(label = '50$\Omega$ input ENI, 100 MSPS', color = '#1f77b4', alpha=0.255, linestyle=':', plottype='semilogy')
     elif id_string == 'network_SE_250MSPS':
-        plot_params = dict(label = '50$\Omega$ input ENI, 250 MSPS', color ='#ff7f0e', alpha=0.2, linestyle='--', plottype='semilogy')
+        plot_params = dict(label = '50$\Omega$ input ENI, 250 MSPS', color ='#ff7f0e', alpha=0.25, linestyle=':', plottype='semilogy')
     elif id_string == 'network_SE_500MSPS':
-        plot_params = dict(label = '50$\Omega$ input ENI, 500 MSPS', color = '#2ca02c', alpha=0.2, linestyle='--', plottype='semilogy')
+        plot_params = dict(label = '50$\Omega$ input ENI, 500 MSPS', color = '#2ca02c', alpha=0.25, linestyle=':', plottype='semilogy')
     elif id_string == 'network_SE_1GSPS':
-        plot_params = dict(label = '50$\Omega$ input ENI, 1 GSPS', color ='#d62728', alpha=0.2, linestyle='--', plottype='semilogy')
+        plot_params = dict(label = '50$\Omega$ input ENI, 1 GSPS', color ='#d62728', alpha=0.25, linestyle=':', plottype='semilogy')
     elif id_string == 'network_SE_2p5GSPS':
-        plot_params = dict(label = '50$\Omega$ input ENI, 2.5 GSPS', color ='#9467bd', alpha=0.2, linestyle='--', plottype='semilogy')
+        plot_params = dict(label = '50$\Omega$ input ENI, 2.5 GSPS', color ='#9467bd', alpha=0.25, linestyle=':', plottype='semilogy')
         #}}}
     #{{{ plotting network, everything but magnet and sample
     elif id_string == 'network_SE_full':
-        plot_params = dict(label = 'Network, 100 MSPS', color = '#1f77b4', alpha=0.2, plottype='semilogy')
+        plot_params = dict(label = 'Network, 100 MSPS', color = '#1f77b4', alpha=0.25, plottype='semilogy')
     elif id_string == 'network_SE_full_250MSPS':
-        plot_params = dict(label = 'Network, 250 MSPS', color ='#ff7f0e', alpha=0.2, plottype='semilogy')
+        plot_params = dict(label = 'Network, 250 MSPS', color ='#ff7f0e', alpha=0.25, plottype='semilogy')
     elif id_string == 'network_SE_full_500MSPS':
-        plot_params = dict(label = 'Network, 500 MSPS', color = '#2ca02c', alpha=0.2, plottype='semilogy')
+        plot_params = dict(label = 'Network, 500 MSPS', color = '#2ca02c', alpha=0.25, plottype='semilogy')
     elif id_string == 'network_SE_full_1GSPS':
-        plot_params = dict(label = 'Network, 1 GSPS', color ='#d62728', alpha=0.2, plottype='semilogy')
+        plot_params = dict(label = 'Network, 1 GSPS', color ='#d62728', alpha=0.25, plottype='semilogy')
     elif id_string == 'network_SE_full_2p5GSPS':
-        plot_params = dict(label = 'Network, 2.5 GSPS', color ='#9467bd', alpha=0.2, plottype='semilogy')
+        plot_params = dict(label = 'Network, 2.5 GSPS', color ='#9467bd', alpha=0.25, plottype='semilogy')
     else:
         label = date+'_'+id_string 
         #}}}
     #label += ' (g=%0.2f)'%gain_factor
    # }}}
     print "\n*** LOADING:",id_string,"***"
-    # {{{ calculate positive frequency noise power spectral density
     s = load_noise(date,id_string,captures)
     #fl.next('plot')
     #fl.plot(s)
@@ -229,6 +228,8 @@ for date,id_string,numchan,gain_factor in [
     elif id_string == 'control_SE':
         u = s.C['t':(159.0e-6,None)]   #100 MSPS
     elif id_string == 'control_SE_nofilter':
+        u = s.C['t':(159.0e-6,None)]   #100 MSPS
+    elif '100MSPS' in plot_params['label']:
         u = s.C['t':(159.0e-6,None)]   #100 MSPS
     else:
         u = s.C
@@ -244,6 +245,7 @@ for date,id_string,numchan,gain_factor in [
     print "\t"
     print "ACQUISITION TIME IS:\t",acq_time
     print "DWELL TIME IS:      \t",diff(s.getaxis('t')[r_[0,1]])[0]
+    #{{{ calculate PSD for s
     s.ft('t',shift=True)
     s = abs(s)['t':(0,None)]**2   #mod square and throw out negative frequencies
     s.mean('capture', return_error=False)
@@ -260,7 +262,7 @@ for date,id_string,numchan,gain_factor in [
     s /= gain_factor      # divide by gain factor, found from power curve -->
     #                       now we have input-referred power
     # }}}
-    #{{{ processing without integration over frequency band
+    #{{{ calculate PSD for u 
     u.ft('t',shift=True)
     u = abs(u)['t':(0,None)]**2
     u.mean('capture', return_error = False)
@@ -268,13 +270,14 @@ for date,id_string,numchan,gain_factor in [
     u /= u_acq_time
     u *= 2
     u /= gain_factor
+    #}}}
     if not integration:
             if not plot_params:
                 fl.next('Network Noise Power Spectral Density (Input-referred) (convolution = %0.1e Hz)'%width)
                 s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
                 fl.plot(s['ch',0],alpha=0.35,label='%s'%label,plottype='semilogy')
                 axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
-                fl.next('Power Spectral Density with 22 MHz input filter (Noise)',legend=False)
+                fl.next('Power Spectral Density with 22 MHz input filter (Noise)')
                 u.name('$S_{xx}(\\nu)$').set_units('W/Hz')
                 fl.plot(u['ch',0],alpha=0.35,label='%s'%label,plottype='semilogy')
                 axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
@@ -283,7 +286,7 @@ for date,id_string,numchan,gain_factor in [
                 s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
                 fl.plot(s['ch',0],**plot_params)
                 axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
-                fl.next('Power Spectral Density with 22 MHz input filter (Noise)',legend=False)
+                fl.next('Network Noise Power Spectral Density, Input-referred')
                 u.name('$S_{xx}(\\nu)$').set_units('W/Hz')
                 fl.plot(u['ch',0],**plot_params)
                 axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
