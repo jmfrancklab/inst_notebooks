@@ -107,21 +107,26 @@ power_dens_CH2_dict = {}
 
 # {{{ call files
 for date,id_string,numchan,gain_factor in [
-        #('180709','control_pulse_22MHz_2p5GSPS',2,1.0),
+        ('180709','control_SE',2,1.0),
+        ('180709','control_SE_250MSPS',2,1.0),
+        ('180709','control_SE_500MSPS',2,1.0),
+        ('180709','control_SE_1GSPS',2,1.0),
+        ('180709','control_SE_2p5GSPS',2,1.0),
+#        ('180709','control_pulse_22MHz_2p5GSPS',2,1.0),
        # ('180709','control_pulse_22MHz_250MSPS',2,1.0),
 #        ('180625','network_22MHz_100M',2,gain_factor_dcasc12),
-        ('180625','network_22MHz_100M_2',2,gain_factor_dcasc12),
+#        ('180625','network_22MHz_100M_2',2,gain_factor_dcasc12),
 #        ('180709','network_1',2,gain_factor_dcasc12),
 #        ('180709','network_2',2,gain_factor_dcasc12),
 #        ('180709','network_3',2,gain_factor_dcasc12),
 #        ('180709','network_4',2,gain_factor_dcasc12),
-        ('180709','network_5',2,gain_factor_dcasc12),
+        #('180709','network_5',2,gain_factor_dcasc12),
 #        ('180709','network_6',2,gain_factor_dcasc12),
 #        ('180709','network_7',2,gain_factor_dcasc12),
 #        ('180709','network_8',2,gain_factor_dcasc12),
 #        ('180709','network_9',2,gain_factor_dcasc12),
 #        ('180709','network_9_2',2,gain_factor_dcasc12),
-        ('180709','network_9_3',2,gain_factor_dcasc12),
+        #('180709','network_9_3',2,gain_factor_dcasc12),
 #        ('180709','control_pulse',2,1.0),
 #        ('180709','control_pulse_3',2,1.0),
 #        ('180709','control_pulse_22MHz',2,1.0),
@@ -130,7 +135,7 @@ for date,id_string,numchan,gain_factor in [
 #        ('180709','control_pulse_22MHz_4',2,1.0),
 #        ('180709','control_pulse_22MHz_delay',2,1.0),
 #        ('180709','control_pulse_22MHz_100MSPS',2,1.0),
-        ('180709','control_pulse_22MHz_100MSPS_2',2,1.0),
+        #('180709','control_pulse_22MHz_100MSPS_2',2,1.0),
 #    ('180526','AFG_terminator_2',2,1.0),#   leave gain set to 1 so we can get the 
                                          #   absolute number here (not input-referred)
     ]:
@@ -155,6 +160,8 @@ for date,id_string,numchan,gain_factor in [
     elif id_string == 'network_100M':
         label = 'Noise, 100 MSa/sec'
     elif id_string == 'network_22MHz_100M_2':
+        label = 'Noise, 22 MHz filter, 100 MSa/sec (June 25)'
+    elif id_string == 'network_5':
         label = 'Noise, 22 MHz filter, 100 MSa/sec'
     else:
         label = date+id_string 
@@ -168,8 +175,14 @@ for date,id_string,numchan,gain_factor in [
     #fl.plot(s)
     #fl.show()
     #quit()
-    u = s.C['t':(161.0636e-6,None)]
-    #u = s.C['t':(23.2826e-6,None)]
+    if id_string == 'control_SE':
+        u = s.C['t':(159.0e-6,None)]   #100 MSPS
+    elif id_string == 'control_SE_250MSPS':
+        u = s.C['t':(40e-6,None)]       #250 MSPS
+    elif id_string == 'control_SE_500MSPS':
+        u = s.C['t':(0,35e-6)]          #500 MSPS
+    else:
+        u = s.C
     #fl.next('new plot')
     #fl.plot(u)
     #fl.show()
@@ -183,14 +196,13 @@ for date,id_string,numchan,gain_factor in [
     print "ACQUISITION TIME IS:\t",acq_time
     print "DWELL TIME IS:      \t",diff(s.getaxis('t')[r_[0,1]])[0]
     s.ft('t',shift=True)
-    s = abs(s)**2         #mod square
+    s = abs(s)['t':(0,None)]**2   #mod square and throw out negative frequencies
     s.mean('capture', return_error=False)
     width = 1e6
 #    s.convolve('t',width) # we do this before chopping things up, since it uses
     #                      fft and assumes that the signal is periodic (at this
     #                      point, the signal at both ends is very close to
     #                      zero, so that's good
-    s = abs(s)['t':(0,None)]
     s /= 50.              # divide by resistance, gives units: W*s, or W/Hz
     s /= acq_time         # divide by acquisition time
     s *= 2               # because the power is split over negative and positive frequencies
@@ -201,9 +213,8 @@ for date,id_string,numchan,gain_factor in [
     # }}}
     #{{{ processing without integration over frequency band
     u.ft('t',shift=True)
-    u = abs(u)**2
+    u = abs(u)['t':(0,None)]**2
     u.mean('capture', return_error = False)
-    u = abs(u)['t':(0,None)]
     u /= 50.
     u /= u_acq_time
     u *= 2
