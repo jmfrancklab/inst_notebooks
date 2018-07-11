@@ -83,7 +83,7 @@ def acquire(date,id_string,captures):
     return
 #}}}
 #{{{ spin echo function with phase cycling capability
-def spin_echo(avg_captures, freq = 14.4247e6, p90 = 2.63e-6, d1 = 63.794e-6, T1 = 200e-3, max_delay = True, complex_exp = True, ph_cyc = True):
+def spin_echo(averages, freq = 14.4247e6, p90 = 2.63e-6, d1 = 63.794e-6, T1 = 200e-3, max_delay = True, complex_exp = True, ph_cyc = True):
 #{{{ documentation
     r'''generates spin echo (90 - delay - 180) pulse sequence, defined by
     the frequency, 90 time, and delay time, and outputs on scope.
@@ -211,7 +211,7 @@ def spin_echo(avg_captures, freq = 14.4247e6, p90 = 2.63e-6, d1 = 63.794e-6, T1 
                             a[this_ch].digital_ndarray(y_ph.real, rate=rate)
                             a[this_ch].burst = True
                             a[this_ch].ampl = 10.
-                            raw_input("continue")
+                            #raw_input("continue")
                             time.sleep(d_interseq)
                             print "Acquiring..."
                             with GDS_scope() as g:
@@ -224,7 +224,7 @@ def spin_echo(avg_captures, freq = 14.4247e6, p90 = 2.63e-6, d1 = 63.794e-6, T1 
                                 data.setaxis('ch',r_[1,2])
                                 data.setaxis('ph1',r_[0:4])
                                 data.setaxis('ph2',r_[0,2])
-                                data.setaxis('averages',r_[0:averages]+1)
+                                data.setaxis('average',r_[0:averages]+1)
                             data['average',x]['ph1':ph1]['ph2':ph2]['ch',0] = ch1_wf
                             # alternative is to do ['ph1',ph1]['ph2',ph2/2]
                             data['average',x]['ph1':ph1]['ph2':ph2]['ch',1] = ch2_wf
@@ -240,10 +240,10 @@ def spin_echo(avg_captures, freq = 14.4247e6, p90 = 2.63e-6, d1 = 63.794e-6, T1 
     return start_ph,end_ph 
 #}}}
 
-date = '180708'
-id_string = 'spin_echo'
-averages = 15 
-t1,t2 = spin_echo(avg_captures = averages)
+date = '180710'
+id_string = 'SE_test_phcyc'
+number_cycles = 3 
+t1,t2 = spin_echo(averages = number_cycles)
 #raw_input("Start magnetic field sweep")
 #start_acq = timer()
 #acquire(date,id_string,captures)
