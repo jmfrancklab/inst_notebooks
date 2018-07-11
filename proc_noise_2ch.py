@@ -99,17 +99,17 @@ power_dens_CH2_dict = {}
 
 # {{{ call files
 for date,id_string,numchan,gain_factor in [
-        #('180710','spectrometer_noise_50ohm',2,gain_factor_dcasc12),
-        #('180710','spectrometer_noise_AFG',2,gain_factor_dcasc12),
+        ('180710','spectrometer_noise_50ohm',2,gain_factor_dcasc12),
+        ('180710','spectrometer_noise_AFG',2,gain_factor_dcasc12),
         #('180710','spectrometer_noise_AFG_2',2,gain_factor_dcasc12),
-        #('180710','spectrometer_noise_AFG_magnet',2,gain_factor_dcasc12),
-        #('180710','spectrometer_noise_AFG_smagnet',2,gain_factor_dcasc12),
-        ('180710','spectrometer_noise_50ohm_smagnet',2,gain_factor_dcasc12),
-        ('180710','spectrometer_noise_50ohm_magnet_2mVd',2,gain_factor_dcasc12),
-        ('180710','spectrometer_noise_50ohm_magnet_5mVd',2,gain_factor_dcasc12),
-        ('180710','spectrometer_noise_50ohm_magnet_10mVd',2,gain_factor_dcasc12),
-        ('180710','spectrometer_noise_50ohm_magnet_20mVd',2,gain_factor_dcasc12),
-        ('180710','spectrometer_noise_50ohm_magnet_50mVd',2,gain_factor_dcasc12),
+        ('180710','spectrometer_noise_AFG_magnet',2,gain_factor_dcasc12),
+        ('180710','spectrometer_noise_AFG_smagnet',2,gain_factor_dcasc12),
+        #('180710','spectrometer_noise_50ohm_smagnet',2,gain_factor_dcasc12),
+        #('180710','spectrometer_noise_50ohm_magnet_2mVd',2,gain_factor_dcasc12),
+        #('180710','spectrometer_noise_50ohm_magnet_5mVd',2,gain_factor_dcasc12),
+        #('180710','spectrometer_noise_50ohm_magnet_10mVd',2,gain_factor_dcasc12),
+        #('180710','spectrometer_noise_50ohm_magnet_20mVd',2,gain_factor_dcasc12),
+        #('180710','spectrometer_noise_50ohm_magnet_50mVd',2,gain_factor_dcasc12),
         #('180710','spectrometer_noise_AFG_magnet_2mVd',2,gain_factor_dcasc12),
         #('180710','spectrometer_noise_AFG_magnet_5mVd',2,gain_factor_dcasc12),
         #('180710','spectrometer_noise_AFG_magnet_10mVd',2,gain_factor_dcasc12),
@@ -169,9 +169,9 @@ for date,id_string,numchan,gain_factor in [
     elif '_50ohm_smagnet' in id_string:
         plot_params = dict(label = 'spec noise, 50$\Omega$, magnet, sample, 20 mV/div', color = 'pink', alpha=0.9, linestyle=':', plottype='semilogy')
     elif '_smagnet' in id_string:
-        label = 'spec noise, AFG, magnet, sample'
+        label = 'spec noise, AFG + magnet + sample'
     elif '_magnet' in id_string:
-        label = 'spec noise, AFG, magnet'
+        label = 'spec noise, AFG + magnet'
     elif 'spectrometer_noise_AFG' in id_string:
         label = 'spec noise, AFG'
     elif '50ohm' in id_string:
@@ -321,15 +321,16 @@ for date,id_string,numchan,gain_factor in [
                 s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
                 fl.plot(s['ch',0],alpha=0.5,label='%s'%label,plottype='semilogy')
                 axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
-                fl.next('Network Noise Power Spectral Density, Input-referred ($\sigma$=%0.3f kHz)'%(width*1e-3))
+                fl.next('Noise Power Spectral Density, Input-referred (50mV div$^{-1}$, $\sigma$=%0.3f kHz)'%(width*1e-3))
                 u.name('$S_{xx}(\\nu)$').set_units('W/Hz')
                 fl.plot(u['ch',0],alpha=0.5,label='%s'%label,plottype='semilogy')
                 axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
                 if filtering:
-                    fl.next('Digitally-Filtered Network Noise Power Spectral Density, Input-referred ($\sigma$=%0.3f kHz)'%(width*1e-3))
+                    fl.next('Digitally-Filtered Noise Power Spectral Density, Input-referred (50mV div$^{-1}$, $\sigma$=%0.3f kHz)'%(width*1e-3))
                     u_filt.name('$S_{xx}(\\nu)$').set_units('W/Hz')
-                    fl.plot(u_filt['ch',0],alpha=0.35,label='%s'%label,plottype='semilogy')
+                    fl.plot(u_filt['ch',0],alpha=0.5,label='%s'%label,plottype='semilogy')
                     axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
+                    axvline(x=14.5, alpha=0.5, color='black', linestyle=':') # only need to specify 14.5, b/c axis in MHz
             if plot_params:
                 fl.next('Network Noise Power Spectral Density (Input-referred) (convolution = %0.1e Hz)'%width)
                 s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
