@@ -205,8 +205,8 @@ def spin_echo(averages, freq = 14.4247e6, p90 = 2.63e-6, d1 = 63.794e-6, T1 = 20
                     for ph2 in xrange(0,4,2):
                         for ph1 in xrange(4):
                             y_ph = y.copy()
-                            y_ph[1:int(points_90)] *= exp(1j*pi/2*ph1)
-                            y_ph[int(points_90+points_d1+1):-2] *= exp(1j*pi/2*ph2)
+                            y_ph[1:int(points_90)] *= exp(1j*ph1*pi/2)
+                            y_ph[int(points_90+points_d1+1):-2] *= exp(1j*ph2*pi/2)
                             a[this_ch].ampl = 20.e-3
                             a[this_ch].digital_ndarray(y_ph.real, rate=rate)
                             a[this_ch].burst = True
@@ -229,6 +229,7 @@ def spin_echo(averages, freq = 14.4247e6, p90 = 2.63e-6, d1 = 63.794e-6, T1 = 20
                             # alternative is to do ['ph1',ph1]['ph2',ph2/2]
                             data['average',x]['ph1':ph1]['ph2':ph2]['ch',1] = ch2_wf
                             print "**********"
+                            print "CYCLE NO.",x
                             print "ph1",ph1
                             print "ph2",ph2
                             print "**********"
@@ -241,7 +242,7 @@ def spin_echo(averages, freq = 14.4247e6, p90 = 2.63e-6, d1 = 63.794e-6, T1 = 20
 #}}}
 
 date = '180710'
-id_string = 'SE_test_phcyc'
+id_string = 'SE_test_phcyc_2'
 number_cycles = 3 
 t1,t2 = spin_echo(averages = number_cycles)
 #raw_input("Start magnetic field sweep")
