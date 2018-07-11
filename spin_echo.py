@@ -200,6 +200,7 @@ def spin_echo(averages, freq = 14.4247e6, p90 = 2.63e-6, d1 = 63.794e-6, T1 = 20
             a[this_ch].ampl = 10.
             #{{{ for phase cycling
             start_ph = timer()
+            data = ndshape([averages,4,2,len(t_axis),2],['average','ph1','ph2','t','ch']).alloc()
             for x in xrange(averages):
                 if ph_cyc:
                     for ph2 in xrange(0,4,2):
@@ -217,9 +218,8 @@ def spin_echo(averages, freq = 14.4247e6, p90 = 2.63e-6, d1 = 63.794e-6, T1 = 20
                             with GDS_scope() as g:
                                 ch1_wf = g.waveform(ch=1)
                                 ch2_wf = g.waveform(ch=2)
-                            if (ph1 == 0 and ph2 == 0):
+                            if (ph1 == 0 and ph2 == 0 and x == 0):
                                 t_axis = ch1_wf.getaxis('t')
-                                data = ndshape([averages,4,2,len(t_axis),2],['average','ph1','ph2','t','ch']).alloc()
                                 data.setaxis('t',t_axis).set_units('t','s')
                                 data.setaxis('ch',r_[1,2])
                                 data.setaxis('ph1',r_[0:4])
@@ -241,8 +241,8 @@ def spin_echo(averages, freq = 14.4247e6, p90 = 2.63e-6, d1 = 63.794e-6, T1 = 20
     return start_ph,end_ph 
 #}}}
 
-date = '180710'
-id_string = 'SE_test_phcyc_2'
+date = '180711'
+id_string = 'SE_phcyc_control'
 number_cycles = 3 
 t1,t2 = spin_echo(averages = number_cycles)
 #raw_input("Start magnetic field sweep")
