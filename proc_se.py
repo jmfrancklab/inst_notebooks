@@ -28,25 +28,35 @@ for date,id_string,numchan in [
         s1.ft('t',shift=True)
         s1 = s1['t':(0,None)]
         s1.ift('t')
-        fl.next('check')
-        fl.plot(s1['ph1',0]['ph2',0])
+        #fl.next('check')
+        #fl.plot(s1['ph1',0]['ph2',0])
+        #fl.show()
+        #s_test = s1['ph1',0]['ph2',0]
+        #print s_test.contiguous(lambda x: x > 0.15*x.data.max())
         print ndshape(s1)
         pulse_slice_list = []
+        time_slice_list = []
         for ph2 in xrange(0,2):
             for ph1 in xrange(4):
-                pulse_slice_list = (s1['ph1',ph1]['ph2',ph2]).contiguous(lambda x: x>0.1*x.data.max())
+                #fl.next('timing')
+                #fl.plot(s1['ph1',ph1]['ph2',ph2])
+                pulse_slice_list = (s1['ph1',ph1]['ph2',ph2]).contiguous(lambda x: x > 0.138*x.data.max())
                 print pulse_slice_list
                 for x in xrange(len(pulse_slice_list)):
-                    s1['ph1',ph1]['ph2',ph2]['t':tuple(pulse_slice_list[x])] = 0
-                time_values = s1['ph1',ph1]['ph2',ph2].fromaxis('t')
-                print (ndshape(time_values)['t'])
-                print time_values.sum(['t'])
-                time_avg = sum(time_values['t'])/ndshape(time_values)['t']
-                print "****ph1=",ph1,"ph2=",ph2,"****"
-                print ndshape(s1)
+                    temp = tuple(pulse_slice_list[x])
+                    time_diff = temp[1] - temp[0]
+                    time_slice_list.append(time_diff)
+                time_avg = sum(time_slice_list)/len(time_slice_list)
                 print time_avg
-                #print "ph1=%d, ph2=%d"%(ph1,ph2)+" pulse slice=",pulse_slice
-        quit()
+    s.ft('t')
+    s.setaxis('t', lambda x: x-14.5e6)
+    s.ift('t')
+    #s1.ft(['ph1','ph2'])
+    fl.next('plotting')
+    fl.image(s['ch',1])
+    fl.show()
+
+
     if not shift_time:
         s.reorder('ph1','ph2','average','t')
         s.set_units('t','s')
