@@ -105,9 +105,14 @@ for date,id_string,numchan,gain_factor in [
         #('180710','spectrometer_noise_AFG_magnet',2,gain_factor_dcasc12),
         #('180710','spectrometer_noise_AFG_smagnet',2,gain_factor_dcasc12),
         #('180710','spectrometer_noise_50ohm_smagnet',2,gain_factor_dcasc12),
-        ('180710','spectrometer_noise_AFG_magnet_2mVd',2,gain_factor_dcasc12),
-        ('180710','spectrometer_noise_AFG_magnet_5mVd',2,gain_factor_dcasc12),
-        ('180710','spectrometer_noise_AFG_magnet_10mVd',2,gain_factor_dcasc12),
+        #('180710','spectrometer_noise_50ohm_magnet_2mVd',2,gain_factor_dcasc12),
+        #('180710','spectrometer_noise_50ohm_magnet_5mVd',2,gain_factor_dcasc12),
+        #('180710','spectrometer_noise_50ohm_magnet_10mVd',2,gain_factor_dcasc12),
+        ('180710','spectrometer_noise_50ohm_magnet_20mVd',2,gain_factor_dcasc12),
+        ('180710','spectrometer_noise_50ohm_magnet_50mVd',2,gain_factor_dcasc12),
+        #('180710','spectrometer_noise_AFG_magnet_2mVd',2,gain_factor_dcasc12),
+        #('180710','spectrometer_noise_AFG_magnet_5mVd',2,gain_factor_dcasc12),
+        #('180710','spectrometer_noise_AFG_magnet_10mVd',2,gain_factor_dcasc12),
         ('180710','spectrometer_noise_AFG_magnet_20mVd',2,gain_factor_dcasc12),
         ('180710','spectrometer_noise_AFG_magnet_50mVd',2,gain_factor_dcasc12),
         #('180710','spectrometer_noise_AFG_smagnet_4',2,gain_factor_dcasc12),
@@ -140,17 +145,27 @@ for date,id_string,numchan,gain_factor in [
     ]:
     # }}}
     # {{{ plot labels
-    plot_params = False # toggle this to use plot params preset below
-    if '2mVd' in id_string:
-        label = 'spec noise, 50$\Omega$, magnet, 2 mV/div'
-    elif '5mVd' in id_string:
-        label = 'spec noise, 50$\Omega$, magnet, 5 mV/div'
-    elif '10mVd' in id_string:
-        label = 'spec noise, 50$\Omega$, magnet, 10 mV/div'
-    elif '20mVd' in id_string:
-        label = 'spec noise, 50$\Omega$, magnet, 20 mV/div'
-    elif '50mVd' in id_string:
-        label = 'spec noise, 50$\Omega$, magnet, 50 mV/div'
+    plot_params = True # toggle this to use plot params preset below
+    if '50ohm_magnet_2mVd' in id_string:
+        plot_params = dict(label = 'spec noise, 50$\Omega$, magnet, 2 mV/div', color = 'blue', alpha=0.15, plottype='semilogy')
+    elif '50ohm_magnet_5mVd' in id_string:
+        plot_params = dict(label = 'spec noise, 50$\Omega$, magnet, 5 mV/div', color = 'orange', alpha=0.15, plottype='semilogy')
+    elif '50ohm_magnet_10mVd' in id_string:
+        plot_params = dict(label = 'spec noise, 50$\Omega$, magnet, 10 mV/div', color = 'green', alpha=0.15, plottype='semilogy')
+    elif '50ohm_magnet_20mVd' in id_string:
+        plot_params = dict(label = 'spec noise, 50$\Omega$, magnet, 20 mV/div', color = 'red', alpha=0.15, plottype='semilogy')
+    elif '50ohm_magnet_50mVd' in id_string:
+        plot_params = dict(label = 'spec noise, 50$\Omega$, magnet, 50 mV/div', color = 'purple', alpha=0.15, plottype='semilogy')
+    elif 'AFG_magnet_2mVd' in id_string:
+        plot_params = dict(label = 'spec noise, AFG, magnet, 2 mV/div', color = 'blue', alpha=0.2, linestyle='--', plottype='semilogy')
+    elif 'AFG_magnet_5mVd' in id_string:
+        plot_params = dict(label = 'spec noise, AFG, magnet, 5 mV/div', color = 'orange', alpha=0.2, linestyle='--', plottype='semilogy')
+    elif 'AFG_magnet_10mVd' in id_string:
+        plot_params = dict(label = 'spec noise, AFG, magnet, 10 mV/div', color = 'green', alpha=0.2, linestyle='--', plottype='semilogy')
+    elif 'AFG_magnet_20mVd' in id_string:
+        plot_params = dict(label = 'spec noise, AFG, magnet, 20 mV/div', color = 'red', alpha=0.2, linestyle='--', plottype='semilogy')
+    elif 'AFG_magnet_50mVd' in id_string:
+        plot_params = dict(label = 'spec noise, AFG, magnet, 50 mV/div', color = 'purple', alpha=0.2, linestyle='--', plottype='semilogy')
     elif '_50ohm_smagnet' in id_string:
         label = 'spec noise, 50$\Omega$, magnet, sample'
     elif '_smagnet' in id_string:
@@ -320,12 +335,12 @@ for date,id_string,numchan,gain_factor in [
                 s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
                 fl.plot(s['ch',0],**plot_params)
                 axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
-                fl.next('Network Noise Power Spectral Density, Input-referred')
+                fl.next('Network Noise Power Spectral Density, Input-referred ($\sigma$=%0.3f kHz)'%(width*1e-3))
                 u.name('$S_{xx}(\\nu)$').set_units('W/Hz')
                 fl.plot(u['ch',0],**plot_params)
                 axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
                 if filtering:
-                    fl.next('Digitally-Filtered Network Noise Power Spectral Density, Input-referred')
+                    fl.next('Digitally-Filtered Network Noise Power Spectral Density, Input-referred ($\sigma$=%0.3f kHz)'%(width*1e-3))
                     u_filt.name('$S_{xx}(\\nu)$').set_units('W/Hz')
                     fl.plot(u_filt['ch',0],**plot_params)
                     axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
