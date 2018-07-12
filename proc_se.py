@@ -5,7 +5,7 @@ import sys
 import matplotlib.style
 import matplotlib as mpl
 
-#mpl.rcParams['image.cmap'] = 'jet'
+mpl.rcParams['image.cmap'] = 'jet'
 fl = figlist_var()
 
 for date,id_string,numchan in [
@@ -20,13 +20,15 @@ for date,id_string,numchan in [
 
     s = nddata_hdf5(filename+'/'+nodename,
             directory = getDATADIR(exp_type='test_equip'))
-    print "*** Code taken from 'fix_phase_cycling_180712.py' ***"
+    print "*** Current version based on 'fix_phase_cycling_180712.py' ***"
+    print "WARNING: Need to define time slices for pulses on a by-dataset basis ***"
+    raw_input("Enter to proceed")
     s.set_units('t','s')
     s_raw = s.C.reorder('t',first=False)
 
+    #{{{ confirm that different phases trigger differently due to differing rising edges
     fl.next('raw data')
     fl.plot(s_raw['ch',1]['average',0]['ph2',0]['t':(24e-6,30e-6)].reorder('t').real)
-
     print ndshape(s)
     print ndshape(s_raw)
 
@@ -58,10 +60,9 @@ for date,id_string,numchan in [
             fl.next('compare falling edge, raw')
             fl.plot((onephase_raw['repeat',j]['t':(27.4e-6,27.8e-6)]['ph1',k].C.reorder('t',first=True)),color=colors[k],alpha=0.3)
     print ndshape(onephase)
-
     # the above should confirm that pulses are triggered differently due to their different rising edges
-
-    #{{{ defining new, more convenient x-axis below
+    #}}}
+    #{{{ applying time-shift (i.e., defining new, more convenient x-axis below)
     # note, pulse length used below is manually determined
     pulse_slice = s_raw['t':(24.8e-6,27.6e-6)]['ch',1].real
     normalization = (pulse_slice**2).integrate('t')
@@ -75,11 +76,12 @@ for date,id_string,numchan in [
     fl.next('time-shifted data')
     fl.image(s_raw)
     #}}}
+
     pulse_slice = s_raw['t':(-1.6e-6,1.6e-6)]['ch',1].real
-    # re-determine nddata of the time averages for the re-centered data
+    # re-determine nddata of the time averages for the newly centered data
     average_time = (pulse_slice**2 * pulse_slice.fromaxis('t')).integrate('t')/normalization
     average_time.reorder('average',first=False)
-    
+    # take analytic, and apply phase correction based on the time averages 
     analytic = s_raw.C.ft('t',shift=True)['t':(0,None)]
     analytic.setaxis('t',lambda f: f-14.4247e6)
     phase_factor = analytic.fromaxis('t',lambda x: 1j*2*pi*x)
@@ -87,12 +89,12 @@ for date,id_string,numchan in [
     phase_factor.run(lambda x: exp(x))
     analytic *= phase_factor
     analytic.ift('t')
-
+    # verify that we have phased the measured signal
     fl.next('analytic signal, phased, time domain')
     fl.image(analytic)
 
     # beginning phase correction now
-    # time-shift the raw data (done above), then apply phase correction
+    # note, this may be the same as the raw signal plotted in beginning of program
     onephase_raw_shift = s_raw['ch',1].C.smoosh(['ph2','average'],noaxis=True,dimname='repeat').reorder('t')
     for k in xrange(ndshape(onephase_raw)['ph1']):
         for j in xrange(ndshape(onephase_raw)['repeat']):
@@ -106,7 +108,7 @@ for date,id_string,numchan in [
     phase_factor *= average_time
     phase_factor.run(lambda x: exp(x))
     raw_corr *= phase_factor
-    # here zero filling or else signal amplitude will vary, due to changes made in the f dimension 
+    # here zero filling or else signal amplitude will vary due to changes made in the f dimension 
     raw_corr.ift('t',pad=30*1024)
     onephase_rawc = raw_corr['ch',1].C.smoosh(['ph2','average'],noaxis=True, dimname='repeat').reorder('t')
     print "*** shape of raw, corrected re-grouped data ***"
