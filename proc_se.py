@@ -27,11 +27,13 @@ for date,id_string,numchan in [
         s1 = s['ch',1] # pull ref ch
         s1.set_units('t','s')
         s1.name('Amplitude $/$ $V$')
+                #{{{ will plot time domain signal for each phase, before manipulation
         for ph2 in xrange(0,2):
             for ph1 in xrange(4):
                 print ph1,ph2,ndshape(s1['ph1',ph1]['ph2',ph2])
-                fl.next('Phase Cycled Spin Echo, Before Time Shift')
-                fl.plot(s1['ph1',ph1]['ph2',ph2],label='ph1 %d, ph2 %d'%(ph1,ph2),alpha=0.25)
+                #fl.next('Phase Cycled Spin Echo, Before Time Shift')
+                #fl.plot(s1['ph1',ph1]['ph2',ph2],label='ph1 %d, ph2 %d'%(ph1,ph2),alpha=0.25)
+                #}}}
         # Calculating analytic signal
         s1.ft('t',shift=True)
         s1 = s1['t':(0,None)]
@@ -40,53 +42,97 @@ for date,id_string,numchan in [
         # Slice for the 90 pulse
         s1 = s1['t':(0,15e-6)]
         print ndshape(s1)
+        #{{{ block for calculating time shift
         pulse_slice_list = []
         time_slice_list = []
         for ph2 in xrange(0,2):
             for ph1 in xrange(4):
-                #{{{ use to check the threshold for pulse slice
+                #{{{ use to check threshold is appropriate for pulse slice
                 #fl.next('Checking threshold')
                 #fl.plot(s1['ph1',ph1]['ph2',ph2])
                 #}}}
-                pulse_slice_list = (s1['ph1',ph1]['ph2',ph2]).contiguous(lambda x: x > 0.138*x.data.max())
+                pulse_slice_list = (s1['ph1',ph1]['ph2',ph2]).contiguous(lambda x: x > 0.05*x.data.max())
+                print "Pulse slices for time shifting"
                 print pulse_slice_list
                 # calculating average time for each 90 pulse
-                for x in xrange(len(pulse_slice_list)):
-                    temp = tuple(pulse_slice_list[x])
-                    time_diff = temp[1] - temp[0]
-                    time_slice_list.append(time_diff)
-                time_avg = sum(time_slice_list)/len(time_slice_list)
-                print time_avg
-    s1_shift = s['ch',1].C
-    s1_shift.ft('t')
-    # performing the time shift (in the frequency domain)
-    s1_shift *= s1_shift.fromaxis('t',lambda x: exp(-1j*2*pi*x*time_avg))
-    s1_shift.ift('t')
-    s1_shift.set_units('t','s')
-    s1_shift.name('Amplitude $/$ $V$')
-    for ph2 in xrange(0,2):
-        for ph1 in xrange(4):
-            print ph1,ph2,ndshape(s1_shift['ph1',ph1]['ph2',ph2])
-            fl.next('Phase Cycled Spin Echo, After Time Shift')
-            fl.plot(s1_shift['ph1',ph1]['ph2',ph2],label='ph1 %d, ph2 %d'%(ph1,ph2),alpha=0.25)
-    s1_shift.ft('t')
-    # filtering
-    s1_shift = s1_shift['t':(0,15.5e6)]
-    s1_shift.setaxis('t',lambda x: x - 14.43e6)
-    s1_shift.ift('t')
-    fl.next('ph1 ph2')
-    fl.image(s1_shift)
-    s1_noshift = s['ch',1].C
-    s1_noshift.set_units('t','s')
-    s1_noshift.name('Amplitude $/$ $V$')
-    s1_noshift.ft('t')
-    s1_noshift = s1_noshift['t':(0,15.5e6)]
-    s1_noshift.setaxis('t',lambda x: x - 14.43e6)
-    s1_noshift.ift('t')
-    fl.next('ph1 ph2 no shift')
-    fl.image(s1_noshift)
-    fl.show()
-    quit()
+        for x in xrange(len(pulse_slice_list)):
+            temp = tuple(pulse_slice_list[x])
+            time_diff = temp[1] - temp[0]
+            time_slice_list.append(time_diff)
+        time_avg = sum(time_slice_list)/len(time_slice_list)
+        print "**** time average to be applied for time shifting ***"
+        print time_avg
+            #}}}
+        s1_shift = s['ch',1].C
+        s1_shift.ft('t',shift=True)
+        # performing the time shift (in the frequency domain)
+        s1_shift *= s1_shift.fromaxis('t',lambda f: exp(-1j*2*pi*f*time_avg))
+        s1_shift.ift('t')
+        s1_shift.set_units('t','s')
+        s1_shift.name('Amplitude $/$ $V$')
+                #{{{ will plot time domain signal for each phase, time shifted
+        for ph2 in xrange(0,2):
+            for ph1 in xrange(4):
+                print ph1,ph2,ndshape(s1_shift['ph1',ph1]['ph2',ph2])
+                #fl.next('Phase Cycled Spin Echo, After Time Shift')
+                #fl.plot(s1_shift['ph1',ph1]['ph2',ph2],label='ph1 %d, ph2 %d'%(ph1,ph2),alpha=0.25)
+                #}}}
+        s1_shift.ft('t')
+        # filtering
+        s1_shift = s1_shift['t':(0,15.5e6)]
+        # mix down by carrier f 
+        s1_shift.setaxis('t',lambda x: x - 14.43e6)
+        s1_shift.ift('t')
+        fl.next('ph1 ph2')
+        fl.image(s1_shift)
+        s1_noshift = s['ch',1].C
+        s1_noshift.set_units('t','s')
+        s1_noshift.name('Amplitude $/$ $V$')
+        s1_noshift.ft('t')
+        # filtering
+        s1_noshift = s1_noshift['t':(0,15.5e6)]
+        # mix down by carrier f 
+        s1_noshift.setaxis('t',lambda x: x - 14.43e6)
+        s1_noshift.ift('t')
+        fl.next('ph1 ph2 no shift')
+        fl.image(s1_noshift)
+        s1_shift.ft(['ph1','ph2'])
+        fl.next('ft ph1,ph2')
+        fl.image(s1_shift)
+        s1_noshift.ft(['ph1','ph2'])
+        fl.next('ft ph1,ph2 no shift')
+        fl.image(s1_noshift)
+        fl.show()
+        quit()
+            #{{{ block for calculating zero-order correction
+        shiftedp_slice_list = []
+        shiftedt_slice_list = []
+        for ph2 in xrange(0,2):
+            for ph1 in xrange(4):
+                #{{{ see comment below
+                    # initially used this to re-calculate pulse length, but that is not needed
+                    # since it should be the same as previous time average; however, this looks
+                    # really weird
+                #s1_shift.ft('t')
+                #s1_shift = s1_shift['t':(0,None)]
+                #s1_shift.ift('t')
+                #s1_shift = abs(s1_shift)
+                #s1_shift = s1_shift['t':(0,15e-6)]
+                #fl.next('Checking threshold time shifted pulse')
+                #fl.plot(s1_shift['ph1',ph1]['ph2',ph2])
+                #}}}
+                shiftedp_slice_list = (s1_shift['ph1',ph1]['ph2',ph2]).contiguous(lambda x: x > 0.5*x.data.max())
+                print "Pulse slices for zero order phase correction"
+                print shiftedp_slice_list
+                # calculating average time for each time-shifted 90 pulse
+        for x in xrange(len(shiftedp_slice_list)):
+            temp = tuple(shiftedp_slice_list[x])
+            time_diff = temp[1] - temp[0]
+            shiftedt_slice_list.append(time_diff)
+        time_avg = sum(shiftedt_slice_list)/len(shiftedt_slice_list)
+        print "**** time average to be applied for zero order phase correction ****"
+        print time_avg
+            #}}}
 
 
     if not shift_time:
