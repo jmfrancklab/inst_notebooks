@@ -13,6 +13,8 @@ shift_time = True
 for date,id_string,numchan in [
         #('180708','spin_echo',2),
         ('180710','SE_test_phcyc_2',2),
+        #('180711','SE_phcyc_control',2),
+        #('180711','SE_phcyc_test',2),
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
@@ -23,38 +25,68 @@ for date,id_string,numchan in [
     if shift_time:
         s = s.mean('average',return_error=False)
         s1 = s['ch',1] # pull ref ch
-        s1 = s1['t':(0,12e-6)] # slice out all but 90 pulse
-        s1 = abs(s1)
+        s1.set_units('t','s')
+        s1.name('Amplitude $/$ $V$')
+        for ph2 in xrange(0,2):
+            for ph1 in xrange(4):
+                print ph1,ph2,ndshape(s1['ph1',ph1]['ph2',ph2])
+                fl.next('Phase Cycled Spin Echo, Before Time Shift')
+                fl.plot(s1['ph1',ph1]['ph2',ph2],label='ph1 %d, ph2 %d'%(ph1,ph2),alpha=0.25)
+        # Calculating analytic signal
         s1.ft('t',shift=True)
         s1 = s1['t':(0,None)]
         s1.ift('t')
-        #fl.next('check')
-        #fl.plot(s1['ph1',0]['ph2',0])
-        #fl.show()
-        #s_test = s1['ph1',0]['ph2',0]
-        #print s_test.contiguous(lambda x: x > 0.15*x.data.max())
+        s1 = abs(s1)
+        # Slice for the 90 pulse
+        s1 = s1['t':(0,15e-6)]
         print ndshape(s1)
         pulse_slice_list = []
         time_slice_list = []
         for ph2 in xrange(0,2):
             for ph1 in xrange(4):
-                #fl.next('timing')
+                #{{{ use to check the threshold for pulse slice
+                #fl.next('Checking threshold')
                 #fl.plot(s1['ph1',ph1]['ph2',ph2])
+                #}}}
                 pulse_slice_list = (s1['ph1',ph1]['ph2',ph2]).contiguous(lambda x: x > 0.138*x.data.max())
                 print pulse_slice_list
+                # calculating average time for each 90 pulse
                 for x in xrange(len(pulse_slice_list)):
                     temp = tuple(pulse_slice_list[x])
                     time_diff = temp[1] - temp[0]
                     time_slice_list.append(time_diff)
                 time_avg = sum(time_slice_list)/len(time_slice_list)
                 print time_avg
-    s.ft('t')
-    s.setaxis('t', lambda x: x-14.5e6)
-    s.ift('t')
-    #s1.ft(['ph1','ph2'])
-    fl.next('plotting')
-    fl.image(s['ch',1])
+    s1_shift = s['ch',1].C
+    s1_shift.ft('t')
+    # performing the time shift (in the frequency domain)
+    s1_shift *= s1_shift.fromaxis('t',lambda x: exp(-1j*2*pi*x*time_avg))
+    s1_shift.ift('t')
+    s1_shift.set_units('t','s')
+    s1_shift.name('Amplitude $/$ $V$')
+    for ph2 in xrange(0,2):
+        for ph1 in xrange(4):
+            print ph1,ph2,ndshape(s1_shift['ph1',ph1]['ph2',ph2])
+            fl.next('Phase Cycled Spin Echo, After Time Shift')
+            fl.plot(s1_shift['ph1',ph1]['ph2',ph2],label='ph1 %d, ph2 %d'%(ph1,ph2),alpha=0.25)
+    s1_shift.ft('t')
+    # filtering
+    s1_shift = s1_shift['t':(0,15.5e6)]
+    s1_shift.setaxis('t',lambda x: x - 14.43e6)
+    s1_shift.ift('t')
+    fl.next('ph1 ph2')
+    fl.image(s1_shift)
+    s1_noshift = s['ch',1].C
+    s1_noshift.set_units('t','s')
+    s1_noshift.name('Amplitude $/$ $V$')
+    s1_noshift.ft('t')
+    s1_noshift = s1_noshift['t':(0,15.5e6)]
+    s1_noshift.setaxis('t',lambda x: x - 14.43e6)
+    s1_noshift.ift('t')
+    fl.next('ph1 ph2 no shift')
+    fl.image(s1_noshift)
     fl.show()
+    quit()
 
 
     if not shift_time:
@@ -121,7 +153,7 @@ for date,id_string,numchan in [
         #s.setaxis('t',lambda x: x-14.5e6+0.33/4e-6)
         #s.setaxis('t',lambda x: x-14.5e6+0.33/4e-6)
         #s.setaxis('t',lambda x: x-14.4247e6-0.02/((2*2.63)*1e-6))
-        s.setaxis('t',lambda x: x-14.4247e6)
+        s.setaxis('t',lambda x: x-14.4247e6-0.25/time_avg)
         print ndshape(s)
         s.ift('t')
         #s.ft(['ph1','ph2'])
