@@ -159,10 +159,10 @@ def spin_echo(averages, freq = 14.4247e6, p90 = 2.63e-6, d1 = 63.794e-6, T1 = 20
         #{{{ generating the arbitrary waveform
         t = r_[0:4096]
         freq_sampling = 0.25
-        y = 0*t
-        y = exp(1j*2*pi*t[1 : -2]*freq_sampling)
+        y = exp(1j*2*pi*t[1 : -1]*freq_sampling)
         y[int(points_90) : int(points_90+points_d1)] = 0
-        y[int(points_90+points_d1+1)] = 0 # this starts the 180 as cosine to match 90
+        y[0] = 0
+        y[-1] = 0
         #}}}
     #}}}
     #{{{ this generates spin echo via alternating array (previous method)
@@ -200,14 +200,13 @@ def spin_echo(averages, freq = 14.4247e6, p90 = 2.63e-6, d1 = 63.794e-6, T1 = 20
             a[this_ch].ampl = 10.
             #{{{ for phase cycling
             start_ph = timer()
-            data = ndshape([averages,4,2,len(t_axis),2],['average','ph1','ph2','t','ch']).alloc()
             for x in xrange(averages):
                 if ph_cyc:
                     for ph2 in xrange(0,4,2):
                         for ph1 in xrange(4):
                             y_ph = y.copy()
                             y_ph[1:int(points_90)] *= exp(1j*ph1*pi/2)
-                            y_ph[int(points_90+points_d1+1):-2] *= exp(1j*ph2*pi/2)
+                            y_ph[int(points_90+points_d1):-1] *= exp(1j*ph2*pi/2)
                             a[this_ch].ampl = 20.e-3
                             a[this_ch].digital_ndarray(y_ph.real, rate=rate)
                             a[this_ch].burst = True
@@ -220,6 +219,7 @@ def spin_echo(averages, freq = 14.4247e6, p90 = 2.63e-6, d1 = 63.794e-6, T1 = 20
                                 ch2_wf = g.waveform(ch=2)
                             if (ph1 == 0 and ph2 == 0 and x == 0):
                                 t_axis = ch1_wf.getaxis('t')
+                                data = ndshape([averages,4,2,len(t_axis),2],['average','ph1','ph2','t','ch']).alloc()
                                 data.setaxis('t',t_axis).set_units('t','s')
                                 data.setaxis('ch',r_[1,2])
                                 data.setaxis('ph1',r_[0:4])
@@ -229,7 +229,7 @@ def spin_echo(averages, freq = 14.4247e6, p90 = 2.63e-6, d1 = 63.794e-6, T1 = 20
                             # alternative is to do ['ph1',ph1]['ph2',ph2/2]
                             data['average',x]['ph1':ph1]['ph2':ph2]['ch',1] = ch2_wf
                             print "**********"
-                            print "CYCLE NO.",x
+                            print "CYCLE NO. INDEX",x
                             print "ph1",ph1
                             print "ph2",ph2
                             print "**********"
@@ -242,8 +242,8 @@ def spin_echo(averages, freq = 14.4247e6, p90 = 2.63e-6, d1 = 63.794e-6, T1 = 20
 #}}}
 
 date = '180711'
-id_string = 'SE_phcyc_control'
-number_cycles = 3 
+id_string = 'SE_phcyc_test'
+number_cycles = 1 
 t1,t2 = spin_echo(averages = number_cycles)
 #raw_input("Start magnetic field sweep")
 #start_acq = timer()
