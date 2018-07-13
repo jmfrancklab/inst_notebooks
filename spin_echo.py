@@ -83,7 +83,7 @@ def acquire(date,id_string,captures):
     return
 #}}}
 #{{{ spin echo function with phase cycling capability
-def spin_echo(averages, freq = 14.4247e6, p90 = 2.63e-6, d1 = 63.794e-6, T1 = 200e-3, max_delay = True, complex_exp = True, ph_cyc = True):
+def spin_echo(averages, freq = 14.4308e6, p90 = 2.61e-6, d1 = 63.794e-6, T1 = 200e-3, max_delay = True, complex_exp = True, ph_cyc = True):
 #{{{ documentation
     r'''generates spin echo (90 - delay - 180) pulse sequence, defined by
     the frequency, 90 time, and delay time, and outputs on scope.
@@ -242,8 +242,8 @@ def spin_echo(averages, freq = 14.4247e6, p90 = 2.63e-6, d1 = 63.794e-6, T1 = 20
 #}}}
 
 date = '180712'
-id_string = 'SE_phcyc_test_3'
-number_cycles = 3 
+id_string = 'SE_exp_3'
+number_cycles = 5 
 t1,t2 = spin_echo(averages = number_cycles)
 #raw_input("Start magnetic field sweep")
 #start_acq = timer()
