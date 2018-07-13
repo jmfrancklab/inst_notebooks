@@ -15,7 +15,9 @@ for date,id_string,numchan in [
         #('180712','SE_phcyc_test',2)
         #('180712','SE_phcyc_test_2',2)
         #('180712','SE_phcyc_test_3',2)
-        ('180712','SE_exp',2)
+        #('180712','SE_exp',2)
+        #('180712','SE_exp_2',2)
+        ('180712','SE_exp_3',2)
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
@@ -139,7 +141,7 @@ for date,id_string,numchan in [
     coherence_domain = analytic.C.ift(['ph1','ph2'])
     fl.image(coherence_domain['t':(-2e-6,75e-6)])
 
-    s_analytic = raw_corr['ch',0].C.ft('t')['t':(5.5e6,15.5e6)].setaxis('t', lambda f: f-carrier_f).ift('t').reorder(['average','t'],first=False)
+    s_analytic = raw_corr['ch',0].C.ft('t')['t':(12e6,18e6)].setaxis('t', lambda f: f-carrier_f).ift('t').reorder(['average','t'],first=False)
     s_analytic *= expected_phase/measured_phase
     fl.next('analytic signal, test ch')
     #fl.image(s_analytic.cropped_log())
