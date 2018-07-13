@@ -119,9 +119,10 @@ for date,id_string,numchan,gain_factor in [
         ('180710','spectrometer_noise_AFG_smagnet_4',2,gain_factor_dcasc12),
         #('180710','spectrometer_noise_AFG_smagnet_2',2,gain_factor_dcasc12),
         #('180710','spectrometer_noise_AFG_smagnet_3',2,gain_factor_dcasc12),
-        #('180712','test_noise_50mVd',2,gain_factor_dcasc12),
+        ('180712','test_noise_50mVd',2,gain_factor_dcasc12),
         #('180712','test_noise_20mVd',2,gain_factor_dcasc12),
-        ('180712','test_noise_20mVd_2',2,gain_factor_dcasc12),
+        #('180712','test_noise_20mVd_2',2,gain_factor_dcasc12),
+        ('180712','post_test_noise_50mVd',2,gain_factor_dcasc12), # at resonant B0
         #{{{ older files
         #('180709','control_SE',2,1.0),
         #('180709','control_SE_250MSPS',2,1.0),

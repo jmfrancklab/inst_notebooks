@@ -17,7 +17,8 @@ for date,id_string,numchan in [
         #('180712','SE_phcyc_test_3',2)
         #('180712','SE_exp',2)
         #('180712','SE_exp_2',2)
-        ('180712','SE_exp_3',2)
+        #('180712','SE_exp_3',2)
+        ('180713','SE_exp',2)
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
@@ -83,7 +84,7 @@ for date,id_string,numchan in [
     fl.image(s_raw)
     #}}}
 
-    pulse_slice = s_raw['t':(-1.4e-6,1.4e-6)]['ch',1].real
+    pulse_slice = s_raw['t':(-1.34e-6,1.34e-6)]['ch',1].real
     # re-determine nddata of the time averages for the newly centered data
     average_time = (pulse_slice**2 * pulse_slice.fromaxis('t')).integrate('t')/normalization
     average_time.reorder('average',first=False)
@@ -144,25 +145,48 @@ for date,id_string,numchan in [
     s_analytic = raw_corr['ch',0].C.ft('t')['t':(12e6,18e6)].setaxis('t', lambda f: f-carrier_f).ift('t').reorder(['average','t'],first=False)
     s_analytic *= expected_phase/measured_phase
     fl.next('analytic signal, test ch')
-    #fl.image(s_analytic.cropped_log())
+    fl.image(s_analytic.cropped_log())
     fl.next('coherence domain, test ch')
     s_coherence_domain = s_analytic.C.ift(['ph1','ph2'])
     fl.image(s_coherence_domain)
     print ndshape(s_analytic)
-    savg_analytic = s_analytic.C.mean('average',return_error=False)
-    print ndshape(savg_analytic)
-    fl.next('analytic signal, test ch, avg')
-    fl.image(savg_analytic)
-    fl.next('analytic signal, test ch, avg, cropped log')
-    #fl.image(savg_analytic.cropped_log())
-    savg_coherence_domain = savg_analytic.C.ift(['ph1','ph2'])
-    fl.next('coherence domain, test ch, avg')
-    fl.image(savg_coherence_domain)
-    fl.next('coherence domain, test ch, avg, cropped log')
-    #fl.image(savg_coherence_domain.cropped_log())
-    pull = savg_analytic['ph1',3]['ph2',1]
-    print ndshape(pull)
-    fl.next('pull cycle')
-    fl.plot(pull)
+    s_avg = s['ch',0]['ph1',3]['ph2',1].C
+    s_avg_off = s['ch',0]['ph1',2]['ph2',0].C
+    s_avg_sig = s['ch',0]['ph1',1]['ph2',0].C
+    s_avg.ft('t')
+    s_avg_off.ft('t')
+    s_avg_sig.ft('t')
+    #s_avg['t':(None,0)] = 0
+    #s_avg_off['t':(None,0)] = 0
+    s_avg = s_avg['t':(0,None)]
+    s_avg.ift('t')
+    s_avg_off = s_avg_off['t':(0,None)]
+    s_avg_off.ift('t')
+    s_avg_sig = s_avg_sig['t':(0,None)]
+    s_avg_sig.ift('t')
+    #for x in xrange(20):
+    #    fl.next('individ')
+    #    fl.plot(s_avg['average',x],label='capture %d'%x)
+    #for x in xrange(20):
+    #    fl.next('individ, off')
+    #    fl.plot(s_avg_off['average',x],label='capture %d'%x)
+    #fl.next('2d')
+    #fl.image(s_avg.C.cropped_log())
+    #fl.next('2d off')
+    #fl.image(s_avg_off.C.cropped_log())
+    s_avg = s_avg.mean('average',return_error=False)
+    s_avg_off = s_avg_off.mean('average',return_error=False)
+    s_avg_sig = s_avg_sig.mean('average',return_error=False)
+    #s_avg.ift('t')
+    #s_avg_off.ift('t')
+    #print ndshape(s_avg)
+    #s_avg = s_avg['t':(100e-6,None)]
+    #s_avg.ft('t')
+    fl.next('pulled ch')
+    fl.plot(s_avg)
+    fl.next('pulled ch off')
+    fl.plot(s_avg_off)
+    fl.next('pulled ch sig?')
+    fl.plot(s_avg_sig)
 fl.show()
 quit()
