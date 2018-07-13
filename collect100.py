@@ -53,7 +53,7 @@ def collect(date,id_string,captures):
 
 date = '180712'
 #id_string = 'control_pulse_22MHz_2p5GSPS_zoom'
-id_string = 'test_noise_20mVd_2'
+id_string = 'post_test_noise_50mVd'
 #id_string = 'network_9_4'
 captures = linspace(1,100,100)
 

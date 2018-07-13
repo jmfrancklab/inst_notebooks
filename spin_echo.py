@@ -241,9 +241,9 @@ def spin_echo(averages, freq = 14.4308e6, p90 = 2.61e-6, d1 = 63.794e-6, T1 = 20
     return start_ph,end_ph 
 #}}}
 
-date = '180712'
-id_string = 'SE_exp_3'
-number_cycles = 5 
+date = '180713'
+id_string = 'SE_exp'
+number_cycles = 50 
 t1,t2 = spin_echo(averages = number_cycles)
 #raw_input("Start magnetic field sweep")
 #start_acq = timer()
