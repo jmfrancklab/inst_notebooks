@@ -8,12 +8,13 @@ import matplotlib as mpl
 mpl.rcParams['image.cmap'] = 'jet'
 fl = figlist_var()
 
+carrier_f = 14.4247e6
+
 for date,id_string,numchan in [
-        #('180708','spin_echo',2),
-        #('180710','SE_test_phcyc_2',2),
-        #('180711','SE_phcyc_control',2),
-        #('180711','SE_phcyc_test',2),
-        ('180711','SE_phcyc_control',2)
+        #('180711','SE_phcyc_control',2)
+        #('180712','SE_phcyc_test',2)
+        #('180712','SE_phcyc_test_2',2)
+        ('180712','SE_phcyc_test_3',2)
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
@@ -34,7 +35,7 @@ for date,id_string,numchan in [
 
     s.ft('t',shift=True)
     s = s['t':(0,None)]
-    s.setaxis('t',lambda f: f-14.4247e6)
+    s.setaxis('t',lambda f: f-carrier_f)
     s.ift('t')
 
     fl.next('phcyc')
@@ -64,7 +65,7 @@ for date,id_string,numchan in [
     #}}}
     #{{{ applying time-shift (i.e., defining new, more convenient x-axis below)
     # note, pulse length used below is manually determined
-    pulse_slice = s_raw['t':(24.8e-6,27.6e-6)]['ch',1].real
+    pulse_slice = s_raw['t':(24.87e-6,27.65e-6)]['ch',1].real
     normalization = (pulse_slice**2).integrate('t')
     # this creates an nddata of the time averages for each 90 pulse
     average_time = (pulse_slice**2 * pulse_slice.fromaxis('t')).integrate('t')/normalization
@@ -83,7 +84,7 @@ for date,id_string,numchan in [
     average_time.reorder('average',first=False)
     # take analytic, and apply phase correction based on the time averages 
     analytic = s_raw.C.ft('t',shift=True)['t':(0,None)]
-    analytic.setaxis('t',lambda f: f-14.4247e6)
+    analytic.setaxis('t',lambda f: f-carrier_f)
     phase_factor = analytic.fromaxis('t',lambda x: 1j*2*pi*x)
     phase_factor *= average_time
     phase_factor.run(lambda x: exp(x))
@@ -121,7 +122,7 @@ for date,id_string,numchan in [
             fl.plot(onephase_rawc['repeat',j]['ph1',k]['t':(1.1e-6,1.5e-6)].C.reorder('t',first=True),color=colors[k],alpha=0.3)
     
     # with time-shifted, phase corrected raw data, now take analytic
-    analytic = raw_corr['ch',1].C.ft('t')['t':(0,15.5e6)].setaxis('t', lambda f: f-14.4247e6).ift('t').reorder(['average','t'],first=False)
+    analytic = raw_corr['ch',1].C.ft('t')['t':(0,15.5e6)].setaxis('t', lambda f: f-carrier_f).ift('t').reorder(['average','t'],first=False)
     # measured phase is the result obtained from data after time-shifting and phase correcting
     measured_phase = analytic['t':(-2e6,2e6)].mean('t',return_error=False).mean('ph2',return_error=True).mean('average',return_error=True)
     measured_phase /= abs(measured_phase)
