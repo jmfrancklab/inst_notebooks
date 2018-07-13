@@ -28,7 +28,7 @@ def collect(date,id_string,captures):
             ch1_waveform = g.waveform(ch=1)
             data = concat([ch1_waveform],'ch').reorder('t')
             if x == 1:
-                channels = ((ndshape(data)) + ('capture',capture_length)).alloc()
+                channels = ((ndshape(data)) + ('capture',capture_length)).alloc(dtype=float64)
                 channels.setaxis('t',data.getaxis('t')).set_units('t','s')
                 channels.setaxis('ch',data.getaxis('ch'))
             channels['capture',x-1] = data
@@ -51,9 +51,9 @@ def collect(date,id_string,captures):
     print "shape of data",ndshape(s)
     return start
 
-date = '180710'
+date = '180712'
 #id_string = 'control_pulse_22MHz_2p5GSPS_zoom'
-id_string = 'spectrometer_noise_AFG_magnet_50mVd'
+id_string = 'test_noise_20mVd_2'
 #id_string = 'network_9_4'
 captures = linspace(1,100,100)
 

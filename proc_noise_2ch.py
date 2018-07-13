@@ -108,16 +108,20 @@ for date,id_string,numchan,gain_factor in [
         #('180710','spectrometer_noise_50ohm_magnet_2mVd',2,gain_factor_dcasc12),
         #('180710','spectrometer_noise_50ohm_magnet_5mVd',2,gain_factor_dcasc12),
         #('180710','spectrometer_noise_50ohm_magnet_10mVd',2,gain_factor_dcasc12),
-        ('180710','spectrometer_noise_50ohm_magnet_20mVd',2,gain_factor_dcasc12),
-        ('180710','spectrometer_noise_50ohm_magnet_50mVd',2,gain_factor_dcasc12),
+        #('180710','spectrometer_noise_50ohm_magnet_20mVd',2,gain_factor_dcasc12),
+        #('180710','spectrometer_noise_50ohm_magnet_50mVd',2,gain_factor_dcasc12),
         #('180710','spectrometer_noise_AFG_magnet_2mVd',2,gain_factor_dcasc12),
         #('180710','spectrometer_noise_AFG_magnet_5mVd',2,gain_factor_dcasc12),
         #('180710','spectrometer_noise_AFG_magnet_10mVd',2,gain_factor_dcasc12),
-        ('180710','spectrometer_noise_AFG_magnet_20mVd',2,gain_factor_dcasc12),
-        ('180710','spectrometer_noise_AFG_magnet_50mVd',2,gain_factor_dcasc12),
-        #('180710','spectrometer_noise_AFG_smagnet_4',2,gain_factor_dcasc12),
+        #('180710','spectrometer_noise_AFG_magnet_20mVd',2,gain_factor_dcasc12),
+        #('180710','spectrometer_noise_AFG_magnet_50mVd',2,gain_factor_dcasc12),
+        #('180712','spectrometer_noise_AFG_magnet_20mVd',2,gain_factor_dcasc12),
+        ('180710','spectrometer_noise_AFG_smagnet_4',2,gain_factor_dcasc12),
         #('180710','spectrometer_noise_AFG_smagnet_2',2,gain_factor_dcasc12),
         #('180710','spectrometer_noise_AFG_smagnet_3',2,gain_factor_dcasc12),
+        #('180712','test_noise_50mVd',2,gain_factor_dcasc12),
+        #('180712','test_noise_20mVd',2,gain_factor_dcasc12),
+        ('180712','test_noise_20mVd_2',2,gain_factor_dcasc12),
         #{{{ older files
         #('180709','control_SE',2,1.0),
         #('180709','control_SE_250MSPS',2,1.0),
@@ -145,7 +149,7 @@ for date,id_string,numchan,gain_factor in [
     ]:
     # }}}
     # {{{ plot labels
-    plot_params = True # toggle this to use plot params preset below
+    plot_params = False # toggle this to use plot params preset below
     if '50ohm_magnet_2mVd' in id_string:
         plot_params = dict(label = 'spec noise, 50$\Omega$, magnet, 2 mV/div', color = 'blue', alpha=0.3, plottype='semilogy')
     elif '50ohm_magnet_5mVd' in id_string:
@@ -233,10 +237,11 @@ for date,id_string,numchan,gain_factor in [
    # }}}
     print "\n*** LOADING:",id_string,"***"
     s = load_noise(date,id_string,captures)
+    #{{{ If looking to plot single captures, see ipynb/plotting_noise_captures_180712.ipynb
     #fl.next('plot')
     #fl.plot(s)
     #fl.show()
-    #quit()
+    #}}}
     #{{{ slicing
     if 'spectrometer_noise' in id_string:
         u = s.C['t':(124e-6,None)]
@@ -255,7 +260,7 @@ for date,id_string,numchan,gain_factor in [
         u = s.C['t':(100.0e-6,None)]   #100 MSPS
         #}}}
     else:
-        u = s.C
+        u = s.C['t':(124e-6,None)]
         #}}}
     #fl.next('new plot')
     #fl.plot(u)
