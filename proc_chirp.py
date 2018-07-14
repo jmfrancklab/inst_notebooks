@@ -15,9 +15,10 @@ with figlist_var(filename='chirp.pdf') as fl:
             #('180708','chirp_probes_magnet',True),   # B_0 = 3410.55 G, sample   
             #('180708','chirp_probes_magnet_repeat',True),   # B_0 = 3410.55 G, sample   
             #('180708','chirp_probes_magnet_2',True),   # B_0 = 3410.55 G, sample   
-            ('180712','test_chirp',True),   # B_0 = 3394.80 G, sample   
-            ('180712','test_chirp_2',True),   # B_0 = 3394.80 G, sample   
+            #('180712','test_chirp',True),   # B_0 = 3394.80 G, sample   
+            #('180712','test_chirp_2',True),   # B_0 = 3394.80 G, sample   
             ('180713','test_chirp',True),   # no magnetic field   
+            ('180713','test_chirp_2',True),   # no magnetic field   
             ]:
 #{{{ finding file
         try:
