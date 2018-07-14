@@ -8,18 +8,16 @@ import matplotlib as mpl
 mpl.rcParams['image.cmap'] = 'jet'
 fl = figlist_var()
 
-carrier_f = 14.4308e6
+carrier_f = 14.4289e6
 
 for date,id_string,numchan in [
-        #('180711','SE_phcyc_control',2)
-        #('180712','SE_phcyc_test',2)
-        #('180712','SE_phcyc_test_2',2)
-        #('180712','SE_phcyc_test_3',2)
         #('180712','SE_exp',2)
         #('180712','SE_exp_2',2)
         #('180712','SE_exp_3',2)
         #('180713','SE_exp',2)
-        ('180713','SE_exp_nomag',2)
+        #('180714','SE_exp',2) # 25 cycle measurement, B0 = 3395.75 G
+        #('180714','SE_exp_offres_small',2) # 5 cycle measurement, B0 = 3583.85 G 
+        ('180714','SE_exp_offres',2) # 25 cycle measurement, B0 = 3585.85 G 
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
@@ -142,7 +140,7 @@ for date,id_string,numchan in [
     fl.next('coherence domain, ref ch')
     coherence_domain = analytic.C.ift(['ph1','ph2'])
     fl.image(coherence_domain['t':(-2e-6,75e-6)])
-
+    # apply same analysis as on reference ch to test ch
     s_analytic = raw_corr['ch',0].C.ft('t')['t':(12e6,18e6)].setaxis('t', lambda f: f-carrier_f).ift('t').reorder(['average','t'],first=False)
     s_analytic *= expected_phase/measured_phase
     fl.next('analytic signal, test ch')
@@ -150,21 +148,22 @@ for date,id_string,numchan in [
     fl.next('coherence domain, test ch')
     s_coherence_domain = s_analytic.C.ift(['ph1','ph2'])
     fl.image(s_coherence_domain)
-    print ndshape(s_analytic)
-    s_avg = s['ch',0]['ph1',3]['ph2',1].C
-    s_avg_off = s['ch',0]['ph1',2]['ph2',0].C
-    s_avg_sig = s['ch',0]['ph1',1]['ph2',0].C
-    s_avg.ft('t')
-    s_avg_off.ft('t')
-    s_avg_sig.ft('t')
+    #{{{ below are efforts to process for V(t) data 
+    #print ndshape(s_analytic)
+    #s_avg = s['ch',0]['ph1',3]['ph2',1].C
+    #s_avg_off = s['ch',0]['ph1',2]['ph2',0].C
+    #s_avg_sig = s['ch',0]['ph1',1]['ph2',0].C
+    #s_avg.ft('t')
+    #s_avg_off.ft('t')
+    #s_avg_sig.ft('t')
     #s_avg['t':(None,0)] = 0
     #s_avg_off['t':(None,0)] = 0
-    s_avg = s_avg['t':(0,None)]
-    s_avg.ift('t')
-    s_avg_off = s_avg_off['t':(0,None)]
-    s_avg_off.ift('t')
-    s_avg_sig = s_avg_sig['t':(0,None)]
-    s_avg_sig.ift('t')
+    #s_avg = s_avg['t':(0,None)]
+    #s_avg.ift('t')
+    #s_avg_off = s_avg_off['t':(0,None)]
+    #s_avg_off.ift('t')
+    #s_avg_sig = s_avg_sig['t':(0,None)]
+    #s_avg_sig.ift('t')
     #for x in xrange(20):
     #    fl.next('individ')
     #    fl.plot(s_avg['average',x],label='capture %d'%x)
@@ -175,19 +174,20 @@ for date,id_string,numchan in [
     #fl.image(s_avg.C.cropped_log())
     #fl.next('2d off')
     #fl.image(s_avg_off.C.cropped_log())
-    s_avg = s_avg.mean('average',return_error=False)
-    s_avg_off = s_avg_off.mean('average',return_error=False)
-    s_avg_sig = s_avg_sig.mean('average',return_error=False)
+    #s_avg = s_avg.mean('average',return_error=False)
+    #s_avg_off = s_avg_off.mean('average',return_error=False)
+    #s_avg_sig = s_avg_sig.mean('average',return_error=False)
     #s_avg.ift('t')
     #s_avg_off.ift('t')
     #print ndshape(s_avg)
     #s_avg = s_avg['t':(100e-6,None)]
     #s_avg.ft('t')
-    fl.next('pulled ch')
-    fl.plot(s_avg)
-    fl.next('pulled ch off')
-    fl.plot(s_avg_off)
-    fl.next('pulled ch sig?')
-    fl.plot(s_avg_sig)
+    #fl.next('pulled ch')
+    #fl.plot(s_avg)
+    #fl.next('pulled ch off')
+    #fl.plot(s_avg_off)
+    #fl.next('pulled ch sig?')
+    #fl.plot(s_avg_sig)
+    #}}}
 fl.show()
 quit()
