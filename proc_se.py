@@ -18,7 +18,8 @@ for date,id_string,numchan in [
         #('180712','SE_exp',2)
         #('180712','SE_exp_2',2)
         #('180712','SE_exp_3',2)
-        ('180713','SE_exp',2)
+        #('180713','SE_exp',2)
+        ('180713','SE_exp_nomag',2)
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
