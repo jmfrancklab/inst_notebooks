@@ -17,7 +17,9 @@ for date,id_string,numchan in [
         #('180713','SE_exp',2)
         #('180714','SE_exp',2) # 25 cycle measurement, B0 = 3395.75 G
         #('180714','SE_exp_offres_small',2) # 5 cycle measurement, B0 = 3583.85 G 
-        ('180714','SE_exp_offres',2) # 25 cycle measurement, B0 = 3585.85 G 
+        #('180714','SE_exp_offres',2) # 25 cycle measurement, B0 = 3585.85 G 
+        #('180714','SE_exp_2',2) # 5 cycle measurement, B0 = 3585.85 G 
+        ('180714','SE_exp_2_nosample',2) # 5 cycle measurement, B0 = 3585.85 G no sample 
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
@@ -145,7 +147,7 @@ for date,id_string,numchan in [
     s_analytic *= expected_phase/measured_phase
     fl.next('analytic signal, test ch')
     fl.image(s_analytic.cropped_log())
-    fl.next('coherence domain, test ch')
+    fl.next('coherence domain, test ch, on resonance (without sample)')
     s_coherence_domain = s_analytic.C.ift(['ph1','ph2'])
     fl.image(s_coherence_domain)
     #{{{ below are efforts to process for V(t) data 
