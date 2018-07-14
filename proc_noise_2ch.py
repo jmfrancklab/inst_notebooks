@@ -113,17 +113,23 @@ for date,id_string,numchan,gain_factor in [
         #('180710','spectrometer_noise_AFG_magnet_2mVd',2,gain_factor_dcasc12),
         #('180710','spectrometer_noise_AFG_magnet_5mVd',2,gain_factor_dcasc12),
         #('180710','spectrometer_noise_AFG_magnet_10mVd',2,gain_factor_dcasc12),
-        #('180710','spectrometer_noise_AFG_magnet_20mVd',2,gain_factor_dcasc12),
+        ('180710','spectrometer_noise_AFG_magnet_20mVd',2,gain_factor_dcasc12),
         #('180710','spectrometer_noise_AFG_magnet_50mVd',2,gain_factor_dcasc12),
-        #('180712','spectrometer_noise_AFG_magnet_20mVd',2,gain_factor_dcasc12),
         #('180710','spectrometer_noise_AFG_smagnet_4',2,gain_factor_dcasc12),
         #('180710','spectrometer_noise_AFG_smagnet_2',2,gain_factor_dcasc12),
         #('180710','spectrometer_noise_AFG_smagnet_3',2,gain_factor_dcasc12),
         #('180712','test_noise_50mVd',2,gain_factor_dcasc12),
-        ('180712','test_noise_20mVd',2,gain_factor_dcasc12),
+        #('180712','test_noise_20mVd',2,gain_factor_dcasc12),
         ('180712','test_noise_20mVd_2',2,gain_factor_dcasc12),
         #('180712','post_test_noise_50mVd',2,gain_factor_dcasc12), # at resonant B0
-        ('180713','test_noise_20mVd_nomag',2,gain_factor_dcasc12), 
+        #('180713','test_noise_20mVd_nomag',2,gain_factor_dcasc12), # probe not in magnet 
+        #{{{ both of these had a loose BNC into the duplexer from the probe
+        ('180714','test_noise_20mVd',2,gain_factor_dcasc12), # re-installed probe; B0 = 3583.85 G
+        #('180714','test_noise_50mVd',2,gain_factor_dcasc12), # B0 = 3583.85 G
+        #}}}
+        #('180714','test_noise_50mVd_2',2,gain_factor_dcasc12), # re-installed probe in magnet, B0 = 3583.85 G
+        ('180714','test_noise_20mVd_2',2,gain_factor_dcasc12), # re-installed probe in magnet, B0 = 3583.85 G
+        ('180714','test_noise_20mVd_3',2,gain_factor_dcasc12), # re-installed probe in magnet, B0 = 3583.85 G
         #{{{ older files
         #('180709','control_SE',2,1.0),
         #('180709','control_SE_250MSPS',2,1.0),
@@ -271,6 +277,7 @@ for date,id_string,numchan,gain_factor in [
     acq_time = diff(s.getaxis('t')[r_[0,-1]])[0]
     u_acq_time = diff(u.getaxis('t')[r_[0,-1]])[0]
     print acq_time
+
     print "\t"
     print u_acq_time
     print "\t"

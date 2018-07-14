@@ -17,8 +17,9 @@ with figlist_var(filename='chirp.pdf') as fl:
             #('180708','chirp_probes_magnet_2',True),   # B_0 = 3410.55 G, sample   
             #('180712','test_chirp',True),   # B_0 = 3394.80 G, sample   
             #('180712','test_chirp_2',True),   # B_0 = 3394.80 G, sample   
-            ('180713','test_chirp',True),   # no magnetic field   
-            ('180713','test_chirp_2',True),   # no magnetic field   
+            ('180714','test_chirp',True),   # B_0 = 3396.25 G, sample   
+            ('180714','test_chirp_2',True),   # B_0 = 3394.25 G, sample   
+            ('180714','test_chirp_3',True),   # B_0 = 3395.75 G, sample   
             ]:
 #{{{ finding file
         try:
@@ -53,7 +54,7 @@ with figlist_var(filename='chirp.pdf') as fl:
         d = d['t':tuple(ranges)]
 #        fl.next('plot ch 0 %s'%id_string)
 #        fl.plot(d['ch',0],alpha=0.3,label='processed')
-#        fl.next('plot ch 1 %s'%id_string)
+#        fl.next('plot ch 1 %s'%giid_string)
 #        fl.plot(d['ch',1],alpha=0.3,label='processed')
         label=id_string
         d.setaxis('t', lambda x: x-d.getaxis('t')[0]) #
@@ -68,9 +69,10 @@ with figlist_var(filename='chirp.pdf') as fl:
         if 'control' in label:
             plot_params['color'] = 'k'
         if corrected_volt:
-            fl.plot(abs(ratio),'.', **plot_params) 
+            fl.plot(abs(ratio),'-', **plot_params) 
         if not corrected_volt:
             fl.plot(2*abs(ratio),'.', **plot_params)
+        axhline(0.425, color='black')
         fl.next('$S_{11}$ : phase')
         fl.plot((ratio).angle/pi, '.', **plot_params)
         expno += 1 
