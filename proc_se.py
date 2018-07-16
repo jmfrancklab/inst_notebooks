@@ -15,13 +15,13 @@ for date,id_string,numchan in [
         #('180712','SE_exp_2',2)
         #('180712','SE_exp_3',2)
         #('180713','SE_exp',2)
-        #('180714','SE_exp',2), # 25 cycle measurement, B0 = 3395.75 G
+        ('180714','SE_exp',2), # 25 cycle measurement, B0 = 3395.75 G
         #('180714','SE_exp_offres_small',2) # 5 cycle measurement, B0 = 3583.85 G 
         #('180714','SE_exp_offres',2) # 25 cycle measurement, B0 = 3585.85 G 
-        ('180714','SE_exp_2',2), # 5 cycle measurement, B0 = 3585.85 G 
+        #('180714','SE_exp_2',2), # 5 cycle measurement, B0 = 3585.85 G 
         #('180714','SE_exp_2_nosample',2) # 5 cycle measurement, B0 = 3585.85 G no sample 
-        ('180715','SE_exp_50mVd',2), # 5 cycle measurement, B0 = 3395.75 G
-        ('180715','SE_exp_100mVd',2) # 5 cycle measurement, B0 = 3395.75 G
+        #('180715','SE_exp_50mVd',2), # 5 cycle measurement, B0 = 3395.75 G
+        #('180715','SE_exp_100mVd',2) # 5 cycle measurement, B0 = 3395.75 G
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
@@ -89,6 +89,7 @@ for date,id_string,numchan in [
     pulse_slice = s_raw['t':(-1.34e-6,1.34e-6)]['ch',1].real
     # re-determine nddata of the time averages for the newly centered data
     average_time = (pulse_slice**2 * pulse_slice.fromaxis('t')).integrate('t')/normalization
+    print average_time
     average_time.reorder('average',first=False)
     # take analytic, and apply phase correction based on the time averages 
     analytic = s_raw.C.ft('t',shift=True)['t':(0,None)]
@@ -105,12 +106,13 @@ for date,id_string,numchan in [
     # beginning phase correction now
     # note, this may be the same as the raw signal plotted in beginning of program
     onephase_raw_shift = s_raw['ch',1].C.smoosh(['ph2','average'],noaxis=True,dimname='repeat').reorder('t')
-    #for k in xrange(ndshape(onephase_raw)['ph1']):
-    #    for j in xrange(ndshape(onephase_raw)['repeat']):
-    #        fl.next('compare rising edge: uncorrected')
-    #        fl.plot((onephase_raw_shift['repeat',j]['ph1',k]['t':(-1.4e-6,-1.1e-6)].C.reorder('t',first=True)+2*k),color=colors[k],alpha=0.3)
-    #        fl.next('compare falling edge: uncorrected')
-    #        fl.plot((onephase_raw_shift['repeat',j]['ph1',k]['t':(1.1e-6,1.4e-6)].C.reorder('t',first=True)+2*k),color=colors[k],alpha=0.3)
+    onephase_raw_shift.name('Amplitude').set_units('V')
+    for k in xrange(ndshape(onephase_raw)['ph1']):
+        for j in xrange(ndshape(onephase_raw)['repeat']):
+            fl.next('compare rising edge: uncorrected')
+            fl.plot((onephase_raw_shift['repeat',j]['ph1',k]['t':(-1.4e-6,-1.1e-6)].C.reorder('t',first=True)+2*k),color=colors[k],alpha=0.3)
+            fl.next('compare falling edge: uncorrected')
+            fl.plot((onephase_raw_shift['repeat',j]['ph1',k]['t':(1.0e-6,1.4e-6)].C.reorder('t',first=True)+2*k),color=colors[k],alpha=0.3)
     raw_corr = s_raw.C.ft('t',shift=True)
     # sign on 1j matters here, difference between proper cycling or off cycling
     phase_factor = raw_corr.fromaxis('t',lambda x: 1j*2*pi*x)
@@ -122,17 +124,20 @@ for date,id_string,numchan in [
     onephase_rawc = raw_corr['ch',1].C.smoosh(['ph2','average'],noaxis=True, dimname='repeat').reorder('t')
     print "*** shape of raw, corrected re-grouped data on reference channel ***"
     print ndshape(onephase_rawc)
-    #for k in xrange(ndshape(onephase_rawc)['ph1']):
-    #    for j in xrange(ndshape(onephase_rawc)['repeat']):
-    #        fl.next('compare rising edge: corrected')
-    #        fl.plot(onephase_rawc['repeat',j]['ph1',k]['t':(-1.4e-6,-1.1e-6)].C.reorder('t',first=True),color=colors[k],alpha=0.3)
-    #        fl.next('compare falling edge: corrected')
-    #        fl.plot(onephase_rawc['repeat',j]['ph1',k]['t':(1.1e-6,1.4e-6)].C.reorder('t',first=True),color=colors[k],alpha=0.3)
+    onephase_rawc.name('Amplitude').set_units('V')
+    for k in xrange(ndshape(onephase_rawc)['ph1']):
+        for j in xrange(ndshape(onephase_rawc)['repeat']):
+            fl.next('compare rising edge: corrected')
+            fl.plot(onephase_rawc['repeat',j]['ph1',k]['t':(-1.4e-6,-1.1e-6)].C.reorder('t',first=True),color=colors[k],alpha=0.3)
+            fl.next('compare falling edge: corrected')
+            fl.plot(onephase_rawc['repeat',j]['ph1',k]['t':(1.0e-6,1.4e-6)].C.reorder('t',first=True),color=colors[k],alpha=0.3)
     # with time-shifted, phase corrected raw data, now take analytic
-    analytic = raw_corr['ch',1].C.ft('t')['t':(0,15.5e6)].setaxis('t', lambda f: f-carrier_f).ift('t').reorder(['average','t'],first=False)
+    analytic = raw_corr['ch',1].C.ft('t')['t':(0,16e6)].setaxis('t', lambda f: f-carrier_f).ift('t').reorder(['average','t'],first=False)
     # measured phase is the result obtained from data after time-shifting and phase correcting
     measured_phase = analytic['t':(-1.5e6,1.5e6)].mean('t',return_error=False).mean('ph2',return_error=True).mean('average',return_error=True)
     measured_phase /= abs(measured_phase)
+    print "measured phase"
+    print measured_phase
     # expected phase is how we expect the phases to cycle, and how it is programmed in the pulse sequence
     expected_phase = nddata(exp(r_[0,1,2,3]*pi/2*1j),[4],['ph1'])
     # phase correcting analytic signal by difference between expected and measured phases
@@ -140,15 +145,15 @@ for date,id_string,numchan in [
     #fl.next('analytic signal, ref ch')
     #fl.image(analytic['t':(-2e-6,75e-6)])
     # switch to coherence domain
-    #fl.next('coherence domain, ref ch')
+    fl.next('coherence domain, ref ch')
     coherence_domain = analytic.C.ift(['ph1','ph2'])
-    #fl.image(coherence_domain['t':(-2e-6,75e-6)])
+    fl.image(coherence_domain['t':(-2e-6,75e-6)])
     # apply same analysis as on reference ch to test ch
     s_analytic = raw_corr['ch',0].C.ft('t')['t':(13e6,16e6)].setaxis('t', lambda f: f-carrier_f).ift('t').reorder(['average','t'],first=False)
     s_analytic *= expected_phase/measured_phase
-    #fl.next('coherence domain, test ch, on resonance (without sample)')
-    s_coherence_domain = s_analytic.C.ift(['ph1','ph2'])
-    #fl.image(s_coherence_domain)
+    s_analytic.ift(['ph1','ph2'])
+    fl.next('coherence domain, test ch')
+    fl.image(s_analytic)
   
 
     # {{{ for time domain plots
@@ -166,9 +171,8 @@ for date,id_string,numchan in [
     print ndshape(s_analytic)
     for ph2 in xrange(ndshape(s_analytic)['ph2']):
         for ph1 in xrange(ndshape(s_analytic)['ph1']):
-            fl.next(r'Phase 1 = $\frac{%d\pi}{2}$, Phase 2 = $\frac{%d\pi}{2}$'%(ph1,2*ph2))
+            fl.next(r'$\Delta_{c_{\frac{\pi}{2}}}$ = %d, $\Delta_{c_{\pi}}$ = %d'%(ph1,2*ph2))
             fl.plot(s_analytic['ph1',ph1]['ph2',ph2],alpha=0.4,label=label)
-            ylim(4000,-4000)
 
     #}}}
 fl.show()
