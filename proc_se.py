@@ -15,11 +15,13 @@ for date,id_string,numchan in [
         #('180712','SE_exp_2',2)
         #('180712','SE_exp_3',2)
         #('180713','SE_exp',2)
-        ('180714','SE_exp',2), # 25 cycle measurement, B0 = 3395.75 G
+        #('180714','SE_exp',2), # 25 cycle measurement, B0 = 3395.75 G
         #('180714','SE_exp_offres_small',2) # 5 cycle measurement, B0 = 3583.85 G 
-        ('180714','SE_exp_offres',2) # 25 cycle measurement, B0 = 3585.85 G 
-        #('180714','SE_exp_2',2), # 5 cycle measurement, B0 = 3585.85 G 
+        #('180714','SE_exp_offres',2) # 25 cycle measurement, B0 = 3585.85 G 
+        ('180714','SE_exp_2',2), # 5 cycle measurement, B0 = 3585.85 G 
         #('180714','SE_exp_2_nosample',2) # 5 cycle measurement, B0 = 3585.85 G no sample 
+        ('180715','SE_exp_50mVd',2), # 5 cycle measurement, B0 = 3395.75 G
+        ('180715','SE_exp_100mVd',2) # 5 cycle measurement, B0 = 3395.75 G
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
@@ -142,7 +144,7 @@ for date,id_string,numchan in [
     coherence_domain = analytic.C.ift(['ph1','ph2'])
     #fl.image(coherence_domain['t':(-2e-6,75e-6)])
     # apply same analysis as on reference ch to test ch
-    s_analytic = raw_corr['ch',0].C.ft('t')['t':(12e6,18e6)].setaxis('t', lambda f: f-carrier_f).ift('t').reorder(['average','t'],first=False)
+    s_analytic = raw_corr['ch',0].C.ft('t')['t':(13e6,16e6)].setaxis('t', lambda f: f-carrier_f).ift('t').reorder(['average','t'],first=False)
     s_analytic *= expected_phase/measured_phase
     #fl.next('coherence domain, test ch, on resonance (without sample)')
     s_coherence_domain = s_analytic.C.ift(['ph1','ph2'])
@@ -153,12 +155,20 @@ for date,id_string,numchan in [
     print "before average"
     print ndshape(s_analytic)
     s_analytic.mean('average',return_error=False)
+    if id_string == 'SE_exp':
+        label = '$B_{0} = 3395.75 G = 14.459 MHz$'
+    elif id_string == 'SE_exp_offres':
+        label = '$B_{0} = 3583.85 G = 15.260 MHz$'
+    else:
+        label = id_string
+    s_analytic.name('Amplitude').set_units('V')
     print "after average"
     print ndshape(s_analytic)
     for ph2 in xrange(ndshape(s_analytic)['ph2']):
         for ph1 in xrange(ndshape(s_analytic)['ph1']):
-            fl.next('signal ph1=%d,ph2=%d'%(ph1,ph2))
-            fl.plot(s_analytic['ph1',ph1]['ph2',ph2],alpha=0.4,label=id_string)
+            fl.next(r'Phase 1 = $\frac{%d\pi}{2}$, Phase 2 = $\frac{%d\pi}{2}$'%(ph1,2*ph2))
+            fl.plot(s_analytic['ph1',ph1]['ph2',ph2],alpha=0.4,label=label)
+            ylim(4000,-4000)
 
     #}}}
 fl.show()
