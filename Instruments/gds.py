@@ -103,7 +103,39 @@ class GDS_scope (SerialInstrument):
         #Running into matching error here, but command does work
         print "Time scale (sec/div) is set to",self.respond(':TIM:SCAL?')
         return
+    
+    def acquire_mode(self,mode,num_avg=1):
+        """"Set the acquisition mode on the scope. Prints the current mode setting.
 
+        Parameters
+        ==========
+
+        mode : string
+
+            Possible options: 
+                'sample' (or 'SAMP') = Sample mode sampling
+                'pdetect' (or 'PDET') = Peak detection sampling
+                'average' (or 'AVER') = Average mode sampling. Must also set number of averages 
+                desired per sample, `num_avg`.
+
+        num_avg : int
+            
+            By default set equal to 1. Only needs to be set when in average mode sampling. Only
+            possible values are powers of 2 up to 2**8: 2, 4, 8, 16, 64, 128, 256.
+            
+        Returns
+        =======
+
+        None
+        
+        """
+        possible_avg = [2**1, 2**2, 2**3, 2**4, 2**5, 2**6, 2**7, 2**8]
+        self.write(':ACQ:MOD %s'%mode)
+        print "Acquire mode is:",self.respond(':ACQ:MOD?')
+        if num_avg in possible_avg:
+            self.write(':ACQ:AVER %d'%num_avg)
+            print "Number of averages set to:",self.respond(':ACQ:AVER?')
+    
     def autoset(self):
         self.write(':AUTOS')
     def waveform(self,ch=1):
