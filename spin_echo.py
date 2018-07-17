@@ -229,18 +229,18 @@ def spin_echo(cycle_counter, freq = 14.4289e6, p90 = 2.551e-6, d1 = 63.794e-6, T
                                 time_ndarray = empty(cycle_counter*num_ph1_steps*num_ph2_steps)
                                 t_axis = ch1_wf.getaxis('t')
                                 data = ndshape([cycle_counter,4,2,len(t_axis),2],
-                                        ['cycle_counter','ph1','ph2','t','ch']).alloc(dtype=float64)
+                                        ['full_cyc','ph1','ph2','t','ch']).alloc(dtype=float64)
                                 data.setaxis('t',t_axis).set_units('t','s')
                                 data.setaxis('ch',r_[1,2])
                                 data.setaxis('ph1',r_[0:4])
                                 data.setaxis('ph2',r_[0,2])
-                                data.setaxis('cycle_counter',zeros(cycle_counter))
+                                data.setaxis('full_cyc',zeros(cycle_counter))
                                 #}}}
                             time_ndarray[timer_index] = time.time() - start_time
-                            data['cycle_counter',x]['ph1':ph1]['ph2':ph2]['ch',0] = ch1_wf
+                            data['full_cyc',x]['ph1':ph1]['ph2':ph2]['ch',0] = ch1_wf
                             # alternative is to do ['ph1',ph1]['ph2',ph2/2]
-                            data['cycle_counter',x]['ph1':ph1]['ph2':ph2]['ch',1] = ch2_wf
-                            data.getaxis('cycle_counter')[x] = time_ndarray[timer_index]
+                            data['full_cyc',x]['ph1':ph1]['ph2':ph2]['ch',1] = ch2_wf
+                            data.getaxis('full_cyc')[x] = time_ndarray[timer_index]
                             print "**********"
                             print "CYCLE NO. INDEX",x
                             print "ph1",ph1
