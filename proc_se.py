@@ -34,7 +34,7 @@ for date,id_string,numchan in [
 
     #{{{ confirm that different phases trigger differently due to differing rising edges
     #fl.next('raw data')
-    #fl.plot(s_raw['ch',1]['average',0]['ph2',0].reorder('t').real)
+    #fl.plot(s_raw['ch',1]['cycle_counter',0]['ph2',0].reorder('t').real)
     #fl.show()
     #quit()
     print ndshape(s)
@@ -49,10 +49,10 @@ for date,id_string,numchan in [
     # subset of interest in the data, undergoes processing to analytic signal
     subset = s['ch',1]['t':(1e-6,100e-6)]
     #fl.image(subset,black=True)
-    onephase = subset.C.smoosh(['ph2','average'], noaxis = True, dimname='repeat').reorder('t')
+    onephase = subset.C.smoosh(['ph2','cycle_counter'], noaxis = True, dimname='repeat').reorder('t')
     print "dimensions of data subset of interest",ndshape(onephase)
     # perform same analysis used on subset for raw data, to compare
-    onephase_raw = s_raw['ch',1].C.smoosh(['ph2','average'], noaxis=True, dimname='repeat').reorder('t')
+    onephase_raw = s_raw['ch',1].C.smoosh(['ph2','cycle_counter'], noaxis=True, dimname='repeat').reorder('t')
     print "dimensions of re-grouped raw data",ndshape(onephase_raw)
     colors = ['r','g','b','c']
     #for k in xrange(ndshape(onephase)['ph1']):
@@ -75,7 +75,7 @@ for date,id_string,numchan in [
     normalization = (pulse_slice**2).integrate('t')
     # this creates an nddata of the time averages for each 90 pulse
     average_time = (pulse_slice**2 * pulse_slice.fromaxis('t')).integrate('t')/normalization
-    average_time.reorder('average',first=False)
+    average_time.reorder('cycle_counter',first=False)
     # shift the time axis down by the average time, so that 90 is centered around t=0
     s_raw.setaxis('t', lambda t: t-average_time.data.mean())
     # check that this centers 90 around 0 on time axis
@@ -88,7 +88,7 @@ for date,id_string,numchan in [
     # re-determine nddata of the time averages for the newly centered data
     average_time = (pulse_slice**2 * pulse_slice.fromaxis('t')).integrate('t')/normalization
     print average_time
-    average_time.reorder('average',first=False)
+    average_time.reorder('cycle_counter',first=False)
     # take analytic, and apply phase correction based on the time averages 
     analytic = s_raw.C.ft('t',shift=True)['t':(0,None)]
     analytic.setaxis('t',lambda f: f-carrier_f)
@@ -103,7 +103,7 @@ for date,id_string,numchan in [
 
     # beginning phase correction now
     # note, this may be the same as the raw signal plotted in beginning of program
-    onephase_raw_shift = s_raw['ch',1].C.smoosh(['ph2','average'],noaxis=True,dimname='repeat').reorder('t')
+    onephase_raw_shift = s_raw['ch',1].C.smoosh(['ph2','cycle_counter'],noaxis=True,dimname='repeat').reorder('t')
     onephase_raw_shift.name('Amplitude').set_units('V')
     for k in xrange(ndshape(onephase_raw)['ph1']):
         for j in xrange(ndshape(onephase_raw)['repeat']):
@@ -119,7 +119,7 @@ for date,id_string,numchan in [
     raw_corr *= phase_factor
     # here zero filling or else signal amplitude will vary due to changes made in the f dimension 
     raw_corr.ift('t',pad=30*1024)
-    onephase_rawc = raw_corr['ch',1].C.smoosh(['ph2','average'],noaxis=True, dimname='repeat').reorder('t')
+    onephase_rawc = raw_corr['ch',1].C.smoosh(['ph2','cycle_counter'],noaxis=True, dimname='repeat').reorder('t')
     print "*** shape of raw, corrected re-grouped data on reference channel ***"
     print ndshape(onephase_rawc)
 
@@ -132,9 +132,9 @@ for date,id_string,numchan in [
             fl.plot(onephase_rawc['repeat',j]['ph1',k]['t':(1.0e-6,1.4e-6)].C.reorder('t',first=True),color=colors[k],alpha=0.3)
 
     # with time-shifted, phase corrected raw data, now take analytic
-    analytic = raw_corr['ch',1].C.ft('t')['t':(0,16e6)].setaxis('t', lambda f: f-carrier_f).ift('t').reorder(['average','t'],first=False)
+    analytic = raw_corr['ch',1].C.ft('t')['t':(0,16e6)].setaxis('t', lambda f: f-carrier_f).ift('t').reorder(['cycle_counter','t'],first=False)
     # measured phase is the result obtained from data after time-shifting and phase correcting
-    measured_phase = analytic['t':(-1.5e6,1.5e6)].mean('t',return_error=False).mean('ph2',return_error=True).mean('average',return_error=True)
+    measured_phase = analytic['t':(-1.5e6,1.5e6)].mean('t',return_error=False).mean('ph2',return_error=True).mean('cycle_counter',return_error=True)
     measured_phase /= abs(measured_phase)
     print "measured phase"
     print measured_phase
@@ -149,7 +149,7 @@ for date,id_string,numchan in [
     coherence_domain = analytic.C.ift(['ph1','ph2'])
     fl.image(coherence_domain['t':(-2e-6,75e-6)])
     # apply same analysis as on reference ch to test ch
-    s_analytic = raw_corr['ch',0].C.ft('t')['t':(13e6,16e6)].setaxis('t', lambda f: f-carrier_f).ift('t').reorder(['average','t'],first=False)
+    s_analytic = raw_corr['ch',0].C.ft('t')['t':(13e6,16e6)].setaxis('t', lambda f: f-carrier_f).ift('t').reorder(['cycle_counter','t'],first=False)
     s_analytic *= expected_phase/measured_phase
     s_analytic.ift(['ph1','ph2'])
     fl.next('coherence domain, test ch')
@@ -159,7 +159,7 @@ for date,id_string,numchan in [
     #{{{ generating input-referred voltage
     #gain_factor_dcasc12 = sqrt(114008.55204672)   #gain in units of V
     #s_analytic /= gain_factor_dcasc12
-    s_analytic.mean('average',return_error=False)
+    s_analytic.mean('cycle_counter',return_error=False)
     #s_analytic /= sqrt(8)
     #}}}
     #{{{ plotting time-domain coherent signal
