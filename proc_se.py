@@ -19,7 +19,6 @@ for date,id_string,numchan in [
         #('180714','SE_exp_offres',2) # 25 cycle measurement, B0 = 3585.85 G 
         #('180716','SE_test',2) # 1 cycle measurement with 8x GDS avg, B0 = 3395.75 G
         #('180716','SE_test_2',2) # 1 cycle measurement with 4x GDS avg, B0 = 3395.75 G
-        #('180716','SE_sweep',2) # 10 cycles, 4x GDS avg, 10 G around 3395.00 G
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'

@@ -215,7 +215,7 @@ def spin_echo(cycle_counter, freq = 14.4289e6, p90 = 2.551e-6, d1 = 63.794e-6, T
                             a[this_ch].ampl = 10
                             with GDS_scope() as g:
                                 g.acquire_mode('average',2)
-                                time.sleep(5*d_interseq)
+                                time.sleep(4*d_interseq)
                                 print "Acquiring..."
                                 ch1_wf = g.waveform(ch=1)
                                 ch2_wf = g.waveform(ch=2)
@@ -259,8 +259,8 @@ def spin_echo(cycle_counter, freq = 14.4289e6, p90 = 2.551e-6, d1 = 63.794e-6, T
 #}}}
 
 date = '180717'
-id_string = 'SE_test_4'
-num_cycles = 2 
+id_string = 'SE_sweep_2'
+num_cycles = 10 
 t1,t2 = spin_echo(cycle_counter = num_cycles)
 #raw_input("Start magnetic field sweep")
 #start_acq = timer()
