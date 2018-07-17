@@ -18,7 +18,8 @@ for date,id_string,numchan in [
         #('180714','SE_exp',2), # 25 cycle measurement, B0 = 3395.75 G
         #('180714','SE_exp_offres',2) # 25 cycle measurement, B0 = 3585.85 G 
         #('180716','SE_test',2) # 1 cycle measurement with 8x GDS avg, B0 = 3395.75 G
-        ('180716','SE_test_2',2) # 1 cycle measurement with 4x GDS avg, B0 = 3395.75 G
+        #('180716','SE_test_2',2) # 1 cycle measurement with 4x GDS avg, B0 = 3395.75 G
+        ('180716','SE_sweep',2) # 10 cycles, 4x GDS avg, 10 G around 3395.00 G
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
@@ -151,26 +152,23 @@ for date,id_string,numchan in [
     s_analytic.ift(['ph1','ph2'])
     fl.next('coherence domain, test ch')
     fl.image(s_analytic)
-  
-
-    # {{{ for time domain plots
     print "before average"
     print ndshape(s_analytic)
-    s_analytic.mean('average',return_error=False)
-    if id_string == 'SE_exp':
-        label = '$B_{0} = 3395.75 G = 14.459 MHz$'
-    elif id_string == 'SE_exp_offres':
-        label = '$B_{0} = 3583.85 G = 15.260 MHz$'
-    else:
-        label = id_string
-    s_analytic.name('Amplitude').set_units('V')
-    print "after average"
-    print ndshape(s_analytic)
-    for ph2 in xrange(ndshape(s_analytic)['ph2']):
-        for ph1 in xrange(ndshape(s_analytic)['ph1']):
-            fl.next(r'$\Delta_{c_{\frac{\pi}{2}}}$ = %d, $\Delta_{c_{\pi}}$ = %d'%(ph1,2*ph2))
-            fl.plot(s_analytic['ph1',ph1]['ph2',ph2],alpha=0.4,label=label)
-
+    #{{{ generating input-referred voltage
+    #gain_factor_dcasc12 = sqrt(114008.55204672)   #gain in units of V
+    #s_analytic /= gain_factor_dcasc12
+    #s_analytic.mean('average',return_error=False)
+    #s_analytic /= sqrt(8)
+    #}}}
+    #{{{ plotting time-domain coherent signal
+    #s_analytic.name('Amplitude').set_units('V')
+    #print "after average"
+    #print ndshape(s_analytic)
+    #for ph2 in xrange(ndshape(s_analytic)['ph2']):
+    #    for ph1 in xrange(ndshape(s_analytic)['ph1']):
+    #        fl.next(r'$\Delta_{c_{1}}$ = + %d, $\Delta_{c_{2}}$ = + %d'%(ph1,2*ph2))
+    #        fl.plot(s_analytic['ph1',ph1]['ph2',ph2],alpha=0.4)
+    #        xlim(100,None) #units of 1e-6 seconds
     #}}}
 fl.show()
 quit()
