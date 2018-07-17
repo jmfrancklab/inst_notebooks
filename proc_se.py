@@ -18,8 +18,8 @@ for date,id_string,numchan in [
         #('180714','SE_exp',2), # 25 cycle measurement, B0 = 3395.75 G
         #('180714','SE_exp_offres',2) # 25 cycle measurement, B0 = 3585.85 G 
         #('180716','SE_test',2) # 1 cycle measurement with 8x GDS avg, B0 = 3395.75 G
-        #('180716','SE_test_2',2) # 1 cycle measurement with 4x GDS avg, B0 = 3395.75 G
-        ('180716','SE_sweep',2) # 10 cycles, 4x GDS avg, 10 G around 3395.00 G
+        ('180716','SE_test_2',2) # 1 cycle measurement with 4x GDS avg, B0 = 3395.75 G
+        #('180716','SE_sweep',2) # 10 cycles, 4x GDS avg, 10 G around 3395.00 G
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
@@ -122,6 +122,7 @@ for date,id_string,numchan in [
     onephase_rawc = raw_corr['ch',1].C.smoosh(['ph2','average'],noaxis=True, dimname='repeat').reorder('t')
     print "*** shape of raw, corrected re-grouped data on reference channel ***"
     print ndshape(onephase_rawc)
+
     onephase_rawc.name('Amplitude').set_units('V')
     for k in xrange(ndshape(onephase_rawc)['ph1']):
         for j in xrange(ndshape(onephase_rawc)['repeat']):
@@ -129,6 +130,7 @@ for date,id_string,numchan in [
             fl.plot(onephase_rawc['repeat',j]['ph1',k]['t':(-1.4e-6,-1.1e-6)].C.reorder('t',first=True),color=colors[k],alpha=0.3)
             fl.next('compare falling edge: corrected')
             fl.plot(onephase_rawc['repeat',j]['ph1',k]['t':(1.0e-6,1.4e-6)].C.reorder('t',first=True),color=colors[k],alpha=0.3)
+
     # with time-shifted, phase corrected raw data, now take analytic
     analytic = raw_corr['ch',1].C.ft('t')['t':(0,16e6)].setaxis('t', lambda f: f-carrier_f).ift('t').reorder(['average','t'],first=False)
     # measured phase is the result obtained from data after time-shifting and phase correcting
@@ -157,18 +159,20 @@ for date,id_string,numchan in [
     #{{{ generating input-referred voltage
     #gain_factor_dcasc12 = sqrt(114008.55204672)   #gain in units of V
     #s_analytic /= gain_factor_dcasc12
-    #s_analytic.mean('average',return_error=False)
+    s_analytic.mean('average',return_error=False)
     #s_analytic /= sqrt(8)
     #}}}
     #{{{ plotting time-domain coherent signal
     #s_analytic.name('Amplitude').set_units('V')
     #print "after average"
     #print ndshape(s_analytic)
-    #for ph2 in xrange(ndshape(s_analytic)['ph2']):
-    #    for ph1 in xrange(ndshape(s_analytic)['ph1']):
-    #        fl.next(r'$\Delta_{c_{1}}$ = + %d, $\Delta_{c_{2}}$ = + %d'%(ph1,2*ph2))
-    #        fl.plot(s_analytic['ph1',ph1]['ph2',ph2],alpha=0.4)
-    #        xlim(100,None) #units of 1e-6 seconds
+    for ph2 in xrange(ndshape(s_analytic)['ph2']):
+        for ph1 in xrange(ndshape(s_analytic)['ph1']):
+            fl.next(r'$\Delta_{c_{1}}$ = + %d, $\Delta_{c_{2}}$ = + %d'%(ph1,2*ph2))
+            fl.plot(s_analytic['ph1',ph1]['ph2',ph2].real,alpha=0.4,label='real')
+            fl.plot(s_analytic['ph1',ph1]['ph2',ph2].imag,alpha=0.4,label='imag')
+            xlim(100,None) #units of 1e-6 seconds
     #}}}
 fl.show()
 quit()
+
