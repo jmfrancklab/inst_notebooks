@@ -83,7 +83,7 @@ def acquire(date,id_string,captures):
     return
 #}}}
 #{{{ spin echo function with phase cycling capability
-def spin_echo(averages, freq = 14.4289e6, p90 = 2.551e-6, d1 = 63.794e-6, T1 = 200e-3, max_delay = True, complex_exp = True, ph_cyc = True):
+def spin_echo(cycle_counter, freq = 14.4289e6, p90 = 2.551e-6, d1 = 63.794e-6, T1 = 200e-3, max_delay = True, complex_exp = True, ph_cyc = True):
 #{{{ documentation
     r'''generates spin echo (90 - delay - 180) pulse sequence, defined by
     the frequency, 90 time, and delay time, and outputs on scope.
@@ -133,7 +133,6 @@ def spin_echo(averages, freq = 14.4289e6, p90 = 2.551e-6, d1 = 63.794e-6, T1 = 2
 
     '''
     #}}}
-    start_seq = timer()
 #{{{ calculating parameters for arbitrary waveform
     d_interseq = 5*T1       #[sec] time between sequence trigger 
     #{{{ this generates spin echo via complex exponential
@@ -187,7 +186,6 @@ def spin_echo(averages, freq = 14.4289e6, p90 = 2.551e-6, d1 = 63.794e-6, T1 = 2
         #}}}
     #}}}
 #}}}
-    end_seq = timer()
     with AFG() as a:
         a.reset()
         ch_list = [0]
@@ -198,13 +196,16 @@ def spin_echo(averages, freq = 14.4289e6, p90 = 2.551e-6, d1 = 63.794e-6, T1 = 2
             a[this_ch].burst = True
             a.set_burst(per=d_interseq)
             a[this_ch].ampl = 10.
-            raw_input('Begin field sweep')
             #{{{ for phase cycling
-            start_ph = timer()
-            for x in xrange(averages):
-                if ph_cyc:
-                    for ph2 in xrange(0,4,2):
-                        for ph1 in xrange(4):
+            if ph_cyc:
+                num_ph1_steps = 4 
+                num_ph2_steps = 2
+                raw_input('Begin field sweep')
+                start_ph = timer()
+                timer_index = 0
+                for x in xrange(cycle_counter):
+                    for ph2 in xrange(0,4,num_ph2_steps):
+                        for ph1 in xrange(num_ph1_steps):
                             y_ph = y.copy()
                             y_ph[1:int(points_90)] *= exp(1j*ph1*pi/2)
                             y_ph[int(points_90+points_d1):-1] *= exp(1j*ph2*pi/2)
@@ -212,43 +213,55 @@ def spin_echo(averages, freq = 14.4289e6, p90 = 2.551e-6, d1 = 63.794e-6, T1 = 2
                             a[this_ch].digital_ndarray(y_ph.real, rate=rate)
                             a[this_ch].burst = True
                             a[this_ch].ampl = 10
-                            #raw_input("continue")
-                            time.sleep(d_interseq)
                             with GDS_scope() as g:
-                                g.acquire_mode('average',4)
-                                time.sleep(16*d_interseq)
+                                g.acquire_mode('average',2)
+                                time.sleep(5*d_interseq)
                                 print "Acquiring..."
                                 ch1_wf = g.waveform(ch=1)
                                 ch2_wf = g.waveform(ch=2)
+                                time_acq = timer()
+                                this_time = time_acq - start_ph
                                 g.acquire_mode('sample')
+                            #{{{ set up the nddata at the very beginning of the phase cycle
                             if (ph1 == 0 and ph2 == 0 and x == 0):
+                                # initialize 'timer' axis to record time of each capture
+                                timer_axis = zeros(cycle_counter*num_ph1_steps*num_ph2_steps)
                                 t_axis = ch1_wf.getaxis('t')
-                                data = ndshape([averages,4,2,len(t_axis),2],['average','ph1','ph2','t','ch']).alloc(dtype=float64)
+                                data = ndshape([cycle_counter,len(timer_axis),4,2,len(t_axis),2],['cycle_counter','timer','ph1','ph2','t','ch']).alloc(dtype=float64)
                                 data.setaxis('t',t_axis).set_units('t','s')
                                 data.setaxis('ch',r_[1,2])
                                 data.setaxis('ph1',r_[0:4])
                                 data.setaxis('ph2',r_[0,2])
-                                data.setaxis('average',r_[0:averages]+1)
-                            data['average',x]['ph1':ph1]['ph2':ph2]['ch',0] = ch1_wf
+                                data.setaxis('cycle_counter',r_[0:cycle_counter]+1)
+                                data.setaxis('timer',timer_axis)
+                                #}}}
+                            timer_axis[timer_index] = this_time
+                            data['cycle_counter',x]['timer',timer_index]['ph1':ph1]['ph2':ph2]['ch',0] = ch1_wf
                             # alternative is to do ['ph1',ph1]['ph2',ph2/2]
-                            data['average',x]['ph1':ph1]['ph2':ph2]['ch',1] = ch2_wf
+                            data['cycle_counter',x]['timer',timer_index]['ph1':ph1]['ph2':ph2]['ch',1] = ch2_wf
                             print "**********"
                             print "CYCLE NO. INDEX",x
                             print "ph1",ph1
                             print "ph2",ph2
                             print "**********"
                             print "Done acquiring"
+                            timer_index += 1
+                            print "*** PRINTING TIMER AXIS ***"
+                            print timer_axis
             #}}}
+    print "*** *** *** PRINTING FINAL TIMER AXIS *** *** ***"
+    print timer_axis
+    data.setaxis('timer',timer_axis)
     data.name("this_capture")
     data.hdf5_write(date+"_"+id_string+".h5")
     end_ph = timer()
     return start_ph,end_ph 
 #}}}
 
-date = '180716'
-id_string = 'SE_sweep'
-number_cycles = 10 
-t1,t2 = spin_echo(averages = number_cycles)
+date = '180717'
+id_string = 'SE_test'
+num_cycles = 2 
+t1,t2 = spin_echo(cycle_counter = num_cycles)
 #raw_input("Start magnetic field sweep")
 #start_acq = timer()
 #acquire(date,id_string,captures)
