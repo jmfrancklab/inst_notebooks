@@ -215,7 +215,7 @@ def spin_echo(averages, freq = 14.4289e6, p90 = 2.551e-6, d1 = 63.794e-6, T1 = 2
                             #raw_input("continue")
                             time.sleep(d_interseq)
                             with GDS_scope() as g:
-                                g.acquire_mode('average',8)
+                                g.acquire_mode('average',4)
                                 time.sleep(16*d_interseq)
                                 print "Acquiring..."
                                 ch1_wf = g.waveform(ch=1)
