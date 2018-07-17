@@ -198,6 +198,7 @@ def spin_echo(averages, freq = 14.4289e6, p90 = 2.551e-6, d1 = 63.794e-6, T1 = 2
             a[this_ch].burst = True
             a.set_burst(per=d_interseq)
             a[this_ch].ampl = 10.
+            raw_input('Begin field sweep')
             #{{{ for phase cycling
             start_ph = timer()
             for x in xrange(averages):
@@ -207,16 +208,19 @@ def spin_echo(averages, freq = 14.4289e6, p90 = 2.551e-6, d1 = 63.794e-6, T1 = 2
                             y_ph = y.copy()
                             y_ph[1:int(points_90)] *= exp(1j*ph1*pi/2)
                             y_ph[int(points_90+points_d1):-1] *= exp(1j*ph2*pi/2)
-                            a[this_ch].ampl = 20.e-3
+                            a[this_ch].ampl = 20e-3
                             a[this_ch].digital_ndarray(y_ph.real, rate=rate)
                             a[this_ch].burst = True
-                            a[this_ch].ampl = 10.
+                            a[this_ch].ampl = 10
                             #raw_input("continue")
                             time.sleep(d_interseq)
-                            print "Acquiring..."
                             with GDS_scope() as g:
+                                g.acquire_mode('average',8)
+                                time.sleep(16*d_interseq)
+                                print "Acquiring..."
                                 ch1_wf = g.waveform(ch=1)
                                 ch2_wf = g.waveform(ch=2)
+                                g.acquire_mode('sample')
                             if (ph1 == 0 and ph2 == 0 and x == 0):
                                 t_axis = ch1_wf.getaxis('t')
                                 data = ndshape([averages,4,2,len(t_axis),2],['average','ph1','ph2','t','ch']).alloc(dtype=float64)
@@ -241,9 +245,9 @@ def spin_echo(averages, freq = 14.4289e6, p90 = 2.551e-6, d1 = 63.794e-6, T1 = 2
     return start_ph,end_ph 
 #}}}
 
-date = '180715'
-id_string = 'SE_exp_100mVd'
-number_cycles = 5 
+date = '180716'
+id_string = 'SE_sweep'
+number_cycles = 10 
 t1,t2 = spin_echo(averages = number_cycles)
 #raw_input("Start magnetic field sweep")
 #start_acq = timer()
