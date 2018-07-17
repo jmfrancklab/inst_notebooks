@@ -220,34 +220,34 @@ def spin_echo(cycle_counter, freq = 14.4289e6, p90 = 2.551e-6, d1 = 63.794e-6, T
                                 ch1_wf = g.waveform(ch=1)
                                 ch2_wf = g.waveform(ch=2)
                                 time_acq = timer()
-                                this_time = time_acq - start_ph
+                                this_time = int(time_acq - start_ph)
                                 g.acquire_mode('sample')
                             #{{{ set up the nddata at the very beginning of the phase cycle
                             if (ph1 == 0 and ph2 == 0 and x == 0):
                                 # initialize 'timer' axis to record time of each capture
-                                timer_axis = zeros(cycle_counter*num_ph1_steps*num_ph2_steps)
+                                timer_axis = [None] * (cycle_counter*num_ph1_steps*num_ph2_steps)
                                 t_axis = ch1_wf.getaxis('t')
-                                data = ndshape([cycle_counter,len(timer_axis),4,2,len(t_axis),2],['cycle_counter','timer','ph1','ph2','t','ch']).alloc(dtype=float64)
+                                data = ndshape([len(timer_axis),cycle_counter,4,2,len(t_axis),2],['timer','cycle_counter','ph1','ph2','t','ch']).alloc(dtype=float64)
                                 data.setaxis('t',t_axis).set_units('t','s')
                                 data.setaxis('ch',r_[1,2])
                                 data.setaxis('ph1',r_[0:4])
                                 data.setaxis('ph2',r_[0,2])
                                 data.setaxis('cycle_counter',r_[0:cycle_counter]+1)
-                                data.setaxis('timer',timer_axis)
                                 #}}}
                             timer_axis[timer_index] = this_time
-                            data['cycle_counter',x]['timer',timer_index]['ph1':ph1]['ph2':ph2]['ch',0] = ch1_wf
+                            data['timer',timer_index] = this_time
+                            data['timer',timer_index]['cycle_counter',x]['ph1':ph1]['ph2':ph2]['ch',0] = ch1_wf
                             # alternative is to do ['ph1',ph1]['ph2',ph2/2]
-                            data['cycle_counter',x]['timer',timer_index]['ph1':ph1]['ph2':ph2]['ch',1] = ch2_wf
+                            data['timer',timer_index]['cycle_counter',x]['ph1':ph1]['ph2':ph2]['ch',1] = ch2_wf
                             print "**********"
                             print "CYCLE NO. INDEX",x
                             print "ph1",ph1
                             print "ph2",ph2
                             print "**********"
                             print "Done acquiring"
-                            timer_index += 1
                             print "*** PRINTING TIMER AXIS ***"
                             print timer_axis
+                            timer_index += 1
             #}}}
     print "*** *** *** PRINTING FINAL TIMER AXIS *** *** ***"
     print timer_axis
@@ -259,7 +259,7 @@ def spin_echo(cycle_counter, freq = 14.4289e6, p90 = 2.551e-6, d1 = 63.794e-6, T
 #}}}
 
 date = '180717'
-id_string = 'SE_test'
+id_string = 'SE_test_4'
 num_cycles = 2 
 t1,t2 = spin_echo(cycle_counter = num_cycles)
 #raw_input("Start magnetic field sweep")
