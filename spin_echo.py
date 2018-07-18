@@ -262,8 +262,8 @@ def spin_echo(num_cycles, freq = 14.4289e6, p90 = 2.551e-6, d1 = 63.794e-6, T1 =
     return start_ph,end_ph 
 #}}}
 
-date = '180717'
-id_string = 'SE_sweep_3'
-num_cycles = 10 
+date = '180718'
+id_string = 'SE_sweep_2'
+num_cycles = 15 
 t1,t2 = spin_echo(num_cycles = num_cycles)
 print "Time:",t2-t1,"s"
