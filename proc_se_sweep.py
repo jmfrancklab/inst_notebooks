@@ -10,8 +10,8 @@ fl = figlist_var()
 
 carrier_f = 14.4289e6
 
-for date,id_string,numchan in [
-        ('180717','SE_sweep_3',2) # 1 cycle measurement with 4x GDS avg, B0 = 3395.75 G
+for date,id_string,numchan,field_axis,cycle_time, in [
+        ('180717','SE_sweep_3',2,linspace(3390,3400,420*4),168) 
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
@@ -91,23 +91,25 @@ for date,id_string,numchan in [
     # apply same analysis as on reference ch to test ch
     s_analytic = raw_corr['ch',0].C.ft('t')['t':(13e6,16e6)].setaxis('t', lambda f: f-carrier_f).ift('t').reorder(['full_cyc','t'],first=False)
     s_analytic *= expected_phase/measured_phase
-    s_analytic.ift(['ph1','ph2'])
-    fl.next('Testing coherence domain')
-    fl.image(s_analytic)
-    fl.show()
-    quit()
+    #s_analytic.ift(['ph1','ph2'])
+    #fl.next('Testing coherence domain')
+    #fl.image(s_analytic)
+    #fl.show()
+    #quit()
     s_analytic.name('Amplitude').set_units('V')
     #{{{ here plotting sweep data several ways
     s_analytic.rename('full_cyc','magnetic_field')
+    # slice out region containing spin echo to get clear frequency domain plots
+    s_analytic = s_analytic['t':(110e-6,None)]
     # define field axis that spans values over total collection time 
-    field_axis = linspace(3390,3400,420*4)
+    #field_axis = linspace(3390,3400,420*4)
     for x in xrange(ndshape(s_analytic)['magnetic_field']):
         # NOTE: The time length of each capture (here 168 s) can be determined by looking at
         # the distance between the values in the 'full_cyc' axis OR determined beforehand --
         # either way, I am sure there is a way to program the number but for now it must be
         # calculated and entered manually
-        s_analytic.getaxis('magnetic_field')[x] = field_axis[x*168]
-        print field_axis[x*168]
+        s_analytic.getaxis('magnetic_field')[x] = field_axis[x*cycle_time]
+        print field_axis[x*cycle_time]
         s_analytic.set_units('magnetic_field','G')
     s_analytic.ift(['ph1','ph2'])
     fl.next('image, signal coherence pathway, t domain')
@@ -119,13 +121,12 @@ for date,id_string,numchan in [
     for x in xrange(ndshape(s_analytic)['magnetic_field']):
         this_s = s_analytic['magnetic_field',x]['ph1',1]['ph2',0]
         fl.next('plot, signal coherence pathway, t domain')
-        fl.plot(this_s,alpha=0.3,label='%0.2f G'%field_axis[x*168])
-        xlim(100,None)
+        fl.plot(this_s,alpha=0.3,label='%0.2f G'%field_axis[x*cycle_time])
     s_analytic.ft('t')
     for x in xrange(ndshape(s_analytic)['magnetic_field']):
         this_s = s_analytic['magnetic_field',x]['ph1',1]['ph2',0]
         fl.next('plot, signal coherence pathway, f domain')
-        fl.plot(this_s,alpha=0.3,label='%0.2f G'%field_axis[x*168])
+        fl.plot(this_s,alpha=0.6,label='%0.2f G'%field_axis[x*cycle_time])
         #}}}
 fl.show()
 quit()
