@@ -11,7 +11,8 @@ fl = figlist_var()
 carrier_f = 14.4289e6
 
 for date,id_string,numchan,field_axis,cycle_time, in [
-        ('180717','SE_sweep_3',2,linspace(3390,3400,420*4),168) 
+        #('180717','SE_sweep_3',2,linspace(3390,3400,420*4),168),
+        ('180718','SE_sweep',2,linspace((3395-25/2),(3395+25/2),1050*4),168) 
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
@@ -101,8 +102,6 @@ for date,id_string,numchan,field_axis,cycle_time, in [
     s_analytic.rename('full_cyc','magnetic_field')
     # slice out region containing spin echo to get clear frequency domain plots
     s_analytic = s_analytic['t':(110e-6,None)]
-    # define field axis that spans values over total collection time 
-    #field_axis = linspace(3390,3400,420*4)
     for x in xrange(ndshape(s_analytic)['magnetic_field']):
         # NOTE: The time length of each capture (here 168 s) can be determined by looking at
         # the distance between the values in the 'full_cyc' axis OR determined beforehand --
@@ -111,6 +110,10 @@ for date,id_string,numchan,field_axis,cycle_time, in [
         s_analytic.getaxis('magnetic_field')[x] = field_axis[x*cycle_time]
         print field_axis[x*cycle_time]
         s_analytic.set_units('magnetic_field','G')
+    #{{{ this is specifically because field sweep stopped before program finished for '180718_SE_sweep'
+    s_analytic = s_analytic['magnetic_field':(field_axis[0],field_axis[24*cycle_time])]
+    #}}}
+    print ndshape(s_analytic)
     s_analytic.ift(['ph1','ph2'])
     fl.next('image, signal coherence pathway, t domain')
     fl.image(s_analytic['ph1',1]['ph2',0])
