@@ -83,7 +83,7 @@ def acquire(date,id_string,captures):
     return
 #}}}
 #{{{ spin echo function with phase cycling capability
-def spin_echo(cycle_counter, freq = 14.4289e6, p90 = 2.551e-6, d1 = 63.794e-6, T1 = 200e-3, max_delay = True, complex_exp = True, ph_cyc = True):
+def spin_echo(num_cycles, freq = 14.4289e6, p90 = 2.551e-6, d1 = 63.794e-6, T1 = 200e-3, max_delay = True, complex_exp = True, ph_cyc = True):
 #{{{ documentation
     r'''generates spin echo (90 - delay - 180) pulse sequence, defined by
     the frequency, 90 time, and delay time, and outputs on scope.
@@ -201,9 +201,9 @@ def spin_echo(cycle_counter, freq = 14.4289e6, p90 = 2.551e-6, d1 = 63.794e-6, T
                 num_ph1_steps = 4 
                 num_ph2_steps = 2
                 raw_input('Begin field sweep')
-                start_ph = timer()
+                start_ph = time.time()
                 timer_index = 0
-                for x in xrange(cycle_counter):
+                for x in xrange(num_cycles):
                     for ph2 in xrange(0,4,num_ph2_steps):
                         for ph1 in xrange(num_ph1_steps):
                             y_ph = y.copy()
@@ -219,28 +219,28 @@ def spin_echo(cycle_counter, freq = 14.4289e6, p90 = 2.551e-6, d1 = 63.794e-6, T
                                 print "Acquiring..."
                                 ch1_wf = g.waveform(ch=1)
                                 ch2_wf = g.waveform(ch=2)
-                                time_acq = timer()
+                                time_acq = time.time()
                                 this_time = int(time_acq - start_ph)
                                 g.acquire_mode('sample')
                             #{{{ set up the nddata at the very beginning of the phase cycle
                             if (ph1 == 0 and ph2 == 0 and x == 0):
                                 # initialize 'timer' axis to record time of each capture
-                                start_time = time.time()
-                                time_ndarray = empty(cycle_counter*num_ph1_steps*num_ph2_steps)
+                                timer_axis = empty(num_cycles*num_ph1_steps*num_ph2_steps)
                                 t_axis = ch1_wf.getaxis('t')
-                                data = ndshape([cycle_counter,4,2,len(t_axis),2],
+                                data = ndshape([num_cycles,4,2,len(t_axis),2],
                                         ['full_cyc','ph1','ph2','t','ch']).alloc(dtype=float64)
                                 data.setaxis('t',t_axis).set_units('t','s')
                                 data.setaxis('ch',r_[1,2])
                                 data.setaxis('ph1',r_[0:4])
                                 data.setaxis('ph2',r_[0,2])
-                                data.setaxis('full_cyc',zeros(cycle_counter))
+                                data.setaxis('full_cyc',empty(num_cycles))
                                 #}}}
-                            time_ndarray[timer_index] = time.time() - start_time
+                            timer_axis[timer_index] = this_time
                             data['full_cyc',x]['ph1':ph1]['ph2':ph2]['ch',0] = ch1_wf
                             # alternative is to do ['ph1',ph1]['ph2',ph2/2]
                             data['full_cyc',x]['ph1':ph1]['ph2':ph2]['ch',1] = ch2_wf
-                            data.getaxis('full_cyc')[x] = time_ndarray[timer_index]
+                            # stores time of the entire cycle (overwrites until the last cyc step)
+                            data.getaxis('full_cyc')[x] = timer_axis[timer_index]
                             print "**********"
                             print "CYCLE NO. INDEX",x
                             print "ph1",ph1
@@ -253,22 +253,17 @@ def spin_echo(cycle_counter, freq = 14.4289e6, p90 = 2.551e-6, d1 = 63.794e-6, T
             #}}}
     print "*** *** *** PRINTING FINAL TIMER AXIS *** *** ***"
     print timer_axis
-    data.setaxis('timer',timer_axis)
     data.name("this_capture")
     data.hdf5_write(date+"_"+id_string+".h5")
-    time_data = nddata(time_ndarray,[-1],['t']).labels('t',r_[0:len(time_ndarray)])
+    time_data = nddata(timer_axis,[-1],['t']).labels('t',r_[0:len(timer_axis)])
     time_data.name('timing_data')
     time_data.hdf5_write(date+"_"+id_string+".h5")
-    end_ph = timer()
+    end_ph = time.time() 
     return start_ph,end_ph 
 #}}}
 
 date = '180717'
-id_string = 'SE_sweep_2'
+id_string = 'SE_sweep_3'
 num_cycles = 10 
-t1,t2 = spin_echo(cycle_counter = num_cycles)
-#raw_input("Start magnetic field sweep")
-#start_acq = timer()
-#acquire(date,id_string,captures)
-#end_acq = timer()
+t1,t2 = spin_echo(num_cycles = num_cycles)
 print "Time:",t2-t1,"s"
