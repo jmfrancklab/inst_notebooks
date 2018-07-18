@@ -197,10 +197,10 @@ for date,id_string,numchan in [
     print "before average"
     print ndshape(s_analytic)
     #{{{ generating input-referred voltage
-    gain_factor_dcasc12 = sqrt(114008.55204672)   #gain in units of V
-    s_analytic /= gain_factor_dcasc12
-    if full_cyc:
-        s_analytic.mean('full_cyc',return_error=False)
+    ##gain_factor_dcasc12 = sqrt(114008.55204672)   #gain in units of V
+    ##s_analytic /= gain_factor_dcasc12
+    ##if full_cyc:
+    ##    s_analytic.mean('full_cyc',return_error=False)
     if not full_cyc:
         s_analytic.mean('average',return_error=False)
     #s_analytic /= sqrt(8)
@@ -211,7 +211,7 @@ for date,id_string,numchan in [
     s_analytic.name('Amplitude').set_units('V')
     for ph2 in xrange(ndshape(s_analytic)['ph2']):
         for ph1 in xrange(ndshape(s_analytic)['ph1']):
-            fl.next(r'Input-referred: $\Delta_{c_{1}}$ = + %d, $\Delta_{c_{2}}$ = + %d'%(ph1,2*ph2))
+            fl.next(r'$\Delta_{c_{1}}$ = + %d, $\Delta_{c_{2}}$ = + %d'%(ph1,2*ph2))
             fl.plot(s_analytic['ph1',ph1]['ph2',ph2],alpha=0.4) # in order to see units
             #fl.plot(s_analytic['ph1',ph1]['ph2',ph2].real,alpha=0.4,label='real')
             #fl.plot(s_analytic['ph1',ph1]['ph2',ph2].imag,alpha=0.4,label='imag')
