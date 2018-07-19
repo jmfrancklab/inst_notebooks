@@ -16,11 +16,13 @@ for date,id_string,numchan,field_axis,cycle_time, in [
         #('180718','SE_sweep',2,linspace((3395-25/2),(3395+25/2),1050*4),168),
         #('180718','SE_sweep_2',2,linspace((3407-15/2),(3407+15/2),654*4),int(21.3*8)) 
         #('180718','SE_sweep_3',2,linspace((3407-3/2),(3407+3/2),1296*4),int(21.129*8)) 
-        ('180718','SE_sweep_4',2,linspace((3407.05-0.1/2),(3407.05+0.1/2),425*4),int(21.3125*8)) 
+        #('180718','SE_sweep_4',2,linspace((3407.05-0.1/2),(3407.05+0.1/2),425*4),int(21.3125*8)) 
+        ('180719','SE_sweep',2,linspace((3407.3-1.0/2),(3407.3+1.0/2),425*4),int(20.9375*8)) 
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
     #{{{ for checking time difference between captures
+    # use this to find cycle_time variable, which will print if no AFG error is found
     if check_time:
         timing_node = 'timing_data'
         q = nddata_hdf5(filename+'/'+timing_node,
@@ -146,15 +148,18 @@ for date,id_string,numchan,field_axis,cycle_time, in [
         #}}}
         print ndshape(s_analytic)
         s_analytic.ift(['ph1','ph2'])
+        #{{{ here I am making a copy of this dataset to plot with frequency axis converted to Gauss
+        s_analytic_f = s_analytic.C.ft('t')
+        s_analytic_f.setaxis('t', lambda x: x/(2*pi*gammabar_H)*1e4).set_units('t','G')
+        s_analytic_f.rename('t',r'$\frac{\Omega}{2 \pi \gamma_{H}}$')
+        s_analytic_f.rename('magnetic_field',r'$B_{0}$')
+        #}}}
         fl.next('image, signal coherence pathway, t domain (0.1 G width)')
         fl.image(s_analytic['ph1',1]['ph2',0])
-        s_analytic.ft('t')
+        #s_analytic.ft('t')
         fl.next('image, signal coherence pathway, f domain (0.1 G width)')
-        fl.image(s_analytic['ph1',1]['ph2',0])
-        s_analytic.ift('t')
-        fl.show()
-        quit()
-        print s_analytic
+        fl.image(s_analytic_f['ph1',1]['ph2',0])
+        #s_analytic.ift('t')
         #{{{ the if statements in the following for loops
             # are specific for the file '180718_SE_sweep_3'
         for x in xrange(ndshape(s_analytic)['magnetic_field']):
@@ -163,11 +168,11 @@ for date,id_string,numchan,field_axis,cycle_time, in [
             this_s = s_analytic['magnetic_field',x]['ph1',1]['ph2',0]
             fl.next('plot, signal coherence pathway, t domain')
             fl.plot(this_s,alpha=0.3,label='%0.4f G'%field_val)
-        s_analytic.ft('t')
-        for x in xrange(ndshape(s_analytic)['magnetic_field']):
-            field_val = s_analytic.getaxis('magnetic_field')[x]
+        #s_analytic.ft('t')
+        for x in xrange(ndshape(s_analytic_f)[r'$B_{0}$']):
+            field_val = s_analytic_f.getaxis(r'$B_{0}$')[x]
             #if (field_val > 3406.98) and (field_val < 3407.5) :
-            this_s = s_analytic['magnetic_field',x]['ph1',1]['ph2',0]
+            this_s = s_analytic_f[r'$B_{0}$',x]['ph1',1]['ph2',0]
             fl.next('plot, signal coherence pathway, f domain')
             fl.plot(this_s,alpha=0.6,label='%0.4f G'%field_val)
                 #}}}
