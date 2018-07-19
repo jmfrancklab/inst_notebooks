@@ -18,7 +18,8 @@ for date,id_string,numchan,field_axis,cycle_time, in [
         #('180718','SE_sweep_3',2,linspace((3407-3/2),(3407+3/2),1296*4),int(21.129*8)) 
         #('180718','SE_sweep_4',2,linspace((3407.05-0.1/2),(3407.05+0.1/2),425*4),int(21.3125*8)) 
         #('180719','SE_sweep',2,linspace((3407.3-1.0/2),(3407.3+1.0/2),425*4),int(20.9375*8)) 
-        ('180719','SE_sweep_2',2,linspace((3407.3-0.1/2),(3407.3+0.1/2),420*4),int(20.975*8)) 
+        ('180719','SE_sweep_2',2,linspace((3407.3-0.1/2),(3407.3+0.1/2),420*4),int(20.975*8)), 
+        ('180719','SE_sweep_3',2,linspace((3407.4-0.1/2),(3407.4+0.1/2),420*4),int(21.875*8)) 
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
@@ -172,10 +173,10 @@ for date,id_string,numchan,field_axis,cycle_time, in [
         #s_analytic.ft('t')
         for x in xrange(ndshape(s_analytic_f)[r'$B_{0}$']):
             field_val = s_analytic_f.getaxis(r'$B_{0}$')[x]
-            #if (field_val > 3406.98) and (field_val < 3407.5) :
-            this_s = s_analytic_f[r'$B_{0}$',x]['ph1',1]['ph2',0]
-            fl.next('plot, signal coherence pathway, f domain')
-            fl.plot(this_s,alpha=0.6,label='%0.4f G'%field_val)
+            if (field_val > 3407.29) and (field_val < 3407.4) :
+                this_s = s_analytic_f[r'$B_{0}$',x]['ph1',1]['ph2',0]
+                fl.next('plot, signal coherence pathway')
+                fl.plot(this_s,alpha=0.6,label='%0.4f G'%field_val)
                 #}}}
             #}}}
 fl.show()
