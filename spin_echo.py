@@ -210,7 +210,12 @@ def spin_echo(num_cycles, freq = 14.4289e6, p90 = 2.551e-6, d1 = 63.794e-6, T1 =
                             y_ph[1:int(points_90)] *= exp(1j*ph1*pi/2)
                             y_ph[int(points_90+points_d1):-1] *= exp(1j*ph2*pi/2)
                             a[this_ch].ampl = 20e-3
-                            a[this_ch].digital_ndarray(y_ph.real, rate=rate)
+                            try :
+                                a[this_ch].digital_ndarray(y_ph.real, rate=rate)
+                            except :
+                                print "Entering except statement..."
+                                time.sleep(25)
+                                a[this_ch].digital_ndarray(y_ph.real, rate=rate)
                             a[this_ch].burst = True
                             a[this_ch].ampl = 10
                             with GDS_scope() as g:
@@ -263,7 +268,7 @@ def spin_echo(num_cycles, freq = 14.4289e6, p90 = 2.551e-6, d1 = 63.794e-6, T1 =
 #}}}
 
 date = '180718'
-id_string = 'SE_sweep_2'
-num_cycles = 15 
+id_string = 'SE_sweep_4'
+num_cycles = 10 
 t1,t2 = spin_echo(num_cycles = num_cycles)
 print "Time:",t2-t1,"s"
