@@ -9,11 +9,14 @@ mpl.rcParams['image.cmap'] = 'jet'
 fl = figlist_var()
 
 carrier_f = 14.4289e6
-check_time =  False
 
+check_time = False 
 for date,id_string,numchan,field_axis,cycle_time, in [
         #('180717','SE_sweep_3',2,linspace(3390,3400,420*4),168),
-        ('180718','SE_sweep',2,linspace((3395-25/2),(3395+25/2),1050*4),168) 
+        #('180718','SE_sweep',2,linspace((3395-25/2),(3395+25/2),1050*4),168),
+        #('180718','SE_sweep_2',2,linspace((3407-15/2),(3407+15/2),654*4),int(21.3*8)) 
+        ('180718','SE_sweep_3',2,linspace((3407-3/2),(3407+3/2),1296*4),int(21.129*8)) 
+        #('180718','SE_sweep_4',2,linspace((3407.05-0.1/2),(3407.05+0.1/2),425*4),int(21.3125*8)) 
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
@@ -138,7 +141,7 @@ for date,id_string,numchan,field_axis,cycle_time, in [
             print field_axis[x*cycle_time]
             s_analytic.set_units('magnetic_field','G')
         #{{{ this is specifically because field sweep stopped before program finished for '180718_SE_sweep'
-        s_analytic = s_analytic['magnetic_field':(field_axis[0],field_axis[24*cycle_time])]
+        #s_analytic = s_analytic['magnetic_field':(field_axis[0],field_axis[24*cycle_time])]
         #}}}
         print ndshape(s_analytic)
         s_analytic.ift(['ph1','ph2'])
@@ -148,15 +151,21 @@ for date,id_string,numchan,field_axis,cycle_time, in [
         fl.next('image, signal coherence pathway, f domain')
         fl.image(s_analytic['ph1',1]['ph2',0])
         s_analytic.ift('t')
+        print s_analytic
+        print s_analytic.getaxis('magnetic_field')[15]
         for x in xrange(ndshape(s_analytic)['magnetic_field']):
-            this_s = s_analytic['magnetic_field',x]['ph1',1]['ph2',0]
-            fl.next('plot, signal coherence pathway, t domain')
-            fl.plot(this_s,alpha=0.3,label='%0.2f G'%field_axis[x*cycle_time])
+            field_val = s_analytic.getaxis('magnetic_field')[x]
+            if (field_val > 3406.98) and (field_val < 3407.5) :
+                this_s = s_analytic['magnetic_field',x]['ph1',1]['ph2',0]
+                fl.next('plot, signal coherence pathway, t domain')
+                fl.plot(this_s,alpha=0.3,label='%0.4f'%field_val)
         s_analytic.ft('t')
         for x in xrange(ndshape(s_analytic)['magnetic_field']):
-            this_s = s_analytic['magnetic_field',x]['ph1',1]['ph2',0]
-            fl.next('plot, signal coherence pathway, f domain')
-            fl.plot(this_s,alpha=0.6,label='%0.2f G'%field_axis[x*cycle_time])
+            field_val = s_analytic.getaxis('magnetic_field')[x]
+            if (field_val > 3406.98) and (field_val < 3407.5) :
+                this_s = s_analytic['magnetic_field',x]['ph1',1]['ph2',0]
+                fl.next('plot, signal coherence pathway, f domain')
+                fl.plot(this_s,alpha=0.6,label='%0.4f'%field_val)
             #}}}
 fl.show()
 quit()
