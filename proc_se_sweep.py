@@ -17,7 +17,8 @@ for date,id_string,numchan,field_axis,cycle_time, in [
         #('180718','SE_sweep_2',2,linspace((3407-15/2),(3407+15/2),654*4),int(21.3*8)) 
         #('180718','SE_sweep_3',2,linspace((3407-3/2),(3407+3/2),1296*4),int(21.129*8)) 
         #('180718','SE_sweep_4',2,linspace((3407.05-0.1/2),(3407.05+0.1/2),425*4),int(21.3125*8)) 
-        ('180719','SE_sweep',2,linspace((3407.3-1.0/2),(3407.3+1.0/2),425*4),int(20.9375*8)) 
+        #('180719','SE_sweep',2,linspace((3407.3-1.0/2),(3407.3+1.0/2),425*4),int(20.9375*8)) 
+        ('180719','SE_sweep_2',2,linspace((3407.3-0.1/2),(3407.3+0.1/2),420*4),int(20.975*8)) 
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
@@ -62,7 +63,7 @@ for date,id_string,numchan,field_axis,cycle_time, in [
         s.setaxis('t',lambda f: f-carrier_f)
         s.ift('t')
 
-        fl.next('raw data')
+        fl.next('raw data') 
         fl.plot(s_raw['ch',1]['full_cyc',0]['ph2',0].reorder('t').real)
         #{{{ applying time-shift (i.e., defining new, more convenient x-axis below)
         # note, pulse length used below is manually determined
