@@ -46,7 +46,7 @@ for i,omega1 in enumerate(omega1_axis):
         U180 = expm(-1j*omega1*2*t90*Ix-1j*Omega*2*t90*Iz)
         Uev = expm(-1j*Omega*tau*Iz)
         Uev_echo = expm(-1j*Omega*(tau+2*t90/pi)*Iz)
-        Utot = Uev.dot(U180).dot(Uev).dot(U90)
+        Utot = Uev_echo.dot(U180).dot(Uev).dot(U90)
         rho = Utot.dot(Iz).dot(Utot.T.conj())
         results['omega1',i]['Omega',j] = rho[1,0]
 results.set_units('omega1','Hz').set_units('Omega','Hz')
@@ -122,6 +122,7 @@ results.rename('omega1',r'$\omega_1/2\pi$').rename('Omega',r'$\Omega/2\pi$')
 
 # What if we phase cycle?
 # *Note:* I changed this from 2 step to 4 step on the 180, because I thought the signal should be cleaner
+# However, that was for an older version of the simulation where there was a typo, but I like it better, so I leave it.
 
 t90 = 2.1e-6
 omega1_nominal = 2*pi/(4*t90)
@@ -141,11 +142,45 @@ for ph2 in xrange(4):
                 U180 = expm(-1j*omega1*2*t90*pul_rot(Ix,ph2)-1j*Omega*2*t90*Iz)
                 Uev = expm(-1j*Omega*tau*Iz)
                 Uev_echo = expm(-1j*Omega*(tau+2*t90/pi)*Iz)
-                Utot = Uev.dot(U180).dot(Uev).dot(U90)
+                Utot = Uev_echo.dot(U180).dot(Uev).dot(U90)
                 rho = Utot.dot(Iz).dot(Utot.T.conj())
                 results['ph2',ph2]['ph1',ph1]['omega1',i]['Omega',j] = rho[1,0]
 results.set_units('omega1','Hz').set_units('Omega','Hz')
 results.rename('omega1',r'$\omega_1/2\pi$').rename('Omega',r'$\Omega/2\pi$')
+results.ft(['ph1','ph2'])
+
+
+# 
+
+with figlist_var() as fl:
+    fl.next('show relative size of phcyc channels',figsize=(14,28)) # I want figsize, and I need fl so that it handles the units
+    fl.image(abs(results))
+
+# Now, using the same type of experiment ask -- what happens if I run a nutation curve off resonance
+
+t90_guess = 2.1e-6
+t_max = 4*t90_guess
+omega1 = 2*pi/(4*t90_guess)
+d.display(d.Markdown(r'$\omega_1/2\pi=%0.2f$ kHz'%(omega1/2/pi/1e3)))
+results = ndshape([4,4,20,200],['ph2','ph1','t_pulse','Omega']).alloc()
+t_pulse_axis = linspace(0,t_max,ndshape(results)['t_pulse'])
+omega_axis = linspace(-omega1_nominal*4,omega1_nominal*4,ndshape(results)['Omega'])
+results.labels(['ph2','ph1'],[r_[0:4],r_[0:4]])
+results.labels(['t_pulse','Omega'],[t_pulse_axis,omega_axis/2/pi])
+pul_rot = lambda I,ph: expm(1j*pi/2*Iz*ph).dot(I).dot(expm(-1j*pi/2*Iz*ph))# sense of rotation relative to propagators chosen so that signal shows up along -1
+tau = 50e-6
+for ph2 in xrange(4):
+    for ph1 in xrange(4):
+        for i,t_pulse in enumerate(t_pulse_axis):
+            for j,Omega in enumerate(omega_axis):
+                U90 = expm(-1j*omega1*t_pulse*pul_rot(Ix,ph1)-1j*Omega*t_pulse*Iz)
+                U180 = expm(-1j*omega1*2*t_pulse*pul_rot(Ix,ph2)-1j*Omega*2*t_pulse*Iz)
+                Uev = expm(-1j*Omega*tau*Iz)
+                Uev_echo = expm(-1j*Omega*(tau+2*t_pulse/pi)*Iz)
+                Utot = Uev_echo.dot(U180).dot(Uev).dot(U90)
+                rho = Utot.dot(Iz).dot(Utot.T.conj())
+                results['ph2',ph2]['ph1',ph1]['t_pulse',i]['Omega',j] = rho[1,0]
+results.rename('Omega',r'$\Omega/2\pi$').set_units('t_pulse','s').set_units('Omega','Hz')
 results.ft(['ph1','ph2'])
 
 
