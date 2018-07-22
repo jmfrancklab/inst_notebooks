@@ -140,16 +140,15 @@ for date,id_string,numchan in [
     phase_factor *= avg_t
     #     this time, optionally include the Cavanagh shifts
     if is_nutation:
-        logger.info(strm('the nutation axis is',analytic.getaxis('indirect')))
-        phase_factor *= 2*analytic.fromaxis('indirect')/pi
+        logger.debug(strm('the nutation axis is',analytic.getaxis('indirect')))
+        # we want to move forward by (2/pi-1/2)*t90
+        logger.debug(strm('correction before pulse shift',phase_factor))
+        phase_factor += -1j*2*pi*(2/pi-0.5)*analytic.fromaxis('indirect')*analytic.fromaxis('t')
+        logger.debug(strm('and after pulse shift',phase_factor))
     analytic *= exp(phase_factor)
     analytic.ift('t')
     # }}}
     if confirm_triggers:
-        # verify that we have phased the measured signal
-        fl.next('analytic signal, phased, time domain (ref ch)')
-        fl.image(analytic)
-
         # beginning phase correction now
         #{{{ plotting time domain uncorrected pulse edges
         # NOTE: this may be the same as the raw signal plotted in beginning of program
@@ -169,10 +168,7 @@ for date,id_string,numchan in [
         # sign on 1j matters here, difference between proper cycling or off cycling
         phase_factor = raw_corr.fromaxis('t',lambda x: 1j*2*pi*x)
         phase_factor *= avg_t
-        #     this time, optionally include the Cavanagh shifts
-        if is_nutation:
-            logger.info(strm('the nutation axis is',analytic.getaxis('indirect')))
-            phase_factor *= 2*analytic.fromaxis('indirect')/pi
+        # not including Cavanagh shifts, just to avoid confusion with above
         raw_corr *= exp(phase_factor)
         # here zero filling or else signal amplitude will vary due to changes made in the f dimension 
         raw_corr.ift('t',pad=30*1024)
