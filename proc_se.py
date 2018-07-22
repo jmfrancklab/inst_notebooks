@@ -131,9 +131,6 @@ for date,id_string,numchan in [
     analytic *= exp(phase_factor)
     analytic.ift('t')
     # }}}
-    fl.next('are the pulses aligned?')
-    fl.image(analytic)
-    fl.show();exit()
     if confirm_triggers:
         # verify that we have phased the measured signal
         fl.next('analytic signal, phased, time domain (ref ch)')
@@ -151,44 +148,47 @@ for date,id_string,numchan in [
                 fl.next('compare falling edge: uncorrected')
                 fl.plot((onephase_raw_shift['repeat',j]['ph1',k]['t':(1.0e-6,1.4e-6)].C.reorder('t',first=True)+2*k),color=colors[k],alpha=0.3)
         #}}}
-    raw_corr = s_raw.C.ft('t',shift=True)
-    # sign on 1j matters here, difference between proper cycling or off cycling
-    phase_factor = raw_corr.fromaxis('t',lambda x: 1j*2*pi*x)
-    phase_factor *= average_time
-    phase_factor.run(lambda x: exp(x))
-    raw_corr *= phase_factor
-    # here zero filling or else signal amplitude will vary due to changes made in the f dimension 
-    raw_corr.ift('t',pad=30*1024)
-    #{{{ plotting time domain corrected pulse edges
-    #if full_cyc:
-    #    onephase_rawc = raw_corr['ch',1].C.smoosh(['ph2','full_cyc'],noaxis=True, dimname='repeat').reorder('t')
-    #if not full_cyc:
-    #    onephase_rawc = raw_corr['ch',1].C.smoosh(['ph2','indirect'],noaxis=True, dimname='repeat').reorder('t')
-    #onephase_rawc.name('Amplitude').set_units('V')
-    #for k in xrange(ndshape(onephase_rawc)['ph1']):
-    #    for j in xrange(ndshape(onephase_rawc)['repeat']):
-    #        fl.next('compare rising edge: corrected')
-    #        fl.plot(onephase_rawc['repeat',j]['ph1',k]['t':(-1.4e-6,-1.1e-6)].C.reorder('t',first=True),color=colors[k],alpha=0.3)
-    #        fl.next('compare falling edge: corrected')
-    #        fl.plot(onephase_rawc['repeat',j]['ph1',k]['t':(1.0e-6,1.4e-6)].C.reorder('t',first=True),color=colors[k],alpha=0.3)
-    #}}}
+    if confirm_triggers:
+        # if we want to display the correction to the raw data, we need to
+        # reapply the same shift.  This is not necessary unless we're running with "confirm_triggers"
+        raw_corr = s_raw.C.ft('t',shift=True)
+        # sign on 1j matters here, difference between proper cycling or off cycling
+        phase_factor = raw_corr.fromaxis('t',lambda x: 1j*2*pi*x)
+        phase_factor *= avg_t
+        #     this time, optionally include the Cavanagh shifts
+        if is_nutation:
+            logger.info(strm('the nutation axis is',analytic.getaxis('indirect')))
+            phase_factor *= 2*analytic.fromaxis('indirect')/pi
+        raw_corr *= exp(phase_factor)
+        # here zero filling or else signal amplitude will vary due to changes made in the f dimension 
+        raw_corr.ift('t',pad=30*1024)
+        #{{{ plotting time domain corrected pulse edges
+        if full_cyc:
+            onephase_rawc = raw_corr['ch',1].C.smoosh(['ph2','full_cyc'],noaxis=True, dimname='repeat').reorder('t')
+        if not full_cyc:
+            onephase_rawc = raw_corr['ch',1].C.smoosh(['ph2','indirect'],noaxis=True, dimname='repeat').reorder('t')
+        onephase_rawc.name('Amplitude').set_units('V')
+        for k in xrange(ndshape(onephase_rawc)['ph1']):
+            for j in xrange(ndshape(onephase_rawc)['repeat']):
+                fl.next('compare rising edge: corrected')
+                fl.plot(onephase_rawc['repeat',j]['ph1',k]['t':(-1.4e-6,-1.1e-6)].C.reorder('t',first=True),color=colors[k],alpha=0.3)
+                fl.next('compare falling edge: corrected')
+                fl.plot(onephase_rawc['repeat',j]['ph1',k]['t':(1.0e-6,1.4e-6)].C.reorder('t',first=True),color=colors[k],alpha=0.3)
+        #}}}
     # with time-shifted, phase corrected raw data, now take analytic
     # measured phase is phase of each 90 after time-shifting and phase correcting
-    if full_cyc:
-        analytic = raw_corr['ch',1].C.ft('t')['t':(0,16e6)].setaxis('t', lambda f: f-carrier_f).ift('t').reorder(['full_cyc','t'],first=False)
-        measured_phase = analytic['t':(-1.5e6,1.5e6)].mean('t',return_error=False).mean('ph2',return_error=True).mean('full_cyc',return_error=True)
-    if not full_cyc:
-        analytic = raw_corr['ch',1].C.ft('t')['t':(0,16e6)].setaxis('t', lambda f: f-carrier_f).ift('t').reorder(['indirect','t'],first=False)
-        measured_phase = analytic['t':(-1.5e6,1.5e6)].mean('t',return_error=False).mean('ph2',return_error=True).mean('indirect',return_error=True)
+    # the following line was wrong for the general case -- we should set the
+    # phase of the 90 pulse for EACH INDIVIDUAL SCAN to make sure it's correct
+    measured_phase = analytic['t':(-max_window/2,max_window/2)].mean('t',return_error=False)
     measured_phase /= abs(measured_phase)
-    print "measured phase"
-    print measured_phase
+    logger.info(strm("measured phase",measured_phase))
     # expected phase is how we expect the phases to cycle, and how it is programmed in the pulse sequence
     expected_phase = nddata(exp(r_[0,1,2,3]*pi/2*1j),[4],['ph1'])
     # phase correcting analytic signal by difference between expected and measured phases
     analytic *= expected_phase/measured_phase
-    #fl.next('analytic signal, ref ch')
-    #fl.image(analytic['t':(-2e-6,75e-6)])
+    fl.next('analytic signal, ref ch')
+    fl.image(analytic)
+    fl.show();exit()
     # switch to coherence domain
     fl.next('coherence domain, ref ch')
     coherence_domain = analytic.C.ift(['ph1','ph2'])
