@@ -4,13 +4,27 @@ import os
 import sys
 import matplotlib.style
 import matplotlib as mpl
+import argparse
 
 mpl.rcParams['image.cmap'] = 'BrBG'
 fl = figlist_var()
 init_logging(level='debug')
 
-carrier_f = 14.4289e6
-max_window = 15e-6 # the maximim size of the window that encompasses all the pulses
+parser = argparse.ArgumentParser(description='basic command-line options')
+parser.add_argument('--window', '-w',
+        help='the maximum size of the window that encompasses all the pulses',
+        default=15e-6,
+        type=float,
+        dest='max_window')
+parser.add_argument('--carrier', '-c',
+        help='the carrier frequency',
+        default=14.4289e6,
+        type=float,
+        dest='carrier_f')
+args = parser.parse_args(sys.argv[1:])
+#print args.max_window # this would work
+globals().update(vars(args)) # this directly inserts the info above into
+#                              namespace of global variables
 
 for date,id_string,numchan in [
         #('180712','SE_exp',2)
