@@ -12,8 +12,6 @@ init_logging(level='debug')
 carrier_f = 14.4289e6
 max_window = 15e-6 # the maximim size of the window that encompasses all the pulses
 
-full_cyc = False
-
 for date,id_string,numchan in [
         #('180712','SE_exp',2)
         #('180712','SE_exp_2',2)
@@ -33,7 +31,11 @@ for date,id_string,numchan in [
     s.set_units('t','s')
     logger.debug(strm('dimensions are:',ndshape(s)))
     if 't_90' in s.dimlabels:
-        s.rename('t_90','average')
+        s.rename('t_90','indirect')
+    if 'full_cyc' in s.dimlabels:
+        s.rename('full_cyc','indirect')
+    if 'average' in s.dimlabels:
+        s.rename('average','indirect')
     logger.info("*** Current version based on 'fix_phase_cycling_180712.py' ***")
     logger.info("WARNING: Need to define time slices for pulses on a by-dataset basis ***")
 
@@ -48,10 +50,7 @@ for date,id_string,numchan in [
     if confirm_triggers:
         #{{{ confirm that different phases trigger differently due to differing rising edges
         fl.next('raw data')
-        if full_cyc:
-            fl.plot(s_raw['ch',1]['full_cyc',0]['ph2',0].reorder('t').real)
-        if not full_cyc:
-            fl.plot(s_raw['ch',1]['average',0]['ph2',0].reorder('t').real)
+        fl.plot(s_raw['ch',1]['indirect',0]['ph2',0].reorder('t').real)
         fl.show()
         quit()
         print ndshape(s)
@@ -60,16 +59,10 @@ for date,id_string,numchan in [
         # subset of interest in the data, undergoes processing to analytic signal
         subset = s['ch',1]['t':(1e-6,100e-6)]
         #fl.image(subset,black=True)
-        if full_cyc:
-            onephase = subset.C.smoosh(['ph2','full_cyc'], noaxis = True, dimname='repeat').reorder('t')
-        if not full_cyc:
-            onephase = subset.C.smoosh(['ph2','average'], noaxis = True, dimname='repeat').reorder('t')
+        onephase = subset.C.smoosh(['ph2','indirect'], noaxis = True, dimname='repeat').reorder('t')
         print "dimensions of data subset of interest",ndshape(onephase)
         # perform same analysis used on subset for raw data, to compare
-        if full_cyc:
-            onephase_raw = s_raw['ch',1].C.smoosh(['ph2','full_cyc'], noaxis=True, dimname='repeat').reorder('t')
-        if not full_cyc:
-            onephase_raw = s_raw['ch',1].C.smoosh(['ph2','average'], noaxis=True, dimname='repeat').reorder('t')
+        onephase_raw = s_raw['ch',1].C.smoosh(['ph2','indirect'], noaxis=True, dimname='repeat').reorder('t')
         print "dimensions of re-grouped raw data",ndshape(onephase_raw)
         colors = ['r','g','b','c']
         for k in xrange(ndshape(onephase)['ph1']):
@@ -104,10 +97,7 @@ for date,id_string,numchan in [
     exit()
     # this creates an nddata of the time averages for each 90 pulse
     logger.debug(strm('dimensions of average_time:',ndshape(average_time)))
-    if full_cyc:
-        average_time.reorder('full_cyc',first=False)
-    if not full_cyc:
-        average_time.reorder('average',first=False)
+    average_time.reorder('indirect',first=False)
     # shift the time axis down by the average time, so that 90 is centered around t=0
     s_raw.setaxis('t', lambda t: t-average_time.data.mean())
     # NOTE: check that this centers 90 around 0 on time axis
@@ -119,10 +109,7 @@ for date,id_string,numchan in [
     # re-determine nddata of the time averages for the newly centered data
     average_time = (pulse_slice**2 * pulse_slice.fromaxis('t')).integrate('t')/normalization
     print average_time
-    #if full_cyc:
-    #    average_time.reorder('full_cyc',first=False)
-    #if not cylce_counter:
-    #    average_time.reorder('average',first=False)
+    #average_time.reorder('indirect',first=False)
     # take analytic, and apply phase correction based on the time averages 
     analytic = s_raw.C.ft('t',shift=True)['t':(0,None)]
     analytic.setaxis('t',lambda f: f-carrier_f)
@@ -141,7 +128,7 @@ for date,id_string,numchan in [
     #if full_cyc:
     #    onephase_raw_shift = s_raw['ch',1].C.smoosh(['ph2','full_cyc'],noaxis=True,dimname='repeat').reorder('t')
     #if not full_cyc:
-    #    onephase_raw_shift = s_raw['ch',1].C.smoosh(['ph2','average'],noaxis=True,dimname='repeat').reorder('t')
+    #    onephase_raw_shift = s_raw['ch',1].C.smoosh(['ph2','indirect'],noaxis=True,dimname='repeat').reorder('t')
     #onephase_raw_shift.name('Amplitude').set_units('V')
     #for k in xrange(ndshape(onephase_raw)['ph1']):
     #    for j in xrange(ndshape(onephase_raw)['repeat']):
@@ -162,7 +149,7 @@ for date,id_string,numchan in [
     #if full_cyc:
     #    onephase_rawc = raw_corr['ch',1].C.smoosh(['ph2','full_cyc'],noaxis=True, dimname='repeat').reorder('t')
     #if not full_cyc:
-    #    onephase_rawc = raw_corr['ch',1].C.smoosh(['ph2','average'],noaxis=True, dimname='repeat').reorder('t')
+    #    onephase_rawc = raw_corr['ch',1].C.smoosh(['ph2','indirect'],noaxis=True, dimname='repeat').reorder('t')
     #onephase_rawc.name('Amplitude').set_units('V')
     #for k in xrange(ndshape(onephase_rawc)['ph1']):
     #    for j in xrange(ndshape(onephase_rawc)['repeat']):
@@ -177,8 +164,8 @@ for date,id_string,numchan in [
         analytic = raw_corr['ch',1].C.ft('t')['t':(0,16e6)].setaxis('t', lambda f: f-carrier_f).ift('t').reorder(['full_cyc','t'],first=False)
         measured_phase = analytic['t':(-1.5e6,1.5e6)].mean('t',return_error=False).mean('ph2',return_error=True).mean('full_cyc',return_error=True)
     if not full_cyc:
-        analytic = raw_corr['ch',1].C.ft('t')['t':(0,16e6)].setaxis('t', lambda f: f-carrier_f).ift('t').reorder(['average','t'],first=False)
-        measured_phase = analytic['t':(-1.5e6,1.5e6)].mean('t',return_error=False).mean('ph2',return_error=True).mean('average',return_error=True)
+        analytic = raw_corr['ch',1].C.ft('t')['t':(0,16e6)].setaxis('t', lambda f: f-carrier_f).ift('t').reorder(['indirect','t'],first=False)
+        measured_phase = analytic['t':(-1.5e6,1.5e6)].mean('t',return_error=False).mean('ph2',return_error=True).mean('indirect',return_error=True)
     measured_phase /= abs(measured_phase)
     print "measured phase"
     print measured_phase
@@ -200,7 +187,7 @@ for date,id_string,numchan in [
     # had difficult with setting axis
     s_analytic.setaxis('ph1', r_[0:4]*0.25)
     s_analytic.setaxis('ph2', r_[0:4:2]*0.25)
-    s_analytic.setaxis('average', lambda x: x * 0.25)
+    s_analytic.setaxis('indirect', lambda x: x * 0.25)
     print "new ph1 axis:",s_analytic.getaxis('ph1')
     print "new ph2 axis:",s_analytic.getaxis('ph2')
     s_analytic.ft('t')
@@ -210,7 +197,7 @@ for date,id_string,numchan in [
     if full_cyc:
         s_analytic.reorder(['full_cyc','t'],first=False)
     if not full_cyc:
-        s_analytic.reorder(['average','t'],first=False)
+        s_analytic.reorder(['indirect','t'],first=False)
     s_analytic *= expected_phase/measured_phase
     s_analytic.ift(['ph1','ph2'])
     print ndshape(s_analytic)
@@ -224,7 +211,7 @@ for date,id_string,numchan in [
     ##if full_cyc:
     ##    s_analytic.mean('full_cyc',return_error=False)
     if not full_cyc:
-        s_analytic.mean('average',return_error=False)
+        s_analytic.mean('indirect',return_error=False)
     #s_analytic /= sqrt(8)
     #}}}
     #{{{ plotting time-domain coherent signal
