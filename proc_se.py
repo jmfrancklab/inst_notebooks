@@ -10,6 +10,7 @@ fl = figlist_var()
 init_logging(level='debug')
 
 carrier_f = 14.4289e6
+max_window = 15e-6 # the maximim size of the window that encompasses all the pulses
 
 full_cyc = False
 
@@ -87,10 +88,22 @@ for date,id_string,numchan in [
         #}}}
     #{{{ applying time-shift (i.e., defining new, more convenient x-axis below)
     # note, pulse length used below is manually determined
-    pulse_slice = s_raw['t':(6.47267e-6,9.24785e-6)]['ch',1].real
-    normalization = (pulse_slice**2).integrate('t')
+    fl.next('show s_raw')
+    fl.image(s_raw)
+    fl.next('and pulse slice')
+    # before we even slice, we need an idea of where the pulse is
+    def average_time(d):
+        pulse_slice = d['ch',1].real
+        normalization = (pulse_slice**2).integrate('t')
+        return (pulse_slice**2 * pulse_slice.fromaxis('t')).integrate('t')/normalization
+    avg_t = average_time(s_raw['t':(0,50e-6)]).data.mean()
+    logger.info(strm('average time of pulses',avg_t))
+    pulse_slice = s_raw['t':(avg_t-max_window/2,avg_t+max_window/2)]
+    fl.image(pulse_slice)
+    fl.show()
+    exit()
     # this creates an nddata of the time averages for each 90 pulse
-    average_time = (pulse_slice**2 * pulse_slice.fromaxis('t')).integrate('t')/normalization
+    logger.debug(strm('dimensions of average_time:',ndshape(average_time)))
     if full_cyc:
         average_time.reorder('full_cyc',first=False)
     if not full_cyc:
@@ -101,6 +114,7 @@ for date,id_string,numchan in [
     #fl.next('time-shifted data')
     #fl.image(s_raw)
     #}}}
+    logger.debug(strm('t axis of s_raw',s_raw.getaxis('t')))
     pulse_slice = s_raw['t':(-1.34e-6,1.34e-6)]['ch',1].real
     # re-determine nddata of the time averages for the newly centered data
     average_time = (pulse_slice**2 * pulse_slice.fromaxis('t')).integrate('t')/normalization
