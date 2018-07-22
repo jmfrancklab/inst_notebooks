@@ -92,27 +92,35 @@ for date,id_string,numchan in [
     avg_t = average_time(pulse_slice)
     # this creates an nddata of the time averages for each 90 pulse
     logger.debug(strm('dimensions of average_time:',ndshape(avg_t)))
-    avg_t.reorder('indirect',first=False)
     # shift the time axis down by the average time, so that 90 is centered around t=0
     s_raw.setaxis('t', lambda t: t-avg_t.data.mean())
     fl.next('check that this centers 90 around 0 on time axis')
     fl.image(s_raw)
-    fl.show();exit()
     #}}}
-    logger.debug(strm('t axis of s_raw',s_raw.getaxis('t')))
-    pulse_slice = s_raw['t':(-1.34e-6,1.34e-6)]['ch',1].real
-    # re-determine nddata of the time averages for the newly centered data
-    average_time = (pulse_slice**2 * pulse_slice.fromaxis('t')).integrate('t')/normalization
-    print average_time
-    #average_time.reorder('indirect',first=False)
-    # take analytic, and apply phase correction based on the time averages 
+    # {{{ now, go ahead and shift each indirect data element relative to the
+    # others, so their pulses line up
+    # I'm going to do this twice, for maximum accuracy
+    # notice that a lot of the code that was
+    # here before is gathered into the "average_time" function above
+    avg_t = average_time(s_raw['t':(-max_window/2,max_window/2)])
+    # the first time I do this, just do it on the raw data
+    s_raw.ft('t',shift=True)
+    phase_factor = s_raw.fromaxis('t',lambda x: 1j*2*pi*x)
+    phase_factor *= avg_t
+    s_raw *= exp(phase_factor)
+    s_raw.ift('t')
+    # }}}
+    fl.next('are the pulses aligned?')
+    fl.image(s_raw)
+    fl.show();exit()
+    # {{{ take analytic, and apply phase correction based on the time averages 
     analytic = s_raw.C.ft('t',shift=True)['t':(0,None)]
     analytic.setaxis('t',lambda f: f-carrier_f)
     phase_factor = analytic.fromaxis('t',lambda x: 1j*2*pi*x)
-    phase_factor *= average_time
-    phase_factor.run(lambda x: exp(x))
-    analytic *= phase_factor
+    phase_factor *= avg_t
+    analytic *= exp(phase_factor)
     analytic.ift('t')
+    # }}}
     # verify that we have phased the measured signal
     #fl.next('analytic signal, phased, time domain (ref ch)')
     #fl.image(analytic)
