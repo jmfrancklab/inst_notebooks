@@ -5,8 +5,9 @@ import sys
 import matplotlib.style
 import matplotlib as mpl
 
-mpl.rcParams['image.cmap'] = 'jet'
+mpl.rcParams['image.cmap'] = 'BrBG'
 fl = figlist_var()
+init_logging(level='debug')
 
 carrier_f = 14.4289e6
 
@@ -17,19 +18,24 @@ for date,id_string,numchan in [
         #('180712','SE_exp_2',2)
         #('180712','SE_exp_3',2)
         #('180713','SE_exp',2)
-        ('180714','SE_exp',2), # 25 cycle measurement, B0 = 3395.75 G
+        #('180714','SE_exp',2), # 25 cycle measurement, B0 = 3395.75 G
         #('180714','SE_exp_offres',2) # 25 cycle measurement, B0 = 3585.85 G 
         #('180716','SE_test',2) # 1 cycle measurement with 8x GDS avg, B0 = 3395.75 G
         #('180716','SE_test_2',2) # 1 cycle measurement with 4x GDS avg, B0 = 3395.75 G
+        ('180720','nutation_control',2) # 1 cycle measurement with 4x GDS avg, B0 = 3395.75 G
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
 
     s = nddata_hdf5(filename+'/'+nodename,
             directory = getDATADIR(exp_type='test_equip'))
-    print "*** Current version based on 'fix_phase_cycling_180712.py' ***"
-    print "WARNING: Need to define time slices for pulses on a by-dataset basis ***"
     s.set_units('t','s')
+    logger.debug(strm('dimensions are:',ndshape(s)))
+    if 't_90' in s.dimlabels:
+        s.rename('t_90','average')
+    logger.info("*** Current version based on 'fix_phase_cycling_180712.py' ***")
+    logger.info("WARNING: Need to define time slices for pulses on a by-dataset basis ***")
+
     s_raw = s.C.reorder('t',first=False)
 
     s.ft('t',shift=True)
@@ -37,46 +43,48 @@ for date,id_string,numchan in [
     s.setaxis('t',lambda f: f-carrier_f)
     s.ift('t')
 
-    #{{{ confirm that different phases trigger differently due to differing rising edges
-    #fl.next('raw data')
-    #if full_cyc:
-    #    fl.plot(s_raw['ch',1]['full_cyc',0]['ph2',0].reorder('t').real)
-    #if not full_cyc:
-    #    fl.plot(s_raw['ch',1]['average',0]['ph2',0].reorder('t').real)
-    #fl.show()
-    #quit()
-    #print ndshape(s)
-    #print ndshape(s_raw)
-    ##fl.next('phcyc')
-    ## subset of interest in the data, undergoes processing to analytic signal
-    #subset = s['ch',1]['t':(1e-6,100e-6)]
-    ##fl.image(subset,black=True)
-    #if full_cyc:
-    #    onephase = subset.C.smoosh(['ph2','full_cyc'], noaxis = True, dimname='repeat').reorder('t')
-    #if not full_cyc:
-    #    onephase = subset.C.smoosh(['ph2','average'], noaxis = True, dimname='repeat').reorder('t')
-    #print "dimensions of data subset of interest",ndshape(onephase)
-    ## perform same analysis used on subset for raw data, to compare
-    #if full_cyc:
-    #    onephase_raw = s_raw['ch',1].C.smoosh(['ph2','full_cyc'], noaxis=True, dimname='repeat').reorder('t')
-    #if not full_cyc:
-    #    onephase_raw = s_raw['ch',1].C.smoosh(['ph2','average'], noaxis=True, dimname='repeat').reorder('t')
-    #print "dimensions of re-grouped raw data",ndshape(onephase_raw)
-    #colors = ['r','g','b','c']
-    ##for k in xrange(ndshape(onephase)['ph1']):
-    ##    for j in xrange(ndshape(onephase)['repeat']):
-    ##        fl.next('compare rising edge')
-    ##        # need to define time slice for rising edge
-    ##        fl.plot(abs(onephase['repeat',j]['t':(6.47267e-6,6.7e-6)]['ph1',k].C.reorder('t',first=True)),color=colors[k],alpha=0.3)
-    ##        fl.next('compare falling edge')
-    ##        # need to define time slice for falling edge
-    ##        fl.plot(abs(onephase['repeat',j]['t':(9e-6,9.24785e-6)]['ph1',k].C.reorder('t',first=True)),color=colors[k],alpha=0.3)
-    ##        fl.next('compare rising edge, raw')
-    ##        fl.plot((onephase_raw['repeat',j]['t':(6.47267e-6,6.7e-6)]['ph1',k].C.reorder('t',first=True)),color=colors[k],alpha=0.3)
-    ##        fl.next('compare falling edge, raw')
-    ##        fl.plot((onephase_raw['repeat',j]['t':(9e-6,9.24785e-6)]['ph1',k].C.reorder('t',first=True)),color=colors[k],alpha=0.3)
-    #print ndshape(onephase)
-    #}}}
+    confirm_triggers = False
+    if confirm_triggers:
+        #{{{ confirm that different phases trigger differently due to differing rising edges
+        fl.next('raw data')
+        if full_cyc:
+            fl.plot(s_raw['ch',1]['full_cyc',0]['ph2',0].reorder('t').real)
+        if not full_cyc:
+            fl.plot(s_raw['ch',1]['average',0]['ph2',0].reorder('t').real)
+        fl.show()
+        quit()
+        print ndshape(s)
+        print ndshape(s_raw)
+        #fl.next('phcyc')
+        # subset of interest in the data, undergoes processing to analytic signal
+        subset = s['ch',1]['t':(1e-6,100e-6)]
+        #fl.image(subset,black=True)
+        if full_cyc:
+            onephase = subset.C.smoosh(['ph2','full_cyc'], noaxis = True, dimname='repeat').reorder('t')
+        if not full_cyc:
+            onephase = subset.C.smoosh(['ph2','average'], noaxis = True, dimname='repeat').reorder('t')
+        print "dimensions of data subset of interest",ndshape(onephase)
+        # perform same analysis used on subset for raw data, to compare
+        if full_cyc:
+            onephase_raw = s_raw['ch',1].C.smoosh(['ph2','full_cyc'], noaxis=True, dimname='repeat').reorder('t')
+        if not full_cyc:
+            onephase_raw = s_raw['ch',1].C.smoosh(['ph2','average'], noaxis=True, dimname='repeat').reorder('t')
+        print "dimensions of re-grouped raw data",ndshape(onephase_raw)
+        colors = ['r','g','b','c']
+        for k in xrange(ndshape(onephase)['ph1']):
+            for j in xrange(ndshape(onephase)['repeat']):
+                fl.next('compare rising edge')
+                # need to define time slice for rising edge
+                fl.plot(abs(onephase['repeat',j]['t':(6.47267e-6,6.7e-6)]['ph1',k].C.reorder('t',first=True)),color=colors[k],alpha=0.3)
+                fl.next('compare falling edge')
+                # need to define time slice for falling edge
+                fl.plot(abs(onephase['repeat',j]['t':(9e-6,9.24785e-6)]['ph1',k].C.reorder('t',first=True)),color=colors[k],alpha=0.3)
+                fl.next('compare rising edge, raw')
+                fl.plot((onephase_raw['repeat',j]['t':(6.47267e-6,6.7e-6)]['ph1',k].C.reorder('t',first=True)),color=colors[k],alpha=0.3)
+                fl.next('compare falling edge, raw')
+                fl.plot((onephase_raw['repeat',j]['t':(9e-6,9.24785e-6)]['ph1',k].C.reorder('t',first=True)),color=colors[k],alpha=0.3)
+        print ndshape(onephase)
+        #}}}
     #{{{ applying time-shift (i.e., defining new, more convenient x-axis below)
     # note, pulse length used below is manually determined
     pulse_slice = s_raw['t':(6.47267e-6,9.24785e-6)]['ch',1].real
