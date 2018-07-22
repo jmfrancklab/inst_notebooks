@@ -79,11 +79,7 @@ for date,id_string,numchan in [
                 fl.plot((onephase_raw['repeat',j]['t':(9e-6,9.24785e-6)]['ph1',k].C.reorder('t',first=True)),color=colors[k],alpha=0.3)
         print ndshape(onephase)
         #}}}
-    #{{{ applying time-shift (i.e., defining new, more convenient x-axis below)
-    # note, pulse length used below is manually determined
-    fl.next('show s_raw')
-    fl.image(s_raw)
-    fl.next('and pulse slice')
+    #{{{ shifting the axis so that 0 is centered on the pulses
     # before we even slice, we need an idea of where the pulse is
     def average_time(d):
         pulse_slice = d['ch',1].real
@@ -92,17 +88,16 @@ for date,id_string,numchan in [
     avg_t = average_time(s_raw['t':(0,50e-6)]).data.mean()
     logger.info(strm('average time of pulses',avg_t))
     pulse_slice = s_raw['t':(avg_t-max_window/2,avg_t+max_window/2)]
-    fl.image(pulse_slice)
-    fl.show()
-    exit()
+    # now that I have a better slice, redo the avg_t
+    avg_t = average_time(pulse_slice)
     # this creates an nddata of the time averages for each 90 pulse
-    logger.debug(strm('dimensions of average_time:',ndshape(average_time)))
-    average_time.reorder('indirect',first=False)
+    logger.debug(strm('dimensions of average_time:',ndshape(avg_t)))
+    avg_t.reorder('indirect',first=False)
     # shift the time axis down by the average time, so that 90 is centered around t=0
-    s_raw.setaxis('t', lambda t: t-average_time.data.mean())
-    # NOTE: check that this centers 90 around 0 on time axis
-    #fl.next('time-shifted data')
-    #fl.image(s_raw)
+    s_raw.setaxis('t', lambda t: t-avg_t.data.mean())
+    fl.next('check that this centers 90 around 0 on time axis')
+    fl.image(s_raw)
+    fl.show();exit()
     #}}}
     logger.debug(strm('t axis of s_raw',s_raw.getaxis('t')))
     pulse_slice = s_raw['t':(-1.34e-6,1.34e-6)]['ch',1].real
