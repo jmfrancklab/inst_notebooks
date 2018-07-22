@@ -188,11 +188,14 @@ for date,id_string,numchan in [
     analytic *= expected_phase/measured_phase
     fl.next('analytic signal, ref ch')
     fl.image(analytic)
-    fl.show();exit()
     # switch to coherence domain
     fl.next('coherence domain, ref ch')
     coherence_domain = analytic.C.ift(['ph1','ph2'])
-    fl.image(coherence_domain['t':(-2e-6,75e-6)])
+    fl.image(coherence_domain)
+    fl.show();exit()
+    # I'm stopping here, because I don't understand why anything else should be
+    # necessary -- all the same time corrections, phase cycling, etc. should be
+    # applied to the signal channel
 
     # apply same analysis as on reference ch to test ch
     s_analytic = raw_corr['ch',0].C
