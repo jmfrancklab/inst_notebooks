@@ -30,8 +30,11 @@ for date,id_string,numchan in [
             directory = getDATADIR(exp_type='test_equip'))
     s.set_units('t','s')
     logger.debug(strm('dimensions are:',ndshape(s)))
+    is_nutation = False
     if 't_90' in s.dimlabels:
         s.rename('t_90','indirect')
+        is_nutation = True
+        logger.info('This is a nutation curve')
     if 'full_cyc' in s.dimlabels:
         s.rename('full_cyc','indirect')
     if 'average' in s.dimlabels:
@@ -110,36 +113,44 @@ for date,id_string,numchan in [
     s_raw *= exp(phase_factor)
     s_raw.ift('t')
     # }}}
-    fl.next('are the pulses aligned?')
-    fl.image(s_raw)
-    fl.show();exit()
-    # {{{ take analytic, and apply phase correction based on the time averages 
-    analytic = s_raw.C.ft('t',shift=True)['t':(0,None)]
+    # {{{ now that my rms noise average will be more balanced,
+    #     redetermine the center here, and reshift the pulses next
+    avg_t = average_time(s_raw['t':(-max_window/2,max_window/2)])
+    s_raw.setaxis('t', lambda t: t-avg_t.data.mean())
+    # }}}
+    # {{{ since this is the last step, take the analytic signal
+    #     and then apply the relative shifts again
+    analytic = s_raw.C.ft('t')['t':(0,None)]
     analytic.setaxis('t',lambda f: f-carrier_f)
     phase_factor = analytic.fromaxis('t',lambda x: 1j*2*pi*x)
     phase_factor *= avg_t
+    #     this time, optionally include the Cavanagh shifts
+    if is_nutation:
+        logger.info(strm('the nutation axis is',analytic.getaxis('indirect')))
+        phase_factor *= 2*analytic.fromaxis('indirect')/pi
     analytic *= exp(phase_factor)
     analytic.ift('t')
     # }}}
-    # verify that we have phased the measured signal
-    #fl.next('analytic signal, phased, time domain (ref ch)')
-    #fl.image(analytic)
+    fl.next('are the pulses aligned?')
+    fl.image(analytic)
+    fl.show();exit()
+    if confirm_triggers:
+        # verify that we have phased the measured signal
+        fl.next('analytic signal, phased, time domain (ref ch)')
+        fl.image(analytic)
 
-    # beginning phase correction now
-    #{{{ plotting time domain uncorrected pulse edges
-    # NOTE: this may be the same as the raw signal plotted in beginning of program
-    #if full_cyc:
-    #    onephase_raw_shift = s_raw['ch',1].C.smoosh(['ph2','full_cyc'],noaxis=True,dimname='repeat').reorder('t')
-    #if not full_cyc:
-    #    onephase_raw_shift = s_raw['ch',1].C.smoosh(['ph2','indirect'],noaxis=True,dimname='repeat').reorder('t')
-    #onephase_raw_shift.name('Amplitude').set_units('V')
-    #for k in xrange(ndshape(onephase_raw)['ph1']):
-    #    for j in xrange(ndshape(onephase_raw)['repeat']):
-    #        fl.next('compare rising edge: uncorrected')
-    #        fl.plot((onephase_raw_shift['repeat',j]['ph1',k]['t':(-1.4e-6,-1.1e-6)].C.reorder('t',first=True)+2*k),color=colors[k],alpha=0.3)
-    #        fl.next('compare falling edge: uncorrected')
-    #        fl.plot((onephase_raw_shift['repeat',j]['ph1',k]['t':(1.0e-6,1.4e-6)].C.reorder('t',first=True)+2*k),color=colors[k],alpha=0.3)
-    #}}}
+        # beginning phase correction now
+        #{{{ plotting time domain uncorrected pulse edges
+        # NOTE: this may be the same as the raw signal plotted in beginning of program
+        onephase_raw_shift = s_raw['ch',1].C.smoosh(['ph2','indirect'],noaxis=True,dimname='repeat').reorder('t')
+        onephase_raw_shift.name('Amplitude').set_units('V')
+        for k in xrange(ndshape(onephase_raw)['ph1']):
+            for j in xrange(ndshape(onephase_raw)['repeat']):
+                fl.next('compare rising edge: uncorrected')
+                fl.plot((onephase_raw_shift['repeat',j]['ph1',k]['t':(-1.4e-6,-1.1e-6)].C.reorder('t',first=True)+2*k),color=colors[k],alpha=0.3)
+                fl.next('compare falling edge: uncorrected')
+                fl.plot((onephase_raw_shift['repeat',j]['ph1',k]['t':(1.0e-6,1.4e-6)].C.reorder('t',first=True)+2*k),color=colors[k],alpha=0.3)
+        #}}}
     raw_corr = s_raw.C.ft('t',shift=True)
     # sign on 1j matters here, difference between proper cycling or off cycling
     phase_factor = raw_corr.fromaxis('t',lambda x: 1j*2*pi*x)
