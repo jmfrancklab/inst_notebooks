@@ -205,37 +205,10 @@ for date,id_string,numchan in [
     fl.image(coherence_domain['ch',1])
     signal = analytic['ch',0].C
     signal.ift(['ph1','ph2'])
-    signal.mean('indirect',return_error=False)
     fl.next('coherence domain, sig ch')
     fl.image(signal)
     fl.show();quit()
-    # I'm stopping here, because I don't understand why anything else should be
-    # necessary -- all the same time corrections, phase cycling, etc. should be
-    # applied to the signal channel
-
-    # apply same analysis as on reference ch to test ch
-    s_analytic = raw_corr['ch',0].C
-    print "ph1 axis:",s_analytic.getaxis('ph2')
-    print "ph2 axis:",s_analytic.getaxis('ph1')
-    # had difficult with setting axis
-    s_analytic.setaxis('ph1', r_[0:4]*0.25)
-    s_analytic.setaxis('ph2', r_[0:4:2]*0.25)
-    s_analytic.setaxis('indirect', lambda x: x * 0.25)
-    print "new ph1 axis:",s_analytic.getaxis('ph1')
-    print "new ph2 axis:",s_analytic.getaxis('ph2')
-    s_analytic.ft('t')
-    s_analytic = s_analytic['t':(13e6,16e6)]
-    s_analytic.setaxis('t', lambda f: f-carrier_f)
-    s_analytic.ift('t')
-    s_analytic.reorder(['indirect','t'],first=False)
-    s_analytic *= expected_phase/measured_phase
-    s_analytic.ift(['ph1','ph2'])
-    print ndshape(s_analytic)
-    fl.next('coherence domain, test ch')
-    fl.image(s_analytic)
-    fl.show();exit()
-    print "before average"
-    print ndshape(s_analytic)
+    signal.mean('indirect',return_error=False)
     #{{{ generating input-referred voltage
     ##gain_factor_dcasc12 = sqrt(114008.55204672)   #gain in units of V
     ##s_analytic /= gain_factor_dcasc12
