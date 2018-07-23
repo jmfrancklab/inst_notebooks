@@ -139,8 +139,8 @@ def spin_echo(num_cycles, freq = 14.4289e6, p90 = 2.551e-6, d1 = 63.794e-6, T1 =
                 num_ph2_steps = 2
                 start_ph = time.time()
                 timer_index = 0
+                raw_input('Update field, then continue')
                 for x in xrange(num_cycles):
-                    raw_input('Update field, then continue')
                     for ph2 in xrange(0,4,num_ph2_steps):
                         for ph1 in xrange(num_ph1_steps):
                             y_ph = y.copy()
@@ -226,7 +226,7 @@ def nutation(freq = 14.4289e6, T1 = 200e-3):
 
     '''
     #}}}
-    t_90_range  = linspace(1.5e-6,6.0e-6,3) # range of 90 times
+    t_90_range  = linspace(1.13e-6,6.13e-6,20) # range of 90 times
     d_interseq = 5*T1       #[sec] time between sequence trigger 
     freq_carrier = freq     #[Hz] rf pulse frequency
     points_total = 4096     #[pts] total points, property of AFG
@@ -322,12 +322,12 @@ def nutation(freq = 14.4289e6, T1 = 200e-3):
                             g.acquire_mode('sample')
                             if (ph1 == 0 and ph2 == 0 and i == 0):
                                 t_axis = ch1_wf.getaxis('t')
-                                data = ndshape([3,4,2,len(t_axis),2],['t_90','ph1','ph2','t','ch']).alloc(dtype=float64)
+                                data = ndshape([len(t_90_range),4,2,len(t_axis),2],['t_90','ph1','ph2','t','ch']).alloc(dtype=float64)
                                 data.setaxis('t',t_axis).set_units('t','s')
                                 data.setaxis('ch',r_[1,2])
                                 data.setaxis('ph1',r_[0:4])
                                 data.setaxis('ph2',r_[0,2])
-                                data.setaxis('t_90',empty(3))
+                                data.setaxis('t_90',empty(len(t_90_range)))
                             data['t_90',i]['ph1':ph1]['ph2':ph2]['ch',0] = ch1_wf
                             data['t_90',i]['ph1':ph1]['ph2':ph2]['ch',1] = ch2_wf
                             data.getaxis('t_90')[i] = t_90
@@ -339,7 +339,7 @@ def nutation(freq = 14.4289e6, T1 = 200e-3):
 #}}}
 
 date = '180723'
-id_string = 'nutation_control'
-#num_cycles = 13 
+id_string = 'se_nutation'
+#num_cycles = 5 
 #t1,t2 = spin_echo(num_cycles = num_cycles)
 nutation()
