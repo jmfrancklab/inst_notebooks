@@ -6,7 +6,7 @@ import matplotlib.style
 import matplotlib as mpl
 import argparse
 
-mpl.rcParams['image.cmap'] = 'BrBG'
+mpl.rcParams['image.cmap'] = 'jet'
 fl = figlist_var()
 init_logging(level='debug')
 
@@ -31,12 +31,13 @@ for date,id_string,numchan in [
         #('180712','SE_exp_2',2)
         #('180712','SE_exp_3',2)
         #('180713','SE_exp',2)
-        #('180714','SE_exp',2), # 25 cycle measurement, B0 = 3395.75 G
+        ('180714','SE_exp',2), # 25 cycle measurement, B0 = 3395.75 G
         #('180714','SE_exp_offres',2) # 25 cycle measurement, B0 = 3585.85 G 
         #('180716','SE_test',2) # 1 cycle measurement with 8x GDS avg, B0 = 3395.75 G
         #('180716','SE_test_2',2) # 1 cycle measurement with 4x GDS avg, B0 = 3395.75 G
-        #('180720','nutation_control',2) # 1 cycle measurement with 4x GDS avg, B0 = 3395.75 G
-        ('180723','nutation_control',2) # 1 cycle measurement with 4x GDS avg, B0 = 3395.75 G
+        #('180720','nutation_control',2)
+        #('180723','nutation_control',2)
+        #('180723','check_field',2)
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
@@ -54,7 +55,7 @@ for date,id_string,numchan in [
         s.rename('full_cyc','indirect')
     if 'average' in s.dimlabels:
         s.rename('average','indirect')
-    logger.info("*** Current version based on 'fix_phase_cycling_180712.py' ***")
+    logger.info("*** Code for phase cycling based on 'fix_phase_cycling_180712.py' ***")
     logger.info("WARNING: Need to define time slices for pulses on a by-dataset basis ***")
 
     s_raw = s.C.reorder('t',first=False)
@@ -64,13 +65,11 @@ for date,id_string,numchan in [
     s.setaxis('t',lambda f: f-carrier_f)
     s.ift('t')
 
-    confirm_triggers = False
+    confirm_triggers = False 
     if confirm_triggers:
         #{{{ confirm that different phases trigger differently due to differing rising edges
         fl.next('raw data')
         fl.plot(s_raw['ch',1]['indirect',0]['ph2',0].reorder('t').real)
-        fl.show()
-        quit()
         print ndshape(s)
         print ndshape(s_raw)
         #fl.next('phcyc')
@@ -103,11 +102,12 @@ for date,id_string,numchan in [
         pulse_slice = d['ch',1].real
         normalization = (pulse_slice**2).integrate('t')
         return (pulse_slice**2 * pulse_slice.fromaxis('t')).integrate('t')/normalization
-    avg_t = average_time(s_raw['t':(0,50e-6)]).data.mean()
+    avg_t = average_time(s_raw['t':(6.5e-6,9.3e-6)]).data.mean()
     logger.info(strm('average time of pulses',avg_t))
     pulse_slice = s_raw['t':(avg_t-max_window/2,avg_t+max_window/2)]
     # now that I have a better slice, redo the avg_t
     avg_t = average_time(pulse_slice)
+    print avg_t
     # this creates an nddata of the time averages for each 90 pulse
     logger.debug(strm('dimensions of average_time:',ndshape(avg_t)))
     # shift the time axis down by the average time, so that 90 is centered around t=0
@@ -135,7 +135,7 @@ for date,id_string,numchan in [
     # }}}
     # {{{ since this is the last step, take the analytic signal
     #     and then apply the relative shifts again
-    analytic = s_raw.C.ft('t')['t':(0,None)]
+    analytic = s_raw.C.ft('t')['t':(13e6,16e6)]
     analytic.setaxis('t',lambda f: f-carrier_f)
     phase_factor = analytic.fromaxis('t',lambda x: 1j*2*pi*x)
     phase_factor *= avg_t
@@ -165,7 +165,7 @@ for date,id_string,numchan in [
     if confirm_triggers:
         # if we want to display the correction to the raw data, we need to
         # reapply the same shift.  This is not necessary unless we're running with "confirm_triggers"
-        raw_corr = s_raw.C.ft('t',shift=True)
+        raw_corr = s_raw.C.ft('t')
         # sign on 1j matters here, difference between proper cycling or off cycling
         phase_factor = raw_corr.fromaxis('t',lambda x: 1j*2*pi*x)
         phase_factor *= avg_t
@@ -174,10 +174,7 @@ for date,id_string,numchan in [
         # here zero filling or else signal amplitude will vary due to changes made in the f dimension 
         raw_corr.ift('t',pad=30*1024)
         #{{{ plotting time domain corrected pulse edges
-        if full_cyc:
-            onephase_rawc = raw_corr['ch',1].C.smoosh(['ph2','full_cyc'],noaxis=True, dimname='repeat').reorder('t')
-        if not full_cyc:
-            onephase_rawc = raw_corr['ch',1].C.smoosh(['ph2','indirect'],noaxis=True, dimname='repeat').reorder('t')
+        onephase_rawc = raw_corr['ch',1].C.smoosh(['ph2','indirect'],noaxis=True, dimname='repeat').reorder('t')
         onephase_rawc.name('Amplitude').set_units('V')
         for k in xrange(ndshape(onephase_rawc)['ph1']):
             for j in xrange(ndshape(onephase_rawc)['repeat']):
@@ -197,13 +194,21 @@ for date,id_string,numchan in [
     expected_phase = nddata(exp(r_[0,1,2,3]*pi/2*1j),[4],['ph1'])
     # phase correcting analytic signal by difference between expected and measured phases
     analytic *= expected_phase/measured_phase
+    print ndshape(analytic)
+    analytic.reorder(['indirect','t'],first=False)
+    print ndshape(analytic)
     fl.next('analytic signal, ref ch')
     fl.image(analytic)
     # switch to coherence domain
     fl.next('coherence domain, ref ch')
     coherence_domain = analytic.C.ift(['ph1','ph2'])
-    fl.image(coherence_domain)
-    fl.show();exit()
+    fl.image(coherence_domain['ch',1])
+    signal = analytic['ch',0].C
+    signal.ift(['ph1','ph2'])
+    signal.mean('indirect',return_error=False)
+    fl.next('coherence domain, sig ch')
+    fl.image(signal)
+    fl.show();quit()
     # I'm stopping here, because I don't understand why anything else should be
     # necessary -- all the same time corrections, phase cycling, etc. should be
     # applied to the signal channel
@@ -222,15 +227,13 @@ for date,id_string,numchan in [
     s_analytic = s_analytic['t':(13e6,16e6)]
     s_analytic.setaxis('t', lambda f: f-carrier_f)
     s_analytic.ift('t')
-    if full_cyc:
-        s_analytic.reorder(['full_cyc','t'],first=False)
-    if not full_cyc:
-        s_analytic.reorder(['indirect','t'],first=False)
+    s_analytic.reorder(['indirect','t'],first=False)
     s_analytic *= expected_phase/measured_phase
     s_analytic.ift(['ph1','ph2'])
     print ndshape(s_analytic)
     fl.next('coherence domain, test ch')
     fl.image(s_analytic)
+    fl.show();exit()
     print "before average"
     print ndshape(s_analytic)
     #{{{ generating input-referred voltage
