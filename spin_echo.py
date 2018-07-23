@@ -231,46 +231,65 @@ def nutation(freq = 14.4289e6, T1 = 200e-3):
     freq_carrier = freq     #[Hz] rf pulse frequency
     points_total = 4096     #[pts] total points, property of AFG
     rate = freq_carrier*4   #[pts/sec] AFG requires for arb waveform
-    time_spacing = 1/rate   #[sec/pt] time between two points
-    time_total = time_spacing * points_total #[sec]
-    # calculate constant delay from max 90 time
-    t_90 = t_90_range[-1]   #[sec] max 90 time 
-    t_180 = 2*t_90          #[sec] pulse length of 180
-    points_90 = t_90/time_spacing   #[pts] points in 90
-    points_180 = t_180/time_spacing #[pts] points in 180
-    points_d1 = 4096 - points_90 - points_180   #[pts] points in delay
-    t_d1 = points_d1*time_spacing               #[sec] time of delay
-    print t_d1
-    time_sequence = t_90 + t_d1 + t_180
-    points_sequence = points_90 + points_d1 + points_180
+    time_spacing = 1/rate   #[sec] time between points  
+    time_total = time_spacing * points_total #[sec] total time of sequence, allowed by AFG
+    #{{{ Calculating maximum interpulse delay, thereby setting 'tau'
+        # 'interpulse' signifies from end of 90 to start of 180
+        # 'tau' signifies the time interval [2t_90/pi , interpulse+t_90]
+        # formally, [2t_90/pi , interpulse+t_180/2]
+        # tau is defined in Cavanagh, Chp 4
+    t_90 = t_90_range[-1]
+    t_180 = 2*t_90          
+    t_tau = time_total - t_90 - t_180    # this must be held constant
+    t_correction = (2*t_90/pi) + (t_180/2)
+    t_interpulse = t_tau - t_correction    # decrease this until tau = constant
+    print "DETERMINING TAU..."
+    print t_tau
+    print t_correction
+    print t_interpulse
+    #}}}
+    points_90 = t_90/time_spacing
+    points_180 = t_180/time_spacing 
+    points_tau = t_tau/time_spacing
+    points_correction = t_correction/time_spacing
+    points_interpulse = t_interpulse/time_spacing
+    print points_tau
+    print points_correction
+    print points_interpulse
+    time_sequence = t_90 + t_interpulse + t_180
+    points_sequence = points_90 + points_interpulse + points_180
+    print time_sequence
     print points_sequence # needs to be less than 4097
+    assert (points_sequence < 4097)
     for i,t_90 in enumerate(t_90_range):
         print "*** *** ENTERING INDEX %d *** ***"%i
         t_90 = t_90
-        t_180 = 2*t_90          
-        t_total = t_90 + t_d1 + t_180
+        t_180 = 2*t_90
+        t_correction = ((2/pi)*t_90) + 0.5*t_180
+        t_interpulse = t_tau - t_correction
+        t_total = t_90 + t_interpulse + t_180
         print "LENGTH OF 90 PULSE:",t_90
         print "LENGTH OF 180 PULSE:",t_180
-        print "LEGNTH OF DELAY:",t_d1
+        print "LEGNTH OF DELAY:",t_interpulse
+        print "LENGTH OF TAU:",t_tau
         print "LENGTH OF PULSE SEQUENCE:",t_total
-        points_90 = t_90/time_spacing #[pts] points in 90
-        points_d1 = t_d1/time_spacing
-        points_180 = t_180/time_spacing #[pts] points in 180
-        points_seq = points_90 + points_d1 + points_180
+        points_90 = t_90/time_spacing
+        points_interpulse = t_interpulse/time_spacing
+        points_180 = t_180/time_spacing
+        points_seq = points_90 + points_interpulse + points_180
         print "POINTS IN 90 PULSE",points_90
         print "POINTS IN 180 PULSE",points_180
-        print "POINTS IN DELAY",points_d1
+        print "POINTS IN DELAY",points_interpulse
+        print "POINTS IN TAU",points_interpulse+t_correction/time_spacing
         print "POINTS IN SEQUENCE:",points_seq
         print "*** *** GENERATING ARB WAVEFORM *** ***"
-       #generating the arbitrary waveformM
+       #generating the arbitrary waveform
         t = r_[0 : int(points_seq)]
         freq_sampling = 0.25
         y = exp(1j*2*pi*t[1 : -1]*freq_sampling)
-        y[int(points_90) : int(points_90+points_d1)] = 0
-
+        y[int(points_90) : int(points_90+points_interpulse)] = 0
         y[0] = 0
         y[-1] = 0
-        
         with AFG() as a:
             a.reset()
             ch_list = [0]
@@ -287,7 +306,7 @@ def nutation(freq = 14.4289e6, T1 = 200e-3):
                     for ph1 in xrange(num_ph1_steps):
                         y_ph = y.copy()
                         y_ph[1:int(points_90)] *= exp(1j*ph1*pi/2)
-                        y_ph[int(points_90+points_d1):-1] *= exp(1j*ph2*pi/2)
+                        y_ph[int(points_90+points_interpulse):-1] *= exp(1j*ph2*pi/2)
                         a[this_ch].ampl = 20e-3
                         a[this_ch].digital_ndarray(y_ph.real, rate=rate)
                         a[this_ch].burst = True
@@ -319,7 +338,7 @@ def nutation(freq = 14.4289e6, T1 = 200e-3):
     return
 #}}}
 
-date = '180720'
+date = '180723'
 id_string = 'nutation_control'
 #num_cycles = 13 
 #t1,t2 = spin_echo(num_cycles = num_cycles)
