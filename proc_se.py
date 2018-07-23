@@ -5,6 +5,7 @@ import sys
 import matplotlib.style
 import matplotlib as mpl
 import argparse
+import logging
 
 mpl.rcParams['image.cmap'] = 'jet'
 fl = figlist_var()
@@ -203,33 +204,28 @@ for date,id_string,numchan in [
     fl.next('coherence domain, ref ch')
     coherence_domain = analytic.C.ift(['ph1','ph2'])
     fl.image(coherence_domain['ch',1])
-    signal = analytic['ch',0].C
-    signal.ift(['ph1','ph2'])
+    s_analytic = analytic['ch',0].C
+    s_analytic.ift(['ph1','ph2'])
     fl.next('coherence domain, sig ch')
-    fl.image(signal)
+    fl.image(s_analytic)
+    s_analytic.mean('indirect',return_error=False)
+    s_analytic.name('Amplitude').set_units('V')
+    for ph2 in xrange(ndshape(s_analytic)['ph2']):
+        for ph1 in xrange(ndshape(s_analytic)['ph1']):
+            fl.next(r'$\Delta_{c_{1}}$ = %d, $\Delta_{c_{2}}$ = %d'%(ph1,ph2))
+            fl.plot(s_analytic['ph1',ph1]['ph2',ph2],alpha=0.4) # in order to see units
+            xlim(100,None) #units of 1e-6 seconds
+    signal = s_analytic['ph1',1]['ph2',0]
+    fl.next(r'$\Delta_{c_{1}}$ = + %d, $\Delta_{c_{2}}$ = 0,$\pm 2$'%(ph1))
+    fl.plot(signal,alpha=0.4) # in order to see units
+    #fl.plot(signal.real,alpha=0.4,label='real')
+    #fl.plot(signal.imag,alpha=0.4,label='imag')
+    xlim(100,None) #units of 1e-6 seconds
     fl.show();quit()
-    signal.mean('indirect',return_error=False)
     #{{{ generating input-referred voltage
     ##gain_factor_dcasc12 = sqrt(114008.55204672)   #gain in units of V
     ##s_analytic /= gain_factor_dcasc12
     ##if full_cyc:
     ##    s_analytic.mean('full_cyc',return_error=False)
-    if not full_cyc:
-        s_analytic.mean('indirect',return_error=False)
     #s_analytic /= sqrt(8)
     #}}}
-    #{{{ plotting time-domain coherent signal
-    print "after average"
-    print ndshape(s_analytic)
-    s_analytic.name('Amplitude').set_units('V')
-    for ph2 in xrange(ndshape(s_analytic)['ph2']):
-        for ph1 in xrange(ndshape(s_analytic)['ph1']):
-            fl.next(r'$\Delta_{c_{1}}$ = + %d, $\Delta_{c_{2}}$ = + %d'%(ph1,2*ph2))
-            fl.plot(s_analytic['ph1',ph1]['ph2',ph2],alpha=0.4) # in order to see units
-            #fl.plot(s_analytic['ph1',ph1]['ph2',ph2].real,alpha=0.4,label='real')
-            #fl.plot(s_analytic['ph1',ph1]['ph2',ph2].imag,alpha=0.4,label='imag')
-            xlim(100,None) #units of 1e-6 seconds
-    #}}}
-fl.show()
-quit()
-
