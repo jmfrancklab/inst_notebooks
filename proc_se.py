@@ -41,7 +41,8 @@ for date,id_string,numchan,indirect_range in [
         #('180723','se_nutation',2,linspace(1.13e-6,6.13e-6,20))
         #('180723','se_nutation_2',2,linspace(1.5e-6,15e-6,40))
         #('180724','check_field',2,None),
-        ('180724','check_field_2',2,None)
+        #('180724','check_field_2',2,None)
+        ('180724','se_nutation',2,linspace(3.25e-6,15.25e-6,10))
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
