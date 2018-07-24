@@ -204,7 +204,7 @@ def spin_echo(num_cycles, freq = 14.4289e6, p90 = 2.551e-6, d1 = 63.794e-6, T1 =
     return start_ph,end_ph 
 #}}}
 #{{{ nutation function increments t90 over specified range in spin echo 
-def nutation(freq = 14.4289e6, T1 = 200e-3):
+def nutation(t_90_range, freq = 14.4289e6, T1 = 200e-3):
 #{{{ documentation
     r'''essentially a modification to the spin_echo(), but with enough changes to warrant
     separate function for now. Sweeps through a range of 90 times and generates a spin echo 
@@ -226,7 +226,7 @@ def nutation(freq = 14.4289e6, T1 = 200e-3):
 
     '''
     #}}}
-    t_90_range  = linspace(1.13e-6,6.13e-6,20) # range of 90 times
+    t_90_range  = t_90_range # range of 90 times
     d_interseq = 5*T1       #[sec] time between sequence trigger 
     freq_carrier = freq     #[Hz] rf pulse frequency
     points_total = 4096     #[pts] total points, property of AFG
@@ -338,8 +338,9 @@ def nutation(freq = 14.4289e6, T1 = 200e-3):
     return
 #}}}
 
-date = '180723'
-id_string = 'se_nutation'
-#num_cycles = 5 
-#t1,t2 = spin_echo(num_cycles = num_cycles)
-nutation()
+date = '180724'
+id_string = 'adjusted_field'
+num_cycles = 5 
+t1,t2 = spin_echo(num_cycles = num_cycles)
+#t_90_range = linspace(3.25e-6,15.25e-6,4)
+#nutation()
