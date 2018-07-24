@@ -339,7 +339,7 @@ def nutation(t_90_range, freq = 14.4289e6, T1 = 200e-3):
 #}}}
 
 date = '180724'
-id_string = 'adjusted_field'
+id_string = 'check_field_2'
 num_cycles = 5 
 t1,t2 = spin_echo(num_cycles = num_cycles)
 #t_90_range = linspace(3.25e-6,15.25e-6,4)

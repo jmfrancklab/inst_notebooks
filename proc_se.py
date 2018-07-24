@@ -40,7 +40,8 @@ for date,id_string,numchan,indirect_range in [
         #('180723','nutation_control',2)
         #('180723','se_nutation',2,linspace(1.13e-6,6.13e-6,20))
         #('180723','se_nutation_2',2,linspace(1.5e-6,15e-6,40))
-        ('180724','check_field',2,None)
+        #('180724','check_field',2,None),
+        ('180724','check_field_2',2,None)
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
@@ -209,7 +210,7 @@ for date,id_string,numchan,indirect_range in [
     fl.image(coherence_domain['ch',1])
     s_analytic = analytic['ch',0].C
     s_analytic.ift(['ph1','ph2'])
-    fl.next('coherence domain, sig ch')
+    fl.next('coherence(t), sig ch %s'%id_string)
     fl.image(s_analytic)
     print ndshape(s_analytic)
     s_analytic.ft('t')
@@ -229,23 +230,25 @@ for date,id_string,numchan,indirect_range in [
     #for x,t_90 in enumerate(indirect_range):
     #    fl.next('plotting')
     #    fl.plot(signal['indirect',x],label='%f'%t_90)
-    fl.show();quit()
-    s_analytic.mean('indirect',return_error=False)
-    s_analytic.name('Amplitude').set_units('V')
-    for ph2 in xrange(ndshape(s_analytic)['ph2']):
-        for ph1 in xrange(ndshape(s_analytic)['ph1']):
-            fl.next(r'$\Delta_{c_{1}}$ = %d, $\Delta_{c_{2}}$ = %d'%(ph1,ph2))
-            fl.plot(s_analytic['ph1',ph1]['ph2',ph2],alpha=0.4) # in order to see units
-            xlim(100,None) #units of 1e-6 seconds
-    fl.next(r'$\Delta_{c_{1}}$ = + %d, $\Delta_{c_{2}}$ = 0,$\pm 2$'%(ph1))
-    fl.plot(signal,alpha=0.4) # in order to see units
-    #fl.plot(signal.real,alpha=0.4,label='real')
-    #fl.plot(signal.imag,alpha=0.4,label='imag')
-    xlim(100,None) #units of 1e-6 seconds
+fl.show()
+    #{{{ for plotting time domain signal spectrum 
+    #s_analytic.mean('indirect',return_error=False)
+    #s_analytic.name('Amplitude').set_units('V')
+    #for ph2 in xrange(ndshape(s_analytic)['ph2']):
+    #    for ph1 in xrange(ndshape(s_analytic)['ph1']):
+    #        fl.next(r'$\Delta_{c_{1}}$ = %d, $\Delta_{c_{2}}$ = %d'%(ph1,ph2))
+    #        fl.plot(s_analytic['ph1',ph1]['ph2',ph2],alpha=0.4) # in order to see units
+    #        xlim(100,None) #units of 1e-6 seconds
+    #fl.next(r'$\Delta_{c_{1}}$ = + %d, $\Delta_{c_{2}}$ = 0,$\pm 2$'%(ph1))
+    #fl.plot(signal,alpha=0.4) # in order to see units
+    ##fl.plot(signal.real,alpha=0.4,label='real')
+    ##fl.plot(signal.imag,alpha=0.4,label='imag')
+    #xlim(100,None) #units of 1e-6 seconds
     #{{{ generating input-referred voltage
     ##gain_factor_dcasc12 = sqrt(114008.55204672)   #gain in units of V
     ##s_analytic /= gain_factor_dcasc12
     ##if full_cyc:
     ##    s_analytic.mean('full_cyc',return_error=False)
     #s_analytic /= sqrt(8)
+    #}}}
     #}}}
