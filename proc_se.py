@@ -5,11 +5,11 @@ import sys
 import matplotlib.style
 import matplotlib as mpl
 import argparse
-import logging
+#import logging
 
 mpl.rcParams['image.cmap'] = 'jet'
 fl = figlist_var()
-init_logging(level='debug')
+#init_logging(level='debug')
 
 parser = argparse.ArgumentParser(description='basic command-line options')
 parser.add_argument('--window', '-w',
@@ -27,18 +27,20 @@ args = parser.parse_args(sys.argv[1:])
 globals().update(vars(args)) # this directly inserts the info above into
 #                              namespace of global variables
 
-for date,id_string,numchan in [
+for date,id_string,numchan,indirect_range in [
         #('180712','SE_exp',2)
         #('180712','SE_exp_2',2)
         #('180712','SE_exp_3',2)
         #('180713','SE_exp',2)
-        ('180714','SE_exp',2), # 25 cycle measurement, B0 = 3395.75 G
+        #('180714','SE_exp',2), # 25 cycle measurement, B0 = 3395.75 G
         #('180714','SE_exp_offres',2) # 25 cycle measurement, B0 = 3585.85 G 
         #('180716','SE_test',2) # 1 cycle measurement with 8x GDS avg, B0 = 3395.75 G
         #('180716','SE_test_2',2) # 1 cycle measurement with 4x GDS avg, B0 = 3395.75 G
         #('180720','nutation_control',2)
         #('180723','nutation_control',2)
-        #('180723','check_field',2)
+        #('180723','se_nutation',2,linspace(1.13e-6,6.13e-6,20))
+        #('180723','se_nutation_2',2,linspace(1.5e-6,15e-6,40))
+        ('180724','check_field',2,None)
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
@@ -138,6 +140,7 @@ for date,id_string,numchan in [
     #     and then apply the relative shifts again
     analytic = s_raw.C.ft('t')['t':(13e6,16e6)]
     analytic.setaxis('t',lambda f: f-carrier_f)
+    analytic.set_units('indirect','s')
     phase_factor = analytic.fromaxis('t',lambda x: 1j*2*pi*x)
     phase_factor *= avg_t
     #     this time, optionally include the Cavanagh shifts
@@ -208,6 +211,25 @@ for date,id_string,numchan in [
     s_analytic.ift(['ph1','ph2'])
     fl.next('coherence domain, sig ch')
     fl.image(s_analytic)
+    print ndshape(s_analytic)
+    s_analytic.ft('t')
+    fl.next('coherence(f), sig ch')
+    fl.image(s_analytic)
+    s_analytic.ift('t')
+    #s_analytic = s_analytic['t':(110e-6,None)]
+    fl.next('image, signal coh path, t domain')
+    fl.image(s_analytic['ph1',1]['ph2',0])
+    s_analytic.ft('t')
+    fl.next('image, signal coh path, f domain')
+    fl.image(s_analytic['ph1',1]['ph2',0])
+    signal = s_analytic['ph1',1]['ph2',0]
+    fl.next('Checking offset')
+    for x in xrange(ndshape(signal)['indirect']):
+        fl.plot(signal['indirect',x],alpha=0.34,label='cycle no. %d'%x)
+    #for x,t_90 in enumerate(indirect_range):
+    #    fl.next('plotting')
+    #    fl.plot(signal['indirect',x],label='%f'%t_90)
+    fl.show();quit()
     s_analytic.mean('indirect',return_error=False)
     s_analytic.name('Amplitude').set_units('V')
     for ph2 in xrange(ndshape(s_analytic)['ph2']):
@@ -215,13 +237,11 @@ for date,id_string,numchan in [
             fl.next(r'$\Delta_{c_{1}}$ = %d, $\Delta_{c_{2}}$ = %d'%(ph1,ph2))
             fl.plot(s_analytic['ph1',ph1]['ph2',ph2],alpha=0.4) # in order to see units
             xlim(100,None) #units of 1e-6 seconds
-    signal = s_analytic['ph1',1]['ph2',0]
     fl.next(r'$\Delta_{c_{1}}$ = + %d, $\Delta_{c_{2}}$ = 0,$\pm 2$'%(ph1))
     fl.plot(signal,alpha=0.4) # in order to see units
     #fl.plot(signal.real,alpha=0.4,label='real')
     #fl.plot(signal.imag,alpha=0.4,label='imag')
     xlim(100,None) #units of 1e-6 seconds
-    fl.show();quit()
     #{{{ generating input-referred voltage
     ##gain_factor_dcasc12 = sqrt(114008.55204672)   #gain in units of V
     ##s_analytic /= gain_factor_dcasc12
