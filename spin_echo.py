@@ -396,8 +396,8 @@ def nutation(t_90_range, spin_echo = False, freq = 14.4289e6, T1 = 200e-3):
 #}}}
 
 date = '180724'
-id_string = '90_nutation'
+id_string = '90_nutation_focused'
 #num_cycles = 5 
 #t1,t2 = spin_echo(num_cycles = num_cycles)
-t_90_range = linspace(1e-6,50e-6,25)
+t_90_range = linspace(6e-6,9e-6,30)
 nutation(t_90_range, spin_echo=False)
