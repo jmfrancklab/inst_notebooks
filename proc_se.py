@@ -44,7 +44,9 @@ for date,id_string,numchan,indirect_range in [
         #('180724','check_field_2',2,None)
         #('180724','se_nutation',2,linspace(3.25e-6,15.25e-6,10))
         #('180724','90_nutation_control',2,linspace(1e-6,50e-6,5))
-        ('180724','90_nutation',2,linspace(1e-6,50e-6,25)) # use -w 60e-6
+        #('180724','90_nutation',2,linspace(1e-6,50e-6,25)) # use -w 60e-6
+        #('180725','90_nutation',2,linspace(1e-6,30e-6,30)) # use -w 60e-6
+        ('180725','90_nutation_focused',2,linspace(6e-6,9e-6,30))
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
@@ -233,7 +235,7 @@ for date,id_string,numchan,indirect_range in [
     if not single_90:
         signal = s_analytic['ph1',1]['ph2',0]
     if single_90:
-        signal = abs(s_analytic['ph1',-1])
+        signal = (s_analytic['ph1',-1])
     fl.next('image, abs(signal), t domain')
     fl.image(signal['t':(35e-6,None)])
     cropped_signal = signal.C.cropped_log()
