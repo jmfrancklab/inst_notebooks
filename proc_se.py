@@ -233,11 +233,11 @@ for date,id_string,numchan,indirect_range in [
     if not single_90:
         signal = s_analytic['ph1',1]['ph2',0]
     if single_90:
-        signal = s_analytic['ph1',-1]
-    fl.next('image, signal, t domain')
+        signal = abs(s_analytic['ph1',-1])
+    fl.next('image, abs(signal), t domain')
     fl.image(signal['t':(35e-6,None)])
     cropped_signal = signal.C.cropped_log()
-    fl.next('image, signal, t domain, cropped')
+    fl.next('image, abs(signal), t domain, cropped')
     fl.image(cropped_signal['t':(35e-6,None)])
     fl.show();quit()
     #fl.next('Checking offset')
