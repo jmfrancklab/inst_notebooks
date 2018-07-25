@@ -44,7 +44,7 @@ for date,id_string,numchan,indirect_range in [
         #('180724','check_field_2',2,None)
         #('180724','se_nutation',2,linspace(3.25e-6,15.25e-6,10))
         #('180724','90_nutation_control',2,linspace(1e-6,50e-6,5))
-        ('180724','90_nutation',2,linspace(1e-6,50e-6,25))
+        ('180724','90_nutation',2,linspace(1e-6,50e-6,25)) # use -w 60e-6
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
@@ -235,10 +235,10 @@ for date,id_string,numchan,indirect_range in [
     if single_90:
         signal = s_analytic['ph1',-1]
     fl.next('image, signal, t domain')
-    fl.image(signal['t':(45e-6,None)])
+    fl.image(signal['t':(35e-6,None)])
     cropped_signal = signal.C.cropped_log()
     fl.next('image, signal, t domain, cropped')
-    fl.image(cropped_signal['t':(45e-6,None)])
+    fl.image(cropped_signal['t':(35e-6,None)])
     fl.show();quit()
     #fl.next('Checking offset')
     #for x in xrange(ndshape(signal)['indirect']):
