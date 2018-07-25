@@ -42,7 +42,9 @@ for date,id_string,numchan,indirect_range in [
         #('180723','se_nutation_2',2,linspace(1.5e-6,15e-6,40))
         #('180724','check_field',2,None),
         #('180724','check_field_2',2,None)
-        ('180724','se_nutation',2,linspace(3.25e-6,15.25e-6,10))
+        #('180724','se_nutation',2,linspace(3.25e-6,15.25e-6,10))
+        #('180724','90_nutation_control',2,linspace(1e-6,50e-6,5))
+        ('180724','90_nutation',2,linspace(1e-6,50e-6,25))
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
@@ -70,35 +72,38 @@ for date,id_string,numchan,indirect_range in [
     s.setaxis('t',lambda f: f-carrier_f)
     s.ift('t')
 
+    single_90 = True 
     confirm_triggers = False 
+    #{{{ confirm that different phases trigger differently due to differing rising edges
     if confirm_triggers:
-        #{{{ confirm that different phases trigger differently due to differing rising edges
-        fl.next('raw data')
-        fl.plot(s_raw['ch',1]['indirect',0]['ph2',0].reorder('t').real)
         print ndshape(s)
         print ndshape(s_raw)
-        #fl.next('phcyc')
-        # subset of interest in the data, undergoes processing to analytic signal
         subset = s['ch',1]['t':(1e-6,100e-6)]
-        #fl.image(subset,black=True)
-        onephase = subset.C.smoosh(['ph2','indirect'], noaxis = True, dimname='repeat').reorder('t')
-        print "dimensions of data subset of interest",ndshape(onephase)
-        # perform same analysis used on subset for raw data, to compare
-        onephase_raw = s_raw['ch',1].C.smoosh(['ph2','indirect'], noaxis=True, dimname='repeat').reorder('t')
-        print "dimensions of re-grouped raw data",ndshape(onephase_raw)
+        fl.next('raw data')
+        if not single_90:
+            fl.plot(s_raw['ch',1]['indirect',0]['ph2',0].reorder('t').real)
+            onephase = subset.C.smoosh(['ph2','indirect'], noaxis = True, dimname='repeat').reorder('t')
+            onephase_raw = s_raw['ch',1].C.smoosh(['ph2','indirect'], noaxis=True, dimname='repeat').reorder('t')
+            print "dimensions of re-grouped raw data",ndshape(onephase_raw)
+        if single_90:
+            fl.plot(s_raw['ch',1]['indirect',-1].reorder('t').real)
+            onephase = subset.C.reorder('t')
+            onephase.rename('indirect','repeat')
+            onephase_raw = s_raw['ch',1].C.reorder('t')
+            onephase_raw.rename('indirect','repeat')
         colors = ['r','g','b','c']
         for k in xrange(ndshape(onephase)['ph1']):
             for j in xrange(ndshape(onephase)['repeat']):
                 fl.next('compare rising edge')
                 # need to define time slice for rising edge
-                fl.plot(abs(onephase['repeat',j]['t':(6.47267e-6,6.7e-6)]['ph1',k].C.reorder('t',first=True)),color=colors[k],alpha=0.3)
+                fl.plot(abs(onephase['repeat',j]['t':(26.2e-6,26.6e-6)]['ph1',k].C.reorder('t',first=True)),color=colors[k],alpha=0.3)
                 fl.next('compare falling edge')
                 # need to define time slice for falling edge
-                fl.plot(abs(onephase['repeat',j]['t':(9e-6,9.24785e-6)]['ph1',k].C.reorder('t',first=True)),color=colors[k],alpha=0.3)
+                fl.plot(abs(onephase['repeat',j]['t':(26.2e-6,26.6e-6)]['ph1',k].C.reorder('t',first=True)),color=colors[k],alpha=0.3)
                 fl.next('compare rising edge, raw')
-                fl.plot((onephase_raw['repeat',j]['t':(6.47267e-6,6.7e-6)]['ph1',k].C.reorder('t',first=True)),color=colors[k],alpha=0.3)
+                fl.plot((onephase_raw['repeat',j]['t':(27.1e-6,27.9e-6)]['ph1',k].C.reorder('t',first=True)),color=colors[k],alpha=0.3)
                 fl.next('compare falling edge, raw')
-                fl.plot((onephase_raw['repeat',j]['t':(9e-6,9.24785e-6)]['ph1',k].C.reorder('t',first=True)),color=colors[k],alpha=0.3)
+                fl.plot((onephase_raw['repeat',j]['t':(27.1e-6,27.9e-6)]['ph1',k].C.reorder('t',first=True)),color=colors[k],alpha=0.3)
         print ndshape(onephase)
         #}}}
     #{{{ shifting the axis so that 0 is centered on the pulses
@@ -107,10 +112,16 @@ for date,id_string,numchan,indirect_range in [
         pulse_slice = d['ch',1].real
         normalization = (pulse_slice**2).integrate('t')
         return (pulse_slice**2 * pulse_slice.fromaxis('t')).integrate('t')/normalization
-    avg_t = average_time(s_raw['t':(6.5e-6,9.3e-6)]).data.mean()
-    logger.info(strm('average time of pulses',avg_t))
+    if single_90:
+        avg_t = average_time(s_raw['t':(0e-6,30e-6)]).data.mean()
+    if not single_90:
+        avg_t = average_time(s_raw['t':(6.5e-6,9.3e-6)]).data.mean()
     pulse_slice = s_raw['t':(avg_t-max_window/2,avg_t+max_window/2)]
-    # now that I have a better slice, redo the avg_t
+    #{{{ NOTE: make sure that pulse_slice includes each pulse during a nutation measurement
+        # you can test that with the following:
+    #fl.image(pulse_slice)
+    #fl.show();quit()
+    #}}}
     avg_t = average_time(pulse_slice)
     print avg_t
     # this creates an nddata of the time averages for each 90 pulse
@@ -155,44 +166,40 @@ for date,id_string,numchan,indirect_range in [
     analytic *= exp(phase_factor)
     analytic.ift('t')
     # }}}
+    #{{{ checking phase shifted trigger
     if confirm_triggers:
-        # beginning phase correction now
-        #{{{ plotting time domain uncorrected pulse edges
-        # NOTE: this may be the same as the raw signal plotted in beginning of program
-        onephase_raw_shift = s_raw['ch',1].C.smoosh(['ph2','indirect'],noaxis=True,dimname='repeat').reorder('t')
-        onephase_raw_shift.name('Amplitude').set_units('V')
+        if not single_90:
+            onephase_raw_shift = s_raw['ch',1].C.smoosh(['ph2','indirect'],noaxis=True,dimname='repeat').reorder('t')
+            onephase_raw_shift.name('Amplitude').set_units('V')
+        if single_90:
+            onephase_raw_shift = s_raw['ch',1].C.reorder('t')
+            onephase_raw_shift.rename('indirect','repeat')
         for k in xrange(ndshape(onephase_raw)['ph1']):
             for j in xrange(ndshape(onephase_raw)['repeat']):
                 fl.next('compare rising edge: uncorrected')
                 fl.plot((onephase_raw_shift['repeat',j]['ph1',k]['t':(-1.4e-6,-1.1e-6)].C.reorder('t',first=True)+2*k),color=colors[k],alpha=0.3)
                 fl.next('compare falling edge: uncorrected')
                 fl.plot((onephase_raw_shift['repeat',j]['ph1',k]['t':(1.0e-6,1.4e-6)].C.reorder('t',first=True)+2*k),color=colors[k],alpha=0.3)
-        #}}}
-    if confirm_triggers:
-        # if we want to display the correction to the raw data, we need to
-        # reapply the same shift.  This is not necessary unless we're running with "confirm_triggers"
         raw_corr = s_raw.C.ft('t')
-        # sign on 1j matters here, difference between proper cycling or off cycling
         phase_factor = raw_corr.fromaxis('t',lambda x: 1j*2*pi*x)
         phase_factor *= avg_t
-        # not including Cavanagh shifts, just to avoid confusion with above
         raw_corr *= exp(phase_factor)
-        # here zero filling or else signal amplitude will vary due to changes made in the f dimension 
         raw_corr.ift('t',pad=30*1024)
-        #{{{ plotting time domain corrected pulse edges
-        onephase_rawc = raw_corr['ch',1].C.smoosh(['ph2','indirect'],noaxis=True, dimname='repeat').reorder('t')
-        onephase_rawc.name('Amplitude').set_units('V')
+        if not single_90:
+            onephase_rawc = raw_corr['ch',1].C.smoosh(['ph2','indirect'],noaxis=True, dimname='repeat').reorder('t')
+        if single_90:
+            onephase_rawc = raw_corr['ch',1].C.reorder('t')
+            onephase_rawc.rename('indirect','repeat')
         for k in xrange(ndshape(onephase_rawc)['ph1']):
             for j in xrange(ndshape(onephase_rawc)['repeat']):
                 fl.next('compare rising edge: corrected')
                 fl.plot(onephase_rawc['repeat',j]['ph1',k]['t':(-1.4e-6,-1.1e-6)].C.reorder('t',first=True),color=colors[k],alpha=0.3)
                 fl.next('compare falling edge: corrected')
                 fl.plot(onephase_rawc['repeat',j]['ph1',k]['t':(1.0e-6,1.4e-6)].C.reorder('t',first=True),color=colors[k],alpha=0.3)
-        #}}}
+     #}}}
     # with time-shifted, phase corrected raw data, now take analytic
     # measured phase is phase of each 90 after time-shifting and phase correcting
-    # the following line was wrong for the general case -- we should set the
-    # phase of the 90 pulse for EACH INDIVIDUAL SCAN to make sure it's correct
+    # set the phase of the 90 pulse for EACH INDIVIDUAL SCAN to make sure it's correct
     measured_phase = analytic['t':(-max_window/2,max_window/2)].mean('t',return_error=False)
     measured_phase /= abs(measured_phase)
     logger.info(strm("measured phase",measured_phase))
@@ -205,29 +212,37 @@ for date,id_string,numchan,indirect_range in [
     print ndshape(analytic)
     fl.next('analytic signal, ref ch')
     fl.image(analytic)
-    # switch to coherence domain
     fl.next('coherence domain, ref ch')
-    coherence_domain = analytic.C.ift(['ph1','ph2'])
+    if not single_90:
+        coherence_domain = analytic.C.ift(['ph1','ph2'])
+    if single_90:
+        coherence_domain = analytic.C.ift(['ph1'])
     fl.image(coherence_domain['ch',1])
     s_analytic = analytic['ch',0].C
-    s_analytic.ift(['ph1','ph2'])
-    fl.next('coherence(t), sig ch %s'%id_string)
+    if not single_90:
+        s_analytic.ift(['ph1','ph2'])
+    if single_90:
+        s_analytic.ift(['ph1'])
+    fl.next('coherence, sig ch, t domain')
     fl.image(s_analytic)
     print ndshape(s_analytic)
     s_analytic.ft('t')
-    fl.next('coherence(f), sig ch')
+    fl.next('coherence, sig ch, f domain')
     fl.image(s_analytic)
     s_analytic.ift('t')
-    #s_analytic = s_analytic['t':(110e-6,None)]
-    fl.next('image, signal coh path, t domain')
-    fl.image(s_analytic['ph1',1]['ph2',0])
-    s_analytic.ft('t')
-    fl.next('image, signal coh path, f domain')
-    fl.image(s_analytic['ph1',1]['ph2',0])
-    signal = s_analytic['ph1',1]['ph2',0]
-    fl.next('Checking offset')
-    for x in xrange(ndshape(signal)['indirect']):
-        fl.plot(signal['indirect',x],alpha=0.34,label='cycle no. %d'%x)
+    if not single_90:
+        signal = s_analytic['ph1',1]['ph2',0]
+    if single_90:
+        signal = s_analytic['ph1',-1]
+    fl.next('image, signal, t domain')
+    fl.image(signal['t':(45e-6,None)])
+    cropped_signal = signal.C.cropped_log()
+    fl.next('image, signal, t domain, cropped')
+    fl.image(cropped_signal['t':(45e-6,None)])
+    fl.show();quit()
+    #fl.next('Checking offset')
+    #for x in xrange(ndshape(signal)['indirect']):
+    #    fl.plot(signal['indirect',x],alpha=0.34,label='cycle no. %d'%x)
     #for x,t_90 in enumerate(indirect_range):
     #    fl.next('plotting')
     #    fl.plot(signal['indirect',x],label='%f'%t_90)
@@ -251,5 +266,6 @@ fl.show()
     ##if full_cyc:
     ##    s_analytic.mean('full_cyc',return_error=False)
     #s_analytic /= sqrt(8)
+    #}}}
     #}}}
     #}}}
