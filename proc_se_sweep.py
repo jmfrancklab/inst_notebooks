@@ -18,8 +18,9 @@ for date,id_string,numchan,field_axis,cycle_time, in [
         #('180718','SE_sweep_3',2,linspace((3407-3/2),(3407+3/2),1296*4),int(21.129*8)) 
         #('180718','SE_sweep_4',2,linspace((3407.05-0.1/2),(3407.05+0.1/2),425*4),int(21.3125*8)) 
         #('180719','SE_sweep',2,linspace((3407.3-1.0/2),(3407.3+1.0/2),425*4),int(20.9375*8)) 
-        ('180719','SE_sweep_2',2,linspace((3407.3-0.1/2),(3407.3+0.1/2),420*4),int(20.975*8)), 
-        ('180719','SE_sweep_3',2,linspace((3407.4-0.1/2),(3407.4+0.1/2),420*4),int(21.875*8)) 
+        #('180719','SE_sweep_2',2,linspace((3407.3-0.1/2),(3407.3+0.1/2),420*4),int(20.975*8)), 
+        #('180719','SE_sweep_3',2,linspace((3407.4-0.1/2),(3407.4+0.1/2),420*4),int(21.875*8)) 
+        ('180725','SE_sweep',2,linspace((3407.30-500./2),(3407.30+500./2),2340*4),int(21.865*8)) 
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
@@ -68,7 +69,7 @@ for date,id_string,numchan,field_axis,cycle_time, in [
         fl.plot(s_raw['ch',1]['full_cyc',0]['ph2',0].reorder('t').real)
         #{{{ applying time-shift (i.e., defining new, more convenient x-axis below)
         # note, pulse length used below is manually determined
-        pulse_slice = s_raw['t':(6.47267e-6,9.24785e-6)]['ch',1].real
+        pulse_slice = s_raw['t':(6.47267e-6,14.1078e-6)]['ch',1].real
         normalization = (pulse_slice**2).integrate('t')
         # this creates an nddata of the time averages for each 90 pulse
         average_time = (pulse_slice**2 * pulse_slice.fromaxis('t')).integrate('t')/normalization
@@ -79,7 +80,7 @@ for date,id_string,numchan,field_axis,cycle_time, in [
         #fl.next('time-shifted data')
         #fl.image(s_raw)
         #}}}
-        pulse_slice = s_raw['t':(-1.34e-6,1.34e-6)]['ch',1].real
+        pulse_slice = s_raw['t':(-4e-6,4e-6)]['ch',1].real
         # re-determine nddata of the time averages for the newly centered data
         average_time = (pulse_slice**2 * pulse_slice.fromaxis('t')).integrate('t')/normalization
         print average_time
@@ -108,7 +109,7 @@ for date,id_string,numchan,field_axis,cycle_time, in [
         # with time-shifted, phase corrected raw data, now take analytic
         # measured phase is phase of each 90 after time-shifting and phase correcting
         analytic = raw_corr['ch',1].C.ft('t')['t':(0,16e6)].setaxis('t', lambda f: f-carrier_f).ift('t').reorder(['full_cyc','t'],first=False)
-        measured_phase = analytic['t':(-1.5e6,1.5e6)].mean('t',return_error=False).mean('ph2',return_error=True).mean('full_cyc',return_error=True)
+        measured_phase = analytic['t':(-4e-6,4e-6)].mean('t',return_error=False).mean('ph2',return_error=True).mean('full_cyc',return_error=True)
         measured_phase /= abs(measured_phase)
         print "measured phase"
         print measured_phase
@@ -156,10 +157,10 @@ for date,id_string,numchan,field_axis,cycle_time, in [
         s_analytic_f.rename('t',r'$\frac{\Omega}{2 \pi \gamma_{H}}$')
         s_analytic_f.rename('magnetic_field',r'$B_{0}$')
         #}}}
-        fl.next('image, signal coherence pathway, t domain (0.1 G width)')
-        fl.image(s_analytic['ph1',1]['ph2',0])
+        #fl.next('image, signal coherence pathway, t domain (500 G width)')
+        #fl.image(s_analytic['ph1',1]['ph2',0])
         #s_analytic.ft('t')
-        fl.next('image, signal coherence pathway, f domain (0.1 G width)')
+        fl.next('image, signal coherence pathway, f domain (500 G width)')
         fl.image(s_analytic_f['ph1',1]['ph2',0])
         #s_analytic.ift('t')
         #{{{ the if statements in the following for loops
