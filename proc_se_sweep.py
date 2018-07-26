@@ -51,7 +51,7 @@ for date,id_string,numchan,field_axis,cycle_time, in [
             avg_delay = time_diff_nddata.mean('t',return_error=False).data
             print "Did not find AFG error"
             print "Average delay between phase cycling steps:",avg_delay,"s"
-        quit()
+            print q 
     #}}}
     if not check_time :
         s = nddata_hdf5(filename+'/'+nodename,
@@ -124,8 +124,7 @@ for date,id_string,numchan,field_axis,cycle_time, in [
         # switch to coherence domain
         fl.next('coherence domain, ref ch')
         coherence_domain = analytic.C.ift(['ph1','ph2'])
-        fl.image(coherence_domain['t':(-2e-6,75e-6)])
-
+        fl.image(coherence_domain['t':(-4e-6,100e-6)])
         # apply same analysis as on reference ch to test ch
         s_analytic = raw_corr['ch',0].C.ft('t')['t':(13e6,16e6)].setaxis('t', lambda f: f-carrier_f).ift('t').reorder(['full_cyc','t'],first=False)
         s_analytic *= expected_phase/measured_phase
@@ -140,7 +139,7 @@ for date,id_string,numchan,field_axis,cycle_time, in [
         # slice out region containing spin echo to get clear frequency domain plots
         #{{{ here slicing out only some of the total captures because field stopped earlier than program was running for 
             # '180725_SE_sweep_focused' this shouldn't be a big deal because signal should not have been visible anyway
-        s_analytic = s_analytic['magnetic_field':(s_analytic.getaxis('magnetic_field')[0],s_analytic.getaxis('magnetic_field')[41])]
+        s_analytic = s_analytic['magnetic_field':(s_analytic.getaxis('magnetic_field')[0],s_analytic.getaxis('magnetic_field')[40])]
         #}}}
         s_analytic = s_analytic['t':(110e-6,None)]
         for x in xrange(ndshape(s_analytic)['magnetic_field']):
