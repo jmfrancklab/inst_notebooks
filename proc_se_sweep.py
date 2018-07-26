@@ -11,6 +11,7 @@ fl = figlist_var()
 carrier_f = 14.4289e6
 
 check_time = False 
+
 for date,id_string,numchan,field_axis,cycle_time, in [
         #('180717','SE_sweep_3',2,linspace(3390,3400,420*4),168),
         #('180718','SE_sweep',2,linspace((3395-25/2),(3395+25/2),1050*4),168),
@@ -20,7 +21,8 @@ for date,id_string,numchan,field_axis,cycle_time, in [
         #('180719','SE_sweep',2,linspace((3407.3-1.0/2),(3407.3+1.0/2),425*4),int(20.9375*8)) 
         #('180719','SE_sweep_2',2,linspace((3407.3-0.1/2),(3407.3+0.1/2),420*4),int(20.975*8)), 
         #('180719','SE_sweep_3',2,linspace((3407.4-0.1/2),(3407.4+0.1/2),420*4),int(21.875*8)) 
-        ('180725','SE_sweep',2,linspace((3407.30-500./2),(3407.30+500./2),2340*4),int(21.865*8)) 
+        #('180725','SE_sweep',2,linspace((3407.30-500./2),(3407.30+500./2),2340*4),int(21.865*8)) 
+        ('180725','SE_sweep_focused',2,linspace((3407.30-(20./2.)),(3407.30+(20./2.)),1748*4),int(21.392*8)) 
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
@@ -136,13 +138,12 @@ for date,id_string,numchan,field_axis,cycle_time, in [
         #{{{ here plotting sweep data several ways
         s_analytic.rename('full_cyc','magnetic_field')
         # slice out region containing spin echo to get clear frequency domain plots
+        #{{{ here slicing out only some of the total captures because field stopped earlier than program was running for 
+            # '180725_SE_sweep_focused' this shouldn't be a big deal because signal should not have been visible anyway
+        s_analytic = s_analytic['magnetic_field':(s_analytic.getaxis('magnetic_field')[0],s_analytic.getaxis('magnetic_field')[41])]
+        #}}}
         s_analytic = s_analytic['t':(110e-6,None)]
         for x in xrange(ndshape(s_analytic)['magnetic_field']):
-            # NOTE: The time length of each capture (here 168 s) can be determined by looking at
-            # the distance between the values in the 'full_cyc' axis OR determined beforehand --
-
-            # either way, I am sure there is a way to program the number but for now it must be
-            # calculated and entered manually
             s_analytic.getaxis('magnetic_field')[x] = field_axis[x*cycle_time]
             print field_axis[x*cycle_time]
             s_analytic.set_units('magnetic_field','G')
@@ -160,7 +161,7 @@ for date,id_string,numchan,field_axis,cycle_time, in [
         #fl.next('image, signal coherence pathway, t domain (500 G width)')
         #fl.image(s_analytic['ph1',1]['ph2',0])
         #s_analytic.ft('t')
-        fl.next('image, signal coherence pathway, f domain (500 G width)')
+        fl.next('image, signal coherence pathway, f domain (20 G width)')
         fl.image(s_analytic_f['ph1',1]['ph2',0])
         #s_analytic.ift('t')
         #{{{ the if statements in the following for loops
