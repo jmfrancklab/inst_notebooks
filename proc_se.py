@@ -10,7 +10,7 @@ import argparse
 mpl.rcParams['image.cmap'] = 'jet'
 fl = figlist_var()
 #init_logging(level='debug')
-
+gain_factor_dcasc12 = sqrt(114008.55204672)   #gain in units of V
 parser = argparse.ArgumentParser(description='basic command-line options')
 parser.add_argument('--window', '-w',
         help='the maximum size of the window that encompasses all the pulses',
@@ -46,7 +46,8 @@ for date,id_string,numchan,indirect_range in [
         #('180724','90_nutation_control',2,linspace(1e-6,50e-6,5))
         #('180724','90_nutation',2,linspace(1e-6,50e-6,25)) # use -w 60e-6
         #('180725','90_nutation',2,linspace(1e-6,30e-6,30)) # use -w 60e-6
-        ('180725','90_nutation_focused',2,linspace(6e-6,9e-6,30))
+        #('180725','90_nutation_focused',2,linspace(6e-6,9e-6,30))
+        ('180725','SE',2,None) # 3 cycles, 2x GDS avg, B0 = 3407.32 G, t90 = 7.45e-6 s
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
@@ -67,6 +68,7 @@ for date,id_string,numchan,indirect_range in [
     logger.info("*** Code for phase cycling based on 'fix_phase_cycling_180712.py' ***")
     logger.info("WARNING: Need to define time slices for pulses on a by-dataset basis ***")
 
+    s /= gain_factor_dcasc12 # get into units of input-referred Volt
     s_raw = s.C.reorder('t',first=False)
 
     s.ft('t',shift=True)
@@ -74,8 +76,10 @@ for date,id_string,numchan,indirect_range in [
     s.setaxis('t',lambda f: f-carrier_f)
     s.ift('t')
 
-    single_90 = True 
+    single_90 = False 
     confirm_triggers = False 
+    fl.next('raw')
+    fl.plot(s['indirect',0]['ch',0]['ph1',0]['ph2',0])
     #{{{ confirm that different phases trigger differently due to differing rising edges
     if confirm_triggers:
         print ndshape(s)
@@ -99,7 +103,7 @@ for date,id_string,numchan,indirect_range in [
                 fl.next('compare rising edge')
                 # need to define time slice for rising edge
                 fl.plot(abs(onephase['repeat',j]['t':(26.2e-6,26.6e-6)]['ph1',k].C.reorder('t',first=True)),color=colors[k],alpha=0.3)
-                fl.next('compare falling edge')
+                fl.next('compar7e falling edge')
                 # need to define time slice for falling edge
                 fl.plot(abs(onephase['repeat',j]['t':(26.2e-6,26.6e-6)]['ph1',k].C.reorder('t',first=True)),color=colors[k],alpha=0.3)
                 fl.next('compare rising edge, raw')
@@ -228,46 +232,42 @@ for date,id_string,numchan,indirect_range in [
     fl.next('coherence, sig ch, t domain')
     fl.image(s_analytic)
     print ndshape(s_analytic)
-    s_analytic.ft('t')
-    fl.next('coherence, sig ch, f domain')
-    fl.image(s_analytic)
-    s_analytic.ift('t')
+    s_analytic.mean('indirect',return_error=False)
+    s_analytic.set_units('V')
     if not single_90:
         signal = s_analytic['ph1',1]['ph2',0]
     if single_90:
         signal = (s_analytic['ph1',-1])
-    fl.next('image, abs(signal), t domain')
-    fl.image(signal['t':(35e-6,None)])
-    cropped_signal = signal.C.cropped_log()
-    fl.next('image, abs(signal), t domain, cropped')
-    fl.image(cropped_signal['t':(35e-6,None)])
-    fl.show();quit()
+    #fl.next('image, abs(signal), t domain')
+    #fl.image(signal['t':(35e-6,None)])
+    #cropped_signal = signal.C.cropped_log()
+    #fl.next('image, abs(signal), t domain, cropped')
+    #fl.image(cropped_signal['t':(35e-6,None)])
+    #{{{ for measuring offset
     #fl.next('Checking offset')
     #for x in xrange(ndshape(signal)['indirect']):
     #    fl.plot(signal['indirect',x],alpha=0.34,label='cycle no. %d'%x)
     #for x,t_90 in enumerate(indirect_range):
     #    fl.next('plotting')
     #    fl.plot(signal['indirect',x],label='%f'%t_90)
-fl.show()
-    #{{{ for plotting time domain signal spectrum 
-    #s_analytic.mean('indirect',return_error=False)
-    #s_analytic.name('Amplitude').set_units('V')
+    #}}}
+    #{{{ for plotting signal(t) 
+    signal.name('Amplitude')
+    print ndshape(signal)
+    #{{{ for checking each coherence pathway
     #for ph2 in xrange(ndshape(s_analytic)['ph2']):
     #    for ph1 in xrange(ndshape(s_analytic)['ph1']):
     #        fl.next(r'$\Delta_{c_{1}}$ = %d, $\Delta_{c_{2}}$ = %d'%(ph1,ph2))
     #        fl.plot(s_analytic['ph1',ph1]['ph2',ph2],alpha=0.4) # in order to see units
-    #        xlim(100,None) #units of 1e-6 seconds
-    #fl.next(r'$\Delta_{c_{1}}$ = + %d, $\Delta_{c_{2}}$ = 0,$\pm 2$'%(ph1))
-    #fl.plot(signal,alpha=0.4) # in order to see units
-    ##fl.plot(signal.real,alpha=0.4,label='real')
-    ##fl.plot(signal.imag,alpha=0.4,label='imag')
-    #xlim(100,None) #units of 1e-6 seconds
-    #{{{ generating input-referred voltage
-    ##gain_factor_dcasc12 = sqrt(114008.55204672)   #gain in units of V
-    ##s_analytic /= gain_factor_dcasc12
-    ##if full_cyc:
-    ##    s_analytic.mean('full_cyc',return_error=False)
-    #s_analytic /= sqrt(8)
+    #        #xlim(100,None) #units of 1e-6 seconds
     #}}}
+    fl.next(r'$\Delta_{c_{1}}$ = -1, $\Delta_{c_{2}}$ = 0,$\pm 2$')
+    #for x in xrange(ndshape(signal)['indirect']):
+    #    fl.plot(signal['indirect',x],alpha=0.4) # in order to see units
+    #fl.plot(signal,alpha=0.45)
+    fl.plot(signal.real,alpha=0.4,label='real')
+    fl.plot(signal.imag,alpha=0.4,label='imag')
+    xlim(100,None) #units of 1e-6 seconds
     #}}}
-    #}}}
+
+fl.show()
