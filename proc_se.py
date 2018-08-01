@@ -6,7 +6,9 @@ import matplotlib.style
 import matplotlib as mpl
 import argparse
 #import logging
-
+mpl.rcParams['figure.facecolor'] ='none' 
+# If saving from matplotlib interactive figure using save button,
+# then need to set the above configuration in the current matplotlibrc file
 mpl.rcParams['image.cmap'] = 'jet'
 fl = figlist_var()
 #init_logging(level='debug')
