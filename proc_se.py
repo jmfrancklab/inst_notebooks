@@ -69,6 +69,8 @@ for date,id_string,numchan,indirect_range in [
     logger.info("WARNING: Need to define time slices for pulses on a by-dataset basis ***")
 
     s /= gain_factor_dcasc12 # get into units of input-referred Volt
+    s.labels('ph1',r_[0:4]/4.)
+    s.labels( 'ph2',r_[0:2]/4. )
     s_raw = s.C.reorder('t',first=False)
 
     s.ft('t',shift=True)
