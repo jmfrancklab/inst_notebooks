@@ -154,14 +154,14 @@ for date,id_string,numchan,field_axis,cycle_time, in [
         s_analytic.ift(['ph1','ph2'])
         #{{{ here I am making a copy of this dataset to plot with frequency axis converted to Gauss
         s_analytic_f = s_analytic.C.ft('t')
-        s_analytic_f.setaxis('t', lambda x: x/(2*pi*gammabar_H)*1e4).set_units('t','G')
+        s_analytic_f.setaxis('t', lambda x: x/(gammabar_H)*1e4).set_units('t','G')
         s_analytic_f.rename('t',r'$\frac{\Omega}{2 \pi \gamma_{H}}$')
         s_analytic_f.rename('magnetic_field',r'$B_{0}$')
         #}}}
         #fl.next('image, signal coherence pathway, t domain (500 G width)')
         #fl.image(s_analytic['ph1',1]['ph2',0])
         #s_analytic.ft('t')
-        fl.next('image, signal coherence pathway, f domain (50 G width)')
+        fl.next('signal(B) as function of '+r'$B_{0}$ (50 G sweep)')
         fl.image(s_analytic_f['ph1',1]['ph2',0])
         #s_analytic.ift('t')
         #{{{ the if statements in the following for loops
