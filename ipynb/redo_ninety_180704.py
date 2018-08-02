@@ -1,11 +1,14 @@
 
 # coding: utf-8
 
+# 
+
 get_ipython().magic(u'load_ext pyspecdata.ipy')
 from pyspecdata import strm, gammabar_H, k_B, hbar
 def mdown(x):
     import IPython.display as d
     d.display(d.Markdown(x))
+
 
 # [1.] McDowell et al. (2007), [2.] Hoult et al. (1976), and [3.] JMF notebook.
 # More recently [4.] Peck et al. (1995)
@@ -14,29 +17,53 @@ def mdown(x):
 # 
 # ## Physical constants
 
+# 
+
 mu0 = 4*pi*1e-7 #permeability of free space in Tm/A
 gamma_H = 2*pi*gammabar_H #gyromagnetic ratio for H in Hz/T
 k_B = 1.38e-23 #Boltzmann constant in J/K
 h = hbar*2*pi #Planck constant in Js
 
+
 # ## Geometric parameters
 # 
 # Parameters measured on solenoid of interest (second 0.55 uH solenoid)
 
+# 
+
 L = 0.55e-6 #inductance in microHenries
-l = 22.89e-3 #length of coil in mm 
+l = 22.89e-3 #length of coil in mm
 OD = 8.25e-3 #outer diameter of coil rings in mm
 thick = 1.17e-3 #thickness of wire in mm
 CD = OD-thick
+tube_ID = 4.93e-3
+
 
 # ## Design parameters
 # 
 # power, impedance, temperature, etc
 
-P = 60. #pulse power in Watts
+# 
+
+P = 51.8 #pulse power in Watts
 R = 50. #resistance in Ohms
-Q = 16.74 # should be measured from tuning curve -- this is a guess
-omega0 = 2*pi*14.5e6
+Q = 18. # actually measure now
+omega0 = 2*pi*14.4289e6
+t90 = 7.45e-6
+
+
+# # What is the actual conversion Factor
+# so that we can compare to prediction, below
+
+# 
+
+nu1 = 1./(4*t90)
+mdown((r'$\omega_1/2\pi=%0.1f$ kHz'%(nu1/1e3)))
+B1 = nu1/gammabar_H
+mdown(r'$B_1=%0.2e\;\text{T}$'%B1)
+c_exp = B1/sqrt(P)
+mdown(r'$c=%0.2e\;\text{T}/\sqrt{\text{W}}$'%c_exp)
+
 
 # # Use Mims to Calculate the Conversion Factor
 # 
@@ -82,19 +109,54 @@ omega0 = 2*pi*14.5e6
 # Rearranging to get a conversion factor
 # $$\frac{B_1}{\sqrt{P}} = \sqrt{\frac{Q \mu_0}{2 V_c \omega_0}}$$
 
-V_sample = pi*(5e-3/2)**2*l # replaced with 5mm diameter NMR tube
+# 
+
+V_sample = pi*(tube_ID/2)**2*l # replaced with 5mm diameter NMR tube
 mdown("Sample volume %.2e $m^3$ "%V_sample)
 Vc = pi*(CD/2)**2*l
 mdown("Coil volume %.2e $m^3$ "%Vc)
 
-conversion = sqrt(Q*mu0/(2*Vc*omega0))
-mdown(r"Conversion factor %.2e $T/\sqrt{W}$ "%conversion)
-mdown(r"Conversion factor %.2f $G/\sqrt{W}$ "%(conversion/1e-4))
+c_calc = sqrt(Q*mu0/(2*Vc*omega0))
+mdown(r"Conversion factor %.2e $T/\sqrt{W}$ "%c_calc)
+mdown(r"Conversion factor %.2f $G/\sqrt{W}$ "%(c_calc/1e-4))
+Vol_ratio = (c_calc/c_exp)**2
+mdown(r"Conversion factor %.2f $G/\sqrt{W}$ "%(c_calc/1e-4))
+mdown(r"Ratio of the actual effective cavity volume to the calculated $V_{c,actual}/V_{c,calc}$: %0.3f"%(c_calc/1e-4))
 
+
+# ## (chronologically earlier) Before starting experiments, guess the ninety time
 # Now, we convert this to a ninety time
 
-B1 = conversion*sqrt(P)
+B1 = c_calc*sqrt(P)
 omega_1 = gamma_H * B1
 mdown(u'Ninety time is %0.2f μs'%(pi/2./omega_1/1e-6))
 
+
+# # Calculate the signal
+# $[^1H \text{spins}/\text{m}^3] = [2
+# \text{protons}][55 \text{M}][\text{1e3} \text{L}/\text{m}^3]$
+
+N = 2.*55e3*N_A
+
+
+# $M_0$ from Cavanagh
+# $M_0 = \frac{N \gamma \hbar^2 \omega_0 I \left( I+1 \right)}{3 k_B T}$ 
+
+T = 298.
+I = 0.5
+M0 = N * omega0  * gamma_H * hbar**2 * I * (I+1) / (3 * k_B * T)
+
+
+# signal
+# from Rinard1999, we see
+# $$I V_{signal} = \omega_0 \int_{sample}
+# \vec{M} \cdot \vec{B_1} dV$$
+# (Note that the units here work, because $M_0$ has units like $H$ in Maxwell's equations, while $B_1$ has units of $B$ [T])
+# so that we have
+# $$V_{signal} = \frac{\omega_0 M_0 B_1 V_{sample}}{I}$$
+# substituting $P = I^2 Z_0$, we get
+# $$V_{signal} = \omega_0 M_0 c V_{sample}\sqrt{Z_0}$$
+
+V_signal = M0 * omega0 * V_sample * c_exp * sqrt(50.)
+mdown(r'$V_{signal} = %0.2f\;\mu\text{V}$'%(V_signal/1e-6))
 
