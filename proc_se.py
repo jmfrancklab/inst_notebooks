@@ -69,16 +69,19 @@ for date,id_string,numchan,indirect_range in [
     logger.info("*** Code for phase cycling based on 'fix_phase_cycling_180712.py' ***")
     logger.info("WARNING: Need to define time slices for pulses on a by-dataset basis ***")
 
-    s /= gain_factor_new # get into units of input-referred Volt
-    s.set_units('V')
+    #s /= gain_factor_new # get into units of input-referred Volt
+    #s.set_units('V')
     s.labels('ph1',r_[0:4]/4.)
     s.labels( 'ph2',r_[0:2]/4. )
+    fl.next('following ref ch pulses')
+    fl.plot(s['indirect',0]['ph1',0]['ph2',0]['ch',1],label='raw')
     s_raw = s.C.reorder('t',first=False)
 
     s.ft('t',shift=True)
     s = s['t':(0,None)]
     s.setaxis('t',lambda f: f-carrier_f)
     s.ift('t')
+    s = s*2
     single_90 = False 
     confirm_triggers = False 
     #{{{ confirm that different phases trigger differently due to differing rising edges
@@ -135,8 +138,8 @@ for date,id_string,numchan,indirect_range in [
     logger.debug(strm('dimensions of average_time:',ndshape(avg_t)))
     # shift the time axis down by the average time, so that 90 is centered around t=0
     s_raw.setaxis('t', lambda t: t-avg_t.data.mean())
-    fl.next('check that this centers 90 around 0 on time axis')
-    fl.image(s_raw)
+    #fl.next('check that this centers 90 around 0 on time axis')
+    #fl.image(s_raw)
     #}}}
     # {{{ now, go ahead and shift each indirect data element relative to the
     # others, so their pulses line up
@@ -155,6 +158,7 @@ for date,id_string,numchan,indirect_range in [
     #     redetermine the center here, and reshift the pulses next
     avg_t = average_time(s_raw['t':(-max_window/2,max_window/2)])
     s_raw.setaxis('t', lambda t: t-avg_t.data.mean())
+    fl.plot(s_raw['indirect',0]['ph1',0]['ph2',0]['ch',1],alpha=0.4,label='post phase adjustments')
     # }}}
     # {{{ since this is the last step, take the analytic signal
     #     and then apply the relative shifts again
@@ -172,6 +176,7 @@ for date,id_string,numchan,indirect_range in [
         logger.debug(strm('and after pulse shift',phase_factor))
     analytic *= exp(phase_factor)
     analytic.ift('t')
+    fl.plot(analytic['indirect',0]['ph1',0]['ph2',0]['ch',1],alpha=0.4,label='bandpass')
     # }}}
     #{{{ checking phase shifted trigger
     if confirm_triggers:
@@ -214,21 +219,25 @@ for date,id_string,numchan,indirect_range in [
     expected_phase = nddata(exp(r_[0,1,2,3]*pi/2*1j),[4],['ph1'])
     # phase correcting analytic signal by difference between expected and measured phases
     analytic *= expected_phase/measured_phase
+    fl.plot(analytic['indirect',0]['ph1',0]['ph2',0]['ch',1],alpha=0.4,label='bandpass, phase adj')
     print ndshape(analytic)
     analytic.reorder(['indirect','t'],first=False)
     print ndshape(analytic)
-    fl.next('analytic signal')
-    fl.image(analytic)
-    fl.next('coherence domain, ref ch')
+    #fl.next('analytic signal')
+    #fl.image(analytic)
+    #fl.next('coherence domain, ref ch')
     if not single_90:
         coherence_domain = analytic.C.ift(['ph1','ph2'])
     if single_90:
         coherence_domain = analytic.C.ift(['ph1'])
-    fl.image(coherence_domain['ch',1])
+    #fl.image(coherence_domain['ch',1]);fl.show();quit()
     ref_analytic = analytic['ch',1].C
     ref_analytic.ift(['ph1','ph2'])
+    fl.plot(analytic['indirect',0]['ph1',0]['ph2',0]['ch',1],alpha=0.4,label='bandpass, phase adj, coh domain')
     ref_analytic.mean('indirect',return_error=False)
-    ref_analytic.set_units('V')
+    fl.plot(ref_analytic['ph1',-1]['ph2',0],alpha=0.4,label='bandpass, phase adj, coh domain, post avg; 90')
+    fl.plot(ref_analytic['ph1',0]['ph2',-1],alpha=0.4,label='bandpass, phase adj, coh domain, post avg; 180');fl.show();quit()
+    #ref_analytic.set_units('V')
     ref_signal = ref_analytic['ph1',1]['ph2',0]
     fl.next('Reference signal amplitude')
     fl.plot(ref_signal, alpha=0.9)
