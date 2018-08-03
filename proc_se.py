@@ -11,7 +11,7 @@ mpl.rcParams['image.cmap'] = 'jet'
 fl = figlist_var()
 #init_logging(level='debug')
 gain_factor_dcasc12 = sqrt(114008.55204672)   #gain in units of V
-gain_factor_new = sqrt(1332389.726)
+#gain_factor_new = sqrt(73503.77279)
 parser = argparse.ArgumentParser(description='basic command-line options')
 parser.add_argument('--window', '-w',
         help='the maximum size of the window that encompasses all the pulses',
@@ -69,7 +69,8 @@ for date,id_string,numchan,indirect_range in [
     logger.info("*** Code for phase cycling based on 'fix_phase_cycling_180712.py' ***")
     logger.info("WARNING: Need to define time slices for pulses on a by-dataset basis ***")
 
-    s /= gain_factor_dcasc12 # get into units of input-referred Volt
+    s /= gain_factor_dcasc12 
+    #s /= gain_factor_new 
     #s.set_units('V')
     s.labels('ph1',r_[0:4]/4.)
     s.labels( 'ph2',r_[0:2]/4. )
@@ -158,11 +159,13 @@ for date,id_string,numchan,indirect_range in [
     #     redetermine the center here, and reshift the pulses next
     avg_t = average_time(s_raw['t':(-max_window/2,max_window/2)])
     s_raw.setaxis('t', lambda t: t-avg_t.data.mean())
-    fl.plot(s_raw['indirect',0]['ph1',0]['ph2',0]['ch',1],alpha=0.4,label='post phase adjustments')
+    fl.plot(abs(s_raw['indirect',0]['ph1',0]['ph2',0]['ch',1]), alpha=0.4,label='post phase adjustments')
     # }}}
     # {{{ since this is the last step, take the analytic signal
     #     and then apply the relative shifts again
-    analytic = s_raw.C.ft('t')['t':(13e6,16e6)]
+    analytic = s_raw.C.ft('t')['t':(13e6,16e6)].ift('t')*2 # 2 for the analytic signal
+    fl.plot(abs(analytic['indirect',0]['ph1',0]['ph2',0]['ch',1]),alpha=0.4,label='analytic bandpass')
+    analytic.ft('t')
     analytic.setaxis('t',lambda f: f-carrier_f)
     analytic.set_units('indirect','s')
     phase_factor = analytic.fromaxis('t',lambda x: 1j*2*pi*x)
@@ -176,7 +179,7 @@ for date,id_string,numchan,indirect_range in [
         logger.debug(strm('and after pulse shift',phase_factor))
     analytic *= exp(phase_factor)
     analytic.ift('t')
-    fl.plot(analytic['indirect',0]['ph1',0]['ph2',0]['ch',1],alpha=0.4,label='bandpass')
+    fl.plot(abs(analytic['indirect',0]['ph1',0]['ph2',0]['ch',1]),'--',alpha=0.4,label='an.bp., time shift')
     # }}}
     #{{{ checking phase shifted trigger
     if confirm_triggers:
@@ -219,9 +222,9 @@ for date,id_string,numchan,indirect_range in [
     expected_phase = nddata(exp(r_[0,1,2,3]*pi/2*1j),[4],['ph1'])
     # phase correcting analytic signal by difference between expected and measured phases
     analytic *= expected_phase/measured_phase
-    fl.plot(analytic['indirect',0]['ph1',0]['ph2',0]['ch',1],alpha=0.4,label='bandpass, phase adj')
+    fl.plot(abs(analytic['indirect',0]['ph1',0]['ph2',0]['ch',1]), '--', alpha=0.4, label='bandpass, phase adj')
     print ndshape(analytic)
-    analytic.reorder(['indirect','t'],first=False)
+    analytic.reorder(['indirect','t'], first=False)
     print ndshape(analytic)
     #fl.next('analytic signal')
     #fl.image(analytic)
@@ -233,13 +236,13 @@ for date,id_string,numchan,indirect_range in [
     #fl.image(coherence_domain['ch',1]);fl.show();quit()
     ref_analytic = analytic['ch',1].C
     ref_analytic.ift(['ph1','ph2'])
-    fl.plot(analytic['indirect',0]['ph1',0]['ph2',0]['ch',1],alpha=0.4,label='bandpass, phase adj, coh domain')
+    fl.plot(abs(analytic['indirect',0]['ph1',0]['ph2',0]['ch',1]), '.-', alpha=0.4, label='bandpass, phase adj, coh domain')
     ref_analytic.mean('indirect',return_error=False)
-    fl.plot(ref_analytic['ph1',-1]['ph2',0],alpha=0.4,label='bandpass, phase adj, coh domain, post avg; 90 ch')
-    fl.plot(ref_analytic['ph1',0]['ph2',-1],alpha=0.4,label='bandpass, phase adj, coh domain, post avg; 180 ch')
+    fl.plot(abs(ref_analytic['ph1',-1]['ph2',0]), ':', alpha=0.4,label='bandpass, phase adj, coh domain, post avg; 90 ch')
+    fl.plot(abs(ref_analytic['ph1',0]['ph2',-1]), alpha=0.4,label='bandpass, phase adj, coh domain, post avg; 180 ch')
     ref_analytic *= 3.75
-    fl.plot(ref_analytic['ph1',-1]['ph2',0],alpha=0.4,label='bandpass, phase adj, coh domain, post avg; 90 ch, amp adj')
-    fl.plot(ref_analytic['ph1',0]['ph2',-1],alpha=0.4,label='bandpass, phase adj, coh domain, post avg; 180 ch, amp adj')
+    fl.plot(abs(ref_analytic['ph1',-1]['ph2',0]), '--', alpha=0.4,label='bandpass, phase adj, coh domain, post avg; 90 ch, amp adj')
+    fl.plot(abs(ref_analytic['ph1',0]['ph2',-1]), alpha=0.4,label='bandpass, phase adj, coh domain, post avg; 180 ch, amp adj')
     #ref_analytic.set_units('V')
     s_analytic = analytic['ch',0].C
     if not single_90:
@@ -249,6 +252,7 @@ for date,id_string,numchan,indirect_range in [
     fl.next('coherence, sig ch, t domain')
     fl.image(s_analytic)
     print ndshape(s_analytic)
+    s_analytic = s_analytic.mean('indirect',return_error=False)
     signal = s_analytic['ph1',1]['ph2',0]
     signal.name('Amplitude (Input-referred)')
     print ndshape(signal)
@@ -258,7 +262,9 @@ for date,id_string,numchan,indirect_range in [
     signal_real.set_units('V')
     signal_imag = signal.imag
     signal_imag.set_units('V')
-    fl.next('Signal, without averaging')
+    fl.next('Signal, with averaging')
+    fl.plot(signal_imag,alpha=0.4,label='imag');fl.show();quit()
+    fl.next('signal, without averaging')
     for x in xrange(len(s_analytic.getaxis('indirect'))):
         #fl.plot(signal_real['indirect',x],alpha=0.4,label='real %d'%x)
         fl.plot(signal_imag['indirect',x],alpha=0.4,label='imag %d'%x)
