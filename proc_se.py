@@ -11,7 +11,8 @@ mpl.rcParams['image.cmap'] = 'jet'
 fl = figlist_var()
 init_logging(level='debug')
 gain_factor_dcasc12 = sqrt(114008.55204672)   #gain in units of V
-#gain_factor_new = sqrt(73503.77279)
+gain_factor_new = sqrt(73503.77279)
+print (gain_factor_dcasc12/gain_factor_new)**2
 parser = argparse.ArgumentParser(description='basic command-line options')
 parser.add_argument('--window', '-w',
         help='the maximum size of the window that encompasses all the pulses',
@@ -69,8 +70,8 @@ for date,id_string,numchan,indirect_range in [
     logger.info("*** Code for phase cycling based on 'fix_phase_cycling_180712.py' ***")
     logger.info("WARNING: Need to define time slices for pulses on a by-dataset basis ***")
 
-    s /= gain_factor_dcasc12 
-    #s /= gain_factor_new 
+    #s /= gain_factor_dcasc12 
+    s /= gain_factor_new 
     #s.set_units('V')
     s.labels('ph1',r_[0:4]/4.)
     s.labels( 'ph2',r_[0:4:2]/4. )
@@ -243,17 +244,9 @@ for date,id_string,numchan,indirect_range in [
     analytic.name('Amplitude (Input-referred)')
     print ndshape(analytic)
     analytic = analytic['t':(109e-6,None)]
-    signal_real = analytic.real
-    signal_real.set_units('V')
-    signal_imag = analytic.imag
-    signal_imag.set_units('V')
-    #fl.next('Signal, with averaging')
-    #fl.plot(signal_imag,alpha=0.4,label='imag');fl.show();quit()
-    #fl.next('analytic, without averaging')
-    #for x in xrange(len(analytic['ch',0].getaxis('indirect'))):
-    #    ##fl.plot(signal_real['indirect',x],alpha=0.4,label='real %d'%x)
-    #    #fl.plot(signal_imag['indirect',x],alpha=0.4,label='imag %d'%x)
-    fl.show();quit()
-
+    fl.next('Signal, with averaging')
+    fl.plot(analytic.imag,alpha=0.4,label='imag')
+    fl.plot(analytic.real,alpha=0.4,label='real')
+    fl.plot(abs(analytic),color='k',alpha=0.4,label='abs')
 fl.show()
 
