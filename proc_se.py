@@ -69,7 +69,7 @@ for date,id_string,numchan,indirect_range in [
     logger.info("*** Code for phase cycling based on 'fix_phase_cycling_180712.py' ***")
     logger.info("WARNING: Need to define time slices for pulses on a by-dataset basis ***")
 
-    #s /= gain_factor_new # get into units of input-referred Volt
+    s /= gain_factor_dcasc12 # get into units of input-referred Volt
     #s.set_units('V')
     s.labels('ph1',r_[0:4]/4.)
     s.labels( 'ph2',r_[0:2]/4. )
@@ -235,12 +235,12 @@ for date,id_string,numchan,indirect_range in [
     ref_analytic.ift(['ph1','ph2'])
     fl.plot(analytic['indirect',0]['ph1',0]['ph2',0]['ch',1],alpha=0.4,label='bandpass, phase adj, coh domain')
     ref_analytic.mean('indirect',return_error=False)
-    fl.plot(ref_analytic['ph1',-1]['ph2',0],alpha=0.4,label='bandpass, phase adj, coh domain, post avg; 90')
-    fl.plot(ref_analytic['ph1',0]['ph2',-1],alpha=0.4,label='bandpass, phase adj, coh domain, post avg; 180');fl.show();quit()
+    fl.plot(ref_analytic['ph1',-1]['ph2',0],alpha=0.4,label='bandpass, phase adj, coh domain, post avg; 90 ch')
+    fl.plot(ref_analytic['ph1',0]['ph2',-1],alpha=0.4,label='bandpass, phase adj, coh domain, post avg; 180 ch')
+    ref_analytic *= 3.75
+    fl.plot(ref_analytic['ph1',-1]['ph2',0],alpha=0.4,label='bandpass, phase adj, coh domain, post avg; 90 ch, amp adj')
+    fl.plot(ref_analytic['ph1',0]['ph2',-1],alpha=0.4,label='bandpass, phase adj, coh domain, post avg; 180 ch, amp adj')
     #ref_analytic.set_units('V')
-    ref_signal = ref_analytic['ph1',1]['ph2',0]
-    fl.next('Reference signal amplitude')
-    fl.plot(ref_signal, alpha=0.9)
     s_analytic = analytic['ch',0].C
     if not single_90:
         s_analytic.ift(['ph1','ph2'])
@@ -253,6 +253,7 @@ for date,id_string,numchan,indirect_range in [
     signal.name('Amplitude (Input-referred)')
     print ndshape(signal)
     signal = signal['t':(109e-6,None)]
+    signal *= 3.75
     signal_real = signal.real
     signal_real.set_units('V')
     signal_imag = signal.imag
