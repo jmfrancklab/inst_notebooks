@@ -69,6 +69,7 @@ for date,id_string,numchan,indirect_range in [
     logger.info("WARNING: Need to define time slices for pulses on a by-dataset basis ***")
 
     s /= gain_factor_dcasc12 # get into units of input-referred Volt
+    s.set_units('V')
     s.labels('ph1',r_[0:4]/4.)
     s.labels( 'ph2',r_[0:2]/4. )
     s_raw = s.C.reorder('t',first=False)
@@ -77,11 +78,8 @@ for date,id_string,numchan,indirect_range in [
     s = s['t':(0,None)]
     s.setaxis('t',lambda f: f-carrier_f)
     s.ift('t')
-
     single_90 = False 
     confirm_triggers = False 
-    fl.next('raw')
-    fl.plot(s['indirect',0]['ch',0]['ph1',0]['ph2',0])
     #{{{ confirm that different phases trigger differently due to differing rising edges
     if confirm_triggers:
         print ndshape(s)
@@ -218,7 +216,7 @@ for date,id_string,numchan,indirect_range in [
     print ndshape(analytic)
     analytic.reorder(['indirect','t'],first=False)
     print ndshape(analytic)
-    fl.next('analytic signal, ref ch')
+    fl.next('analytic signal')
     fl.image(analytic)
     fl.next('coherence domain, ref ch')
     if not single_90:
@@ -226,6 +224,13 @@ for date,id_string,numchan,indirect_range in [
     if single_90:
         coherence_domain = analytic.C.ift(['ph1'])
     fl.image(coherence_domain['ch',1])
+    ref_analytic = analytic['ch',1].C
+    ref_analytic.ift(['ph1','ph2'])
+    ref_analytic.mean('indirect',return_error=False)
+    ref_analytic.set_units('V')
+    ref_signal = ref_analytic['ph1',1]['ph2',0]
+    fl.next('Reference signal amplitude')
+    fl.plot(ref_signal, alpha=0.9)
     s_analytic = analytic['ch',0].C
     if not single_90:
         s_analytic.ift(['ph1','ph2'])
@@ -234,47 +239,19 @@ for date,id_string,numchan,indirect_range in [
     fl.next('coherence, sig ch, t domain')
     fl.image(s_analytic)
     print ndshape(s_analytic)
-    s_analytic.mean('indirect',return_error=False)
-    s_analytic.set_units('V')
-    if not single_90:
-        signal = s_analytic['ph1',1]['ph2',0]
-    if single_90:
-        signal = (s_analytic['ph1',-1])
-    #fl.next('image, abs(signal), t domain')
-    #fl.image(signal['t':(35e-6,None)])
-    #cropped_signal = signal.C.cropped_log()
-    #fl.next('image, abs(signal), t domain, cropped')
-    #fl.image(cropped_signal['t':(35e-6,None)])
-    #{{{ for measuring offset
-    #fl.next('Checking offset')
-    #for x in xrange(ndshape(signal)['indirect']):
-    #    fl.plot(signal['indirect',x],alpha=0.34,label='cycle no. %d'%x)
-    #for x,t_90 in enumerate(indirect_range):
-    #    fl.next('plotting')
-    #    fl.plot(signal['indirect',x],label='%f'%t_90)
-    #}}}
-    #{{{ for plotting signal(t) 
+    signal = s_analytic['ph1',1]['ph2',0]
     signal.name('Amplitude (Input-referred)')
     print ndshape(signal)
-    #{{{ for checking each coherence pathway
-    #for ph2 in xrange(ndshape(s_analytic)['ph2']):
-    #    for ph1 in xrange(ndshape(s_analytic)['ph1']):
-    #        fl.next(r'$\Delta_{c_{1}}$ = %d, $\Delta_{c_{2}}$ = %d'%(ph1,ph2))
-    #        fl.plot(s_analytic['ph1',ph1]['ph2',ph2],alpha=0.4) # in order to see units
-    #        #xlim(100,None) #units of 1e-6 seconds
-    #}}}
-    fl.next(r'$\Delta_{c_{1}}$ = -1, $\Delta_{c_{2}}$ = 0,$\pm 2$')
-    #for x in xrange(ndshape(signal)['indirect']):
-    #    fl.plot(signal['indirect',x],alpha=0.4) # in order to see units
-    #fl.plot(signal,alpha=0.45)
     signal = signal['t':(109e-6,None)]
     signal_real = signal.real
     signal_real.set_units('V')
     signal_imag = signal.imag
     signal_imag.set_units('V')
-    fl.plot(signal_real,alpha=0.4,label='real')
-    fl.plot(signal_imag,alpha=0.4,label='imag')
-    #}}}
+    fl.next('Signal, without averaging')
+    for x in xrange(len(s_analytic.getaxis('indirect'))):
+        fl.plot(signal_real['indirect',x],alpha=0.4,label='real %d'%x)
+        fl.plot(signal_imag['indirect',x],alpha=0.4,label='imag %d'%x)
+    fl.show();quit()
 
 fl.show()
 
