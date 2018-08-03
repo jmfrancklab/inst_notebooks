@@ -11,6 +11,7 @@ mpl.rcParams['image.cmap'] = 'jet'
 fl = figlist_var()
 #init_logging(level='debug')
 gain_factor_dcasc12 = sqrt(114008.55204672)   #gain in units of V
+gain_factor_new = sqrt(1332389.726)
 parser = argparse.ArgumentParser(description='basic command-line options')
 parser.add_argument('--window', '-w',
         help='the maximum size of the window that encompasses all the pulses',
@@ -68,7 +69,7 @@ for date,id_string,numchan,indirect_range in [
     logger.info("*** Code for phase cycling based on 'fix_phase_cycling_180712.py' ***")
     logger.info("WARNING: Need to define time slices for pulses on a by-dataset basis ***")
 
-    s /= gain_factor_dcasc12 # get into units of input-referred Volt
+    s /= gain_factor_new # get into units of input-referred Volt
     s.set_units('V')
     s.labels('ph1',r_[0:4]/4.)
     s.labels( 'ph2',r_[0:2]/4. )
@@ -249,7 +250,7 @@ for date,id_string,numchan,indirect_range in [
     signal_imag.set_units('V')
     fl.next('Signal, without averaging')
     for x in xrange(len(s_analytic.getaxis('indirect'))):
-        fl.plot(signal_real['indirect',x],alpha=0.4,label='real %d'%x)
+        #fl.plot(signal_real['indirect',x],alpha=0.4,label='real %d'%x)
         fl.plot(signal_imag['indirect',x],alpha=0.4,label='imag %d'%x)
     fl.show();quit()
 
