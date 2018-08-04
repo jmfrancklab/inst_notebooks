@@ -228,10 +228,8 @@ for date,id_string in [
         #('180610','sweep_pmdpx_LNA2'),
         #('180610','sweep_casc12'),
         ('180610','sweep_pmdpx_casc12'),
-        ('180803','sweep_spec'),
         ('180803','sweep_dcasc'),
-        ('180803','sweep_spec_14p42'),
-        ('180803','sweep_dcasc_14p42'),
+        ('180803','sweep_spec'),
         ]:
     # {{{ plot labels
     if id_string == 'sweep_LNA1':
@@ -245,24 +243,20 @@ for date,id_string in [
     elif id_string == 'sweep_casc12':
         label = 'Cascade (#1,#2)'
     elif id_string == 'sweep_pmdpx_casc12':
-        label = 'Cascade (#1,#2) + Duplexer'
+        label = 'Cascade + Duplexer (June)'
     elif id_string == 'sweep_spec':
         label = 'Spectrometer setup'
     elif id_string == 'sweep_dcasc':
         label = 'Cascade + Duplexer'
-    elif id_string == 'sweep_spec_14p42':
-        label = 'Spectrometer, 14.4289 MHz'
-    elif id_string == 'sweep_dcasc_14p42':
-        label = 'Cascade + Duplexer, 14.4289 MHz'
     else :
         label = '%s'%id_string
         #}}}
     power_plot = gen_power_data(date,id_string,V_AFG,rms_method)
 #    truncate_LNAp = LNA_power['$P_{in}$':((1e2*1e-12),None)]
-    fl.next('Power Curves (%s method)'%method)
+    fl.next('Determining gain factors (%s method)'%method)
     fl.plot(power_plot,'.',label='%s'%label,plottype='loglog',)
     c,result = power_plot.polyfit('$P_{in}  (W)$',force_y_intercept=0)
-    fl.plot(result,label='gain = %0.2f'%(c[0][1]),plottype='loglog')
+    fl.plot(result,label='gain = %0.2f'%(c[0][1]),alpha=0.6,plottype='loglog')
     print "Fit parameters for",id_string
     print c,'\n'
 fl.show()
