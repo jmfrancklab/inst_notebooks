@@ -17,6 +17,8 @@ with SerialInstrument('GDS-3254') as s:
 with SerialInstrument('AFG-2225') as s:
     print s.respond('*idn?')
 
+pulse_90 = True
+
 #{{{ no sys var = default (3 Vpp), 0 = define amplitudes, 1 = choose from amplitudes
 default = True
 try:
@@ -72,10 +74,32 @@ if not default:
             #}}}
 print "Will set amplitude to:",ref_amp,"V"
     #}}}
-with AFG() as a:
-    a.reset()
+#{{{ Generating arbitrary waveform
+if pulse_90:
+    freq = 14.4289e6 #[Hz]
+    t_90 = 7.45e-6 #[micro sec]
+    freq_carrier = freq     #[Hz] rf pulse frequency
+    points_total = 4096     #[pts] total points, property of AFG
+    rate = freq_carrier*4   #[pts/sec] AFG requires for arb waveform
+    time_spacing = 1/rate   #[sec] time between points  
+    time_total = time_spacing * points_total #[sec] total time of sequence, allowed by AFG
+    points_90 = t_90/time_spacing
+    print "LENGTH OF 90 PULSE:",t_90
+    points_seq = points_90
+    print "LENGTH OF PULSE SEQUENCE:",t_90
+    print "POINTS IN 90 PULSE:",points_90
+    print "POINTS IN PULSE SEQUENCE:",points_90
+    t = r_[0 : int(points_seq)]
+    freq_sampling = 0.25
+    y = exp(1j*2*pi*t[1 : -1]*freq_sampling)
+    y[0] = 0
+    y[-1] = 0
+if not pulse_90: # standard chirp
     t = r_[0:4096]
     y = imag(exp(1j*2*pi*0.25*(1-0.5/4096.*t)*t))
+    #}}}
+with AFG() as a:
+    a.reset()
     DUT_amp = sqrt(((((ref_amp/2/sqrt(2))**2)/50)/4)*50)*2*sqrt(2)
     for this_ch in range(2):
         a[this_ch].digital_ndarray(y,rate=100e6)
@@ -112,7 +136,7 @@ while try_again:
     data_name = 'capture%d'%j
     data.name(data_name)
     try:
-        data.hdf5_write('180714_test_chirp_3.h5')
+        data.hdf5_write('180806_pulse_reflection.h5')
         try_again = False
     except Exception as e:
         print e
