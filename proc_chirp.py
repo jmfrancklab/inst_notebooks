@@ -17,9 +17,10 @@ with figlist_var(filename='chirp.pdf') as fl:
             #('180708','chirp_probes_magnet_2',True),   # B_0 = 3410.55 G, sample   
             #('180712','test_chirp',True),   # B_0 = 3394.80 G, sample   
             #('180712','test_chirp_2',True),   # B_0 = 3394.80 G, sample   
-            ('180714','test_chirp',True),   # B_0 = 3396.25 G, sample   
-            ('180714','test_chirp_2',True),   # B_0 = 3394.25 G, sample   
-            ('180714','test_chirp_3',True),   # B_0 = 3395.75 G, sample   
+            #('180714','test_chirp',True),   # B_0 = 3396.25 G, sample   
+            #('180714','test_chirp_2',True),   # B_0 = 3394.25 G, sample   
+            #('180714','test_chirp_3',True),   # B_0 = 3395.75 G, sample   
+            ('180806','pulse_reflection',True),
             ]:
 #{{{ finding file
         try:
@@ -39,27 +40,36 @@ with figlist_var(filename='chirp.pdf') as fl:
                 d = nddata_hdf5(date+'_'+id_string+'.h5/capture1',
                             directory=getDATADIR(exp_type='test_equip'))
                 #}}}
+        if 'pulse' in id_string:
+            pulse_90 = True
+        else :
+            pulse_90 = False
         d.set_units('t','s')
-#        fl.next('plot ch 0 %s'%id_string)
-#        fl.plot(d['ch',0],alpha=0.15,label='raw data')
-#        fl.next('plot ch 1 %s'%id_string)
-#        fl.plot(d['ch',1],alpha=0.15,label='raw data')
+        fl.next('plot ch 0 %s'%id_string)
+        fl.plot(d['ch',0],alpha=0.6,label='raw data')
+        fl.next('plot ch 1 %s'%id_string)
+        fl.plot(d['ch',1],alpha=0.6,label='raw data')
         d.ft('t',shift=True)
-        d = d['t':(0,100e6)] # throw out negative frequencies and low-pass
+        d = d['t':(0,None)] # throw out negative frequencies and low-pass
         d.reorder('ch', first=False) # move ch dimension last
         d.ift('t')
-        ranges = abs(d)['ch',0].contiguous(lambda x: x > 0.09*x.data.max())
+        d *= 2
+        if not pulse_90:
+            ranges = abs(d)['ch',0].contiguous(lambda x: x > 0.09*x.data.max())
+        if pulse_90:
+            ranges = abs(d)['ch',0].contiguous(lambda x: x > 0.03*x.data.max())
         ranges = ranges[0,:].tolist()
         print 'Slicing chirp for',id_string,'from',ranges[0]*1e6,'to',ranges[1]*1e6,'us...'
         d = d['t':tuple(ranges)]
-#        fl.next('plot ch 0 %s'%id_string)
-#        fl.plot(d['ch',0],alpha=0.3,label='processed')
-#        fl.next('plot ch 1 %s'%giid_string)
-#        fl.plot(d['ch',1],alpha=0.3,label='processed')
+        fl.next('plot ch 0 %s'%id_string)
+        fl.plot(d['ch',0],':',alpha=0.9,label='processed')
+        fl.next('plot ch 1 %s'%id_string)
+        fl.plot(d['ch',1],':',alpha=0.9,label='processed')
         label=id_string
-        d.setaxis('t', lambda x: x-d.getaxis('t')[0]) #
-        d.setaxis('t', lambda x: 25e6-x*25e6/4096e-8)
-        d.rename('t','f').set_units('f','Hz')
+        d.setaxis('t', lambda x: x-d.getaxis('t')[0])
+        if not pulse_90:
+            d.setaxis('t', lambda x: 25e6-x*25e6/4096e-8)
+            d.rename('t','f').set_units('f','Hz')
         fl.next('$S_{11}$ : analytic amplitude')
         ratio = d['ch',1]/d['ch',0]
         plot_params = dict(alpha=0.4,
@@ -72,7 +82,7 @@ with figlist_var(filename='chirp.pdf') as fl:
             fl.plot(abs(ratio),'-', **plot_params) 
         if not corrected_volt:
             fl.plot(2*abs(ratio),'.', **plot_params)
-        axhline(0.425, color='black')
+        #axhline(0.425, color='black')
         fl.next('$S_{11}$ : phase')
         fl.plot((ratio).angle/pi, '.', **plot_params)
         expno += 1 

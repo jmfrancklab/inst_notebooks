@@ -102,7 +102,10 @@ with AFG() as a:
     a.reset()
     DUT_amp = sqrt(((((ref_amp/2/sqrt(2))**2)/50)/4)*50)*2*sqrt(2)
     for this_ch in range(2):
-        a[this_ch].digital_ndarray(y,rate=100e6)
+        if pulse_90:
+            a[this_ch].digital_ndarray(y,rate)
+        if not pulse_90:
+            a[this_ch].digital_ndarray(y,rate=100e6)
         a[this_ch].output = True
     for this_ch in range(2):
         a[this_ch].burst = True
