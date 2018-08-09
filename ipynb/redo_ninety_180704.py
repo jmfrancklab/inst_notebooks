@@ -1,7 +1,7 @@
 
 # coding: utf-8
 
-# 
+# In[1]:
 
 get_ipython().magic(u'load_ext pyspecdata.ipy')
 from pyspecdata import strm, gammabar_H, k_B, hbar
@@ -17,7 +17,7 @@ def mdown(x):
 # 
 # ## Physical constants
 
-# 
+# In[2]:
 
 mu0 = 4*pi*1e-7 #permeability of free space in Tm/A
 gamma_H = 2*pi*gammabar_H #gyromagnetic ratio for H in Hz/T
@@ -29,7 +29,7 @@ h = hbar*2*pi #Planck constant in Js
 # 
 # Parameters measured on solenoid of interest (second 0.55 uH solenoid)
 
-# 
+# In[3]:
 
 L = 0.55e-6 #inductance in microHenries
 l = 22.89e-3 #length of coil in mm
@@ -43,7 +43,7 @@ tube_ID = 4.93e-3
 # 
 # power, impedance, temperature, etc
 
-# 
+# In[4]:
 
 P = 51.8 #pulse power in Watts
 R = 50. #resistance in Ohms
@@ -55,7 +55,7 @@ t90 = 7.45e-6
 # # What is the actual conversion Factor
 # so that we can compare to prediction, below
 
-# 
+# In[5]:
 
 nu1 = 1./(4*t90)
 mdown((r'$\omega_1/2\pi=%0.1f$ kHz'%(nu1/1e3)))
@@ -109,7 +109,7 @@ mdown(r'$c=%0.2e\;\text{T}/\sqrt{\text{W}}$'%c_exp)
 # Rearranging to get a conversion factor
 # $$\frac{B_1}{\sqrt{P}} = \sqrt{\frac{Q \mu_0}{2 V_c \omega_0}}$$
 
-# 
+# In[6]:
 
 V_sample = pi*(tube_ID/2)**2*l # replaced with 5mm diameter NMR tube
 mdown("Sample volume %.2e $m^3$ "%V_sample)
@@ -127,6 +127,8 @@ mdown(r"Ratio of the actual effective cavity volume to the calculated $V_{c,actu
 # ## (chronologically earlier) Before starting experiments, guess the ninety time
 # Now, we convert this to a ninety time
 
+# In[7]:
+
 B1 = c_calc*sqrt(P)
 omega_1 = gamma_H * B1
 mdown(u'Ninety time is %0.2f μs'%(pi/2./omega_1/1e-6))
@@ -136,11 +138,15 @@ mdown(u'Ninety time is %0.2f μs'%(pi/2./omega_1/1e-6))
 # $[^1H \text{spins}/\text{m}^3] = [2
 # \text{protons}][55 \text{M}][\text{1e3} \text{L}/\text{m}^3]$
 
+# In[8]:
+
 N = 2.*55e3*N_A
 
 
 # $M_0$ from Cavanagh
 # $M_0 = \frac{N \gamma \hbar^2 \omega_0 I \left( I+1 \right)}{3 k_B T}$ 
+
+# In[9]:
 
 T = 298.
 I = 0.5
@@ -156,7 +162,19 @@ M0 = N * omega0  * gamma_H * hbar**2 * I * (I+1) / (3 * k_B * T)
 # $$V_{signal} = \frac{\omega_0 M_0 B_1 V_{sample}}{I}$$
 # substituting $P = I^2 Z_0$, we get
 # $$V_{signal} = \omega_0 M_0 c V_{sample}\sqrt{Z_0}$$
+# 
+# Definition of conversion factor assumes $B_{1}$ in rotating frame, however current expression for $V_{signal}$ (derived from emf induced in a solenoid) assumes a stiatic $B_{1}$ -- recall that $ B_{1,rot} = \frac{1}{2} B_{1,static} $ therefore $V_{signal}$ requires multiplication by a factor of 2 coming from this correction to the conversion factor.
+# 
+# Thus,
+# $$V_{signal} = \omega_0 M_0 2 c V_{sample} \sqrt{Z_0} $$
 
-V_signal = M0 * omega0 * V_sample * c_exp * sqrt(50.)
+# In[11]:
+
+V_signal = M0 * omega0 * V_sample * 2 * c_exp * sqrt(50.)
 mdown(r'$V_{signal} = %0.2f\;\mu\text{V}$'%(V_signal/1e-6))
+
+
+# In[ ]:
+
+
 
