@@ -246,9 +246,9 @@ for k, v in gain_factor.items():
         analytic.name('Amplitude (Input-referred)')
         print ndshape(analytic)
         analytic = analytic['t':(109e-6,None)]
-        fl.next('abs(Signal), with averaging')
-        #fl.plot(analytic.imag,alpha=0.4,label='imaginary')
-        #fl.plot(analytic.real,alpha=0.4,label='real')
-        fl.plot(abs(analytic),alpha=0.4,label='gain = sqrt(%0.2f)'%this_gain)
+        fl.next('Signal, with averaging, gain = sqrt(%0.2f)'%this_gain)
+        fl.plot(analytic.imag,alpha=0.4,label='imaginary')
+        fl.plot(analytic.real,alpha=0.4,label='real')
+        fl.plot(abs(analytic),color='k',alpha=0.4,label='abs')
 fl.show()
 
