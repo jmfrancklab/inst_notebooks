@@ -45,9 +45,12 @@ with figlist_var(filename='chirp.pdf') as fl:
         else :
             pulse_90 = False
         d.set_units('t','s')
-        fl.next('plot ch 0 %s'%id_string)
+        d.name('Amplitude $/$ $V$')
+        #fl.next('plot ch 0 %s'%id_string)
+        fl.next('Control channel pulse')
         fl.plot(d['ch',0],alpha=0.6,label='raw data')
-        fl.next('plot ch 1 %s'%id_string)
+        #fl.next('plot ch 1 %s'%id_string)
+        fl.next('Test channel pulse')
         fl.plot(d['ch',1],alpha=0.6,label='raw data')
         d.ft('t',shift=True)
         d = d['t':(0,None)] # throw out negative frequencies and low-pass
@@ -61,23 +64,28 @@ with figlist_var(filename='chirp.pdf') as fl:
         ranges = ranges[0,:].tolist()
         print 'Slicing chirp for',id_string,'from',ranges[0]*1e6,'to',ranges[1]*1e6,'us...'
         d = d['t':tuple(ranges)]
-        fl.next('plot ch 0 %s'%id_string)
+        #fl.next('plot ch 0 %s'%id_string)
+        fl.next('Control channel pulse')
         fl.plot(d['ch',0],':',alpha=0.9,label='processed')
-        fl.next('plot ch 1 %s'%id_string)
+        xlim(8,18)
+        #fl.next('plot ch 1 %s'%id_string)
+        fl.next('Test channel pulse')
         fl.plot(d['ch',1],':',alpha=0.9,label='processed')
-        label=id_string
+        xlim(8,18)
+        #label=id_string
         d.setaxis('t', lambda x: x-d.getaxis('t')[0])
         if not pulse_90:
             d.setaxis('t', lambda x: 25e6-x*25e6/4096e-8)
             d.rename('t','f').set_units('f','Hz')
         fl.next('$S_{11}$ : analytic amplitude')
         ratio = d['ch',1]/d['ch',0]
-        plot_params = dict(alpha=0.4,
+        ratio.name('Reflection')
+        plot_params = dict(alpha=0.8,
                 markersize=2,
-                label='%s'%label
+                #label='%s'%label
                 )
-        if 'control' in label:
-            plot_params['color'] = 'k'
+        #if 'control' in label:
+        #    plot_params['color'] = 'k'
         if corrected_volt:
             fl.plot(abs(ratio),'-', **plot_params) 
         if not corrected_volt:
