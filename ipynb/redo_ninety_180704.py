@@ -54,14 +54,17 @@ t90 = 7.45e-6
 
 # # What is the actual conversion Factor
 # so that we can compare to prediction, below
+# 
+# recall that $B_{1,rot} = \frac{1}{2} B_{1,lab\;frame}$ therefore requires multiplication by a factor of 2 coming to get correct conversion factor
 
-# In[5]:
+# In[6]:
 
 nu1 = 1./(4*t90)
 mdown((r'$\omega_1/2\pi=%0.1f$ kHz'%(nu1/1e3)))
-B1 = nu1/gammabar_H
-mdown(r'$B_1=%0.2e\;\text{T}$'%B1)
-c_exp = B1/sqrt(P)
+B1_rotfr = nu1/gammabar_H
+mdown(r'$B_1=%0.2e\;\text{T}$'%B1_rotfr)
+B1_lf = B1_rotfr*2 # to convert to the lab frame
+c_exp = B1_lf/sqrt(P)
 mdown(r'$c=%0.2e\;\text{T}/\sqrt{\text{W}}$'%c_exp)
 
 
@@ -99,24 +102,22 @@ mdown(r'$c=%0.2e\;\text{T}/\sqrt{\text{W}}$'%c_exp)
 # $$P = \frac{E \omega_0}{Q}$$
 # Now, what is $E$?
 # There is a [standard formula for this](http://hyperphysics.phy-astr.gsu.edu/hbase/electric/engfie.html)
-# $$E = \frac{1}{2} \frac{B_{1,lp}^2}{\mu_0} V_c$$
-# Where $B_{1,lp}$ is the amplitude of the linearly polarized field in the  lab frame,
+# $$E = \frac{1}{2} \frac{B_{1,lf}^2}{\mu_0} V_c$$
+# Where $B_{1,lf}$ is the amplitude of the linearly polarized field in the  lab frame,
 # and $V_c$ is Mims' "effective cavity volume," which we take to be the coil volume.
 # Now, we have:
-# $$P = \frac{1}{2} \frac{B_{1,lp}^2 \omega_0 V_c}{Q \mu_0}$$
-# Next we need to note that $B_1$ in the rotating frame is $B_1 = \frac{1}{2} B_{1,lp}$, so that:
-# $$P = 2 \frac{B_1^2 V_c \omega_0}{Q \mu_0}$$
+# $$P = \frac{1}{2} \frac{B_{1,lf}^2 \omega_0 V_c}{Q \mu_0}$$
 # Rearranging to get a conversion factor
-# $$\frac{B_1}{\sqrt{P}} = \sqrt{\frac{Q \mu_0}{2 V_c \omega_0}}$$
+# $$\frac{B_{1,lf}}{\sqrt{P}} = \sqrt{\frac{2 Q \mu_0}{V_c \omega_0}}$$
 
-# In[15]:
+# In[7]:
 
 V_sample = pi*(tube_ID/2)**2*l # replaced with 5mm diameter NMR tube
 mdown("Sample volume %.2e $m^3$ "%V_sample)
 Vc = pi*(CD/2)**2*l
 mdown("Coil volume %.2e $m^3$ "%Vc)
 
-c_calc = sqrt(Q*mu0/(2*Vc*omega0))
+c_calc = sqrt(2*Q*mu0/(Vc*omega0))
 mdown(r"Calculated conversion factor %.2e $T/\sqrt{W}$ "%c_calc)
 mdown(r"Calculated conversion factor %.2f $G/\sqrt{W}$ "%(c_calc/1e-4))
 mdown(r"Experimental conversion factor %.5f $G/\sqrt{W}$ "%(c_exp))
@@ -129,10 +130,11 @@ mdown(r"Ratio of the actual effective cavity volume to the calculated $V_{c,actu
 # ## (chronologically earlier) Before starting experiments, guess the ninety time
 # Now, we convert this to a ninety time
 
-# In[7]:
+# In[8]:
 
-B1 = c_calc*sqrt(P)
-omega_1 = gamma_H * B1
+B1_lf = c_calc*sqrt(P)
+B1_rotfr = B1_lf/2
+omega_1 = gamma_H * B1_rotfr
 mdown(u'Ninety time is %0.2f μs'%(pi/2./omega_1/1e-6))
 
 
@@ -140,7 +142,7 @@ mdown(u'Ninety time is %0.2f μs'%(pi/2./omega_1/1e-6))
 # $[^1H \text{spins}/\text{m}^3] = [2
 # \text{protons}][55 \text{M}][\text{1e3} \text{L}/\text{m}^3]$
 
-# In[8]:
+# In[9]:
 
 N = 2.*55e3*N_A
 
@@ -148,7 +150,7 @@ N = 2.*55e3*N_A
 # $M_0$ from Cavanagh
 # $M_0 = \frac{N \gamma \hbar^2 \omega_0 I \left( I+1 \right)}{3 k_B T}$ 
 
-# In[9]:
+# In[10]:
 
 T = 298.
 I = 0.5
@@ -165,14 +167,14 @@ M0 = N * omega0  * gamma_H * hbar**2 * I * (I+1) / (3 * k_B * T)
 # substituting $P = I^2 Z_0$, we get
 # $$V_{signal} = \omega_0 M_0 c V_{sample}\sqrt{Z_0}$$
 # 
-# Definition of conversion factor assumes $B_{1}$ in rotating frame, however current expression for $V_{signal}$ (derived from emf induced in a solenoid) assumes a stiatic $B_{1}$ -- recall that $ B_{1,rot} = \frac{1}{2} B_{1,static} $ therefore $V_{signal}$ requires multiplication by a factor of 2 coming from this correction to the conversion factor.
+# Definition of conversion factor assumes $B_{1}$ in rotating frame, however current expression for $V_{signal}$ (can be illustrated by emf induced in a solenoid) assumes a stiatic $B_{1}$ -- 
 # 
 # Thus,
-# $$V_{signal} = \omega_0 M_0 2 c V_{sample} \sqrt{Z_0} $$
+# $$V_{signal} = \omega_0 M_0 c V_{sample} \sqrt{Z_0} $$
 
-# In[10]:
+# In[11]:
 
-V_signal = M0 * omega0 * V_sample * 2 * c_exp * sqrt(50.)
+V_signal = M0 * omega0 * V_sample * c_exp * sqrt(50.)
 mdown(r'$V_{signal} = %0.2f\;\mu\text{V}$'%(V_signal/1e-6))
 
 
