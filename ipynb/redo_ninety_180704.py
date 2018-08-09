@@ -109,7 +109,7 @@ mdown(r'$c=%0.2e\;\text{T}/\sqrt{\text{W}}$'%c_exp)
 # Rearranging to get a conversion factor
 # $$\frac{B_1}{\sqrt{P}} = \sqrt{\frac{Q \mu_0}{2 V_c \omega_0}}$$
 
-# In[6]:
+# In[15]:
 
 V_sample = pi*(tube_ID/2)**2*l # replaced with 5mm diameter NMR tube
 mdown("Sample volume %.2e $m^3$ "%V_sample)
@@ -117,11 +117,13 @@ Vc = pi*(CD/2)**2*l
 mdown("Coil volume %.2e $m^3$ "%Vc)
 
 c_calc = sqrt(Q*mu0/(2*Vc*omega0))
-mdown(r"Conversion factor %.2e $T/\sqrt{W}$ "%c_calc)
-mdown(r"Conversion factor %.2f $G/\sqrt{W}$ "%(c_calc/1e-4))
+mdown(r"Calculated conversion factor %.2e $T/\sqrt{W}$ "%c_calc)
+mdown(r"Calculated conversion factor %.2f $G/\sqrt{W}$ "%(c_calc/1e-4))
+mdown(r"Experimental conversion factor %.5f $G/\sqrt{W}$ "%(c_exp))
+mdown(r"Experimental conversion factor %.2f $G/\sqrt{W}$ "%(c_exp/1e-4))
 Vol_ratio = (c_calc/c_exp)**2
 mdown(r"Conversion factor %.2f $G/\sqrt{W}$ "%(c_calc/1e-4))
-mdown(r"Ratio of the actual effective cavity volume to the calculated $V_{c,actual}/V_{c,calc}$: %0.3f"%(c_calc/1e-4))
+mdown(r"Ratio of the actual effective cavity volume to the calculated $V_{c,actual}/V_{c,calc}$: %0.3f"%(Vol_ratio))
 
 
 # ## (chronologically earlier) Before starting experiments, guess the ninety time
@@ -168,7 +170,7 @@ M0 = N * omega0  * gamma_H * hbar**2 * I * (I+1) / (3 * k_B * T)
 # Thus,
 # $$V_{signal} = \omega_0 M_0 2 c V_{sample} \sqrt{Z_0} $$
 
-# In[11]:
+# In[10]:
 
 V_signal = M0 * omega0 * V_sample * 2 * c_exp * sqrt(50.)
 mdown(r'$V_{signal} = %0.2f\;\mu\text{V}$'%(V_signal/1e-6))
