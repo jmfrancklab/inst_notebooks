@@ -39,14 +39,12 @@ with figlist_var(filename='chirp.pdf') as fl:
         # {{{ apply a linear phase to find the frequency
         fl.next('test frequency axis')
         frq_test = r_[-0.1e6:0.1e6:200j]+max_frq
-        cost = empty_like(frq_test)
-        for j,test_frq in enumerate(frq_test):
-            test = d['ch',0].C
-            test *= exp(-1j*2*pi*test_frq*d.fromaxis('t'))
-            cost[j] = abs(test.sum('t')).data
-        fl.plot(frq_test,cost)
-        idx = argmax(cost)
-        center_frq = frq_test[idx]
+        f_shift = nddata(frq_test,'f_test')
+        test_array = d['ch',0].C * exp(-1j*2*pi*f_shift*d.fromaxis('t'))
+        test_array.sum('t').run(abs)
+        fl.plot(test_array)
+        center_frq = test_array.argmax('f_test').data
+        print "found center frequency at %0.5f MHz"%(center_frq/1e6)
         # }}}
         # {{{ switch to frequency domain, and relabel using the center frequency
         d.ft('t')
