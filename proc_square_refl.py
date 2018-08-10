@@ -99,6 +99,9 @@ with figlist_var(filename='chirp.pdf') as fl:
         transf_range = (-0.5e-6,3e-6)
         fl.next('the transfer function')
         impulse = exp(-d.fromaxis('t')**2/2/(0.03e-6)**2)
+        ## the following gives a possibility for a causal impulse
+        #impulse = exp(-abs(d.fromaxis('t'))/0.01e-6)
+        #impulse['t':(None,0)] = 0
         fl.plot(impulse['t':transf_range], alpha=0.5, color='k', label='impulse')
         # {{{ not sure if needed -- I'm making sure the frequency axes
         # line up, since the default is to FT back to the same FT
