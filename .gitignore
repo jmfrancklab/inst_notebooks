@@ -8,3 +8,8 @@
 *.h5
 ipynb/auto_figures/
 ipynb/*.pdf
+proc_pulse_RMS.pz~
+proc_se.pw~
+proc_se.px~
+proc_se.pz~
+proc_square_refl.pz~
