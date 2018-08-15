@@ -250,5 +250,86 @@ for k, v in gain_factor.items():
         fl.plot(analytic.imag,alpha=0.4,label='imaginary')
         fl.plot(analytic.real,alpha=0.4,label='real')
         fl.plot(abs(analytic),color='k',alpha=0.4,label='abs')
+        #{{{ mirror image phasing procedure
+        # find the maximum, then center the maximum at t = 0
+        nd_raw = signal.C
+        max_index = abs(nd_raw).argmax('t', raw_index=True).data
+        nd_raw.setaxis('t', lambda x: x - nd_raw.getaxis('t')[max_index])
+        span = 25 # max num of data points before reaching noise
+        #display(abs(nd_raw['t',max_index-span:max_index+span+1]))
+        #display((nd_raw['t',max_index-span:max_index+span+1]).real)
+        #display((nd_raw['t',max_index-span:max_index+span+1]).imag)
+        span_min = nd_raw.getaxis('t')[max_index-span]
+        span_max = nd_raw.getaxis('t')[max_index+span+1]
+        print span_min
+        print span_max
+        # define the region for calculating phase correction
+        figure('raw signal')
+        title('abs, raw signal')
+        fl.next('raw signal')
+        plot(abs(nd_raw),label='abs, raw')
+        axvline(span_min,c='k',alpha=0.6)
+        axvline(span_max,c='k',alpha=0.6)
+        # apply both first and zeroth order phase corrections to signal,
+        # take rmsd of conjugate of time-reflected signal to signal
+        signal_shift = r_[-6e-6:6e-6:1000j]
+        rmsd = empty_like(signal_shift)
+        for j,dt in enumerate(signal_shift):
+            raw = nd_raw.C
+            raw.ft('t')
+            # first order phase-shift, but implemented in time domain
+            # time-shift in time domain is phase-shift in frequency domain
+            raw *= exp(-1j*2*pi*dt*raw.fromaxis('t')) # time-shift 
+            raw.ift('t')
+            raw = raw['t',max_index-span:max_index+span+1]
+            ph = raw.C.sum('t')
+            ph /= abs(ph)
+            # zeroth order phase-shift
+            raw /= ph
+            deviation = conj(raw.data[::-1]) - raw.data
+            rmsd[j] = sum(abs(deviation)**2)   
+        # plot rmsd
+        rmsd_nd = nddata(rmsd,r'$\Delta(t)$').labels(r'$\Delta(t)$',signal_shift).set_units(r'$\Delta(t)$','s')
+        rmsd_nd.name('RMSD')
+        coeff,fit = rmsd_nd.polyfit(r'$\Delta(t)$',order=5)
+        fl.next(r'RMSD: $S(t)$ vs $S^{\ast}(-t)$')
+        fl.plot(rmsd_nd,label='RMSD')
+        fl.plot(fit,label='fit')
+        interp_fit = fit.interp(r'$\Delta(t)$',5000)
+        fl.plot(interp_fit,':',label='interpolated fit',c='k')
+
+        # use minimum of rmsd plot to phase correct 
+        max_index = abs(nd_raw).argmax('t', raw_index=True).data
+        fl.next('Plot comparison')
+        fl.plot(abs(nd_raw))
+        dt = interp_fit.argmin(r'$\Delta(t)$')
+        raw = nd_raw.C
+        raw.ft('t')
+        raw *= exp(-1j*2*pi*dt*raw.fromaxis('t'))
+        raw.ift('t')
+        fl.plot(abs(raw), alpha=0.5)
+        raw_phased = raw.C
+        phase_span = 40
+        max_index = abs(nd_raw).argmax('t', raw_index=True).data
+        phase_data = raw['t',max_index - phase_span : max_index + phase_span + 1]
+        ph = phase_data.C.sum('t')
+        ph /= abs(ph)
+        raw /= ph
+        fl.plot(raw, ':')
+        # plot of the output phased data
+        fl.next('Output data')
+        raw.name('Amplitude')
+        fl.plot(raw.real, c='violet', label='real')
+        fl.plot(abs(raw),':',c='k', label='abs(data)')
+        fl.plot(raw.imag, c='cyan', label='imaginary')
+        gridandtick(gca())
+        # plot of the data input into phasing procedure
+        fl.next('Input data')
+        nd_raw.name('Amplitude')
+        fl.plot(nd_raw.real, c='violet', label='real')
+        fl.plot(abs(nd_raw),':',c='k', label='abs(data)')
+        fl.plot(nd_raw.imag, c='cyan', label='imaginary')
+        gridandtick(gca())
+        #}}}
 fl.show()
 
