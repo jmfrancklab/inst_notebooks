@@ -3,6 +3,7 @@
 
 # In[1]:
 
+
 get_ipython().magic(u'load_ext pyspecdata.ipy')
 from pyspecdata.plot_funcs.image import imagehsv
 import os
@@ -242,23 +243,19 @@ fl.show()
 
 # In[2]:
 
-print ndshape(signal)
+
+# find the maximum, then center the maximum at t = 0
 get_ipython().magic(u'matplotlib inline')
 
 
 # In[3]:
 
-get_ipython().magic(u'matplotlib inline')
 
-
-# In[4]:
-
-# find the maximum, then center the maximum at t = 0
 nd_raw = signal.C
 
 max_index = abs(nd_raw).argmax('t', raw_index=True).data
 nd_raw.setaxis('t', lambda x: x - nd_raw.getaxis('t')[max_index])
-span = 25 # max num of data points before reaching noise
+span = 27 # max num of data points before reaching noise
 display(abs(nd_raw['t',max_index-span:max_index+span+1]))
 display((nd_raw['t',max_index-span:max_index+span+1]).real)
 display((nd_raw['t',max_index-span:max_index+span+1]).imag)
@@ -268,7 +265,6 @@ print span_min
 print span_max
 
 
-# In[7]:
 
 figure('raw signal')
 title('abs, raw signal')
@@ -277,11 +273,13 @@ axvline(span_min, c='k')
 axvline(span_max, c='k')
 
 
-# In[8]:
-
 # perform first order and zeroth order phase corrections to signal,
 # store the rmsd of the conjugate of the reflected corrected signal
-signal_shift = r_[-6e-6:6e-6:1000j]
+
+# In[4]:
+
+
+signal_shift = r_[-6e-6:6e-6:500j]
 rmsd = empty_like(signal_shift)
 for j,dt in enumerate(signal_shift):
     raw = nd_raw.C
@@ -299,7 +297,6 @@ for j,dt in enumerate(signal_shift):
     rmsd[j] = sum(abs(deviation)**2)   
 
 
-# In[37]:
 
 rmsd_nd = nddata(rmsd,'dt').labels('dt',signal_shift).set_units('dt','s')
 rmsd_nd.name('RMSD')
@@ -309,77 +306,205 @@ plot(rmsd_nd)
 plot(fit)
 interp_fit = fit.interp('dt',5000)
 plot(interp_fit,':')
+dt = interp_fit.argmin('dt')
 #rmsd_nd.argmin('dt').data
 
 
-# In[38]:
+# In[5]:
 
-max_index = abs(nd_raw).argmax('t', raw_index=True).data
 
-title('plot comparison')
-plot(abs(nd_raw))
-dt = interp_fit.argmin('dt')
-raw = nd_raw.C
-raw.ft('t')
-raw *= exp(-1j*2*pi*dt*raw.fromaxis('t'))
-raw.ift('t')
-plot(abs(raw), alpha=0.5)
+print dt
 
-raw_phased = raw.C
-phase_span = 10
-max_index = abs(nd_raw).argmax('t', raw_index=True).data
-phase_data = raw['t',max_index - phase_span : max_index + phase_span + 1]
+
+# In[ ]:
+
+
+get_ipython().magic(u'matplotlib notebook')
+
+
+# In[6]:
+
+
+figure();title('plot comparison')
+plot(abs(nd_raw), c='k')
+raw1 = nd_raw.C
+raw1.ft('t')
+raw1 *= exp(1j*2*pi*dt*raw1.fromaxis('t'))
+raw1.ift('t')
+plot(abs(raw1), ':', c='red', alpha=0.5)
+raw2 = nd_raw.C
+raw2.ft('t')
+raw2 *= exp(-1j*2*pi*dt*raw2.fromaxis('t'))
+raw2.ift('t')
+plot(abs(raw2), ':', c='blue', alpha=0.5)
+gridandtick(gca())
+
+
+# In[ ]:
+
+
+get_ipython().magic(u'matplotlib notebook')
+
+
+# In[29]:
+
+
+raw = raw1.C
+
+#raw_phased = raw.C
+ph_span = 45
+max_index = abs(raw).argmax('t', raw_index=True).data
+phase_data = raw['t',max_index - ph_span : max_index + ph_span + 1]
+span_min = raw.getaxis('t')[max_index-ph_span]
+span_max = raw.getaxis('t')[max_index+ph_span+1]
+plot(abs(raw))
+plot(abs(phase_data))
+axvline(span_min, c='k')
+axvline(span_max, c='k')
+gridandtick(gca())
+annotate('span = %d'%len(phase_data.data), (span_min+10e-6,raw.data[max_index]))
+print len(phase_data.data)
+
 ph = phase_data.C.sum('t')
 ph /= abs(ph)
 raw /= ph
-plot(raw, ':')
 
 
-# In[39]:
+# In[16]:
 
+
+# span = 15
+proc_15 = raw.C
+proc_15 = proc_15['t':(0,None)]
+proc_15.ft('t')
+
+
+# In[11]:
+
+
+# span = 10
+proc_10 = raw.C
+proc_10 = proc_10['t':(0,None)]
+proc_10.ft('t')
+
+
+# In[14]:
+
+
+# span = 5
+proc_5 = raw.C
+proc_5 = proc_5['t':(0,None)]
+proc_5.ft('t')
+
+
+# In[26]:
+
+
+proc_25 = raw.C
+proc_25 = proc_25['t':(0,None)]
+proc_25.ft('t')
+
+
+# In[30]:
+
+
+proc_45 = raw.C
+proc_45 = proc_45['t':(0,None)]
+proc_45.ft('t')
+
+
+# In[22]:
+
+
+get_ipython().magic(u'matplotlib notebook')
+
+
+# In[31]:
+
+
+plot(proc_15,alpha=0.5)
+plot(proc_10,alpha=0.5)
+plot(proc_5,alpha=0.5)
+plot(proc_25,alpha=0.5)
+plot(proc_45,alpha=0.5)
+gridandtick(gca())
+
+
+# In[ ]:
+
+
+
+figure();title('Processed data')
 plot(raw, c='violet')
 plot(raw.real,':', c='k')
 plot(raw.imag, c='cyan')
 gridandtick(gca())
 
 
-# In[40]:
-
+figure();title('Raw data')
 plot(nd_raw, c='violet')
 plot(nd_raw.real,':', c='k')
 plot(nd_raw.imag, c='cyan')
 gridandtick(gca())
 
 
-# In[41]:
-
-s = raw.C
-s
+# In[ ]:
 
 
-# In[42]:
-
-s = s['t':(0,None)]
-s
-
-
-# In[43]:
-
-s.ft('t')
+raw_s = nd_raw.C
+raw_s = raw_s['t':(0,None)]
+raw_s.ft('t')
+#plot(raw_s.real, alpha=0.8)
+plot(raw_s.imag, alpha=0.8)
 
 
-# In[26]:
+# In[ ]:
+
+
+get_ipython().magic(u'matplotlib inline')
+
+
+# In[ ]:
+
+
+figure('diff spans')
+title('diff spans')
+
+
+# In[ ]:
+
+
+plot(proc_s.real, alpha=0.8, label = '%d'%ph_span)
+
+
+# In[ ]:
+
+
+plot(proc_s1.real, alpha=0.8, label = '%d'%ph_span)
+
+
+# In[ ]:
+
 
 get_ipython().magic(u'matplotlib notebook')
 
 
-# In[27]:
+# In[ ]:
 
-plot(s.real)
-plot(s.imag)
+
+plot(proc_s.real, c = 'violet')
+plot(raw_s.imag, ':', c = 'k', alpha=0.6)
+#plot(proc_s.imag)
 
 
 # In[ ]:
+
+
+get_ipython().magic(u'matplotlib inline')
+
+
+# In[ ]:
+
 
 
 
