@@ -240,18 +240,18 @@ for date,id_string,numchan,indirect_range in [
 fl.show()
 
 
-# In[153]:
+# In[2]:
 
 print ndshape(signal)
 get_ipython().magic(u'matplotlib inline')
 
 
-# In[216]:
+# In[3]:
 
 get_ipython().magic(u'matplotlib inline')
 
 
-# In[234]:
+# In[4]:
 
 # find the maximum, then center the maximum at t = 0
 nd_raw = signal.C
@@ -268,16 +268,16 @@ print span_min
 print span_max
 
 
-# In[233]:
+# In[7]:
 
 figure('raw signal')
 title('abs, raw signal')
 plot(abs(nd_raw))
-axvline(limit1, c='k')
-axvline(limit2, c='k')
+axvline(span_min, c='k')
+axvline(span_max, c='k')
 
 
-# In[235]:
+# In[8]:
 
 # perform first order and zeroth order phase corrections to signal,
 # store the rmsd of the conjugate of the reflected corrected signal
@@ -299,7 +299,7 @@ for j,dt in enumerate(signal_shift):
     rmsd[j] = sum(abs(deviation)**2)   
 
 
-# In[238]:
+# In[37]:
 
 rmsd_nd = nddata(rmsd,'dt').labels('dt',signal_shift).set_units('dt','s')
 rmsd_nd.name('RMSD')
@@ -312,7 +312,7 @@ plot(interp_fit,':')
 #rmsd_nd.argmin('dt').data
 
 
-# In[239]:
+# In[38]:
 
 max_index = abs(nd_raw).argmax('t', raw_index=True).data
 
@@ -326,7 +326,7 @@ raw.ift('t')
 plot(abs(raw), alpha=0.5)
 
 raw_phased = raw.C
-phase_span = 40
+phase_span = 10
 max_index = abs(nd_raw).argmax('t', raw_index=True).data
 phase_data = raw['t',max_index - phase_span : max_index + phase_span + 1]
 ph = phase_data.C.sum('t')
@@ -335,7 +335,7 @@ raw /= ph
 plot(raw, ':')
 
 
-# In[240]:
+# In[39]:
 
 plot(raw, c='violet')
 plot(raw.real,':', c='k')
@@ -343,7 +343,7 @@ plot(raw.imag, c='cyan')
 gridandtick(gca())
 
 
-# In[241]:
+# In[40]:
 
 plot(nd_raw, c='violet')
 plot(nd_raw.real,':', c='k')
@@ -351,9 +351,32 @@ plot(nd_raw.imag, c='cyan')
 gridandtick(gca())
 
 
-# In[176]:
+# In[41]:
+
+s = raw.C
+s
+
+
+# In[42]:
+
+s = s['t':(0,None)]
+s
+
+
+# In[43]:
+
+s.ft('t')
+
+
+# In[26]:
 
 get_ipython().magic(u'matplotlib notebook')
+
+
+# In[27]:
+
+plot(s.real)
+plot(s.imag)
 
 
 # In[ ]:
