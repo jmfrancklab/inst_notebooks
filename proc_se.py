@@ -252,6 +252,7 @@ for k, v in gain_factor.items():
         fl.plot(abs(analytic),color='k',alpha=0.4,label='abs')
         #{{{ mirror image phasing procedure
         # find the maximum, then center the maximum at t = 0
+        signal = analytic
         nd_raw = signal.C
         max_index = abs(nd_raw).argmax('t', raw_index=True).data
         nd_raw.setaxis('t', lambda x: x - nd_raw.getaxis('t')[max_index])
@@ -330,6 +331,8 @@ for k, v in gain_factor.items():
         fl.plot(abs(nd_raw),':',c='k', label='abs(data)')
         fl.plot(nd_raw.imag, c='cyan', label='imaginary')
         gridandtick(gca())
+
+        
         #}}}
 fl.show()
 
