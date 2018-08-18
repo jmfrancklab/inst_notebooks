@@ -1,10 +1,10 @@
 
 # coding: utf-8
 
-# In[1]:
+# In[88]:
 
-
-get_ipython().magic(u'load_ext pyspecdata.ipy')
+#%load_ext pyspecdata.ipy
+from pyspecdata import *
 from pyspecdata.plot_funcs.image import imagehsv
 import os
 import sys
@@ -241,270 +241,254 @@ for date,id_string,numchan,indirect_range in [
 fl.show()
 
 
-# In[2]:
-
-
 # find the maximum, then center the maximum at t = 0
+
+# In[ ]:
+
+get_ipython().magic(u'matplotlib notebook')
+
+
+# In[89]:
+
+raw = signal.C 
+
+
+# In[90]:
+
 get_ipython().magic(u'matplotlib inline')
 
 
-# In[3]:
+# In[91]:
+
+signal = raw.C ## checkpoint
 
 
-nd_raw = signal.C
+# In[92]:
 
-max_index = abs(nd_raw).argmax('t', raw_index=True).data
-nd_raw.setaxis('t', lambda x: x - nd_raw.getaxis('t')[max_index])
-span = 27 # max num of data points before reaching noise
-display(abs(nd_raw['t',max_index-span:max_index+span+1]))
-display((nd_raw['t',max_index-span:max_index+span+1]).real)
-display((nd_raw['t',max_index-span:max_index+span+1]).imag)
-span_min = nd_raw.getaxis('t')[max_index-span]
-span_max = nd_raw.getaxis('t')[max_index+span+1]
-print span_min
-print span_max
+figure('before entering')
+plot(abs(signal),c='k')
+index_max = abs(signal).argmax('t',raw_index=True).data
+signal.setaxis('t', lambda t: t - signal.getaxis('t')[index_max])
+#figure('after centering')
+plot(abs(signal),':')
+gridandtick(gca())
 
 
+# In[93]:
 
-figure('raw signal')
-title('abs, raw signal')
-plot(abs(nd_raw))
-axvline(span_min, c='k')
-axvline(span_max, c='k')
-
-
-# perform first order and zeroth order phase corrections to signal,
-# store the rmsd of the conjugate of the reflected corrected signal
-
-# In[4]:
-
-
+span = 20
 signal_shift = r_[-6e-6:6e-6:500j]
 rmsd = empty_like(signal_shift)
+figure()
 for j,dt in enumerate(signal_shift):
-    raw = nd_raw.C
-    raw.ft('t')
-    # first order phase-shift, but implemented in time domain
-    # time-shift in time domain is phase-shift in frequency domain
-    raw *= exp(-1j*2*pi*dt*raw.fromaxis('t')) # time-shift 
-    raw.ift('t')
-    raw = raw['t',max_index-span:max_index+span+1]
-    ph = raw.C.sum('t')
-    ph /= abs(ph)
-    # zeroth order phase-shift
-    raw /= ph
-    deviation = conj(raw.data[::-1]) - raw.data
-    rmsd[j] = sum(abs(deviation)**2)   
-
-
-
+    shifted_signal = signal.C
+    shifted_signal.ft('t')
+    ph1 = -1j*2*pi*dt
+    shifted_signal *= exp(ph1*shifted_signal.fromaxis('t'))
+    shifted_signal.ift('t')
+    shifted_signal = shifted_signal['t',index_max-span:index_max+span+1]
+    ph0 = shifted_signal.C.sum('t')
+    ph0 /= abs(ph0)
+    shifted_signal /= ph0
+    deviation = conj(shifted_signal.data[::-1]) - shifted_signal.data
+    rmsd[j] = sum(abs(deviation)**2)
 rmsd_nd = nddata(rmsd,'dt').labels('dt',signal_shift).set_units('dt','s')
 rmsd_nd.name('RMSD')
 coeff,fit = rmsd_nd.polyfit('dt',order=5)
 title(r'RMSD ($\Delta(t)$)')
 plot(rmsd_nd)
-plot(fit)
 interp_fit = fit.interp('dt',5000)
 plot(interp_fit,':')
 dt = interp_fit.argmin('dt')
-#rmsd_nd.argmin('dt').data
-
-
-# In[5]:
-
-
 print dt
 
 
-# In[ ]:
-
-
-get_ipython().magic(u'matplotlib notebook')
-
-
-# In[6]:
-
+# In[94]:
 
 figure();title('plot comparison')
-plot(abs(nd_raw), c='k')
-raw1 = nd_raw.C
-raw1.ft('t')
-raw1 *= exp(1j*2*pi*dt*raw1.fromaxis('t'))
-raw1.ift('t')
-plot(abs(raw1), ':', c='red', alpha=0.5)
-raw2 = nd_raw.C
-raw2.ft('t')
-raw2 *= exp(-1j*2*pi*dt*raw2.fromaxis('t'))
-raw2.ift('t')
-plot(abs(raw2), ':', c='blue', alpha=0.5)
+plot(abs(signal), c='k')
+signal.ft('t')
+signal *= exp(1j*2*pi*dt*signal.fromaxis('t'))
+signal.ift('t')
+plot(abs(signal), ':', c='blue', alpha=0.5)
 gridandtick(gca())
 
 
-# In[ ]:
+# In[95]:
 
+scopy = signal.C
+
+
+# In[96]:
 
 get_ipython().magic(u'matplotlib notebook')
 
 
-# In[29]:
+# In[97]:
+
+signal = scopy.C ## checkpoint
 
 
-raw = raw1.C
+# In[98]:
 
-#raw_phased = raw.C
+# With the max at t = 0, now select window of signal to use for phasing
 ph_span = 45
-max_index = abs(raw).argmax('t', raw_index=True).data
-phase_data = raw['t',max_index - ph_span : max_index + ph_span + 1]
-span_min = raw.getaxis('t')[max_index-ph_span]
-span_max = raw.getaxis('t')[max_index+ph_span+1]
-plot(abs(raw))
-plot(abs(phase_data))
+max_index = abs(signal).argmax('t', raw_index=True).data
+signal_slice = signal['t',max_index - ph_span : max_index + ph_span + 1]
+span_min = signal.getaxis('t')[max_index-ph_span]
+span_max = signal.getaxis('t')[max_index+ph_span+1]
+plot(abs(signal))
+plot(abs(signal_slice))
 axvline(span_min, c='k')
 axvline(span_max, c='k')
 gridandtick(gca())
-annotate('span = %d'%len(phase_data.data), (span_min+10e-6,raw.data[max_index]))
-print len(phase_data.data)
 
-ph = phase_data.C.sum('t')
+
+# In[99]:
+
+signal.ft('t')
+figure('freq domain')
+plot(signal.real,':',c='k')
+plot(signal.imag,':',c='blue')
+signal.ift('t')
+figure('time domain')
+plot(signal.real,':',c='k')
+plot(signal.imag,':',c='blue')
+ph = signal_slice.C.sum('t')
 ph /= abs(ph)
-raw /= ph
-
-
-# In[16]:
-
-
-# span = 15
-proc_15 = raw.C
-proc_15 = proc_15['t':(0,None)]
-proc_15.ft('t')
-
-
-# In[11]:
-
-
-# span = 10
-proc_10 = raw.C
-proc_10 = proc_10['t':(0,None)]
-proc_10.ft('t')
-
-
-# In[14]:
-
-
-# span = 5
-proc_5 = raw.C
-proc_5 = proc_5['t':(0,None)]
-proc_5.ft('t')
-
-
-# In[26]:
-
-
-proc_25 = raw.C
-proc_25 = proc_25['t':(0,None)]
-proc_25.ft('t')
-
-
-# In[30]:
-
-
-proc_45 = raw.C
-proc_45 = proc_45['t':(0,None)]
-proc_45.ft('t')
-
-
-# In[22]:
-
-
-get_ipython().magic(u'matplotlib notebook')
-
-
-# In[31]:
-
-
-plot(proc_15,alpha=0.5)
-plot(proc_10,alpha=0.5)
-plot(proc_5,alpha=0.5)
-plot(proc_25,alpha=0.5)
-plot(proc_45,alpha=0.5)
+signal /= ph
+plot(signal.real,c='violet',alpha=0.5)
+plot(signal.imag,c='cyan',alpha=0.5)
+gridandtick(gca())
+signal.ft('t')
+figure('freq domain')
+plot(signal.real,c='violet',alpha=0.5)
+plot(signal.imag,c='cyan',alpha=0.5)
 gridandtick(gca())
 
 
-# In[ ]:
+# In[100]:
+
+signal.ift('t')
+scopy = signal.C
 
 
+# In[147]:
 
-figure();title('Processed data')
-plot(raw, c='violet')
-plot(raw.real,':', c='k')
-plot(raw.imag, c='cyan')
+signal = scopy.C ## checkpoint
+
+
+# In[148]:
+
+# construct the phases
+dwell_time = diff(signal.getaxis('t')[r_[0,1]]).item()
+SW = 1./dwell_time # spectral width * 2
+N = 50 # width of the phase correction dimensions
+dw_width = 50 # width of the ph1 window, in dwell times
+x = nddata(r_[-200e-6:200e-6:N*1j],'ph0').set_units('ph0','cyc')
+ph0 = exp(1j*2*pi*x)
+x = nddata(r_[-dw_width/SW/2:dw_width/SW/2:N*1j],'ph1').set_units('ph1','s')
+ph1 = 1j*2*pi*x
+
+
+# In[149]:
+
+signal_r = signal.C
+signal_r = signal_r['t':(0,None)].C
+signal_r['t', 0] /= 2.
+signal_r.ft('t')
+signal_r *= ph0
+signal_r *= exp(ph1*signal_r.getaxis('t'))
+
+
+# In[150]:
+
+print dwell_time
+
+
+# In[151]:
+
+signal.ft('t')
+signal *= ph0
+signal *= exp(ph1*signal.fromaxis('t'))
+signal.ift('t')
+print "Done phasing"
+
+
+# In[153]:
+
+# Absolute real method, cost function
+signal_absreal = signal.C
+signal_absreal = signal['t', lambda x: x >= 0].C
+signal_absreal.data[0] /= 2.
+signal_absreal.ft('t')
+figure('abs real cost')
+signal_absreal.data = abs(signal_absreal.data.real)
+print ndshape(signal_absreal)
+
+signal_absreal.sum('t')
+print ndshape(signal_absreal)
+
+image(signal_absreal)
+
+
+# In[124]:
+
+figure('hermitian cost')
+signal_herm = signal.C
+signal_herm.set_units('ph0','cyc')
+signal_herm.set_units('ph1','s')
+signal_herm.data -= conj(signal_herm.data[::-1])
+signal_herm.data = abs(signal_herm.data)**2
+signal_herm.sum('t')
+image(signal_herm)
+
+
+# In[125]:
+
+signal = scopy.C ## checkpoint (reverse what was done to signal, so can apply desired changes)
+
+
+# In[126]:
+
+min_index = signal_herm['ph0',0].argmin('ph1',raw_index=True).data
+print "Applying ph1 correction of",ph1['ph1',min_index].data,"(ph1 index",min_index,")"
+signal.ft('t')
+#signal *= ph0['ph0',0].data.item()
+signal *= exp(ph1['ph1',min_index].data*signal.fromaxis('t'))
+plot(signal.real, c='violet')
+plot(signal.imag, c='cyan')
 gridandtick(gca())
-
-
-figure();title('Raw data')
-plot(nd_raw, c='violet')
-plot(nd_raw.real,':', c='k')
-plot(nd_raw.imag, c='cyan')
-gridandtick(gca())
+signal.ift('t')
 
 
 # In[ ]:
-
-
-raw_s = nd_raw.C
-raw_s = raw_s['t':(0,None)]
-raw_s.ft('t')
-#plot(raw_s.real, alpha=0.8)
-plot(raw_s.imag, alpha=0.8)
-
-
-# In[ ]:
-
 
 get_ipython().magic(u'matplotlib inline')
 
 
-# In[ ]:
+# In[128]:
+
+signal_absreal.meshplot(cmap=cm.viridis)
 
 
-figure('diff spans')
-title('diff spans')
+# In[129]:
 
-
-# In[ ]:
-
-
-plot(proc_s.real, alpha=0.8, label = '%d'%ph_span)
+signal_herm.meshplot(cmap=cm.viridis)
 
 
 # In[ ]:
 
-
-plot(proc_s1.real, alpha=0.8, label = '%d'%ph_span)
-
-
-# In[ ]:
-
-
-get_ipython().magic(u'matplotlib notebook')
+signal.ift('t')
 
 
 # In[ ]:
 
-
-plot(proc_s.real, c = 'violet')
-plot(raw_s.imag, ':', c = 'k', alpha=0.6)
-#plot(proc_s.imag)
+plot(signal.real)
+plot(signal.imag)
 
 
 # In[ ]:
-
-
-get_ipython().magic(u'matplotlib inline')
-
-
-# In[ ]:
-
 
 
 
