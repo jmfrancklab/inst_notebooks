@@ -267,8 +267,10 @@ for date,id_string,numchan,indirect_range in [
         temp = signal['indirect',x].C
         temp = temp['t':(start,None)]
         temp.ft('t')
+        temp = temp['t':(-60e3,60e3)]
         temp.setaxis('t',lambda t: t + offset)
         plot(temp,':',alpha=0.7)
+        annotate(r'%0.2f $\mu$s'%(signal.getaxis('indirect')[x]*1e6),(offset+10e3, -30e-8),ha='right',va='bottom',rotation=60)
         start = start + 1.7e-6
         offset = offset + 100e3
     fl.show();quit()
