@@ -5,7 +5,7 @@ import sys
 import matplotlib.style
 import matplotlib as mpl
 
-mpl.rcParams['image.cmap'] = 'jet'
+mpl.rcParams['image.cmap'] = 'inferno'
 fl = figlist_var()
 gain_factor = sqrt(73503.77279)
 
@@ -218,249 +218,113 @@ for date,id_string,numchan,indirect_range in [
 # Check for the maximimum width over which we can observe a symmetric signal and the width we want to use for our test window
 
 fl.next('check our windows')
-max_width = 44
-window_width = 20
+max_hw = 44
+window_hw = 20
 index_max = abs(signal).argmax('t',raw_index=True).data
 signal.setaxis('t', lambda t: t - signal.getaxis('t')[index_max])
 center_idx = where(signal.getaxis('t') == 0)[0][0]
 fl.plot(abs(signal))
-for check_width in [max_width,window_width]:
-    signal_slice = signal['t',center_idx - check_width : center_idx + check_width + 1]
-    span_min = signal.getaxis('t')[center_idx-check_width]
-    span_max = signal.getaxis('t')[center_idx+check_width+1]
+for check_hw in [max_hw,window_hw]:
+    signal_slice = signal['t',center_idx - check_hw : center_idx + check_hw + 1]
+    span_min = signal.getaxis('t')[center_idx-check_hw]
+    span_max = signal.getaxis('t')[center_idx+check_hw+1]
     fl.plot(abs(signal_slice), alpha=0.5)
     axvline(span_min/1e-6, c='k')
     axvline(span_max/1e-6, c='k')
 gridandtick(gca())
-
-# Now, use the parameters determined in the previous cell to determine the limits we want for our Hermitian cost function
-
 dw = diff(signal.getaxis('t')[r_[0,1]])[0] # the dwell time
-signal.ft('t')
-ph0 = nddata(r_[-0.5:0.5:20j],'ph0').set_units('cyc')
+max_t_shift = (max_hw - window_hw)*dw
+
+# Now, use the parameters determined in the previous cell to determine the
+# limits we want for our Hermitian cost function and plot a dot showing what we
+# manually choose
+N = 60
+fl.next('hermitian cost function')
+# {{{ I get a tipped plot, b/c carrier not on resonance
+frq_corr = -50e-3/15e-6
+signal *= exp(-1j*2*pi*frq_corr*signal.fromaxis('t'))
+# }}}
+signal_check_corr = signal.C
+signal_check_corr.ft('t')
+ph0 = nddata(r_[-0.5:0.5:1j*N],'ph0').set_units('ph0','cyc')
 ph0 = exp(1j*2*pi*ph0)
-ph1 = nddata(r_[
+ph1 = nddata(r_[-max_t_shift:max_t_shift:1j*N],'ph1').set_units('ph1','s')
+ph1 = exp(1j*2*pi*ph1*signal_check_corr.fromaxis('t'))
+signal_check_corr = signal_check_corr  * ph1
+signal_check_corr.ift('t')
+signal_check_corr *= ph0
+deviation = signal_check_corr['t',center_idx - window_hw : center_idx + window_hw + 1]
+deviation = deviation['t',::-1].C.run(conj) - deviation
+deviation.run(lambda x: abs(x)**2).sum('t')
+fl.image(-1*deviation)
+ph0_corr = -246.4e-3
+ph1_corr = -8e-6
+fl.plot(ph0_corr/1e-3,ph1_corr/1e-6,'o')
+del signal_check_corr
+
+# now apply this correction
+# and slice out the "FID"
+signal.ft('t')
+signal *= exp(1j*2*pi*ph0_corr) * exp(1j*2*pi*ph1_corr*signal.fromaxis('t'))
+signal.ift('t')
+fl.next('show the corrected signal', legend=True)
+fl.plot(abs(signal), 'k', alpha=0.5, label='abs')
+fl.plot(signal.imag, alpha=0.5, label='imag')
+signal = signal['t',center_idx:]
+signal['t',0] /= 2.
+fl.plot(signal, alpha=0.5, label='sliced')
+
+# finally, show what the peak looks like
+fl.next('show the peak after hermitian correction')
+signal.ft('t')
+fl.plot(signal.imag, alpha=0.5)
+fl.plot(signal, alpha=0.5)
+gridandtick(gca())
+
+# Now, use the "traditional correction" on the FID
+# since we're close already, sweep the ph1 only over a few dwell periods
+apply_traditional = False
+if apply_traditional:
+    N = 60
+    fl.next('traditional cost function')
+    signal_check_corr = signal.C
+    ph0 = nddata(r_[-0.5:0.5:1j*N],'ph0').set_units('ph0','cyc')
+    ph0 = exp(1j*2*pi*ph0)
+    ph1 = nddata(r_[-3*dw:3*dw:1j*N],'ph1').set_units('ph1','s')
+    ph1 = exp(1j*2*pi*ph1*signal_check_corr.fromaxis('t'))
+    signal_check_corr = signal_check_corr  * ph1
+    signal_check_corr *= ph0
+    signal_check_corr.run(real).run(abs).sum('t')
+    fl.image(-1*signal_check_corr) # (find the maximum of -cost)
+    ph1_corr = -28.1e-9
+    #ph1_corr = 0
+    ph0_corr = -24.8e-3
+    fl.plot(ph0_corr/1e-3,ph1_corr/1e-9,'o')
+    del signal_check_corr
+    signal *= exp(1j*2*pi*ph0_corr) * exp(1j*2*pi*ph1_corr*signal.fromaxis('t'))
+
+# **however**, notice that the ``ph1_corr`` it comes up with is small, so it's
+# mostly just doing the zeroth-order correction, which is much easier to do by itself
+# because my frequency-domain resolution is low, just taking the sum does not seem to work
+
+ph0 = nddata(r_[-50e-3:50e-3:1j*N],'ph0').set_units('ph0','cyc')
+ph0 = exp(1j*2*pi*ph0)
+signal_check_corr = signal.C * ph0
+signal_check_corr.run(real).run(abs).sum('t')
+fl.next('zeroth order correction')
+fl.plot(signal_check_corr)
+ph0_corr = signal_check_corr.argmin('ph0').data.item()
+axvline(x=ph0_corr/1e-3) # units are mcyc
+signal *= exp(1j*2*pi*ph0_corr)
+
+# show the peak after additional "traditional" correction
+fl.next('after traditional correction of FID')
+fl.plot(signal.imag, alpha=0.5)
+fl.plot(signal, alpha=0.5)
+gridandtick(gca())
+fl.next('show the corrected signal')
+signal.ift('t')
+fl.plot(signal,label='real, after applying final correction')
 
 # to here
 fl.show()
-exit()
-
-
-# In[6]:
-
-span = 20
-signal_shift = r_[-6e-6:6e-6:500j]
-rmsd = empty_like(signal_shift)
-figure()
-for j,dt in enumerate(signal_shift):
-    shifted_signal = signal.C
-    shifted_signal.ft('t')
-    ph1 = -1j*2*pi*dt
-    shifted_signal *= exp(ph1*shifted_signal.fromaxis('t'))
-    shifted_signal.ift('t')
-    shifted_signal = shifted_signal['t',index_max-span:index_max+span+1]
-    ph0 = shifted_signal.C.sum('t')
-    ph0 /= abs(ph0)
-    shifted_signal /= ph0
-    deviation = conj(shifted_signal.data[::-1]) - shifted_signal.data
-    rmsd[j] = sum(abs(deviation)**2)
-rmsd_nd = nddata(rmsd,'dt').labels('dt',signal_shift).set_units('dt','s')
-rmsd_nd.name('RMSD')
-coeff,fit = rmsd_nd.polyfit('dt',order=5)
-title(r'RMSD ($\Delta(t)$)')
-plot(rmsd_nd)
-interp_fit = fit.interp('dt',5000)
-plot(interp_fit,':')
-dt = interp_fit.argmin('dt')
-print dt
-
-
-# In[7]:
-
-figure();title('plot comparison')
-plot(abs(signal), c='k')
-signal.ft('t')
-signal *= exp(1j*2*pi*dt*signal.fromaxis('t'))
-signal.ift('t')
-plot(abs(signal), ':', c='blue', alpha=0.5)
-gridandtick(gca())
-
-
-# In[8]:
-
-scopy = signal.C
-
-
-# In[ ]:
-
-
-
-
-# In[9]:
-
-signal = scopy.C ## checkpoint
-
-
-# In[26]:
-
-# With the max at t = 0, now select window of signal to use for phasing
-ph_span = 45
-max_index = abs(signal).argmax('t', raw_index=True).data
-signal_slice = signal['t',max_index - ph_span : max_index + ph_span + 1]
-span_min = signal.getaxis('t')[max_index-ph_span]
-span_max = signal.getaxis('t')[max_index+ph_span+1]
-plot(abs(signal))
-plot(abs(signal_slice))
-axvline(span_min, c='k')
-axvline(span_max, c='k')
-gridandtick(gca())
-
-
-# In[11]:
-
-signal.ft('t')
-figure('freq domain')
-plot(signal.real,':',c='k')
-plot(signal.imag,':',c='blue')
-signal.ift('t')
-figure('time domain')
-plot(signal.real,':',c='k')
-plot(signal.imag,':',c='blue')
-ph = signal_slice.C.sum('t')
-ph /= abs(ph)
-signal /= ph
-plot(signal.real,c='violet',alpha=0.5)
-plot(signal.imag,c='cyan',alpha=0.5)
-gridandtick(gca())
-signal.ft('t')
-figure('freq domain')
-plot(signal.real,c='violet',alpha=0.5)
-plot(signal.imag,c='cyan',alpha=0.5)
-gridandtick(gca())
-
-
-# In[12]:
-
-signal.ift('t')
-scopy = signal.C
-
-
-# In[13]:
-
-signal = scopy.C ## checkpoint
-
-
-# In[14]:
-
-# construct the phases
-dwell_time = diff(signal.getaxis('t')[r_[0,1]]).item()
-SW = 1./dwell_time # spectral width * 2
-N = 50 # width of the phase correction dimensions
-dw_width = 50 # width of the ph1 window, in dwell times
-x = nddata(r_[-200e-6:200e-6:N*1j],'ph0').set_units('ph0','cyc')
-ph0 = exp(1j*2*pi*x)
-x = nddata(r_[-dw_width/SW/2:dw_width/SW/2:N*1j],'ph1').set_units('ph1','s')
-ph1 = 1j*2*pi*x
-
-
-# In[15]:
-
-signal_r = signal.C
-signal_r = signal_r['t':(0,None)].C
-signal_r['t', 0] /= 2.
-signal_r.ft('t')
-signal_r *= ph0
-signal_r *= exp(ph1*signal_r.getaxis('t'))
-
-
-# In[16]:
-
-print dwell_time
-
-
-# In[17]:
-
-signal.ft('t')
-signal *= ph0
-signal *= exp(ph1*signal.fromaxis('t'))
-signal.ift('t')
-print "Done phasing"
-
-
-# In[18]:
-
-# Absolute real method, cost function
-signal_absreal = signal.C
-signal_absreal = signal['t', lambda x: x >= 0].C
-signal_absreal.data[0] /= 2.
-signal_absreal.ft('t')
-figure('abs real cost')
-signal_absreal.data = abs(signal_absreal.data.real)
-print ndshape(signal_absreal)
-
-signal_absreal.sum('t')
-print ndshape(signal_absreal)
-
-image(signal_absreal)
-
-
-# In[19]:
-
-figure('hermitian cost')
-signal_herm = signal.C
-signal_herm.set_units('ph0','cyc')
-signal_herm.set_units('ph1','s')
-signal_herm.data -= conj(signal_herm.data[::-1])
-signal_herm.data = abs(signal_herm.data)**2
-signal_herm.sum('t')
-image(signal_herm)
-
-
-# In[20]:
-
-signal = scopy.C ## checkpoint (reverse what was done to signal, so can apply desired changes)
-
-
-# In[21]:
-
-min_index = signal_herm['ph0',0].argmin('ph1',raw_index=True).data
-print "Applying ph1 correction of",ph1['ph1',min_index].data,"(ph1 index",min_index,")"
-signal.ft('t')
-#signal *= ph0['ph0',0].data.item()
-signal *= exp(ph1['ph1',min_index].data*signal.fromaxis('t'))
-plot(signal.real, c='violet')
-plot(signal.imag, c='cyan')
-gridandtick(gca())
-signal.ift('t')
-
-
-# In[22]:
-
-get_ipython().magic(u'matplotlib inline')
-
-
-# In[23]:
-
-signal_absreal.meshplot(cmap=cm.viridis)
-
-
-# In[24]:
-
-signal_herm.meshplot(cmap=cm.viridis)
-
-
-# In[25]:
-
-signal.ift('t')
-
-
-# In[ ]:
-
-plot(signal.real)
-plot(signal.imag)
-
-
-# In[ ]:
-
-
-
