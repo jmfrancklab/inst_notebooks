@@ -7,6 +7,7 @@ import matplotlib as mpl
 
 mpl.rcParams['image.cmap'] = 'inferno'
 fl = figlist_var()
+fl.next('show the time-domain signal', legend=True)
 gain_factor = sqrt(73503.77279)
 
 max_window = 30e-6
@@ -73,7 +74,7 @@ for date,id_string,numchan,indirect_range in [
                 fl.next('compare rising edge')
                 # need to define time slice for rising edge
                 fl.plot(abs(onephase['repeat',j]['t':(26.2e-6,26.6e-6)]['ph1',k].C.reorder('t',first=True)),color=colors[k],alpha=0.3)
-                fl.next('compar7e falling edge')
+                fl.next('compare falling edge')
                 # need to define time slice for falling edge
                 fl.plot(abs(onephase['repeat',j]['t':(26.2e-6,26.6e-6)]['ph1',k].C.reorder('t',first=True)),color=colors[k],alpha=0.3)
                 fl.next('compare rising edge, raw')
@@ -222,13 +223,13 @@ max_hw = 44
 window_hw = 20
 index_max = abs(signal).argmax('t',raw_index=True).data
 signal.setaxis('t', lambda t: t - signal.getaxis('t')[index_max])
+fl.plot(abs(signal), alpha=0.5, label='abs -- center by max')
 center_idx = where(signal.getaxis('t') == 0)[0][0]
-fl.plot(abs(signal))
-for check_hw in [max_hw,window_hw]:
+for win_name,check_hw in [('max symm. halfwidth',max_hw),('window halfwidth',window_hw)]:
     signal_slice = signal['t',center_idx - check_hw : center_idx + check_hw + 1]
     span_min = signal.getaxis('t')[center_idx-check_hw]
     span_max = signal.getaxis('t')[center_idx+check_hw+1]
-    fl.plot(abs(signal_slice), alpha=0.5)
+    fl.plot(abs(signal_slice), alpha=0.5, label='%s'%win_name)
     axvline(span_min/1e-6, c='k')
     axvline(span_max/1e-6, c='k')
 gridandtick(gca())
@@ -244,7 +245,8 @@ fl.next('hermitian cost function')
 frq_corr = -50e-3/15e-6
 signal *= exp(-1j*2*pi*frq_corr*signal.fromaxis('t'))
 # }}}
-signal_check_corr = signal.C
+signal_check_corr = signal.C['t',center_idx - max_hw : center_idx + max_hw + 1]
+sliced_center_idx = where(signal_check_corr.getaxis('t') == 0)[0][0]
 signal_check_corr.ft('t')
 ph0 = nddata(r_[-0.5:0.5:1j*N],'ph0').set_units('ph0','cyc')
 ph0 = exp(1j*2*pi*ph0)
@@ -253,7 +255,7 @@ ph1 = exp(1j*2*pi*ph1*signal_check_corr.fromaxis('t'))
 signal_check_corr = signal_check_corr  * ph1
 signal_check_corr.ift('t')
 signal_check_corr *= ph0
-deviation = signal_check_corr['t',center_idx - window_hw : center_idx + window_hw + 1]
+deviation = signal_check_corr['t',sliced_center_idx - window_hw : sliced_center_idx + window_hw + 1]
 deviation = deviation['t',::-1].C.run(conj) - deviation
 deviation.run(lambda x: abs(x)**2).sum('t')
 fl.image(-1*deviation)
@@ -267,7 +269,7 @@ del signal_check_corr
 signal.ft('t')
 signal *= exp(1j*2*pi*ph0_corr) * exp(1j*2*pi*ph1_corr*signal.fromaxis('t'))
 signal.ift('t')
-fl.next('show the corrected signal', legend=True)
+fl.next('show the time-domain signal')
 fl.plot(abs(signal), 'k', alpha=0.5, label='abs')
 fl.plot(signal.imag, alpha=0.5, label='imag')
 signal = signal['t',center_idx:]
@@ -322,7 +324,7 @@ fl.next('after traditional correction of FID')
 fl.plot(signal.imag, alpha=0.5)
 fl.plot(signal, alpha=0.5)
 gridandtick(gca())
-fl.next('show the corrected signal')
+fl.next('show the time-domain signal')
 signal.ift('t')
 fl.plot(signal,label='real, after applying final correction')
 
