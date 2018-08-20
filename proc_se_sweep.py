@@ -1,3 +1,8 @@
+
+# coding: utf-8
+
+# In[1]:
+
 from pyspecdata import *
 from pyspecdata.plot_funcs.image import imagehsv
 import os
@@ -155,64 +160,256 @@ for date,id_string,numchan,field_axis,cycle_time, in [
         #}}}
         fl.next('signal(B) as function of '+r'$B_{0}$ (50 G sweep)')
         fl.image(s_analytic_f['ph1',1]['ph2',0])
-        # begin phasing
         signal = s_analytic['ph1',1]['ph2',0].C
         signal.rename('magnetic_field','B0')
-        #figure('mesh 1')
-        #signal.meshplot(cmap=cm.viridis)
-        signal.setaxis('t', lambda t: t - 107.5e-6)
-        signal = signal['t':(-12e-6,None)]
-        #figure('mesh 2')
-        #signal.meshplot(cmap=cm.viridis)
-        #figure('abs mesh 2')
-        #abs(signal).meshplot(cmap=cm.viridis)
-        span = 20
-        signal_shift = r_[-6e-6:6e-6:500j]
-        rmsd = empty_like(signal_shift)
-        for x in xrange(ndshape(signal)['B0']):
-            for j,dt in enumerate(signal_shift):
-                x = 20
-                fl.next('cfsdfsd')
-                fl.plot(signal['B0',x])
-                fl.show();quit()
-                shifted_signal = signal.C
-                shifted_signal.ft('t')
-                ph1 = -1j*2*pi*dt
-                shifted_signal *= exp(ph1*shifted_signal.fromaxis('t'))
-                shifted_signal.ift('t')
-                temp = shifted_signal['B0',x].C
-                index_max = abs(temp).argmax('t', raw_index = True).data
-                print index_max
-                temp = temp['t',index_max-span:index_max+span+1]
-                ph0 = temp.C.sum('t').data
-                print ph0
-                ph0 /= abs(ph0)
-                print ph0
-                shifted_signal /= ph0
-                deviation = conj(shifted_signal.data[::-1]) - shifted_signal.data
-                rmsd[j] = sum(abs(deviation)**2)        
-            rmsd_nd = nddata(rmsd,'dt').labels('dt',signal_shift).set_units('dt','s')
-            rmsd_nd.name('RMSD %d'%x)
-            coeff, fit = rmsd_nd.polyfit('dt',order = 5)
-            fl.next('RMSD dt')
-            plot(rmsd_nd)
-            interp_fit = fit.interp('dt', 5000)
-            plot(interp_fit,':')
-            dt = interp_fit.argmin('dt')
-            fl.show();quit()
-        print dt
-        for x in xrange(ndshape(signal)['magnetic_field']):
-            field_val = signal.getaxis('magnetic_field')[x]
-            this_s = signal['magnetic_field',x]
-            fl.next('plot, signal coherence pathway, time domain')
-            fl.plot(this_s,alpha=0.3,label='%0.4f G'%field_val)
-        signal.ft('t')
-        for x in xrange(ndshape(signal)['magnetic_field']):
-            field_val = signal.getaxis('magnetic_field')[x]
-            this_s = signal['magnetic_field',x]
-            fl.next('plot, signal coherence pathway, freq domain')
-            fl.plot(this_s,alpha=0.3,label='%0.4f G'%field_val)
-        fl.show();quit()
-            #}}}
-fl.show()
-quit()
+
+
+# In[2]:
+
+raw = signal.C
+
+
+# In[3]:
+
+s = raw.C # checkpoint
+
+
+# In[5]:
+
+get_ipython().magic(u'load_ext pyspecdata.ipy')
+
+
+# In[6]:
+
+s.setaxis('t', lambda t: t - 107.5e-6)
+print ndshape(s)
+
+
+# In[7]:
+
+s = s['t':(-12e-6,None)]
+
+
+# In[8]:
+
+span = 20
+signal_shift = r_[-6e-6:6e-6:100j]
+rmsd = empty_like(signal_shift)
+dt_list = empty_like(s.getaxis('B0'))
+for x in xrange(ndshape(s)['B0']):
+    temp = s['B0',x].C
+    temp_index = abs(temp).argmax('t', raw_index=True).data
+    temp.setaxis('t',lambda t: t - temp.getaxis('t')[temp_index])
+    #figure('%d'%x)
+    #plot((temp),alpha=0.5)
+    for j,dt in enumerate(signal_shift):
+        shifted_s = temp.C
+        shifted_s.ft('t')
+        ph1 = -1j*2*pi*dt
+        shifted_s *= exp(ph1*shifted_s.fromaxis('t'))
+        shifted_s.ift('t')
+        shifted_s = shifted_s['t',temp_index - span:temp_index+span+1]
+        ph0 = shifted_s.C.sum('t').data
+        ph0 /= abs(ph0)
+        shifted_s /= ph0
+        deviation = conj(shifted_s.data[::-1]) - shifted_s.data
+        rmsd[j] = sum(abs(deviation)**2)
+    rmsd_nd = nddata(rmsd,'dt').labels('dt',signal_shift).set_units('dt','s')
+    rmsd_nd.name('RMSD')
+    coeff,fit = rmsd_nd.polyfit('dt',order=5)
+    #figure('RMSD %d'%x)
+    #plot(rmsd_nd)
+    interp_fit = fit.interp('dt',500)
+    #plot(interp_fit,':')
+    dt = interp_fit.argmin('dt')
+    dt_list[x] = dt.data
+    #temp.ft('t')
+    #temp *= exp(1j*2*pi*dt*temp.fromaxis('t'))
+    #temp.ift('t')
+    #plot(temp,':',c='k')
+
+
+# In[9]:
+
+proc = s.C
+
+
+# In[19]:
+
+s = proc.C #checkpoint
+
+
+# In[17]:
+
+get_ipython().magic(u'matplotlib notebook')
+
+
+# In[20]:
+
+for x in xrange(ndshape(s)['B0']):
+    s.ft('t')
+    temp = s['B0',x].C
+    figure('%d'%x)
+    plot(temp)
+    s['B0',x] *= exp(1j*2*pi*dt_list[x]*temp.fromaxis('t'))
+    plot(s['B0',x], ':')
+    s.ift('t')
+
+
+# In[21]:
+
+ph_span = 6 # verify that this looks good with data
+
+
+# In[22]:
+
+get_ipython().magic(u'matplotlib notebook')
+
+
+# In[23]:
+
+for x in xrange(ndshape(s)['B0']):
+    temp = s['B0',x].C
+    s.ft('t')
+    figure('phasing %d'%x)
+    plot(s['B0',x].real,':',c='k')
+    plot(s['B0',x].imag,':',c='blue')
+    s.ift('t')
+    max_index = abs(temp).argmax('t',raw_index = True).data
+    temp_slice = temp['t',max_index - ph_span : max_index + ph_span + 1]
+    temp_min = temp.getaxis('t')[max_index-ph_span]
+    temp_max = temp.getaxis('t')[max_index+ph_span+1]
+    #figure('span %d'%x)
+    #plot(abs(temp))
+    #plot(abs(temp_slice))
+    #axvline(temp_min, c='k')
+    #axvline(temp_max, c='k')
+    #gridandtick(gca())
+    ph = temp_slice.C.sum('t').data
+    ph /= abs(ph)
+    s['B0',x].data /= ph
+    s.ft('t')
+    figure('phasing %d'%x)
+    plot(s['B0',x].real, c='violet', alpha=0.5)
+    plot(s['B0',x].imag, c='cyan', alpha=0.5)
+    s.ift('t')
+    gridandtick(gca())
+    
+
+
+# In[24]:
+
+scopy = s.C
+
+
+# In[81]:
+
+s = scopy.C #checkpoint
+
+
+# In[153]:
+
+get_ipython().magic(u'matplotlib notebook')
+
+
+# In[154]:
+
+for x in xrange(ndshape(s)['B0']):
+    figure('field sweep')
+    temp = s['B0',x].C
+    temp = temp['t':(0,None)]
+    temp.ft('t')
+    temp = temp['t':(-300e3,300e3)]
+    plot((temp), alpha=0.4)
+
+
+# In[123]:
+
+dwell_t = diff(signal.getaxis('t')[r_[0,1]]).item()
+SW = 1.0/dwell_t
+N = 40.0
+dw_width = 80.0
+x = nddata(r_[-250e-3:250e-3:N*1j],'ph0').set_units('ph0','cyc')
+ph0 = exp(1j*2*pi*x)
+x = nddata(r_[-dw_width/SW/2:dw_width/SW/2:N*1j],'ph1').set_units('ph1','s')
+ph1 = 1j*2*pi*x
+
+
+# In[124]:
+
+fl = figlist_var()
+get_ipython().magic(u'matplotlib inline')
+
+
+# In[150]:
+
+#for x in xrange(ndshape(s)['B0']):
+for x in xrange(2):
+    temp = s['B0',x].C
+    temp = temp['t':(0,None)].C
+    temp['t',0] /= 2.0
+    temp.ft('t')
+    temp *= ph0
+    temp *= exp(ph1*temp.fromaxis('t'))
+    temp.ift('t')
+    figure('hermitian cost %d'%x)
+    temp_herm = temp.C
+    temp_herm.data -= conj(temp_herm.data[::-1])
+    temp_herm.data = abs(temp_herm.data)**2
+    temp_herm.sum('t')
+    fl.next('plot %d'%x)
+    fl.image(temp_herm)
+    fl.show()
+    print ndshape(temp_herm)
+    min_list = temp_herm.C.argmin('ph0',raw_index=True).data
+    min_list2 = []
+    for z in xrange(len(min_list)):
+        min_list2.append(temp_herm['ph0',min_list[z]].C.argmin('ph1',raw_index=True).data)
+    min_data = []
+    for y in xrange(len(min_list)):
+        min_data.append(temp_herm['ph0',y]['ph1',y].data)
+    abs_min = min(min_data)
+    min_index = abs    
+    #ph1_mins = temp_herm.C.argmin('ph1',raw_index=True).data
+    #ph0_mins = temp_herm['ph1',ph1_min].C.argmin('ph0',raw_index=True).data
+    #print shape(ph1_mins)
+    #print ph0_mins
+    #for this_ph1_min in enumerate(ph1_mins):
+    #    for this_ph0_min in enumerate(ph0_mins):
+    #        print this_ph1_min
+
+    print "done %d"%x
+
+
+# In[88]:
+
+ph1_min = temp_herm.argmin('ph0',raw_index=True).data
+ph2_min = temp_herm.argmin('ph1',raw_index=True).data
+
+
+# In[ ]:
+
+figure('hermitian cost %d'%x)
+s_herm = s.C
+s_herm.set_units('ph0','cyc')
+s_herm.set_units('ph1','s')
+s_herm.data -= conj(s_herm.data[::-1])
+s_herm.data = abs(s_herm.data)**2
+s_herm.sum('t')
+image(s_herm)
+
+
+# In[118]:
+
+get_ipython().magic(u'pinfo nddata.argmin')
+
+
+# In[ ]:
+
+
+
+
+# In[ ]:
+
+
+
