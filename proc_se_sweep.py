@@ -137,13 +137,8 @@ for date,id_string,numchan,field_axis,cycle_time, in [
         #{{{ here plotting sweep data several ways
         s_analytic.rename('full_cyc','magnetic_field')
         # slice out region containing spin echo to get clear frequency domain plots
-        s_analytic = s_analytic['t':(110e-6,None)]
+        #s_analytic = s_analytic['t':(110e-6,None)]
         for x in xrange(ndshape(s_analytic)['magnetic_field']):
-            # NOTE: The time length of each capture (here 168 s) can be determined by looking at
-            # the distance between the values in the 'full_cyc' axis OR determined beforehand --
-
-            # either way, I am sure there is a way to program the number but for now it must be
-            # calculated and entered manually
             s_analytic.getaxis('magnetic_field')[x] = field_axis[x*cycle_time]
             print field_axis[x*cycle_time]
             s_analytic.set_units('magnetic_field','G')
@@ -158,28 +153,66 @@ for date,id_string,numchan,field_axis,cycle_time, in [
         s_analytic_f.rename('t',r'$\frac{\Omega}{2 \pi \gamma_{H}}$')
         s_analytic_f.rename('magnetic_field',r'$B_{0}$')
         #}}}
-        #fl.next('image, signal coherence pathway, t domain (500 G width)')
-        #fl.image(s_analytic['ph1',1]['ph2',0])
-        #s_analytic.ft('t')
         fl.next('signal(B) as function of '+r'$B_{0}$ (50 G sweep)')
         fl.image(s_analytic_f['ph1',1]['ph2',0])
-        #s_analytic.ift('t')
-        #{{{ the if statements in the following for loops
-            # are specific for the file '180718_SE_sweep_3'
-        for x in xrange(ndshape(s_analytic)['magnetic_field']):
-            field_val = s_analytic.getaxis('magnetic_field')[x]
-            #if (field_val > 3406.98) and (field_val < 3407.5) :
-            this_s = s_analytic['magnetic_field',x]['ph1',1]['ph2',0]
-            fl.next('plot, signal coherence pathway, t domain')
+        # begin phasing
+        signal = s_analytic['ph1',1]['ph2',0].C
+        signal.rename('magnetic_field','B0')
+        #figure('mesh 1')
+        #signal.meshplot(cmap=cm.viridis)
+        signal.setaxis('t', lambda t: t - 107.5e-6)
+        signal = signal['t':(-12e-6,None)]
+        #figure('mesh 2')
+        #signal.meshplot(cmap=cm.viridis)
+        #figure('abs mesh 2')
+        #abs(signal).meshplot(cmap=cm.viridis)
+        span = 20
+        signal_shift = r_[-6e-6:6e-6:500j]
+        rmsd = empty_like(signal_shift)
+        for x in xrange(ndshape(signal)['B0']):
+            for j,dt in enumerate(signal_shift):
+                x = 20
+                fl.next('cfsdfsd')
+                fl.plot(signal['B0',x])
+                fl.show();quit()
+                shifted_signal = signal.C
+                shifted_signal.ft('t')
+                ph1 = -1j*2*pi*dt
+                shifted_signal *= exp(ph1*shifted_signal.fromaxis('t'))
+                shifted_signal.ift('t')
+                temp = shifted_signal['B0',x].C
+                index_max = abs(temp).argmax('t', raw_index = True).data
+                print index_max
+                temp = temp['t',index_max-span:index_max+span+1]
+                ph0 = temp.C.sum('t').data
+                print ph0
+                ph0 /= abs(ph0)
+                print ph0
+                shifted_signal /= ph0
+                deviation = conj(shifted_signal.data[::-1]) - shifted_signal.data
+                rmsd[j] = sum(abs(deviation)**2)        
+            rmsd_nd = nddata(rmsd,'dt').labels('dt',signal_shift).set_units('dt','s')
+            rmsd_nd.name('RMSD %d'%x)
+            coeff, fit = rmsd_nd.polyfit('dt',order = 5)
+            fl.next('RMSD dt')
+            plot(rmsd_nd)
+            interp_fit = fit.interp('dt', 5000)
+            plot(interp_fit,':')
+            dt = interp_fit.argmin('dt')
+            fl.show();quit()
+        print dt
+        for x in xrange(ndshape(signal)['magnetic_field']):
+            field_val = signal.getaxis('magnetic_field')[x]
+            this_s = signal['magnetic_field',x]
+            fl.next('plot, signal coherence pathway, time domain')
             fl.plot(this_s,alpha=0.3,label='%0.4f G'%field_val)
-        #s_analytic.ft('t')
-        #for x in xrange(ndshape(s_analytic_f)[r'$B_{0}$']):
-        #    field_val = s_analytic_f.getaxis(r'$B_{0}$')[x]
-        #    if (field_val > 3407.29) and (field_val < 3407.4) :
-        #        this_s = s_analytic_f[r'$B_{0}$',x]['ph1',1]['ph2',0]
-        #        fl.next('plot, signal coherence pathway')
-        #        fl.plot(this_s,alpha=0.6,label='%0.4f G'%field_val)
-                #}}}
+        signal.ft('t')
+        for x in xrange(ndshape(signal)['magnetic_field']):
+            field_val = signal.getaxis('magnetic_field')[x]
+            this_s = signal['magnetic_field',x]
+            fl.next('plot, signal coherence pathway, freq domain')
+            fl.plot(this_s,alpha=0.3,label='%0.4f G'%field_val)
+        fl.show();quit()
             #}}}
 fl.show()
 quit()
