@@ -10,6 +10,7 @@ import sys
 import matplotlib.style
 import matplotlib as mpl
 
+
 mpl.rcParams['image.cmap'] = 'jet'
 fl = figlist_var()
 
@@ -164,87 +165,396 @@ for date,id_string,numchan,field_axis,cycle_time, in [
         signal.rename('magnetic_field','B0')
 
 
-# In[2]:
+# In[14]:
 
 raw = signal.C
 
 
-# In[3]:
+# In[15]:
 
 s = raw.C # checkpoint
 
 
-# In[5]:
+# In[16]:
 
 get_ipython().magic(u'load_ext pyspecdata.ipy')
 
 
-# In[6]:
+# In[17]:
 
+s.set_error(None)
 s.setaxis('t', lambda t: t - 107.5e-6)
+s = s['t':(-12e-6,None)]
 print ndshape(s)
 
 
-# In[7]:
+# In[18]:
 
-s = s['t':(-12e-6,None)]
-
-
-# In[8]:
-
-span = 20
-signal_shift = r_[-6e-6:6e-6:100j]
-rmsd = empty_like(signal_shift)
-dt_list = empty_like(s.getaxis('B0'))
-for x in xrange(ndshape(s)['B0']):
-    temp = s['B0',x].C
-    temp_index = abs(temp).argmax('t', raw_index=True).data
-    temp.setaxis('t',lambda t: t - temp.getaxis('t')[temp_index])
-    #figure('%d'%x)
-    #plot((temp),alpha=0.5)
-    for j,dt in enumerate(signal_shift):
-        shifted_s = temp.C
-        shifted_s.ft('t')
-        ph1 = -1j*2*pi*dt
-        shifted_s *= exp(ph1*shifted_s.fromaxis('t'))
-        shifted_s.ift('t')
-        shifted_s = shifted_s['t',temp_index - span:temp_index+span+1]
-        ph0 = shifted_s.C.sum('t').data
-        ph0 /= abs(ph0)
-        shifted_s /= ph0
-        deviation = conj(shifted_s.data[::-1]) - shifted_s.data
-        rmsd[j] = sum(abs(deviation)**2)
-    rmsd_nd = nddata(rmsd,'dt').labels('dt',signal_shift).set_units('dt','s')
-    rmsd_nd.name('RMSD')
-    coeff,fit = rmsd_nd.polyfit('dt',order=5)
-    #figure('RMSD %d'%x)
-    #plot(rmsd_nd)
-    interp_fit = fit.interp('dt',500)
-    #plot(interp_fit,':')
-    dt = interp_fit.argmin('dt')
-    dt_list[x] = dt.data
-    #temp.ft('t')
-    #temp *= exp(1j*2*pi*dt*temp.fromaxis('t'))
-    #temp.ift('t')
-    #plot(temp,':',c='k')
+fl = figlist_var()
 
 
-# In[9]:
+# In[ ]:
 
-proc = s.C
+get_ipython().magic(u'matplotlib inline')
 
 
 # In[19]:
 
-s = proc.C #checkpoint
+for x in xrange(ndshape(s)['B0']):
+    figure('time %s'%x);title('time %s'%x)
+    plot(s['B0',x],alpha=0.4)
+#xlim(100,None)
+# Choosing data set 31
 
 
-# In[17]:
+# In[20]:
+
+s_choice = s['B0',31].C
+
+
+# In[21]:
+
+figure('check our windows')
+max_hw = 27
+window_hw = 15
+index_max = abs(s_choice).argmax('t', raw_index = True).data
+s_choice.setaxis('t', lambda t: t - s_choice.getaxis('t')[index_max])
+s.setaxis('t', lambda t: t - s.getaxis('t')[index_max]) # do to s what done to s choice
+plot(abs(s_choice), alpha=0.5)
+center_idx = where(s_choice.getaxis('t') == 0)[0][0]
+for win_name,check_hw in [('max symm halfwidth',max_hw),('window halfwidth',window_hw)]:
+    s_slice = s_choice['t', center_idx - check_hw : center_idx + check_hw + 1]
+    span_min = s_choice.getaxis('t')[center_idx - check_hw]
+    span_max = s_choice.getaxis('t')[center_idx + check_hw + 1]
+    plot(abs(s_choice),':', c='violet')
+    plot(abs(s_slice), c='blue', alpha = 0.5)
+    axvline(span_min, c='k')
+    axvline(span_max, c='k')
+    gridandtick(gca())
+
+
+# In[22]:
+
+print center_idx
+
+
+# In[23]:
+
+dw = diff(s_choice.getaxis('t')[r_[0,1]])[0]
+max_t_shift = (max_hw - window_hw) * dw
+
+
+# In[ ]:
 
 get_ipython().magic(u'matplotlib notebook')
 
 
-# In[20]:
+# In[24]:
+
+s_copy = s_choice.C
+
+
+# In[25]:
+
+s_choice = s_copy.C # checkpoint
+
+
+# In[26]:
+
+N = 60.
+fl.next('hermitian cost func')
+s_check = s_choice.C
+s_check = s_check['t',center_idx - max_hw : center_idx + max_hw + 1]
+print ndshape(s_check)
+sliced_center_idx = where(s_check.getaxis('t') == 0)[0][0]
+s_check.ft('t')
+ph0 = nddata(r_[-0.5:0.5:1j*N],'ph0').set_units('ph0','cyc')
+ph0 = exp(1j*2*pi*ph0)
+ph1 = nddata(r_[-max_t_shift:max_t_shift:1j*N],'ph1').set_units('ph1','s')
+ph1 = exp(1j*2*pi*ph1*s_check.fromaxis('t'))
+s_check *= ph1
+s_check.ift('t')
+s_check *= ph0
+deviation = s_check['t',sliced_center_idx - window_hw : sliced_center_idx + window_hw + 1]
+deviation = deviation['t',::-1].C.run(conj) - deviation
+deviation.run(lambda x: abs(x)**2).sum('t')
+fl.image(-1*deviation)
+
+
+# In[27]:
+
+s_choice = s_copy.C # checkpoint
+
+
+# In[28]:
+
+N = 60.
+fl.next('hermitian cost func, adjust')
+frq_corr = 70.3e-3/5.1e-6
+s_choice *= exp(-1j*2*pi*frq_corr*s_choice.fromaxis('t'))
+s_check = s_choice.C
+s_check = s_check['t',center_idx - max_hw : center_idx + max_hw + 1]
+print ndshape(s_check)
+sliced_center_idx = where(s_check.getaxis('t') == 0)[0][0]
+s_check.ft('t')
+ph0 = nddata(r_[-0.5:0.5:1j*N],'ph0').set_units('ph0','cyc')
+ph0 = exp(1j*2*pi*ph0)
+ph1 = nddata(r_[-max_t_shift:max_t_shift:1j*N],'ph1').set_units('ph1','s')
+ph1 = exp(1j*2*pi*ph1*s_check.fromaxis('t'))
+s_check *= ph1
+s_check.ift('t')
+s_check *= ph0
+deviation = s_check['t',sliced_center_idx - window_hw : sliced_center_idx + window_hw + 1]
+deviation = deviation['t',::-1].C.run(conj) - deviation
+deviation.run(lambda x: abs(x)**2).sum('t')
+fl.image(-1*deviation) # easier to see the red
+ph1_corr = 3.97e-6
+ph0_corr = -178.4e-3
+
+
+# In[72]:
+
+get_ipython().magic(u'matplotlib notebook')
+
+
+# In[75]:
+
+N = 60.
+full_sig = s.C.reorder('t')
+deviation = full_sig.C
+print ndshape(deviation)
+with figlist_var() as fl:
+    fl.next('signal before processing')
+    fl.plot(full_sig)
+    fl.next('hermitian cost func, adjust, correction', figsize=(14,14))
+    frq_corr = 0 #70.3e-3/5.1e-6
+    deviation = deviation['t',center_idx - max_hw : center_idx + max_hw + 1]
+    deviation *= exp(-1j*2*pi*frq_corr*deviation.fromaxis('t'))
+    print ndshape(deviation)
+    sliced_center_idx = where(deviation.getaxis('t') == 0)[0][0]
+    deviation.ft('t')
+    ph0 = nddata(r_[-0.5:0.5:1j*N],'ph0').set_units('ph0','cyc')
+    ph0 = exp(1j*2*pi*ph0)
+    ph1 = nddata(r_[-max_t_shift:max_t_shift:1j*N],'ph1').set_units('ph1','s')
+    ph1 = exp(1j*2*pi*ph1*deviation.fromaxis('t'))
+    deviation *= ph1
+    deviation.ift('t')
+    deviation *= ph0
+    deviation = deviation['t',sliced_center_idx - window_hw : sliced_center_idx + window_hw + 1]
+    deviation = deviation['t',::-1].C.run(conj) - deviation
+    deviation.run(lambda x: abs(x)**2).sum('t').sum('B0')
+    fl.image(-1*deviation) # easier to see the red
+    ph1_corr = 1.6e-6
+    ph0_corr = 320e-3
+    fl.plot(ph0_corr/1e-3,ph1_corr/1e-6,'o')
+
+    full_sig.ft('t')
+    full_sig *= exp(1j*2*pi*ph0_corr) * exp(1j*2*pi*ph1_corr*full_sig.fromaxis('t'))
+    full_sig.ift('t')
+    full_sig = full_sig['t':(0,None)]
+    full_sig['t',0] *= 0.5
+    full_sig.ft('t')
+    full_sig = full_sig['t':(-200e3,200e3)]
+    # zero pad
+    full_sig.ift('t')
+    full_sig.ft('t',pad=1024)
+    fl.next('look for good zero-order phase')
+    ph0 = nddata(r_[-10e-3:10e-3:1j*N],'ph0').set_units('ph0','cyc')
+    full_sig_testph0 = full_sig * exp(1j*2*pi*ph0)
+    full_sig_testph0.run(real).run(abs).sum('t').sum('B0')
+    fl.plot(full_sig_testph0)
+    ph0_corr = full_sig_testph0.argmin('ph0').data.item()
+    print "ph0_corr fine tune is:",ph0_corr,'cyc'
+    full_sig *= exp(1j*2*pi*ph0_corr)
+    fl.next('image display of frequency sweep', figsize=(14,14))
+    fl.image(full_sig)
+    fl.next('image display of frequency sweep -- real', figsize=(14,14))
+    full_sig.real.C.human_units().meshplot(cmap=cm.viridis)
+    fl.next('line display of frequency sweep', figsize=(14,14))
+    fl.plot(full_sig, alpha=0.5, human_units=False)
+    envelope = full_sig.C
+    envelope.run(real)[lambda x: x < 0] = 0
+    envelope.sum('B0')
+    envelope /= envelope.data.max()
+    envelope *= full_sig.data.real.max()
+    print ndshape(envelope),envelope.get_units(),envelope.get_units('t')
+    fl.plot(envelope, color='k', linewidth=3, alpha=0.25, human_units=False)
+    fl.next('line display of frequency sweep -- abs', figsize=(14,14))
+    fl.plot(abs(full_sig), alpha=0.5)
+
+
+# In[ ]:
+
+s_choice = s_copy.C # checkpoint
+
+
+# In[ ]:
+
+N = 60.
+fl.next('hermitian cost func, adjust, correction')
+frq_corr = 70.3e-3/5.1e-6
+s_choice *= exp(-1j*2*pi*frq_corr*s_choice.fromaxis('t'))
+s_check = s_choice.C
+s_check = s_check['t',center_idx - max_hw : center_idx + max_hw + 1]
+print ndshape(s_check)
+sliced_center_idx = where(s_check.getaxis('t') == 0)[0][0]
+s_check.ft('t')
+ph0 = nddata(r_[-0.5:0.5:1j*N],'ph0').set_units('ph0','cyc')
+ph0 = exp(1j*2*pi*ph0)
+ph1 = nddata(r_[-max_t_shift:max_t_shift:1j*N],'ph1').set_units('ph1','s')
+ph1 = exp(1j*2*pi*ph1*s_check.fromaxis('t'))
+s_check *= ph1
+s_check.ift('t')
+s_check *= ph0
+deviation = s_check['t',sliced_center_idx - window_hw : sliced_center_idx + window_hw + 1]
+deviation = deviation['t',::-1].C.run(conj) - deviation
+deviation.run(lambda x: abs(x)**2).sum('t')
+fl.image(-1*deviation) # easier to see the red
+ph1_corr = 4.05e-6
+ph0_corr = 327e-3
+fl.plot(ph0_corr/1e-3,ph1_corr/1e-6,'o')
+
+
+# In[ ]:
+
+s_choice = s_copy.C # checkpoint
+
+
+# In[ ]:
+
+s_choice.ft('t')
+s.ft('t') # do to s as do to s choice
+s_choice *= exp(1j*2*pi*ph0_corr) * exp(1j*2*pi*ph1_corr*s_choice.fromaxis('t'))
+s *= exp(1j*2*pi*ph0_corr) * exp(1j*2*pi*ph1_corr*s.fromaxis('t'))
+s_choice.ift('t')
+s.ift('t')
+figure('show the time domain signal')
+plot(abs(s_choice), 'k', alpha=0.5)
+plot(s_choice.imag, alpha = 0.5)
+s_choice = s_choice['t', center_idx:]
+s = s['t', center_idx:]
+s_choice['t',0] /= 2.
+s['t',0] /= 2.
+plot(s_choice, alpha=0.5)
+gridandtick(gca())
+
+
+# In[ ]:
+
+s_choice.ft('t')
+s.ft('t')
+figure('ft')
+plot(s_choice)
+plot(s_choice.imag)
+
+
+# In[ ]:
+
+fl.next('traditional cost function')
+s_check = s_choice.C
+ph0 = nddata(r_[-0.5:0.5:1j*N],'ph0').set_units('ph0','cyc')
+ph0 = exp(1j*2*pi*ph0)
+ph1 = nddata(r_[-3*dw:3*dw:1j*N],'ph1').set_units('ph1','s')
+ph1 = exp(1j*2*pi*ph1*s_check.fromaxis('t'))
+s_check *= ph1
+s_check *= ph0
+s_check.run(real).run(abs).sum('t')
+fl.image(-1*s_check)
+
+
+# In[ ]:
+
+fl.next('traditional cost function')
+s_check = s_choice.C
+ph0 = nddata(r_[-0.5:0.5:1j*N],'ph0').set_units('ph0','cyc')
+ph0 = exp(1j*2*pi*ph0)
+ph1 = nddata(r_[-3*dw:3*dw:1j*N],'ph1').set_units('ph1','s')
+ph1 = exp(1j*2*pi*ph1*s_check.fromaxis('t'))
+s_check = s_check * ph1
+s_check *= ph0
+s_check.run(real).run(abs).sum('t')
+fl.image(-1*s_check)
+ph1_corr = -29e-9
+ph0_corr = -52e-3
+fl.plot(ph0_corr/1e-3,ph1_corr/1e-9,'o')
+
+
+# In[ ]:
+
+s_choice *= exp(1j*2*pi*ph0_corr) * exp(1j*2*pi*ph1_corr*s_choice.fromaxis('t'))
+s *= exp(1j*2*pi*ph0_corr) * exp(1j*2*pi*ph1_corr*s.fromaxis('t'))
+#s_choice.ift('t')
+figure('show the time domain signal, 2')
+plot(abs(s_choice), 'k', alpha=0.5)
+plot(s_choice.imag, alpha = 0.5)
+s_choice = s_choice['t', center_idx:]
+s = s['t', center_idx:]
+s_choice['t',0] /= 2.
+s['t',0] /= 2.
+plot(s_choice, alpha=0.5)
+gridandtick(gca())
+
+
+# In[ ]:
+
+for x in xrange(ndshape(s)['B0']):
+    temp = s['B0',x].C
+    figure('FT')
+    plot(temp)
+    #plot(s['B0',x].real,':',c='k')
+    #plot(s['B0',x].imag,':',c='blue')
+    #s.ift('t')
+
+
+# In[ ]:
+
+fl.next('image')
+fl.image(s)
+
+
+# In[ ]:
+
+s.ift('t')
+
+
+# In[ ]:
+
+s = s['t':(0,None)]
+
+
+# In[ ]:
+
+s.ft('t')
+
+
+# In[ ]:
+
+s['t':(-100e3,100e3)]
+
+
+# In[ ]:
+
+s.reorder('t')
+
+
+# In[ ]:
+
+print ndshape(s)
+
+
+# In[ ]:
+
+s.reorder('B0')
+print ndshape(s)
+
+
+# In[ ]:
+
+fl.next('image, updatejhfghd')
+fl.image(s)
+
+
+# In[ ]:
 
 for x in xrange(ndshape(s)['B0']):
     s.ft('t')
@@ -256,17 +566,23 @@ for x in xrange(ndshape(s)['B0']):
     s.ift('t')
 
 
-# In[21]:
+# In[ ]:
 
-ph_span = 6 # verify that this looks good with data
+with figlist_var() as fl:
+    fl.next('image of signal')
+    temp = s.C['t':(0,None)].ft('t')['t':(-100e3,100e3)]
+    #ph1_corr = pi/50e3
+    #temp *= exp(1j*ph1_corr*temp.fromaxis('t'))
+    #print "ph1_corr is",ph1_corr/2/pi,'s'
+    fl.image(temp)
 
 
-# In[22]:
+# In[ ]:
 
 get_ipython().magic(u'matplotlib notebook')
 
 
-# In[23]:
+# In[ ]:
 
 for x in xrange(ndshape(s)['B0']):
     temp = s['B0',x].C
@@ -297,33 +613,61 @@ for x in xrange(ndshape(s)['B0']):
     
 
 
-# In[24]:
+# In[ ]:
 
 scopy = s.C
 
 
-# In[81]:
+# In[ ]:
 
 s = scopy.C #checkpoint
 
 
-# In[153]:
+# In[ ]:
 
 get_ipython().magic(u'matplotlib notebook')
 
 
-# In[154]:
+# In[ ]:
 
+s.set_error(None)
 for x in xrange(ndshape(s)['B0']):
-    figure('field sweep')
+    figure('field sweep', figsize=(14,20))
     temp = s['B0',x].C
     temp = temp['t':(0,None)]
     temp.ft('t')
     temp = temp['t':(-300e3,300e3)]
-    plot((temp), alpha=0.4)
+    plot((temp)+0.3e-7*x, alpha=0.4)
 
 
-# In[123]:
+# In[ ]:
+
+print ndshape(s)
+with figlist_var() as fl:
+    fl.next('time-domain signal')
+    fl.plot(s.C.reorder('t'))
+
+
+# In[ ]:
+
+s.set_error(None).reorder('t')
+with figlist_var() as fl:
+    fl.next('image of signal')
+    temp = s.C['t':(0,None)].ft('t')['t':(-100e3,100e3)]
+    ph1_corr = pi/50e3
+    temp *= exp(1j*ph1_corr*temp.fromaxis('t'))
+    print "ph1_corr is",ph1_corr/2/pi,'s'
+    fl.image(temp)
+
+
+# In[ ]:
+
+with figlist_var() as fl:
+    fl.next('1D plot of above')
+    fl.plot(temp)
+
+
+# In[ ]:
 
 dwell_t = diff(signal.getaxis('t')[r_[0,1]]).item()
 SW = 1.0/dwell_t
@@ -335,13 +679,13 @@ x = nddata(r_[-dw_width/SW/2:dw_width/SW/2:N*1j],'ph1').set_units('ph1','s')
 ph1 = 1j*2*pi*x
 
 
-# In[124]:
+# In[ ]:
 
 fl = figlist_var()
 get_ipython().magic(u'matplotlib inline')
 
 
-# In[150]:
+# In[ ]:
 
 #for x in xrange(ndshape(s)['B0']):
 for x in xrange(2):
@@ -381,7 +725,7 @@ for x in xrange(2):
     print "done %d"%x
 
 
-# In[88]:
+# In[ ]:
 
 ph1_min = temp_herm.argmin('ph0',raw_index=True).data
 ph2_min = temp_herm.argmin('ph1',raw_index=True).data
@@ -399,7 +743,7 @@ s_herm.sum('t')
 image(s_herm)
 
 
-# In[118]:
+# In[ ]:
 
 get_ipython().magic(u'pinfo nddata.argmin')
 

@@ -7,7 +7,6 @@ import matplotlib as mpl
 
 mpl.rcParams['image.cmap'] = 'inferno'
 fl = figlist_var()
-fl.next('show the time-domain signal', legend=True)
 gain_factor = sqrt(73503.77279)
 
 max_window = 30e-6
@@ -259,9 +258,10 @@ deviation = signal_check_corr['t',sliced_center_idx - window_hw : sliced_center_
 deviation = deviation['t',::-1].C.run(conj) - deviation
 deviation.run(lambda x: abs(x)**2).sum('t')
 fl.image(-1*deviation)
-ph0_corr = -246.4e-3
-ph1_corr = -8e-6
-fl.plot(ph0_corr/1e-3,ph1_corr/1e-6,'o')
+#ph0_corr = -246.4e-3
+#ph1_corr = -8e-6
+#fl.plot(ph0_corr/1e-3,ph1_corr/1e-6,'o')
+fl.show();quit()
 del signal_check_corr
 
 # now apply this correction
