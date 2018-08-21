@@ -247,16 +247,48 @@ for date,id_string,numchan,indirect_range in [
     signal.ift('t')
     signal.setaxis('t', lambda t: t - 35e-6)
     signal=signal['t':(0,None)]
-    fl.next('mesh 1')
-    signal.meshplot(cmap=cm.viridis)
     signal.ft('t')
+    N = 60.0
+    ph0 = nddata(r_[-0.5:0.5:1j*N], 'ph0').set_units('ph0','cyc')
+    ph0_corr_list = []
     for x in xrange(ndshape(signal)['indirect']):
         #{{{ phasing
         temp = signal['indirect',x].C
-        ph = temp.C.sum('t')
-        ph /= abs(ph)
-        signal['indirect',x] /= ph
+        temp *= exp(1j*2*pi*ph0)
+        temp.run(real).run(abs).sum('t')
+        this_corr = temp.C.argmin('ph0').data.item()
+        signal['indirect',x].data *= exp(1j*2*pi*this_corr)
         #}}}
+    #signal.ift('t')
+    #fl.next('FT')
+    #start = 0
+    #offset = 0
+    #for x in xrange(ndshape(signal)['indirect']):
+    #    temp = signal['indirect',x].C
+    #    temp = temp['t':(start,None)]
+    #    temp.ft('t')
+    #    temp = temp['t':(-60e3,60e3)]
+    #    temp.setaxis('t',lambda t: t + offset)
+    #    plot(temp,':',alpha=0.7)
+    #    annotate(r'%0.2f $\mu$s'%(signal.getaxis('indirect')[x]*1e6),(offset+10e3, -30e-8),ha='right',va='bottom',rotation=60)
+    #    #start = start + 1.7e-6
+    #    offset = offset + 100e3
+    # being addition
+    dw = diff(signal.getaxis('t')[r_[0,1]]).item()
+    ph0 = nddata(r_[-0.5:0.5:1j*N],'ph0').set_units('ph0','cyc')
+    ph0 = exp(1j*2*pi*ph0)
+    ph1 = nddata(r_[-dw:dw:1j*N], 'ph1').set_units('ph1','s')
+    ph1 = exp(1j*2*pi*ph1*signal.fromaxis('t'))
+    signal *= ph0
+    signal *= ph1
+    print ndshape(signal)
+    for x in xrange(ndshape(signal)['indirect']):
+        s_check = signal['indirect',x].C
+        s_check.run(real).run(abs).sum('t')
+        fl.next('image %d'%x)
+        fl.image(s_check)
+    fl.show();quit()
+    # end addition
     signal.ift('t')
     fl.next('mesh 2')
     signal.meshplot(cmap=cm.viridis)
