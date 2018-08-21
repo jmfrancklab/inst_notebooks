@@ -165,22 +165,26 @@ for date,id_string,numchan,field_axis,cycle_time, in [
         signal.rename('magnetic_field','B0')
 
 
-# In[14]:
+# In[ ]:
 
+# Pull the dataset generated in the processing code,
+# save to a checkpoint for later reference
+# and other preliminary jupyternb things
+
+
+# In[2]:
+
+get_ipython().magic(u'load_ext pyspecdata.ipy')
+fl = figlist_var()
 raw = signal.C
 
 
-# In[15]:
+# In[3]:
 
 s = raw.C # checkpoint
 
 
-# In[16]:
-
-get_ipython().magic(u'load_ext pyspecdata.ipy')
-
-
-# In[17]:
+# In[4]:
 
 s.set_error(None)
 s.setaxis('t', lambda t: t - 107.5e-6)
@@ -188,17 +192,17 @@ s = s['t':(-12e-6,None)]
 print ndshape(s)
 
 
-# In[18]:
-
-fl = figlist_var()
-
-
 # In[ ]:
 
 get_ipython().magic(u'matplotlib inline')
 
 
-# In[19]:
+# In[ ]:
+
+# Choose one dataset to phase, and then apply these phase corrections to the rest
+
+
+# In[ ]:
 
 for x in xrange(ndshape(s)['B0']):
     figure('time %s'%x);title('time %s'%x)
@@ -207,19 +211,22 @@ for x in xrange(ndshape(s)['B0']):
 # Choosing data set 31
 
 
-# In[20]:
+# In[ ]:
+
+# Check that regions definde by max_hw (max half width) and window_hw contain signal and not noise
+
+
+# In[5]:
 
 s_choice = s['B0',31].C
 
-
-# In[21]:
-
-figure('check our windows')
+figure('check our windows');title('check our windows')
 max_hw = 27
 window_hw = 15
 index_max = abs(s_choice).argmax('t', raw_index = True).data
 s_choice.setaxis('t', lambda t: t - s_choice.getaxis('t')[index_max])
-s.setaxis('t', lambda t: t - s.getaxis('t')[index_max]) # do to s what done to s choice
+s.setaxis('t', lambda t: t - s.getaxis('t')[index_max]) # NOTE: Need to do this in order to use the Hermitian cost
+# function summed over the indirection dimension...
 plot(abs(s_choice), alpha=0.5)
 center_idx = where(s_choice.getaxis('t') == 0)[0][0]
 for win_name,check_hw in [('max symm halfwidth',max_hw),('window halfwidth',window_hw)]:
@@ -231,35 +238,26 @@ for win_name,check_hw in [('max symm halfwidth',max_hw),('window halfwidth',wind
     axvline(span_min, c='k')
     axvline(span_max, c='k')
     gridandtick(gca())
-
-
-# In[22]:
-
-print center_idx
-
-
-# In[23]:
-
 dw = diff(s_choice.getaxis('t')[r_[0,1]])[0]
 max_t_shift = (max_hw - window_hw) * dw
 
 
-# In[ ]:
-
-get_ipython().magic(u'matplotlib notebook')
-
-
-# In[24]:
+# In[6]:
 
 s_copy = s_choice.C
 
 
-# In[25]:
+# In[ ]:
+
+# Generate cost function using Hermitian property of spin echo
+
+
+# In[7]:
 
 s_choice = s_copy.C # checkpoint
 
 
-# In[26]:
+# In[8]:
 
 N = 60.
 fl.next('hermitian cost func')
@@ -281,12 +279,17 @@ deviation.run(lambda x: abs(x)**2).sum('t')
 fl.image(-1*deviation)
 
 
-# In[27]:
+# In[9]:
+
+## Adjust with frequency correction if axes are rotated
+
+
+# In[10]:
 
 s_choice = s_copy.C # checkpoint
 
 
-# In[28]:
+# In[11]:
 
 N = 60.
 fl.next('hermitian cost func, adjust')
@@ -312,83 +315,17 @@ ph1_corr = 3.97e-6
 ph0_corr = -178.4e-3
 
 
-# In[72]:
+# In[12]:
 
-get_ipython().magic(u'matplotlib notebook')
-
-
-# In[75]:
-
-N = 60.
-full_sig = s.C.reorder('t')
-deviation = full_sig.C
-print ndshape(deviation)
-with figlist_var() as fl:
-    fl.next('signal before processing')
-    fl.plot(full_sig)
-    fl.next('hermitian cost func, adjust, correction', figsize=(14,14))
-    frq_corr = 0 #70.3e-3/5.1e-6
-    deviation = deviation['t',center_idx - max_hw : center_idx + max_hw + 1]
-    deviation *= exp(-1j*2*pi*frq_corr*deviation.fromaxis('t'))
-    print ndshape(deviation)
-    sliced_center_idx = where(deviation.getaxis('t') == 0)[0][0]
-    deviation.ft('t')
-    ph0 = nddata(r_[-0.5:0.5:1j*N],'ph0').set_units('ph0','cyc')
-    ph0 = exp(1j*2*pi*ph0)
-    ph1 = nddata(r_[-max_t_shift:max_t_shift:1j*N],'ph1').set_units('ph1','s')
-    ph1 = exp(1j*2*pi*ph1*deviation.fromaxis('t'))
-    deviation *= ph1
-    deviation.ift('t')
-    deviation *= ph0
-    deviation = deviation['t',sliced_center_idx - window_hw : sliced_center_idx + window_hw + 1]
-    deviation = deviation['t',::-1].C.run(conj) - deviation
-    deviation.run(lambda x: abs(x)**2).sum('t').sum('B0')
-    fl.image(-1*deviation) # easier to see the red
-    ph1_corr = 1.6e-6
-    ph0_corr = 320e-3
-    fl.plot(ph0_corr/1e-3,ph1_corr/1e-6,'o')
-
-    full_sig.ft('t')
-    full_sig *= exp(1j*2*pi*ph0_corr) * exp(1j*2*pi*ph1_corr*full_sig.fromaxis('t'))
-    full_sig.ift('t')
-    full_sig = full_sig['t':(0,None)]
-    full_sig['t',0] *= 0.5
-    full_sig.ft('t')
-    full_sig = full_sig['t':(-200e3,200e3)]
-    # zero pad
-    full_sig.ift('t')
-    full_sig.ft('t',pad=1024)
-    fl.next('look for good zero-order phase')
-    ph0 = nddata(r_[-10e-3:10e-3:1j*N],'ph0').set_units('ph0','cyc')
-    full_sig_testph0 = full_sig * exp(1j*2*pi*ph0)
-    full_sig_testph0.run(real).run(abs).sum('t').sum('B0')
-    fl.plot(full_sig_testph0)
-    ph0_corr = full_sig_testph0.argmin('ph0').data.item()
-    print "ph0_corr fine tune is:",ph0_corr,'cyc'
-    full_sig *= exp(1j*2*pi*ph0_corr)
-    fl.next('image display of frequency sweep', figsize=(14,14))
-    fl.image(full_sig)
-    fl.next('image display of frequency sweep -- real', figsize=(14,14))
-    full_sig.real.C.human_units().meshplot(cmap=cm.viridis)
-    fl.next('line display of frequency sweep', figsize=(14,14))
-    fl.plot(full_sig, alpha=0.5, human_units=False)
-    envelope = full_sig.C
-    envelope.run(real)[lambda x: x < 0] = 0
-    envelope.sum('B0')
-    envelope /= envelope.data.max()
-    envelope *= full_sig.data.real.max()
-    print ndshape(envelope),envelope.get_units(),envelope.get_units('t')
-    fl.plot(envelope, color='k', linewidth=3, alpha=0.25, human_units=False)
-    fl.next('line display of frequency sweep -- abs', figsize=(14,14))
-    fl.plot(abs(full_sig), alpha=0.5)
+## Annotate the selected region used to find the phase corrections
 
 
-# In[ ]:
+# In[13]:
 
 s_choice = s_copy.C # checkpoint
 
 
-# In[ ]:
+# In[14]:
 
 N = 60.
 fl.next('hermitian cost func, adjust, correction')
@@ -412,7 +349,172 @@ deviation.run(lambda x: abs(x)**2).sum('t')
 fl.image(-1*deviation) # easier to see the red
 ph1_corr = 4.05e-6
 ph0_corr = 327e-3
-fl.plot(ph0_corr/1e-3,ph1_corr/1e-6,'o')
+fl.plot(ph0_corr/1e-3,ph1_corr/1e-6,'x',c='white')
+
+
+# In[ ]:
+
+### NEW APPROACH
+
+
+# In[ ]:
+
+### FOR FASTER PHASE CORRECTION
+
+
+# In[ ]:
+
+### SUM OVER THE INDIRECT (REPEAT/FIELD SWEEP) DIMENSIONS
+### INSTEAD OF JUST PICKING ONE DIMENSION AND PHASING, THEN APPLYING
+
+
+# In[15]:
+
+fl.next('hermitian cost func, sum over indirect')
+s_check = s.C.reorder('t') # use s containing all data instead of just one data set
+# NOTE: s must be treated exactly the same as s_choice -- verify and be careful
+s_check = s_check['t',center_idx - max_hw : center_idx + max_hw + 1]
+print ndshape(s_check)
+sliced_center_idx = where(s_check.getaxis('t') == 0)[0][0]
+s_check.ft('t')
+ph0 = nddata(r_[-0.5:0.5:1j*N],'ph0').set_units('ph0','cyc')
+ph0 = exp(1j*2*pi*ph0)
+ph1 = nddata(r_[-max_t_shift:max_t_shift:1j*N],'ph1').set_units('ph1','s')
+ph1 = exp(1j*2*pi*ph1*s_check.fromaxis('t'))
+s_check *= ph1
+s_check.ift('t')
+s_check *= ph0
+deviation = s_check['t',sliced_center_idx - window_hw : sliced_center_idx + window_hw + 1]
+deviation = deviation['t',::-1].C.run(conj) - deviation
+deviation.run(lambda x: abs(x)**2).sum('t').sum('B0') # sum over indirect dimension
+fl.image(-1*deviation)
+
+
+# In[16]:
+
+## Annotate the selected region used to find these overall phase corrections
+
+
+# In[93]:
+
+s_choice = s_copy.C # checkpoint
+
+
+# In[94]:
+
+fl.next('hermitian cost func, sum over indirect -- corrected')
+s_check = s.C.reorder('t') # use s containing all data instead of just one data set
+# NOTE: s must be treated exactly the same as s_choice -- verify and be careful
+s_check = s_check['t',center_idx - max_hw : center_idx + max_hw + 1]
+print ndshape(s_check)
+sliced_center_idx = where(s_check.getaxis('t') == 0)[0][0]
+s_check.ft('t')
+ph0 = nddata(r_[-0.5:0.5:1j*N],'ph0').set_units('ph0','cyc')
+ph0 = exp(1j*2*pi*ph0)
+ph1 = nddata(r_[-max_t_shift:max_t_shift:1j*N],'ph1').set_units('ph1','s')
+ph1 = exp(1j*2*pi*ph1*s_check.fromaxis('t'))
+s_check *= ph1
+s_check.ift('t')
+s_check *= ph0
+deviation = s_check['t',sliced_center_idx - window_hw : sliced_center_idx + window_hw + 1]
+deviation = deviation['t',::-1].C.run(conj) - deviation
+deviation.run(lambda x: abs(x)**2).sum('t').sum('B0') # sum over indirect dimension
+fl.image(-1*deviation)
+ph1_corr = 1.81e-6
+ph0_corr = 311e-3
+fl.plot(ph0_corr/1e-3,ph1_corr/1e-6,'x',c='white')
+
+
+# In[95]:
+
+full = s.C.reorder('t') # NOTE, not a checkpoint...
+
+
+# In[96]:
+
+full.ft('t')
+full *= exp(1j*2*pi*ph0_corr) * exp(1j*2*pi*ph1_corr*full.fromaxis('t'))
+full.ift('t')
+full = full['t':(0,None)]
+full['t',0] *= 0.5
+full.ft('t')
+# Zero pad begin
+full = full['t':(-200e3,200e3)]
+full.ift('t')
+full.ft('t',pad=1024)
+# End zero pad
+
+
+# In[97]:
+
+# Now make fine adjustments to phase by zooming
+
+
+# In[98]:
+
+this_string = 'adjusting zeroth order'
+figure('%s'%this_string);title('%s'%this_string)
+ph0 = nddata(r_[-100e-3:100e-3:1j*N],'ph0').set_units('ph0','cyc')
+full_ph0 = full * exp(1j*2*pi*ph0)
+print ndshape(full_ph0)
+full_ph0.run(real).run(abs).sum('t').sum('B0')
+plot(full_ph0, c='k', alpha=0.7)
+ph0_corr = full_ph0.C.argmin('ph0').data.item()
+full_corr = full * exp(1j*2*pi*ph0_corr)
+full_ph0 = full_corr * exp(1j*2*pi*ph0) # verify that this is at 0
+full_ph0.run(real).run(abs).sum('t').sum('B0')
+plot(full_ph0, ':', c='purple')
+
+
+# In[99]:
+
+# If the above has been centered to zero,
+# then apply zeroth order correction to dataset outright
+
+
+# In[100]:
+
+print "Fine-tuned zeroth order correction is",ph0_corr,"cycles"
+full *= exp(1j*2*pi*ph0_corr) # fine-tuned zeroth order
+
+
+# In[ ]:
+
+# Plot properly phased data set as desired
+
+
+# In[101]:
+
+fl.next('image display of frequency sweep')
+fl.image(full)
+fl.show()
+
+
+# In[102]:
+
+fl.next('image display of frequency sweep -- real ')
+fl.plot(full, alpha=0.7)
+fl.show()
+
+
+# In[103]:
+
+envelope = full.C
+envelope.run(real)[lambda x: x < 0] = 0
+envelope.sum('B0')
+envelope /= envelope.data.max()
+envelope *= full.data.real.max()
+fl.plot(envelope, color='k', alpha=0.25, human_units=False)
+
+
+# In[ ]:
+
+### END NEW APPROACH
+
+
+# In[ ]:
+
+# Apply phase corrections
 
 
 # In[ ]:
@@ -441,11 +543,22 @@ gridandtick(gca())
 
 # In[ ]:
 
+# Plot phase corrected signal in frequency domain
+# Is there a baseline error?
+
+
+# In[ ]:
+
 s_choice.ft('t')
 s.ft('t')
 figure('ft')
 plot(s_choice)
 plot(s_choice.imag)
+
+
+# In[ ]:
+
+# To fix baseline error, generate cost function using traditional phasing method
 
 
 # In[ ]:
@@ -464,6 +577,11 @@ fl.image(-1*s_check)
 
 # In[ ]:
 
+# Annotate where selecting phase corrections using this method
+
+
+# In[ ]:
+
 fl.next('traditional cost function')
 s_check = s_choice.C
 ph0 = nddata(r_[-0.5:0.5:1j*N],'ph0').set_units('ph0','cyc')
@@ -476,7 +594,13 @@ s_check.run(real).run(abs).sum('t')
 fl.image(-1*s_check)
 ph1_corr = -29e-9
 ph0_corr = -52e-3
-fl.plot(ph0_corr/1e-3,ph1_corr/1e-9,'o')
+fl.plot(ph0_corr/1e-3,ph1_corr/1e-9,'x',c='white')
+
+
+# In[ ]:
+
+# Apply phase correction and plot in frequency domain
+# Is the baseline error gone?
 
 
 # In[ ]:
@@ -493,267 +617,4 @@ s_choice['t',0] /= 2.
 s['t',0] /= 2.
 plot(s_choice, alpha=0.5)
 gridandtick(gca())
-
-
-# In[ ]:
-
-for x in xrange(ndshape(s)['B0']):
-    temp = s['B0',x].C
-    figure('FT')
-    plot(temp)
-    #plot(s['B0',x].real,':',c='k')
-    #plot(s['B0',x].imag,':',c='blue')
-    #s.ift('t')
-
-
-# In[ ]:
-
-fl.next('image')
-fl.image(s)
-
-
-# In[ ]:
-
-s.ift('t')
-
-
-# In[ ]:
-
-s = s['t':(0,None)]
-
-
-# In[ ]:
-
-s.ft('t')
-
-
-# In[ ]:
-
-s['t':(-100e3,100e3)]
-
-
-# In[ ]:
-
-s.reorder('t')
-
-
-# In[ ]:
-
-print ndshape(s)
-
-
-# In[ ]:
-
-s.reorder('B0')
-print ndshape(s)
-
-
-# In[ ]:
-
-fl.next('image, updatejhfghd')
-fl.image(s)
-
-
-# In[ ]:
-
-for x in xrange(ndshape(s)['B0']):
-    s.ft('t')
-    temp = s['B0',x].C
-    figure('%d'%x)
-    plot(temp)
-    s['B0',x] *= exp(1j*2*pi*dt_list[x]*temp.fromaxis('t'))
-    plot(s['B0',x], ':')
-    s.ift('t')
-
-
-# In[ ]:
-
-with figlist_var() as fl:
-    fl.next('image of signal')
-    temp = s.C['t':(0,None)].ft('t')['t':(-100e3,100e3)]
-    #ph1_corr = pi/50e3
-    #temp *= exp(1j*ph1_corr*temp.fromaxis('t'))
-    #print "ph1_corr is",ph1_corr/2/pi,'s'
-    fl.image(temp)
-
-
-# In[ ]:
-
-get_ipython().magic(u'matplotlib notebook')
-
-
-# In[ ]:
-
-for x in xrange(ndshape(s)['B0']):
-    temp = s['B0',x].C
-    s.ft('t')
-    figure('phasing %d'%x)
-    plot(s['B0',x].real,':',c='k')
-    plot(s['B0',x].imag,':',c='blue')
-    s.ift('t')
-    max_index = abs(temp).argmax('t',raw_index = True).data
-    temp_slice = temp['t',max_index - ph_span : max_index + ph_span + 1]
-    temp_min = temp.getaxis('t')[max_index-ph_span]
-    temp_max = temp.getaxis('t')[max_index+ph_span+1]
-    #figure('span %d'%x)
-    #plot(abs(temp))
-    #plot(abs(temp_slice))
-    #axvline(temp_min, c='k')
-    #axvline(temp_max, c='k')
-    #gridandtick(gca())
-    ph = temp_slice.C.sum('t').data
-    ph /= abs(ph)
-    s['B0',x].data /= ph
-    s.ft('t')
-    figure('phasing %d'%x)
-    plot(s['B0',x].real, c='violet', alpha=0.5)
-    plot(s['B0',x].imag, c='cyan', alpha=0.5)
-    s.ift('t')
-    gridandtick(gca())
-    
-
-
-# In[ ]:
-
-scopy = s.C
-
-
-# In[ ]:
-
-s = scopy.C #checkpoint
-
-
-# In[ ]:
-
-get_ipython().magic(u'matplotlib notebook')
-
-
-# In[ ]:
-
-s.set_error(None)
-for x in xrange(ndshape(s)['B0']):
-    figure('field sweep', figsize=(14,20))
-    temp = s['B0',x].C
-    temp = temp['t':(0,None)]
-    temp.ft('t')
-    temp = temp['t':(-300e3,300e3)]
-    plot((temp)+0.3e-7*x, alpha=0.4)
-
-
-# In[ ]:
-
-print ndshape(s)
-with figlist_var() as fl:
-    fl.next('time-domain signal')
-    fl.plot(s.C.reorder('t'))
-
-
-# In[ ]:
-
-s.set_error(None).reorder('t')
-with figlist_var() as fl:
-    fl.next('image of signal')
-    temp = s.C['t':(0,None)].ft('t')['t':(-100e3,100e3)]
-    ph1_corr = pi/50e3
-    temp *= exp(1j*ph1_corr*temp.fromaxis('t'))
-    print "ph1_corr is",ph1_corr/2/pi,'s'
-    fl.image(temp)
-
-
-# In[ ]:
-
-with figlist_var() as fl:
-    fl.next('1D plot of above')
-    fl.plot(temp)
-
-
-# In[ ]:
-
-dwell_t = diff(signal.getaxis('t')[r_[0,1]]).item()
-SW = 1.0/dwell_t
-N = 40.0
-dw_width = 80.0
-x = nddata(r_[-250e-3:250e-3:N*1j],'ph0').set_units('ph0','cyc')
-ph0 = exp(1j*2*pi*x)
-x = nddata(r_[-dw_width/SW/2:dw_width/SW/2:N*1j],'ph1').set_units('ph1','s')
-ph1 = 1j*2*pi*x
-
-
-# In[ ]:
-
-fl = figlist_var()
-get_ipython().magic(u'matplotlib inline')
-
-
-# In[ ]:
-
-#for x in xrange(ndshape(s)['B0']):
-for x in xrange(2):
-    temp = s['B0',x].C
-    temp = temp['t':(0,None)].C
-    temp['t',0] /= 2.0
-    temp.ft('t')
-    temp *= ph0
-    temp *= exp(ph1*temp.fromaxis('t'))
-    temp.ift('t')
-    figure('hermitian cost %d'%x)
-    temp_herm = temp.C
-    temp_herm.data -= conj(temp_herm.data[::-1])
-    temp_herm.data = abs(temp_herm.data)**2
-    temp_herm.sum('t')
-    fl.next('plot %d'%x)
-    fl.image(temp_herm)
-    fl.show()
-    print ndshape(temp_herm)
-    min_list = temp_herm.C.argmin('ph0',raw_index=True).data
-    min_list2 = []
-    for z in xrange(len(min_list)):
-        min_list2.append(temp_herm['ph0',min_list[z]].C.argmin('ph1',raw_index=True).data)
-    min_data = []
-    for y in xrange(len(min_list)):
-        min_data.append(temp_herm['ph0',y]['ph1',y].data)
-    abs_min = min(min_data)
-    min_index = abs    
-    #ph1_mins = temp_herm.C.argmin('ph1',raw_index=True).data
-    #ph0_mins = temp_herm['ph1',ph1_min].C.argmin('ph0',raw_index=True).data
-    #print shape(ph1_mins)
-    #print ph0_mins
-    #for this_ph1_min in enumerate(ph1_mins):
-    #    for this_ph0_min in enumerate(ph0_mins):
-    #        print this_ph1_min
-
-    print "done %d"%x
-
-
-# In[ ]:
-
-ph1_min = temp_herm.argmin('ph0',raw_index=True).data
-ph2_min = temp_herm.argmin('ph1',raw_index=True).data
-
-
-# In[ ]:
-
-figure('hermitian cost %d'%x)
-s_herm = s.C
-s_herm.set_units('ph0','cyc')
-s_herm.set_units('ph1','s')
-s_herm.data -= conj(s_herm.data[::-1])
-s_herm.data = abs(s_herm.data)**2
-s_herm.sum('t')
-image(s_herm)
-
-
-# In[ ]:
-
-get_ipython().magic(u'pinfo nddata.argmin')
-
-
-# In[ ]:
-
-
-
-
-# In[ ]:
-
-
 
