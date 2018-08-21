@@ -11,7 +11,7 @@ mpl.rcParams['image.cmap'] = 'jet'
 fl = figlist_var()
 #init_logging(level='debug')
 
-#raw_input("Did you set max_window argument correctly??")
+raw_input("Did you set max_window argument correctly??")
 
 parser = argparse.ArgumentParser(description='basic command-line options')
 parser.add_argument('--window', '-w',
@@ -46,8 +46,8 @@ for date,id_string,numchan,indirect_range in [
         #('180724','check_field_2',2,None)
         #('180724','se_nutation',2,linspace(3.25e-6,15.25e-6,10))
         #('180724','90_nutation_control',2,linspace(1e-6,50e-6,5))
-        ('180724','90_nutation',2,linspace(1e-6,50e-6,25)) # use -w 60e-6
-        #('180725','90_nutation',2,linspace(1e-6,30e-6,30)) # use -w 60e-6
+        #('180724','90_nutation',2,linspace(1e-6,50e-6,25)) # use -w 60e-6
+        ('180725','90_nutation',2,linspace(1e-6,30e-6,30)) # use -w 60e-6
         #('180725','90_nutation_focused',2,linspace(6e-6,9e-6,30))
         ]:
     filename = date+'_'+id_string+'.h5'
@@ -238,156 +238,21 @@ for date,id_string,numchan,indirect_range in [
         signal = s_analytic['ph1',1]['ph2',0]
     if single_90:
         signal = (s_analytic['ph1',-1])
-    #fl.next(r'$\mid$signal(t)$\mid$ as function of $\tau_{90}$')
+    fl.next(r'$\mid$signal(t)$\mid$ as function of $\tau_{90}$')
     #signal.rename('indirect',r'$\tau_{90}$')
     signal.ft('t')
-
-    ## for phasing 
-    ph_list = []
-    signal.ift('t')
-    signal.setaxis('t', lambda t: t - 35e-6)
-    signal=signal['t':(0,None)]
-    signal.ft('t')
-    N = 60.0
-    ph0 = nddata(r_[-0.5:0.5:1j*N], 'ph0').set_units('ph0','cyc')
-    ph0_corr_list = []
+    signal *= exp(1j*(215./2/pi))
+    fl.next('FT plot')
     for x in xrange(ndshape(signal)['indirect']):
-        #{{{ phasing
-        temp = signal['indirect',x].C
-        temp *= exp(1j*2*pi*ph0)
-        temp.run(real).run(abs).sum('t')
-        this_corr = temp.C.argmin('ph0').data.item()
-        signal['indirect',x].data *= exp(1j*2*pi*this_corr)
-        #}}}
-    #signal.ift('t')
-    #fl.next('FT')
-    #start = 0
-    #offset = 0
-    #for x in xrange(ndshape(signal)['indirect']):
-    #    temp = signal['indirect',x].C
-    #    temp = temp['t':(start,None)]
-    #    temp.ft('t')
-    #    temp = temp['t':(-60e3,60e3)]
-    #    temp.setaxis('t',lambda t: t + offset)
-    #    plot(temp,':',alpha=0.7)
-    #    annotate(r'%0.2f $\mu$s'%(signal.getaxis('indirect')[x]*1e6),(offset+10e3, -30e-8),ha='right',va='bottom',rotation=60)
-    #    #start = start + 1.7e-6
-    #    offset = offset + 100e3
-    # being addition
-    dw = diff(signal.getaxis('t')[r_[0,1]]).item()
-    ph0 = nddata(r_[-0.5:0.5:1j*N],'ph0').set_units('ph0','cyc')
-    ph0 = exp(1j*2*pi*ph0)
-    ph1 = nddata(r_[-dw:dw:1j*N], 'ph1').set_units('ph1','s')
-    ph1 = exp(1j*2*pi*ph1*signal.fromaxis('t'))
-    signal *= ph0
-    signal *= ph1
-    print ndshape(signal)
-    for x in xrange(ndshape(signal)['indirect']):
-        s_check = signal['indirect',x].C
-        s_check.run(real).run(abs).sum('t')
-        fl.next('image %d'%x)
-        fl.image(s_check)
+        fl.plot(signal['indirect',x])
     fl.show();quit()
-    # end addition
     signal.ift('t')
-    fl.next('mesh 2')
+    signal = signal['t':(35e-6,None)]
+    fl.image(abs(signal))
+    fl.next('mesh')
     signal.meshplot(cmap=cm.viridis)
-    start = 0
-    offset = 0
-    fl.next('FT')
-    for x in xrange(ndshape(signal)['indirect']):
-        temp = signal['indirect',x].C
-        temp = temp['t':(start,None)]
-        temp.ft('t')
-        temp = temp['t':(-60e3,60e3)]
-        temp.setaxis('t',lambda t: t + offset)
-        plot(temp,':',alpha=0.7)
-        annotate(r'%0.2f $\mu$s'%(signal.getaxis('indirect')[x]*1e6),(offset+10e3, -30e-8),ha='right',va='bottom',rotation=60)
-        start = start + 1.7e-6
-        offset = offset + 100e3
+    fl.next('immm')
+    fl.image(signal)
+    signal.ift('t')
     fl.show();quit()
 
-    #{{{ failed attempt to implement phase_demo.py 
-    dwell_time = diff(signal.getaxis('t')[r_[0,1]]).item()
-    SW = 1./dwell_time
-    signal.reorder('indirect')
-    N = 40 # size of phase correction dimensions
-    dw_width = 25 # width of the ph1 window
-    ph_signal = signal.C
-    x = nddata(r_[-500e-6:500e-6:N*1j],'ph0')#.set_units('ph0','cyc')
-    ph0 = exp(1j*2*pi*x)
-    x = nddata(r_[-4*dw_width/SW/2:4*dw_width/SW/2:N*1j],'ph1')#.set_units('ph1','s')
-    ph1 = 1j*2*pi*x
-    print ndshape(ph_signal)
-    ph_signal *= ph0
-    ph_signal *= exp(ph1*ph_signal.fromaxis('t'))
-    print ndshape(ph_signal)
-    min_index_list = []
-    for x in xrange(ndshape(ph_signal)['indirect']):
-        #fl.next('phase cost %d'%x)
-        temp = ph_signal['indirect',x]
-        temp.data = abs(temp.data.real)
-        temp.sum('t')
-        #fl.image(temp)
-        min_index = temp['ph0',0].argmin('ph1',raw_index=True).data
-        min_index_list.append(min_index)
-    print ndshape(ph_signal)
-    print ndshape(signal)
-    for ph1_index,ph1_ivalue in enumerate(min_index_list):
-        #fl.next('Phasing indirect %d'%ph1_index)
-        ph1_value = ph1['ph1',ph1_ivalue].data
-        print "Applying ph1 correction of",ph1_value,"(ph1 index",ph1_index,")"
-        signal['indirect',ph1_index] *= exp(-1*ph1_value*signal.fromaxis('t'))
-        #fl.plot(signal['indirect',ph1_index].real,':', c='violet')
-        #fl.plot(signal['indirect',ph1_index].imag,':', c='cyan')
-        #gridandtick(gca())
-    signal = signal['t':(-100e3,100e3)]
-    signal.meshplot(cmap=cm.viridis);fl.show();quit()
-    start = 0
-    for x in xrange(ndshape(signal)['indirect']):
-        fl.next('this')
-        signal['indirect',x].setaxis('t',signal['indirect',x].getaxis('t')+start)
-        fl.plot(signal['indirect',x])
-        start = start+10e3
-    signal.reorder('t')
-    signal.ift('t')
-    #fl.next('after phasing')
-    #signal.meshplot(cmap=cm.viridis)
-    #signal_cut = signal['t':(-27e-6,None)]
-    #signal_cut.meshplot(cmap=cm.viridis)
-    fl.show();quit()
-    fl.next('plot time domain')
-    signal_plot = signal['t', lambda x: x>= 0].C
-    signal_plot.meshplot(cmap=cm.viridis);fl.show();quit()
-    print ndshape(signal)
-    fl.next('plotting along t domain')
-    fl.plot(signal)
-    fl.show();quit()
-    quit()
-    fl.next('plot again')
-    fl.image(signal)
-    fl.show();quit()
-    signal *= exp(ph1*signal.fromaxis('t'))
-    for x in xrange(10):
-        fl.plot(signal['indirect',x])
-    fl.show();quit() 
-    s_absreal = signal.C
-    #s_absreal.ft('t')
-    for x in xrange(ndshape(signal)['indirect']):
-        temp = s_absreal['indirect',x].C
-        print ndshape(temp)
-        figure('abs real cost, indirect dim %d'%x)
-        temp.data = abs(temp.data.real)
-        temp.sum('t')
-        fl.image(abs(temp),human_units=False)
-    fl.plot((signal)['indirect',x])#['t':(35e-6,None)])
-    fl.plot(signal['indirect',7]);fl.show();quit()
-    fl.image(abs(signal)['t':(35e-6,None)])
-    print ndshape(signal)
-    print (ndshape(signal)['indirect'])
-    signal.ft('t')
-    fl.next('Frequency plot')
-    for x in xrange(ndshape(signal)['indirect']):
-        fl.plot(signal['indirect',x])
-    fl.show();quit()
-    #}}}
