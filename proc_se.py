@@ -11,7 +11,7 @@ mpl.rcParams['image.cmap'] = 'jet'
 fl = figlist_var()
 #init_logging(level='debug')
 
-raw_input("Did you set max_window argument correctly??")
+#raw_input("Did you set max_window argument correctly??")
 
 parser = argparse.ArgumentParser(description='basic command-line options')
 parser.add_argument('--window', '-w',
@@ -238,14 +238,73 @@ for date,id_string,numchan,indirect_range in [
         signal = s_analytic['ph1',1]['ph2',0]
     if single_90:
         signal = (s_analytic['ph1',-1])
-    fl.next(r'$\mid$signal(t)$\mid$ as function of $\tau_{90}$')
     #signal.rename('indirect',r'$\tau_{90}$')
     signal.ft('t')
-    signal *= exp(1j*(215./2/pi))
-    fl.next('FT plot')
-    for x in xrange(ndshape(signal)['indirect']):
-        fl.plot(signal['indirect',x])
+    signal *= exp(1j*(210./2/pi)) # manually phased
+    signal.ift('t')
+    fl.next('mesh plot')
+    signal['t':(35e-6,None)].meshplot(cmap=cm.viridis)
+    # STOP HERE TO SHOW JUST THE MESH PLOT
+    # now trying to do zero order phase shift
+    s_choice = signal['indirect',5].C
+    fl.next('check choice, slicing')
+    fl.plot(s_choice['t':(35e-6,None)])
+    temp = s_choice['t':(45e-6,None)].C
+    fl.plot(temp['t':(35e-6,None)],':')
+    N = 60.0
+    ph0 = nddata(r_[-0.5:0.5:1j*N], 'ph0').set_units('ph0','cyc')
+    temp.ft('t')
+    temp *= exp(1j*2*pi*ph0)
+    temp.run(real).run(abs).sum('t')
+    this_corr = temp.C.argmin('ph0').data.item()
+    signal.ft('t')
+    signal *= exp(1j*2*pi*this_corr)
+    signal.ift('t')
+    #fl.show();quit()
+    fl.next('mesh plot 2')
+    signal['t':(35e-6,None)].meshplot(cmap=cm.viridis)
+    fl.next('corrected, image')
+    fl.image(signal['t':(35e-6,None)])
+    signal.ft('t')
+    signal *= exp(1j*(210./2/pi)) # manually phased, again
+    signal.ift('t')
+    fl.next('corrected, image 2')
+    fl.image(signal['t':(35e-6,None)])
+    fl.next('mesh plot 3')
+    signal['t':(35e-6,None)].meshplot(cmap=cm.viridis)
+    signal = signal['t':(35e-6,None)]
+    signal.ft('t')
+    offset = 0
+    #for x in xrange(ndshape(signal)['indirect']):
+    #    temp = signal['indirect',x].C
+    #    temp = temp['t':(-300e3,300e3)]
+    #    #temp.setaxis('t',lambda t: t + offset)
+    #    fl.next('FT temp')
+    #    fl.plot(temp,':',alpha=0.7)
+    #    #annotate(r'%0.2f $\mu$s'%(signal.getaxis('indirect')[x]*1e6),(offset+10e3, -30e-8),ha='right',va='bottom',rotation=60)
+    #    #offset = offset + 100e3
     fl.show();quit()
+    ## for phasing 
+    fl.next('mesh plot')
+    signal['t':(35e-6,None)].meshplot(cmap=cm.viridis)
+    ph_list = []
+    signal.ift('t')
+    signal.setaxis('t', lambda t: t - 35e-6)
+    signal=signal['t':(0,None)]
+    signal.ft('t')
+    ph0_corr_list = []
+    #signal.ift('t')
+    #fl.next('FT')
+    #start = 0
+    #offset = 0
+    #for x in xrange(ndshape(signal)['indirect']):
+    #    temp = signal['indirect',x].C
+    #    temp = temp['t':(-60e3,60e3)]
+    #    temp.setaxis('t',lambda t: t + offset)
+    #    plot(temp,':',alpha=0.7)
+    #    annotate(r'%0.2f $\mu$s'%(signal.getaxis('indirect')[x]*1e6),(offset+10e3, -30e-8),ha='right',va='bottom',rotation=60)
+    #    offset = offset + 100e3
+    # being addition
     signal.ift('t')
     signal = signal['t':(35e-6,None)]
     fl.image(abs(signal))
