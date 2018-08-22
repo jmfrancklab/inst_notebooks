@@ -8,10 +8,11 @@ import argparse
 #import logging
 
 mpl.rcParams['image.cmap'] = 'jet'
+mpl.rcParams['axes.labelpad'] = 20
 fl = figlist_var()
 #init_logging(level='debug')
 
-#raw_input("Did you set max_window argument correctly??")
+raw_input("Did you set max_window argument correctly??")
 
 parser = argparse.ArgumentParser(description='basic command-line options')
 parser.add_argument('--window', '-w',
@@ -238,13 +239,11 @@ for date,id_string,numchan,indirect_range in [
         signal = s_analytic['ph1',1]['ph2',0]
     if single_90:
         signal = (s_analytic['ph1',-1])
-    #signal.rename('indirect',r'$\tau_{90}$')
     signal.ft('t')
     signal *= exp(1j*(210./2/pi)) # manually phased
     signal.ift('t')
     fl.next('mesh plot')
     signal['t':(35e-6,None)].meshplot(cmap=cm.viridis)
-    # STOP HERE TO SHOW JUST THE MESH PLOT
     # now trying to do zero order phase shift
     s_choice = signal['indirect',5].C
     fl.next('check choice, slicing')
@@ -270,11 +269,19 @@ for date,id_string,numchan,indirect_range in [
     signal.ift('t')
     fl.next('corrected, image 2')
     fl.image(signal['t':(35e-6,None)])
+    signal.name('Amplitude').set_units('V')
+    signal.set_units('indirect','s').rename('indirect',r'$\tau_{90}$')
     fl.next('mesh plot 3')
-    signal['t':(35e-6,None)].meshplot(cmap=cm.viridis)
-    signal = signal['t':(35e-6,None)]
-    signal.ft('t')
-    offset = 0
+    figure = signal['t':(36e-6,None)].meshplot(cmap=cm.viridis)
+    figure.set_xlabel(r'$\tau_{90}$ / $\mu s$')
+    figure.set_ylabel(r'$t$ / $\mu s$') 
+    figure.set_zlabel(r'$Amplitude$ / $V$')
+    figure.set_xticklabels(['0.0','5.0','10.0','15.0','20.0','25.0','30.0'])
+    figure.set_yticklabels(['50.0','','100.0','','150.0','','200.0'])
+    #{{{ for plotting nutation curve
+    #signal = signal['t':(35e-6,None)]
+    #signal.ft('t')
+    #offset = 0
     #for x in xrange(ndshape(signal)['indirect']):
     #    temp = signal['indirect',x].C
     #    temp = temp['t':(-300e3,300e3)]
@@ -283,35 +290,5 @@ for date,id_string,numchan,indirect_range in [
     #    fl.plot(temp,':',alpha=0.7)
     #    #annotate(r'%0.2f $\mu$s'%(signal.getaxis('indirect')[x]*1e6),(offset+10e3, -30e-8),ha='right',va='bottom',rotation=60)
     #    #offset = offset + 100e3
-    fl.show();quit()
-    ## for phasing 
-    fl.next('mesh plot')
-    signal['t':(35e-6,None)].meshplot(cmap=cm.viridis)
-    ph_list = []
-    signal.ift('t')
-    signal.setaxis('t', lambda t: t - 35e-6)
-    signal=signal['t':(0,None)]
-    signal.ft('t')
-    ph0_corr_list = []
-    #signal.ift('t')
-    #fl.next('FT')
-    #start = 0
-    #offset = 0
-    #for x in xrange(ndshape(signal)['indirect']):
-    #    temp = signal['indirect',x].C
-    #    temp = temp['t':(-60e3,60e3)]
-    #    temp.setaxis('t',lambda t: t + offset)
-    #    plot(temp,':',alpha=0.7)
-    #    annotate(r'%0.2f $\mu$s'%(signal.getaxis('indirect')[x]*1e6),(offset+10e3, -30e-8),ha='right',va='bottom',rotation=60)
-    #    offset = offset + 100e3
-    # being addition
-    signal.ift('t')
-    signal = signal['t':(35e-6,None)]
-    fl.image(abs(signal))
-    fl.next('mesh')
-    signal.meshplot(cmap=cm.viridis)
-    fl.next('immm')
-    fl.image(signal)
-    signal.ift('t')
-    fl.show();quit()
-
+    #}}}
+    fl.show()
