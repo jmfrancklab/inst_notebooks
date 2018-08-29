@@ -1,10 +1,9 @@
 
 # coding: utf-8
 
-# In[88]:
+# 
 
-#%load_ext pyspecdata.ipy
-from pyspecdata import *
+get_ipython().magic(u'load_ext pyspecdata.ipy')
 from pyspecdata.plot_funcs.image import imagehsv
 import os
 import sys
@@ -243,27 +242,36 @@ fl.show()
 
 # find the maximum, then center the maximum at t = 0
 
-# In[ ]:
-
-get_ipython().magic(u'matplotlib notebook')
-
-
-# In[89]:
+get_ipython().magic(u'matplotlib inline')
 
 raw = signal.C 
 
+max_index = abs(signal).argmax('t', raw_index=True).data
+signal.setaxis('t', lambda x: x - signal.getaxis('t')[max_index])
+span = 27 # max num of data points before reaching noise
+display(abs(signal['t',max_index-span:max_index+span+1]))
+display((signal['t',max_index-span:max_index+span+1]).real)
+display((signal['t',max_index-span:max_index+span+1]).imag)
+span_min = signal.getaxis('t')[max_index-span]
+span_max = signal.getaxis('t')[max_index+span+1]
+print span_min
+print span_max
 
-# In[90]:
+# 
 
 get_ipython().magic(u'matplotlib inline')
 
-
-# In[91]:
-
 signal = raw.C ## checkpoint
 
+# 
 
-# In[92]:
+figure('raw signal')
+title('abs, raw signal')
+plot(abs(signal))
+axvline(span_min, c='k')
+axvline(span_max, c='k')
+
+# 
 
 figure('before entering')
 plot(abs(signal),c='k')
@@ -273,63 +281,68 @@ signal.setaxis('t', lambda t: t - signal.getaxis('t')[index_max])
 plot(abs(signal),':')
 gridandtick(gca())
 
+def test_hermitian_symmetry(signal, signal_shift = r_[-6e-6:6e-6:500j]):
+    rmsd = empty_like(signal_shift)
+    for j,dt in enumerate(signal_shift):
+        temp = signal.C
+        temp.ft('t')
+        # first order phase-shift, but implemented in time domain
+        # time-shift in time domain is phase-shift in frequency domain
+        temp *= exp(-1j*2*pi*dt*temp.fromaxis('t')) # time-shift 
+        temp.ift('t')
+        temp = temp['t',max_index-span:max_index+span+1]
+        ph = temp.C.sum('t')
+        ph /= abs(ph)
+        # zeroth order phase-shift
+        temp /= ph
+        deviation = conj(temp.data[::-1]) - temp.data
+        rmsd[j] = sum(abs(deviation)**2)
+    rmsd_nd = nddata(rmsd,'dt').labels('dt',signal_shift).set_units('dt','s')
+    rmsd_nd.name('RMSD')
+    return rmsd_nd
+rmsd_nd = test_hermitian_symmetry(signal)
 
-# In[93]:
+# fit a polynomial in order to find the minimum more robustly
 
-span = 20
-signal_shift = r_[-6e-6:6e-6:500j]
-rmsd = empty_like(signal_shift)
-figure()
-for j,dt in enumerate(signal_shift):
-    shifted_signal = signal.C
-    shifted_signal.ft('t')
-    ph1 = -1j*2*pi*dt
-    shifted_signal *= exp(ph1*shifted_signal.fromaxis('t'))
-    shifted_signal.ift('t')
-    shifted_signal = shifted_signal['t',index_max-span:index_max+span+1]
-    ph0 = shifted_signal.C.sum('t')
-    ph0 /= abs(ph0)
-    shifted_signal /= ph0
-    deviation = conj(shifted_signal.data[::-1]) - shifted_signal.data
-    rmsd[j] = sum(abs(deviation)**2)
-rmsd_nd = nddata(rmsd,'dt').labels('dt',signal_shift).set_units('dt','s')
-rmsd_nd.name('RMSD')
 coeff,fit = rmsd_nd.polyfit('dt',order=5)
 title(r'RMSD ($\Delta(t)$)')
 plot(rmsd_nd)
-interp_fit = fit.interp('dt',5000)
-plot(interp_fit,':')
-dt = interp_fit.argmin('dt')
-print dt
 
+interp_fit = fit.C.interp('dt',5000)
+plot(interp_fit,alpha=0.5)
+dt = interp_fit.C.argmin('dt').data.item()
+zoomin = False # doesn't seem to help
+if zoomin:
+    slc = interp_fit.contiguous(lambda x: x<
+                                min(r_[x['dt',-1].data.item(),x['dt',0].data.item()]))
+    assert len(slc)==1,"no single minimum"
+    rmsd_slc = rmsd_nd['dt':tuple(slc[0])]
+    plot(rmsd_slc,alpha=0.3,linewidth=5)
+    coeff,fit = rmsd_slc.polyfit('dt',order=5)
+    interp_fit = fit.C.interp('dt',5000)
+    plot(interp_fit,alpha=0.5)
+    xlim(-1e-6,6e-6)
 
-# In[94]:
+    figure()
+    plot(rmsd_slc - fit)
+print "dt is",dt
 
-figure();title('plot comparison')
-plot(abs(signal), c='k')
-signal.ft('t')
-signal *= exp(1j*2*pi*dt*signal.fromaxis('t'))
-signal.ift('t')
-plot(abs(signal), ':', c='blue', alpha=0.5)
-gridandtick(gca())
+#  now, apply dt and compare to the original
 
+with figlist_var() as fl:
+    fl.next('plot comparison', legend=True)
+    fl.plot(abs(signal)['t':(-20e06,20e-6)], label='before shift')
+    signal.ft('t')
+    signal *= exp(1j*2*pi*dt*signal.fromaxis('t'))
+    signal.ift('t')
+    fl.plot(abs(signal)['t':(-20e06,20e-6)], label='after shift')
+    gridandtick(gca())
+    rmsd = test_hermitian_symmetry(signal)
+    # this is to check that we shifted the right way
+    fl.next('check the rmsd from the hermitian test')
+    fl.plot(rmsd)
 
-# In[95]:
-
-scopy = signal.C
-
-
-# In[96]:
-
-get_ipython().magic(u'matplotlib notebook')
-
-
-# In[97]:
-
-signal = scopy.C ## checkpoint
-
-
-# In[98]:
+# 
 
 # With the max at t = 0, now select window of signal to use for phasing
 ph_span = 45
@@ -344,54 +357,32 @@ axvline(span_max, c='k')
 gridandtick(gca())
 
 
-# In[99]:
+# span = 15
 
-signal.ft('t')
-figure('freq domain')
-plot(signal.real,':',c='k')
-plot(signal.imag,':',c='blue')
-signal.ift('t')
-figure('time domain')
-plot(signal.real,':',c='k')
-plot(signal.imag,':',c='blue')
-ph = signal_slice.C.sum('t')
-ph /= abs(ph)
-signal /= ph
-plot(signal.real,c='violet',alpha=0.5)
-plot(signal.imag,c='cyan',alpha=0.5)
-gridandtick(gca())
-signal.ft('t')
-figure('freq domain')
-plot(signal.real,c='violet',alpha=0.5)
-plot(signal.imag,c='cyan',alpha=0.5)
-gridandtick(gca())
+# 
 
+proc_15 = raw.C
+proc_15 = proc_15['t':(0,None)]
+proc_15.ft('t')
 
 # In[100]:
 
-signal.ift('t')
-scopy = signal.C
+# span = 10
 
-
-# In[147]:
+proc_10 = raw.C
+proc_10 = proc_10['t':(0,None)]
+proc_10.ft('t')
 
 signal = scopy.C ## checkpoint
 
+# span = 5
 
-# In[148]:
+# 
 
-# construct the phases
-dwell_time = diff(signal.getaxis('t')[r_[0,1]]).item()
-SW = 1./dwell_time # spectral width * 2
-N = 50 # width of the phase correction dimensions
-dw_width = 50 # width of the ph1 window, in dwell times
-x = nddata(r_[-200e-6:200e-6:N*1j],'ph0').set_units('ph0','cyc')
-ph0 = exp(1j*2*pi*x)
-x = nddata(r_[-dw_width/SW/2:dw_width/SW/2:N*1j],'ph1').set_units('ph1','s')
-ph1 = 1j*2*pi*x
+proc_5 = raw.C
+proc_5 = proc_5['t':(0,None)]
+proc_5.ft('t')
 
-
-# In[149]:
 
 signal_r = signal.C
 signal_r = signal_r['t':(0,None)].C
@@ -401,12 +392,7 @@ signal_r *= ph0
 signal_r *= exp(ph1*signal_r.getaxis('t'))
 
 
-# In[150]:
-
-print dwell_time
-
-
-# In[151]:
+# 
 
 signal.ft('t')
 signal *= ph0
@@ -415,9 +401,8 @@ signal.ift('t')
 print "Done phasing"
 
 
-# In[153]:
-
 # Absolute real method, cost function
+
 signal_absreal = signal.C
 signal_absreal = signal['t', lambda x: x >= 0].C
 signal_absreal.data[0] /= 2.
@@ -429,10 +414,7 @@ print ndshape(signal_absreal)
 signal_absreal.sum('t')
 print ndshape(signal_absreal)
 
-image(signal_absreal)
-
-
-# In[124]:
+# 
 
 figure('hermitian cost')
 signal_herm = signal.C
@@ -444,51 +426,67 @@ signal_herm.sum('t')
 image(signal_herm)
 
 
-# In[125]:
+# 
 
 signal = scopy.C ## checkpoint (reverse what was done to signal, so can apply desired changes)
 
 
-# In[126]:
+# 
 
-min_index = signal_herm['ph0',0].argmin('ph1',raw_index=True).data
-print "Applying ph1 correction of",ph1['ph1',min_index].data,"(ph1 index",min_index,")"
-signal.ft('t')
-#signal *= ph0['ph0',0].data.item()
-signal *= exp(ph1['ph1',min_index].data*signal.fromaxis('t'))
-plot(signal.real, c='violet')
+figure();title('Raw data')
+plot(signal, c='violet')
+plot(signal.real,':', c='k')
 plot(signal.imag, c='cyan')
 gridandtick(gca())
 signal.ift('t')
 
 
-# In[ ]:
+
+raw_s = signal.C
+raw_s = raw_s['t':(0,None)]
+raw_s.ft('t')
+#plot(raw_s.real, alpha=0.8)
+plot(raw_s.imag, alpha=0.8)
+
+
+
+# 
 
 get_ipython().magic(u'matplotlib inline')
 
 
-# In[128]:
+# 
+
+figure('diff spans')
+title('diff spans')
+
+# 
+
+figure('diff spans')
+title('diff spans')
 
 signal_absreal.meshplot(cmap=cm.viridis)
 
 
+
+plot(proc_s.real, alpha=0.8, label = '%d'%ph_span)
+
+
+
+
+plot(proc_s1.real, alpha=0.8, label = '%d'%ph_span)
+
 # In[129]:
 
-signal_herm.meshplot(cmap=cm.viridis)
+# 
 
+get_ipython().magic(u'matplotlib notebook')
 
-# In[ ]:
 
 signal.ift('t')
 
 
-# In[ ]:
 
 plot(signal.real)
 plot(signal.imag)
-
-
-# In[ ]:
-
-
 
