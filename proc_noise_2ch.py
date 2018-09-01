@@ -6,6 +6,7 @@ matplotlib.rcParams['legend.fontsize'] ='xx-small'
 matplotlib.rcParams['legend.labelspacing'] = 0.2 
 #4096 points
 # {{{ constants measured elsewhere
+gain_factor_new = 73503.77279 
 gain_factor_amp1 = 525.94786172         #LNA 2
 gain_factor_amp2 = 531.84920761         #LNA 1
 gain_factor_casc12 = 171428.95568926    #cascade (1 then 2)
@@ -99,40 +100,12 @@ power_dens_CH2_dict = {}
 
 # {{{ call files
 for date,id_string,numchan,gain_factor in [
-        #('180710','spectrometer_noise_50ohm',2,gain_factor_dcasc12),
-        #('180710','spectrometer_noise_AFG',2,gain_factor_dcasc12),
-        #('180710','spectrometer_noise_AFG_2',2,gain_factor_dcasc12),
-        #('180710','spectrometer_noise_AFG_magnet',2,gain_factor_dcasc12),
-        #('180710','spectrometer_noise_AFG_smagnet',2,gain_factor_dcasc12),
-        #('180710','spectrometer_noise_50ohm_smagnet',2,gain_factor_dcasc12),
-        #('180710','spectrometer_noise_50ohm_magnet_2mVd',2,gain_factor_dcasc12),
-        #('180710','spectrometer_noise_50ohm_magnet_5mVd',2,gain_factor_dcasc12),
-        #('180710','spectrometer_noise_50ohm_magnet_10mVd',2,gain_factor_dcasc12),
-        #('180710','spectrometer_noise_50ohm_magnet_20mVd',2,gain_factor_dcasc12),
-        #('180710','spectrometer_noise_50ohm_magnet_50mVd',2,gain_factor_dcasc12),
-        #('180710','spectrometer_noise_AFG_magnet_2mVd',2,gain_factor_dcasc12),
-        #('180710','spectrometer_noise_AFG_magnet_5mVd',2,gain_factor_dcasc12),
-        #('180710','spectrometer_noise_AFG_magnet_10mVd',2,gain_factor_dcasc12),
-        #('180710','spectrometer_noise_AFG_magnet_20mVd',2,gain_factor_dcasc12),
-        #('180710','spectrometer_noise_AFG_magnet_50mVd',2,gain_factor_dcasc12),
-        #('180710','spectrometer_noise_AFG_smagnet_4',2,gain_factor_dcasc12),
-        #('180710','spectrometer_noise_AFG_smagnet_2',2,gain_factor_dcasc12),
-        #('180710','spectrometer_noise_AFG_smagnet_3',2,gain_factor_dcasc12),
-        #('180712','test_noise_50mVd',2,gain_factor_dcasc12),
-        #('180712','test_noise_20mVd',2,gain_factor_dcasc12),
-        #('180712','test_noise_20mVd_2',2,gain_factor_dcasc12),
-        #('180712','post_test_noise_50mVd',2,gain_factor_dcasc12), # at resonant B0
-        #('180713','test_noise_20mVd_nomag',2,gain_factor_dcasc12), # probe not in magnet 
-        #('180715','test_signal_50mVd',2,gain_factor_dcasc12),
-        #{{{ both of these had a loose BNC into the duplexer from the probe
-        #('180714','test_noise_20mVd',2,gain_factor_dcasc12), # re-installed probe; B0 = 3583.85 G
-        #('180714','test_noise_50mVd',2,gain_factor_dcasc12), # B0 = 3583.85 G
-        #}}}
-        ('180715','test_signal_20mVd',2,gain_factor_dcasc12),
-        ('180715','test_signal_50mVd',2,gain_factor_dcasc12),
-        ('180714','test_noise_50mVd_2',2,gain_factor_dcasc12), # re-installed probe in magnet, B0 = 3583.85 G
-        #('180714','test_noise_20mVd_2',2,gain_factor_dcasc12), 
-        ('180714','test_noise_20mVd_3',2,gain_factor_dcasc12), # re-installed probe in magnet, B0 = 3583.85 G
+        ('180710','spectrometer_noise_50ohm',2,gain_factor_new),
+        ('180710','spectrometer_noise_AFG',2,gain_factor_new),
+        #('180710','spectrometer_noise_AFG_2',2,gain_factor_new),
+        ('180710','spectrometer_noise_AFG_magnet',2,gain_factor_new),
+        ('180710','spectrometer_noise_AFG_smagnet',2,gain_factor_new),
+        #('180710','spectrometer_noise_AFG_smagnet_2',2,gain_factor_new),
         #{{{ older files
         #('180709','control_SE',2,1.0),
         #('180709','control_SE_250MSPS',2,1.0),
@@ -144,16 +117,16 @@ for date,id_string,numchan,gain_factor in [
         #('180709','control_SE_500MSPS_nofilter',2,1.0),
         #('180709','control_SE_1GSPS_nofilter',2,1.0),
         #('180709','control_SE_2p5GSPS_nofilter',2,1.0),
-        #('180709','network_SE_full',2,gain_factor_dcasc12),
-        #('180709','network_SE_full_250MSPS',2,gain_factor_dcasc12),
-        #('180709','network_SE_full_500MSPS',2,gain_factor_dcasc12),
-        #('180709','network_SE_full_1GSPS',2,gain_factor_dcasc12),
-        #('180709','network_SE_full_2p5GSPS',2,gain_factor_dcasc12),
-        #('180709','network_SE',2,gain_factor_dcasc12),
-        #('180709','network_SE_250MSPS',2,gain_factor_dcasc12),
-        #('180709','network_SE_500MSPS',2,gain_factor_dcasc12),
-        #('180709','network_SE_1GSPS',2,gain_factor_dcasc12),
-        #('180709','network_SE_2p5GSPS',2,gain_factor_dcasc12),
+        #('180709','network_SE_full',2,gain_factor_new),
+        #('180709','network_SE_full_250MSPS',2,gain_factor_new),
+        #('180709','network_SE_full_500MSPS',2,gain_factor_new),
+        #('180709','network_SE_full_1GSPS',2,gain_factor_new),
+        #('180709','network_SE_full_2p5GSPS',2,gain_factor_new),
+        #('180709','network_SE',2,gain_factor_new),
+        #('180709','network_SE_250MSPS',2,gain_factor_new),
+        #('180709','network_SE_500MSPS',2,gain_factor_new),
+        #('180709','network_SE_1GSPS',2,gain_factor_new),
+        #('180709','network_SE_2p5GSPS',2,gain_factor_new),
 #    ('180526','AFG_terminator_2',2,1.0),#   leave gain set to 1 so we can get the 
                                          #   absolute number here (not input-referred)
                                          #}}}
@@ -161,36 +134,14 @@ for date,id_string,numchan,gain_factor in [
     # }}}
     # {{{ plot labels
     plot_params = False # toggle this to use plot params preset below
-    if '50ohm_magnet_2mVd' in id_string:
-        plot_params = dict(label = 'spec noise, 50$\Omega$, magnet, 2 mV/div', color = 'blue', alpha=0.3, plottype='semilogy')
-    elif '50ohm_magnet_5mVd' in id_string:
-        plot_params = dict(label = 'spec noise, 50$\Omega$, magnet, 5 mV/div', color = 'orange', alpha=0.3, plottype='semilogy')
-    elif '50ohm_magnet_10mVd' in id_string:
-        plot_params = dict(label = 'spec noise, 50$\Omega$, magnet, 10 mV/div', color = 'green', alpha=0.3, plottype='semilogy')
-    elif '50ohm_magnet_20mVd' in id_string:
-        plot_params = dict(label = 'spec noise, 50$\Omega$ + magnet, 20 mV div$^{-1}$', color = 'red', alpha=0.3, plottype='semilogy')
-    elif '50ohm_magnet_50mVd' in id_string:
-        plot_params = dict(label = 'spec noise, 50$\Omega$ + magnet, 50 mV div$^{-1}$', color = 'blue', alpha=0.3, plottype='semilogy')
-    elif 'AFG_magnet_2mVd' in id_string:
-        plot_params = dict(label = 'spec noise, AFG, magnet, 2 mV/div', color = 'blue', alpha=0.2, linestyle='--', plottype='semilogy')
-    elif 'AFG_magnet_5mVd' in id_string:
-        plot_params = dict(label = 'spec noise, AFG, magnet, 5 mV/div', color = 'orange', alpha=0.2, linestyle='--', plottype='semilogy')
-    elif 'AFG_magnet_10mVd' in id_string:
-        plot_params = dict(label = 'spec noise, AFG, magnet, 10 mV/div', color = 'green', alpha=0.2, linestyle='--', plottype='semilogy')
-    elif 'AFG_magnet_20mVd' in id_string:
-        plot_params = dict(label = 'spec noise, AFG + magnet, 20 mV div$^{-1}$', color = 'red', alpha=0.6, linestyle=':', plottype='semilogy')
-    elif 'AFG_magnet_50mVd' in id_string:
-        plot_params = dict(label = 'spec noise, AFG + magnet, 50 mV div$^{-1}$', color = 'blue', alpha=0.6, linestyle=':', plottype='semilogy')
-    elif '_50ohm_smagnet' in id_string:
-        plot_params = dict(label = 'spec noise, 50$\Omega$, magnet, sample, 20 mV/div', color = 'pink', alpha=0.9, linestyle=':', plottype='semilogy')
-    elif '_smagnet' in id_string:
-        label = 'spec noise, AFG + magnet + sample'
+    if '_smagnet' in id_string:
+        label = 'spectrometer, AFG, magnet, sample'
     elif '_magnet' in id_string:
-        label = 'spec noise, AFG + magnet'
+        label = 'spectrometer, AFG, magnet'
     elif 'spectrometer_noise_AFG' in id_string:
-        label = 'spec noise, AFG'
+        label = 'spectrometer, AFG'
     elif '50ohm' in id_string:
-        label = 'spec noise, 50$\Omega$'
+        label = 'spectrometer, 50$\Omega$'
     #{{{ plotting parameters -- for older files
     #{{{ plotting AFG waveform, attn, power splitter, with low pass filter
     elif id_string == 'control_SE':
@@ -248,11 +199,10 @@ for date,id_string,numchan,gain_factor in [
    # }}}
     print "\n*** LOADING:",id_string,"***"
     s = load_noise(date,id_string,captures)
-    #{{{ If looking to plot single captures, see ipynb/plotting_noise_captures_180712.ipynb
     #fl.next('plot')
     #fl.plot(s)
     #fl.show()
-    #}}}
+    #quit()
     #{{{ slicing
     if 'spectrometer_noise' in id_string:
         u = s.C['t':(124e-6,None)]
@@ -271,7 +221,7 @@ for date,id_string,numchan,gain_factor in [
         u = s.C['t':(100.0e-6,None)]   #100 MSPS
         #}}}
     else:
-        u = s.C['t':(124e-6,None)]
+        u = s.C
         #}}}
     #fl.next('new plot')
     #fl.plot(u)
@@ -280,7 +230,6 @@ for date,id_string,numchan,gain_factor in [
     acq_time = diff(s.getaxis('t')[r_[0,-1]])[0]
     u_acq_time = diff(u.getaxis('t')[r_[0,-1]])[0]
     print acq_time
-
     print "\t"
     print u_acq_time
     print "\t"
@@ -309,7 +258,7 @@ for date,id_string,numchan,gain_factor in [
     u.ft('t',shift=True)
     u = abs(u)['t':(0,None)]**2
     u.mean('capture', return_error = False)
-    u.convolve('t',width)
+    #u.convolve('t',width)
     u /= 50.
     u /= u_acq_time
     u *= 2
@@ -322,8 +271,6 @@ for date,id_string,numchan,gain_factor in [
         ##fl.plot(u_filt['capture',1])
         ##fl.show()
         ##quit()
-        u_filt['t':(None,10e6)] = 0
-        u_filt['t':(20e6,None)] = 0
         u_filt = abs(u_filt)['t':(0,None)]**2
         u_filt.mean('capture', return_error = False)
         u_filt.convolve('t',width)
@@ -336,30 +283,30 @@ for date,id_string,numchan,gain_factor in [
             if not plot_params:
                 fl.next('Network Noise Power Spectral Density (Input-referred) (convolution = %0.1e Hz)'%width)
                 s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
-                fl.plot(s['ch',0],alpha=0.5,label='%s'%label,plottype='semilogy')
+                fl.plot(s['ch',0],alpha=0.35,label='%s'%label,plottype='semilogy')
                 axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
-                fl.next('Noise Power Spectral Density, Input-referred ($\sigma$=%0.3f kHz)'%(width*1e-3))
+                fl.next('Network Noise Power Spectral Density, Input-referred')
                 u.name('$S_{xx}(\\nu)$').set_units('W/Hz')
-                fl.plot(u['ch',0],alpha=0.5,label='%s'%label,plottype='semilogy')
+                fl.plot(u['ch',0],alpha=0.35,label='%s'%label,plottype='semilogy')
                 axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
                 if filtering:
-                    fl.next('Digitally-Filtered Noise Power Spectral Density, Input-referred ($\sigma$=%0.3f kHz)'%(width*1e-3))
+                    fl.next('Digitally-Filtered Network Noise Power Spectral Density, Input-referred ($\sigma$=%0.3f kHz)'%(width*1e-3))
                     u_filt.name('$S_{xx}(\\nu)$').set_units('W/Hz')
-                    fl.plot(u_filt['ch',0],alpha=0.5,label='%s'%label,plottype='semilogy')
+                    fl.plot(u_filt['ch',0]['t':(None,49e6)],alpha=0.35,label='%s'%label,plottype='semilogy')
                     axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
             if plot_params:
                 fl.next('Network Noise Power Spectral Density (Input-referred) (convolution = %0.1e Hz)'%width)
                 s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
                 fl.plot(s['ch',0],**plot_params)
                 axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
-                fl.next('Noise Power Spectral Density, Input-referred ($\sigma$=%0.3f kHz)'%(width*1e-3))
+                fl.next('Network Noise Power Spectral Density, Input-referred')
                 u.name('$S_{xx}(\\nu)$').set_units('W/Hz')
                 fl.plot(u['ch',0],**plot_params)
                 axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
                 if filtering:
-                    fl.next('Digitally-Filtered Noise Power Spectral Density, Input-referred ($\sigma$=%0.3f kHz)'%(width*1e-3))
+                    fl.next('Digitally-Filtered Network Noise Power Spectral Density, Input-referred')
                     u_filt.name('$S_{xx}(\\nu)$').set_units('W/Hz')
-                    fl.plot(u_filt['ch',0],**plot_params)
+                    fl.plot(u_filt['ch',0]**plot_params)
                     axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
             #}}}
     #{{{ processing with integration over frequency bands

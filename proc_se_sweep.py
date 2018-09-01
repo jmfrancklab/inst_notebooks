@@ -172,19 +172,19 @@ for date,id_string,numchan,field_axis,cycle_time, in [
 # and other preliminary jupyternb things
 
 
-# In[2]:
+# In[3]:
 
 get_ipython().magic(u'load_ext pyspecdata.ipy')
 fl = figlist_var()
 raw = signal.C
 
 
-# In[3]:
+# In[4]:
 
 s = raw.C # checkpoint
 
 
-# In[4]:
+# In[5]:
 
 s.set_error(None)
 s.setaxis('t', lambda t: t - 107.5e-6)
@@ -216,7 +216,7 @@ for x in xrange(ndshape(s)['B0']):
 # Check that regions definde by max_hw (max half width) and window_hw contain signal and not noise
 
 
-# In[5]:
+# In[6]:
 
 s_choice = s['B0',31].C
 
@@ -242,22 +242,22 @@ dw = diff(s_choice.getaxis('t')[r_[0,1]])[0]
 max_t_shift = (max_hw - window_hw) * dw
 
 
-# In[6]:
+# In[7]:
 
 s_copy = s_choice.C
 
 
-# In[ ]:
+# In[8]:
 
 # Generate cost function using Hermitian property of spin echo
 
 
-# In[7]:
+# In[9]:
 
 s_choice = s_copy.C # checkpoint
 
 
-# In[8]:
+# In[ ]:
 
 N = 60.
 fl.next('hermitian cost func')
@@ -279,17 +279,17 @@ deviation.run(lambda x: abs(x)**2).sum('t')
 fl.image(-1*deviation)
 
 
-# In[9]:
+# In[ ]:
 
 ## Adjust with frequency correction if axes are rotated
 
 
-# In[10]:
+# In[ ]:
 
 s_choice = s_copy.C # checkpoint
 
 
-# In[11]:
+# In[ ]:
 
 N = 60.
 fl.next('hermitian cost func, adjust')
@@ -315,17 +315,17 @@ ph1_corr = 3.97e-6
 ph0_corr = -178.4e-3
 
 
-# In[12]:
+# In[ ]:
 
 ## Annotate the selected region used to find the phase corrections
 
 
-# In[13]:
+# In[ ]:
 
 s_choice = s_copy.C # checkpoint
 
 
-# In[14]:
+# In[ ]:
 
 N = 60.
 fl.next('hermitian cost func, adjust, correction')
@@ -368,7 +368,9 @@ fl.plot(ph0_corr/1e-3,ph1_corr/1e-6,'x',c='white')
 ### INSTEAD OF JUST PICKING ONE DIMENSION AND PHASING, THEN APPLYING
 
 
-# In[15]:
+# In[11]:
+
+N = 60.
 
 fl.next('hermitian cost func, sum over indirect')
 s_check = s.C.reorder('t') # use s containing all data instead of just one data set
@@ -390,17 +392,17 @@ deviation.run(lambda x: abs(x)**2).sum('t').sum('B0') # sum over indirect dimens
 fl.image(-1*deviation)
 
 
-# In[16]:
+# In[12]:
 
 ## Annotate the selected region used to find these overall phase corrections
 
 
-# In[93]:
+# In[56]:
 
 s_choice = s_copy.C # checkpoint
 
 
-# In[94]:
+# In[57]:
 
 fl.next('hermitian cost func, sum over indirect -- corrected')
 s_check = s.C.reorder('t') # use s containing all data instead of just one data set
@@ -420,17 +422,17 @@ deviation = s_check['t',sliced_center_idx - window_hw : sliced_center_idx + wind
 deviation = deviation['t',::-1].C.run(conj) - deviation
 deviation.run(lambda x: abs(x)**2).sum('t').sum('B0') # sum over indirect dimension
 fl.image(-1*deviation)
-ph1_corr = 1.81e-6
-ph0_corr = 311e-3
+ph1_corr = 2.06e-6
+ph0_corr = 314e-3
 fl.plot(ph0_corr/1e-3,ph1_corr/1e-6,'x',c='white')
 
 
-# In[95]:
+# In[58]:
 
 full = s.C.reorder('t') # NOTE, not a checkpoint...
 
 
-# In[96]:
+# In[59]:
 
 full.ft('t')
 full *= exp(1j*2*pi*ph0_corr) * exp(1j*2*pi*ph1_corr*full.fromaxis('t'))
@@ -445,12 +447,12 @@ full.ft('t',pad=1024)
 # End zero pad
 
 
-# In[97]:
+# In[60]:
 
 # Now make fine adjustments to phase by zooming
 
 
-# In[98]:
+# In[61]:
 
 this_string = 'adjusting zeroth order'
 figure('%s'%this_string);title('%s'%this_string)
@@ -466,45 +468,56 @@ full_ph0.run(real).run(abs).sum('t').sum('B0')
 plot(full_ph0, ':', c='purple')
 
 
-# In[99]:
+# In[62]:
 
 # If the above has been centered to zero,
 # then apply zeroth order correction to dataset outright
 
 
-# In[100]:
+# In[63]:
 
-print "Fine-tuned zeroth order correction is",ph0_corr,"cycles"
-full *= exp(1j*2*pi*ph0_corr) # fine-tuned zeroth order
-
-
-# In[ ]:
-
-# Plot properly phased data set as desired
+chk = full.C
 
 
-# In[101]:
+# In[105]:
 
-fl.next('image display of frequency sweep')
-fl.image(full)
-fl.show()
+get_ipython().magic(u'matplotlib notebook')
 
 
-# In[102]:
+# In[117]:
 
-fl.next('image display of frequency sweep -- real ')
-fl.plot(full, alpha=0.7)
-fl.show()
+get_ipython().magic(u'matplotlib inline')
 
 
-# In[103]:
+# In[135]:
 
-envelope = full.C
-envelope.run(real)[lambda x: x < 0] = 0
-envelope.sum('B0')
-envelope /= envelope.data.max()
-envelope *= full.data.real.max()
-fl.plot(envelope, color='k', alpha=0.25, human_units=False)
+full = chk.C # checkpoint
+
+
+# In[146]:
+
+full_sig = full.C
+full_sig.rename('B0',r'$B_{0}$')
+with figlist_var() as fl:
+    fl.next('Signal Across Field Sweep')
+    fl.image(abs(full_sig))
+    gcf().subplots_adjust(bottom=0.15)
+    savefig('I:/My Drive/imagesetc/20180821_sweep_image.png')
+    fl.next('Lineshape of Signal Across Field Sweep')
+    fl.plot(full_sig, alpha=0.65)
+    gcf().subplots_adjust(bottom=0.15)
+    savefig('I:/My Drive/imagesetc/20180821_sweep_lineshape.png')
+    envelope = full_sig.C
+    envelope.run(real)[lambda x: x < 0] = 0
+    envelope.sum(r'$B_{0}$')
+    envelope /= envelope.data.max()
+    envelope *= full_sig.data.real.max()
+    print ndshape(envelope),envelope.get_units(),envelope.get_units('t')
+    #fl.plot(envelope, , linewidth=3, alpha=0.25,human_units=False)
+    fl.next('Excitation Profile')
+    fl.plot(envelope, color='k', alpha=0.5)
+    gcf().subplots_adjust(bottom=0.15)
+    savefig('I:/My Drive/imagesetc/20180821_sweep_profile.png')
 
 
 # In[ ]:
