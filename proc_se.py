@@ -9,10 +9,9 @@ import argparse
 
 mpl.rcParams['image.cmap'] = 'jet'
 fl = figlist_var()
-#init_logging(level='debug')
-
-#raw_input("Did you set max_window argument correctly??")
-
+init_logging(level='debug')
+gain_factor = {'old' : 114008.55204672, 'new' : 73503.77279}
+gain_factor_new = sqrt(73503.77279)
 parser = argparse.ArgumentParser(description='basic command-line options')
 parser.add_argument('--window', '-w',
         help='the maximum size of the window that encompasses all the pulses',
@@ -46,9 +45,10 @@ for date,id_string,numchan,indirect_range in [
         #('180724','check_field_2',2,None)
         #('180724','se_nutation',2,linspace(3.25e-6,15.25e-6,10))
         #('180724','90_nutation_control',2,linspace(1e-6,50e-6,5))
-        ('180724','90_nutation',2,linspace(1e-6,50e-6,25)) # use -w 60e-6
+        #('180724','90_nutation',2,linspace(1e-6,50e-6,25)) # use -w 60e-6
         #('180725','90_nutation',2,linspace(1e-6,30e-6,30)) # use -w 60e-6
         #('180725','90_nutation_focused',2,linspace(6e-6,9e-6,30))
+        ('180725','SE',2,None) # 3 cycles, 2x GDS avg, B0 = 3407.32 G, t90 = 7.45e-6 s
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
@@ -69,14 +69,21 @@ for date,id_string,numchan,indirect_range in [
     logger.info("*** Code for phase cycling based on 'fix_phase_cycling_180712.py' ***")
     logger.info("WARNING: Need to define time slices for pulses on a by-dataset basis ***")
 
+    this_gain = 73503.77279 # gain factor
+    s /= sqrt(this_gain) 
+    #s.set_units('V')
+    s.labels('ph1',r_[0:4]/4.)
+    s.labels( 'ph2',r_[0:4:2]/4. )
+    fl.next('following ref ch pulses')
+    fl.plot(s['indirect',0]['ph1',0]['ph2',0]['ch',1],label='raw')
     s_raw = s.C.reorder('t',first=False)
 
     s.ft('t',shift=True)
     s = s['t':(0,None)]
     s.setaxis('t',lambda f: f-carrier_f)
     s.ift('t')
-
-    single_90 = True 
+    s = s*2
+    single_90 = False 
     confirm_triggers = False 
     #{{{ confirm that different phases trigger differently due to differing rising edges
     if confirm_triggers:
@@ -101,7 +108,7 @@ for date,id_string,numchan,indirect_range in [
                 fl.next('compare rising edge')
                 # need to define time slice for rising edge
                 fl.plot(abs(onephase['repeat',j]['t':(26.2e-6,26.6e-6)]['ph1',k].C.reorder('t',first=True)),color=colors[k],alpha=0.3)
-                fl.next('compare falling edge')
+                fl.next('compar7e falling edge')
                 # need to define time slice for falling edge
                 fl.plot(abs(onephase['repeat',j]['t':(26.2e-6,26.6e-6)]['ph1',k].C.reorder('t',first=True)),color=colors[k],alpha=0.3)
                 fl.next('compare rising edge, raw')
@@ -132,8 +139,8 @@ for date,id_string,numchan,indirect_range in [
     logger.debug(strm('dimensions of average_time:',ndshape(avg_t)))
     # shift the time axis down by the average time, so that 90 is centered around t=0
     s_raw.setaxis('t', lambda t: t-avg_t.data.mean())
-    fl.next('check that this centers 90 around 0 on time axis')
-    fl.image(s_raw)
+    #fl.next('check that this centers 90 around 0 on time axis')
+    #fl.image(s_raw)
     #}}}
     # {{{ now, go ahead and shift each indirect data element relative to the
     # others, so their pulses line up
@@ -152,10 +159,12 @@ for date,id_string,numchan,indirect_range in [
     #     redetermine the center here, and reshift the pulses next
     avg_t = average_time(s_raw['t':(-max_window/2,max_window/2)])
     s_raw.setaxis('t', lambda t: t-avg_t.data.mean())
+    fl.plot(abs(s_raw['indirect',0]['ph1',0]['ph2',0]['ch',1]), alpha=0.4,label='post phase adjustments')
     # }}}
     # {{{ since this is the last step, take the analytic signal
     #     and then apply the relative shifts again
-    analytic = s_raw.C.ft('t')['t':(13e6,16e6)]
+    analytic = s_raw.C.ft('t')['t':(13e6,16e6)].ift('t')*2 # 2 for the analytic signal
+    analytic.ft('t')
     analytic.setaxis('t',lambda f: f-carrier_f)
     analytic.set_units('indirect','s')
     phase_factor = analytic.fromaxis('t',lambda x: 1j*2*pi*x)
@@ -212,150 +221,81 @@ for date,id_string,numchan,indirect_range in [
     # phase correcting analytic signal by difference between expected and measured phases
     analytic *= expected_phase/measured_phase
     print ndshape(analytic)
-    analytic.reorder(['indirect','t'],first=False)
+    analytic.reorder(['indirect','t'], first=False)
     print ndshape(analytic)
-    fl.next('analytic signal, ref ch')
-    fl.image(analytic)
-    fl.next('coherence domain, ref ch')
     if not single_90:
-        coherence_domain = analytic.C.ift(['ph1','ph2'])
+        logging.debug('printing axis for ph1 and ph2')
+        logging.debug(analytic.getaxis('ph1'))
+        logging.debug(analytic.getaxis('ph2'))
+        analytic.ift(['ph1','ph2'])
     if single_90:
-        coherence_domain = analytic.C.ift(['ph1'])
-    fl.image(coherence_domain['ch',1])
-    s_analytic = analytic['ch',0].C
-    if not single_90:
-        s_analytic.ift(['ph1','ph2'])
-    if single_90:
-        s_analytic.ift(['ph1'])
+        analytic.ft(['ph1'])
+    fl.plot(abs(analytic['indirect',0]['ch',1]['ph1',-1]['ph2',0]), '--', alpha=0.4,label='before avg.: bandpass, phase adj, coh domain, post avg; 90 ch')
+    analytic.mean('indirect',return_error=False)
+    fl.plot(abs(analytic['ch',1]['ph1',-1]['ph2',0]), ':', alpha=0.4,label='bandpass, phase adj, coh domain, post avg; 90 ch')
+    fl.plot(abs(analytic['ch',1]['ph1',0]['ph2',-1]), '.-', alpha=0.4,label='bandpass, phase adj, coh domain, post avg; 180 ch')
+    analytic.set_units('V')
     fl.next('coherence, sig ch, t domain')
-    fl.image(s_analytic)
-    print ndshape(s_analytic)
-    s_analytic.ft('t')
-    fl.next('coherence, sig ch, f domain')
-    fl.image(s_analytic)
-    s_analytic.ift('t')
-    if not single_90:
-        signal = s_analytic['ph1',1]['ph2',0]
-    if single_90:
-        signal = (s_analytic['ph1',-1])
-    #fl.next(r'$\mid$signal(t)$\mid$ as function of $\tau_{90}$')
-    #signal.rename('indirect',r'$\tau_{90}$')
-    signal.ft('t')
-
-    ## for phasing 
-    ph_list = []
-    signal.ift('t')
-    signal.setaxis('t', lambda t: t - 35e-6)
-    signal=signal['t':(0,None)]
-    fl.next('mesh 1')
-    signal.meshplot(cmap=cm.viridis)
-    signal.ft('t')
-    for x in xrange(ndshape(signal)['indirect']):
-        #{{{ phasing
-        temp = signal['indirect',x].C
-        ph = temp.C.sum('t')
-        ph /= abs(ph)
-        signal['indirect',x] /= ph
-        #}}}
-    signal.ift('t')
-    fl.next('mesh 2')
-    signal.meshplot(cmap=cm.viridis)
-    start = 0
-    offset = 0
-    fl.next('FT')
-    for x in xrange(ndshape(signal)['indirect']):
-        temp = signal['indirect',x].C
-        temp = temp['t':(start,None)]
-        temp.ft('t')
-        temp = temp['t':(-60e3,60e3)]
-        temp.setaxis('t',lambda t: t + offset)
-        plot(temp,':',alpha=0.7)
-        annotate(r'%0.2f $\mu$s'%(signal.getaxis('indirect')[x]*1e6),(offset+10e3, -30e-8),ha='right',va='bottom',rotation=60)
-        start = start + 1.7e-6
-        offset = offset + 100e3
-    fl.show();quit()
-
-    #{{{ failed attempt to implement phase_demo.py 
-    dwell_time = diff(signal.getaxis('t')[r_[0,1]]).item()
-    SW = 1./dwell_time
-    signal.reorder('indirect')
-    N = 40 # size of phase correction dimensions
-    dw_width = 25 # width of the ph1 window
-    ph_signal = signal.C
-    x = nddata(r_[-500e-6:500e-6:N*1j],'ph0')#.set_units('ph0','cyc')
-    ph0 = exp(1j*2*pi*x)
-    x = nddata(r_[-4*dw_width/SW/2:4*dw_width/SW/2:N*1j],'ph1')#.set_units('ph1','s')
-    ph1 = 1j*2*pi*x
-    print ndshape(ph_signal)
-    ph_signal *= ph0
-    ph_signal *= exp(ph1*ph_signal.fromaxis('t'))
-    print ndshape(ph_signal)
-    min_index_list = []
-    for x in xrange(ndshape(ph_signal)['indirect']):
-        #fl.next('phase cost %d'%x)
-        temp = ph_signal['indirect',x]
-        temp.data = abs(temp.data.real)
-        temp.sum('t')
-        #fl.image(temp)
-        min_index = temp['ph0',0].argmin('ph1',raw_index=True).data
-        min_index_list.append(min_index)
-    print ndshape(ph_signal)
-    print ndshape(signal)
-    for ph1_index,ph1_ivalue in enumerate(min_index_list):
-        #fl.next('Phasing indirect %d'%ph1_index)
-        ph1_value = ph1['ph1',ph1_ivalue].data
-        print "Applying ph1 correction of",ph1_value,"(ph1 index",ph1_index,")"
-        signal['indirect',ph1_index] *= exp(-1*ph1_value*signal.fromaxis('t'))
-        #fl.plot(signal['indirect',ph1_index].real,':', c='violet')
-        #fl.plot(signal['indirect',ph1_index].imag,':', c='cyan')
-        #gridandtick(gca())
-    signal = signal['t':(-100e3,100e3)]
-    signal.meshplot(cmap=cm.viridis);fl.show();quit()
-    start = 0
-    for x in xrange(ndshape(signal)['indirect']):
-        fl.next('this')
-        signal['indirect',x].setaxis('t',signal['indirect',x].getaxis('t')+start)
-        fl.plot(signal['indirect',x])
-        start = start+10e3
-    signal.reorder('t')
-    signal.ift('t')
-    #fl.next('after phasing')
-    #signal.meshplot(cmap=cm.viridis)
-    #signal_cut = signal['t':(-27e-6,None)]
-    #signal_cut.meshplot(cmap=cm.viridis)
-    fl.show();quit()
-    fl.next('plot time domain')
-    signal_plot = signal['t', lambda x: x>= 0].C
-    signal_plot.meshplot(cmap=cm.viridis);fl.show();quit()
-    print ndshape(signal)
-    fl.next('plotting along t domain')
-    fl.plot(signal)
-    fl.show();quit()
-    quit()
-    fl.next('plot again')
-    fl.image(signal)
-    fl.show();quit()
-    signal *= exp(ph1*signal.fromaxis('t'))
-    for x in xrange(10):
-        fl.plot(signal['indirect',x])
-    fl.show();quit() 
-    s_absreal = signal.C
-    #s_absreal.ft('t')
-    for x in xrange(ndshape(signal)['indirect']):
-        temp = s_absreal['indirect',x].C
-        print ndshape(temp)
-        figure('abs real cost, indirect dim %d'%x)
-        temp.data = abs(temp.data.real)
-        temp.sum('t')
-        fl.image(abs(temp),human_units=False)
-    fl.plot((signal)['indirect',x])#['t':(35e-6,None)])
-    fl.plot(signal['indirect',7]);fl.show();quit()
-    fl.image(abs(signal)['t':(35e-6,None)])
-    print ndshape(signal)
-    print (ndshape(signal)['indirect'])
-    signal.ft('t')
-    fl.next('Frequency plot')
-    for x in xrange(ndshape(signal)['indirect']):
-        fl.plot(signal['indirect',x])
-    fl.show();quit()
+    fl.image(analytic['ch',0])
+    print ndshape(analytic['ch',0])
+    # now, pull the signal
+    analytic = analytic['ch',0]['ph1',1]['ph2',0]
+    analytic.name('Amplitude (Input-referred)')
+    print ndshape(analytic)
+    analytic = analytic['t':(109e-6,None)]
+    fl.next('Signal, time domain')
+    fl.plot(abs(analytic),color='red')
+    analytic.ft('t')
+    fl.next('Signal, frequency domain')
+    fl.plot(abs(analytic),color='red')
+    #{{{ attempt to phase
+    #s = analytic.C
+    #max_hw = 35 
+    #window_hw = 15
+    #max_index = abs(s).argmax('t', raw_index=True).data
+    #s.setaxis('t', lambda x : x - s.getaxis('t')[max_index])
+    #center_idx = where(s.getaxis('t') == 0)[0][0]
+    #fl.next('Check windows')
+    #for win_name,check_hw in [('max symm halfwidth', max_hw),('window halfwidth',window_hw)]:
+    #    s_slice = s['t', center_idx - check_hw : center_idx + check_hw + 1]
+    #    span_min = s.getaxis('t')[center_idx - check_hw]
+    #    span_max = s.getaxis('t')[center_idx + check_hw + 1]
+    #    fl.plot(abs(s), ':', c='violet')
+    #    fl.plot(abs(s_slice), c='blue', alpha=0.5)
+    #    axvline(span_min/1e-6, c='k')
+    #    axvline(span_max/1e-6, c='k')
+    #    gridandtick(gca())
+    #dw = diff(s.getaxis('t')[r_[0,1]])[0]
+    #max_t_shift = (max_hw/1e-6 - window_hw/1e-6) * dw
+    ## Hermitian cost function
+    #N = 60
+    #fl.next('Herm cost f')
+    #s = s['t', center_idx - max_hw : center_idx + max_hw + 1]
+    #sliced_center_idx = where(s.getaxis('t') == 0)[0][0]
+    #s.ft('t')
+    #ph0 = nddata(r_[-0.05:0.05:1j*N], 'ph0').set_units('ph0','cyc')
+    #ph0 = exp(1j*2*pi*ph0)
+    #ph1 = nddata(r_[-max_t_shift:max_t_shift:1j*N],'ph1').set_units('ph1','s')
+    #ph1 = exp(1j*2*pi*ph1*s.fromaxis('t'))
+    #s *= ph1
+    #s.ift('t')
+    #s *= ph0
+    #deviation = s['t', sliced_center_idx - window_hw : sliced_center_idx + window_hw + 1]
+    #deviation = deviation['t',::-1].C.run(conj) - deviation
+    #deviation.run(lambda x: abs(x)**2).sum('t')
+    #fl.image(deviation)
+    #del deviation
+    #ph0_corr = -48.96e-3
+    #ph1_corr = 0.356
+    #analytic.ft('t')
+    #analytic *= exp(1j*2*pi*ph0_corr) * exp(1j*2*pi*ph1_corr*analytic.fromaxis('t'))
+    #analytic.ift('t')
+    #analytic['t':(0,None)]
+    #analytic['t',0] *= 0.5
+    #fl.next('Signal, time domain')
+    #fl.plot(analytic.imag,alpha=0.4,label='imaginary')
+    #fl.plot(analytic.real,alpha=0.4,label='real')
+    #fl.plot(abs(analytic),color='k',alpha=0.4,label='abs')
     #}}}
+fl.show()
+
