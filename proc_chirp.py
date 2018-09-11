@@ -9,18 +9,8 @@ with figlist_var(filename='chirp.pdf') as fl:
 #    fl.next('$S_{11}$ : phase', legend=True)
     expno=0
     for date, id_string,corrected_volt in [
-            #('180706','chirp_probe_magnet',True),   # B_0 = 3399.55 G, no sample
-            #('180706','chirp_probes_magnet',True),   # B_0 = 3399.55 G, sample   
-            #('180706','chirp_probes_magnet_2',True),   # B_0 = 3410.55 G, sample   
-            #('180708','chirp_probes_magnet',True),   # B_0 = 3410.55 G, sample   
-            #('180708','chirp_probes_magnet_repeat',True),   # B_0 = 3410.55 G, sample   
-            #('180708','chirp_probes_magnet_2',True),   # B_0 = 3410.55 G, sample   
-            #('180712','test_chirp',True),   # B_0 = 3394.80 G, sample   
-            #('180712','test_chirp_2',True),   # B_0 = 3394.80 G, sample   
-            #('180714','test_chirp',True),   # B_0 = 3396.25 G, sample   
-            #('180714','test_chirp_2',True),   # B_0 = 3394.25 G, sample   
-            ('180714','test_chirp_3',True),   # B_0 = 3395.75 G, sample   
-            #('180806','pulse_reflection',True),
+            ('180911','test_L',True),   # testing solenoid using 26 AWG, 1.6 mm center
+            ('180911','test_L_2',True), 
             ]:
 #{{{ finding file
         try:
@@ -46,12 +36,10 @@ with figlist_var(filename='chirp.pdf') as fl:
             pulse_90 = False
         d.set_units('t','s')
         d.name('Amplitude $/$ $V$')
-        #fl.next('plot ch 0 %s'%id_string)
-        #fl.next('Control channel pulse')
-        #fl.plot(d['ch',0],alpha=0.6,label='raw data')
-        #fl.next('plot ch 1 %s'%id_string)
-        #fl.next('Test channel pulse')
-        #fl.plot(d['ch',1],alpha=0.6,label='raw data')
+        fl.next('plot ch 0 %s'%id_string)
+        fl.plot(d['ch',0],alpha=0.6,label='raw data')
+        fl.next('plot ch 1 %s'%id_string)
+        fl.plot(d['ch',1],alpha=0.6,label='raw data')
         d.ft('t',shift=True)
         d = d['t':(0,100e6)] # throw out negative frequencies and low-pass
         d.reorder('ch', first=False) # move ch dimension last
@@ -64,15 +52,13 @@ with figlist_var(filename='chirp.pdf') as fl:
         ranges = ranges[0,:].tolist()
         print 'Slicing chirp for',id_string,'from',ranges[0]*1e6,'to',ranges[1]*1e6,'us...'
         d = d['t':tuple(ranges)]
-        #fl.next('plot ch 0 %s'%id_string)
-        #fl.next('Control channel pulse')
-        #fl.plot(d['ch',0],':',alpha=0.9,label='processed')
+        fl.next('plot ch 0 %s'%id_string)
+        fl.plot(d['ch',0],':',alpha=0.9,label='processed')
         #xlim(8,18)
-        #fl.next('plot ch 1 %s'%id_string)
-        #fl.next('Test channel pulse')
-        #fl.plot(d['ch',1],':',alpha=0.9,label='processed')
+        fl.next('plot ch 1 %s'%id_string)
+        fl.plot(d['ch',1],':',alpha=0.9,label='processed')
         #xlim(8,18)
-        #label=id_string
+        label=id_string
         d.setaxis('t', lambda x: x-d.getaxis('t')[0])
         if not pulse_90:
             d.setaxis('t', lambda x: 25e6-x*25e6/4096e-8)
@@ -96,13 +82,11 @@ with figlist_var(filename='chirp.pdf') as fl:
         expno += 1 
     fl.next('$S_{11}$ : phase')
     gridandtick(gca())
-    xlim(10,20)
-    ylim(-1.0,1.0)
+    #xlim(10,20)
+    #ylim(-1.0,1.0)
     axvline(14.4289,linestyle=':', color='black')
-    savefig('../scriv/first_year/fig/phase.png')
     fl.next('$S_{11}$ : analytic amplitude')
     gridandtick(gca())
-    xlim(10,20)
-    ylim(0,1)
+    #xlim(10,20)
+    #ylim(0,1)
     axvline(14.4289,linestyle=':', color='black')
-    savefig('../scriv/first_year/fig/amplitude.png')
