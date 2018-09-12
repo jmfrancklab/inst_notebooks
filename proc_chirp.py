@@ -9,12 +9,8 @@ with figlist_var(filename='chirp.pdf') as fl:
 #    fl.next('$S_{11}$ : phase', legend=True)
     expno=0
     for date, id_string,corrected_volt in [
-            ('180911','test_L',True),   # testing solenoid using 26 AWG, 1.6 mm center
-            ('180911','test_L_2',True), # scope mode : hi resolution 
-            ('180911','test_L_3',True), # scope mode : hi resolution
-            ('180911','test_L_4',True), # scope mode : 64 avg
-            ('180911','test_L_5',True), # scope mode : 64 avg
-            ('180911','test_L_6',True), # scope mode : hi resolution
+            ('180911','test_L_7',True),
+            ('180911','test_L_8',True),
             ]:
 #{{{ finding file
         try:
@@ -62,7 +58,12 @@ with figlist_var(filename='chirp.pdf') as fl:
         #fl.next('plot ch 1 %s'%id_string)
         #fl.plot(d['ch',1],':',alpha=0.9,label='processed')
         ##xlim(8,18)
-        label=id_string
+        if '7' in id_string:
+            label='n=43'
+        elif '8' in id_string:
+            label='n=55'
+        else:
+            label=id_string
         d.setaxis('t', lambda x: x-d.getaxis('t')[0])
         if not pulse_90:
             d.setaxis('t', lambda x: 25e6-x*25e6/4096e-8)
@@ -72,7 +73,7 @@ with figlist_var(filename='chirp.pdf') as fl:
         ratio.name('Reflection')
         plot_params = dict(alpha=0.8,
                 markersize=2,
-                #label='%s'%label
+                label='%s'%label
                 )
         #if 'control' in label:
         #    plot_params['color'] = 'k'
