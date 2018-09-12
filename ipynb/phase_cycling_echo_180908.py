@@ -3,17 +3,20 @@
 
 # In[1]:
 
+
 get_ipython().magic(u'load_ext pyspecdata.ipy')
 from scipy.linalg import expm
 
 
 # In[2]:
 
+
 import IPython.display as d
 fl = figlist_var()
 
 
 # In[3]:
+
 
 Iz = 0.5*array([[1,0],[0,-1]],dtype=complex128)
 
@@ -34,7 +37,18 @@ Im = Ix - 1j*Iy
 map(d.display,[Iz,Ix,Iy,E,Ip,Im])
 
 
+# In[ ]:
+
+
+# if we are on resonance
+# what happens if magnetic field is slightly off the on-resonance condition /* --> OFFSET */ (\Omega)
+# and what happens if the conversion factor is off /* --> MISMATCH */ such that B1 (as determined by rf pulse)
+# does not correspond exactly to \omega1 (as determined by nutation frequency of nuclei), 
+# such that the actual nutation is varied between diff values of omega1
+
+
 # In[4]:
+
 
 t90 = 7.45e-6
 omega1_nominal = 2*pi/(4*t90)
@@ -59,12 +73,14 @@ results.rename('omega1',r'$\omega_1/2\pi$').rename('Omega',r'$\Omega/2\pi$')
 
 # In[5]:
 
+
 with figlist_var() as fl:
     fl.next('Simulation, without phase cycling',figsize=(18,12))
     fl.image(results,black=True)
 
 
 # In[6]:
+
 
 with figlist_var() as fl:
     fl.next('abs(Simulation), without phase cycling',figsize=(18,12))
@@ -73,10 +89,12 @@ with figlist_var() as fl:
 
 # In[7]:
 
+
 # Now include phase cycling
 
 
 # In[8]:
+
 
 t90 = 7.45e-6
 omega1_nominal = 2*pi/(4*t90)
@@ -104,20 +122,24 @@ results.rename('omega1',r'$\omega_1/2\pi$').rename('Omega',r'$\Omega/2\pi$')
 
 # In[9]:
 
+
 # Go to the coherence domain along the phase cycle domain for each pulse
 results.ift(['ph1','ph2'])
 
 
 # In[10]:
 
+
 # Observe each pulse on the -1 coherence level of its coherence domain
 # For this pulse sequence, signal appears 2 coherence levels down from the 90 pulse
+# can determine this from the coherence transfer pathway
 with figlist_var() as fl:
     fl.next('Simulation, with phase cycling',figsize=(18,12))
     fl.image(results,black=True)
 
 
 # In[11]:
+
 
 # Plot this way to show the relative sizes of the artifacts compared to signal
 with figlist_var() as fl:
@@ -127,11 +149,13 @@ with figlist_var() as fl:
 
 # In[12]:
 
+
 # Pull the signal from its coherence level
 signal = results['ph2',2]['ph1',1]
 
 
 # In[13]:
+
 
 with figlist_var() as fl:
     fl.next('Signal, phase cycled',figsize=(18,12)) # I want figsize, and I need fl so that it handles the units
@@ -140,11 +164,13 @@ with figlist_var() as fl:
 
 # In[14]:
 
+
 # Pull the artifacts from the 90 pulse
 pulse_90 = results['ph1',-1]['ph2',0]
 
 
 # In[15]:
+
 
 with figlist_var() as fl:
     fl.next('Artifacts from 90 pulse',figsize=(18,12)) # I want figsize, and I need fl so that it handles the units
@@ -153,11 +179,13 @@ with figlist_var() as fl:
 
 # In[16]:
 
+
 # Pull the artifacts from the 180 pulse
 pulse_180 = results['ph1',0]['ph2',-1]
 
 
 # In[17]:
+
 
 with figlist_var() as fl:
     fl.next('Artifacts from 180 pulse',figsize=(18,12)) # I want figsize, and I need fl so that it handles the units
@@ -165,6 +193,7 @@ with figlist_var() as fl:
 
 
 # In[18]:
+
 
 # Discussion of simulation
 
@@ -206,6 +235,7 @@ with figlist_var() as fl:
 # $$\rho = \hat{U}_{total} \bullet \hat{I}_{z} \bullet {\hat{{U}^\intercal}^{*}_{total}} $$
 
 # In[ ]:
+
 
 
 
