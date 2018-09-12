@@ -10,7 +10,11 @@ with figlist_var(filename='chirp.pdf') as fl:
     expno=0
     for date, id_string,corrected_volt in [
             ('180911','test_L',True),   # testing solenoid using 26 AWG, 1.6 mm center
-            ('180911','test_L_2',True), 
+            ('180911','test_L_2',True), # scope mode : hi resolution 
+            ('180911','test_L_3',True), # scope mode : hi resolution
+            ('180911','test_L_4',True), # scope mode : 64 avg
+            ('180911','test_L_5',True), # scope mode : 64 avg
+            ('180911','test_L_6',True), # scope mode : hi resolution
             ]:
 #{{{ finding file
         try:
@@ -36,10 +40,10 @@ with figlist_var(filename='chirp.pdf') as fl:
             pulse_90 = False
         d.set_units('t','s')
         d.name('Amplitude $/$ $V$')
-        fl.next('plot ch 0 %s'%id_string)
-        fl.plot(d['ch',0],alpha=0.6,label='raw data')
-        fl.next('plot ch 1 %s'%id_string)
-        fl.plot(d['ch',1],alpha=0.6,label='raw data')
+        #fl.next('plot ch 0 %s'%id_string)
+        #fl.plot(d['ch',0],alpha=0.6,label='raw data')
+        #fl.next('plot ch 1 %s'%id_string)
+        #fl.plot(d['ch',1],alpha=0.6,label='raw data')
         d.ft('t',shift=True)
         d = d['t':(0,100e6)] # throw out negative frequencies and low-pass
         d.reorder('ch', first=False) # move ch dimension last
@@ -52,12 +56,12 @@ with figlist_var(filename='chirp.pdf') as fl:
         ranges = ranges[0,:].tolist()
         print 'Slicing chirp for',id_string,'from',ranges[0]*1e6,'to',ranges[1]*1e6,'us...'
         d = d['t':tuple(ranges)]
-        fl.next('plot ch 0 %s'%id_string)
-        fl.plot(d['ch',0],':',alpha=0.9,label='processed')
-        #xlim(8,18)
-        fl.next('plot ch 1 %s'%id_string)
-        fl.plot(d['ch',1],':',alpha=0.9,label='processed')
-        #xlim(8,18)
+        #fl.next('plot ch 0 %s'%id_string)
+        #fl.plot(d['ch',0],':',alpha=0.9,label='processed')
+        ##xlim(8,18)
+        #fl.next('plot ch 1 %s'%id_string)
+        #fl.plot(d['ch',1],':',alpha=0.9,label='processed')
+        ##xlim(8,18)
         label=id_string
         d.setaxis('t', lambda x: x-d.getaxis('t')[0])
         if not pulse_90:
@@ -73,12 +77,12 @@ with figlist_var(filename='chirp.pdf') as fl:
         #if 'control' in label:
         #    plot_params['color'] = 'k'
         if corrected_volt:
-            fl.plot(abs(ratio),'-',c='red', **plot_params) 
+            fl.plot(abs(ratio),'-', **plot_params) 
         if not corrected_volt:
             fl.plot(2*abs(ratio),'.', **plot_params)
         axhline(0.425, color='gray', alpha=0.5)
         fl.next('$S_{11}$ : phase')
-        fl.plot((ratio).angle/pi, '.', c='blue', **plot_params)
+        fl.plot((ratio).angle/pi, '.', **plot_params)
         expno += 1 
     fl.next('$S_{11}$ : phase')
     gridandtick(gca())
