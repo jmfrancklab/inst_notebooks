@@ -138,7 +138,7 @@ with GDS_scope() as g:
     for this_ch in range(2):
         g[this_ch].voltscal = volt_scale
     print "loaded GDS"
-    print "For phase measurements, set Acquire->Mode->Average = 64"
+    #g.acquire_mode('average',32)
     raw_input("Wait for averaging to relax...")
     for j in range(1,3):
         print "trying to grab data from channel",j
@@ -150,7 +150,7 @@ while try_again:
     data_name = 'capture%d'%j
     data.name(data_name)
     try:
-        data.hdf5_write('180911_test_L_2.h5')
+        data.hdf5_write('180911_test_L_6.h5')
         try_again = False
     except Exception as e:
         print e
