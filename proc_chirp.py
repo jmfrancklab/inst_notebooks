@@ -9,8 +9,8 @@ with figlist_var(filename='chirp.pdf') as fl:
 #    fl.next('$S_{11}$ : phase', legend=True)
     expno=0
     for date, id_string,corrected_volt in [
-            ('180911','test_L_7',True),
-            ('180911','test_L_8',True),
+            ('180912','test_L',True),
+            ('180912','test_L_1',True),
             ]:
 #{{{ finding file
         try:
