@@ -9,8 +9,14 @@ with figlist_var(filename='chirp.pdf') as fl:
 #    fl.next('$S_{11}$ : phase', legend=True)
     expno=0
     for date, id_string,corrected_volt in [
-            ('180912','test_L',True),
-            ('180912','test_L_1',True),
+            ('180913','test_probe',True),
+            ('180913','test_probe_2',True),
+            ('180913','test_probe_3',True),
+            ('180913','test_probe_4',True),
+            ('180913','test_probe_5',True),
+            ('180913','test_probe_6',True),
+            ('180913','test_probe_7',True),
+            ('180913','test_probe_8',True),
             ]:
 #{{{ finding file
         try:
@@ -58,12 +64,7 @@ with figlist_var(filename='chirp.pdf') as fl:
         #fl.next('plot ch 1 %s'%id_string)
         #fl.plot(d['ch',1],':',alpha=0.9,label='processed')
         ##xlim(8,18)
-        if '7' in id_string:
-            label='n=43'
-        elif '8' in id_string:
-            label='n=55'
-        else:
-            label=id_string
+        label=id_string
         d.setaxis('t', lambda x: x-d.getaxis('t')[0])
         if not pulse_90:
             d.setaxis('t', lambda x: 25e6-x*25e6/4096e-8)
