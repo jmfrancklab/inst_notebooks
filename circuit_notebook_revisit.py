@@ -1,8 +1,9 @@
 from pyspecdata import *
 L = 0.54e-6
-C_tune = 220e-12
+C_tune = 200e-12
 C_tune2 = 9e-12
 C_match = 9e-12
+print "Main C_tune =",C_tune*1e12
 print "*** OUTPUT IS ***"
 print "*** f_0, Z ***"
 print "As I increase the variable tune capacitor"
