@@ -1,11 +1,19 @@
 #{{{ Program doc
-r'''Use this program to capture a single S11 (reflection) measurement. Must use the appropriate set up of
-the power splitter (PS) and reference channel (CH1).
-Set up as follows (also see AAB-2, 7/12/2018 yellow tab):
+r'''Use this program to capture a single S11 (reflection) measurement
+    Must use the appropriate set up of the power splitter (PS) and
+    reference channel (CH1). Set up as follows (also see AAB-2, 7/12/2018
+    yellow tab):
     CH1 (AFG) --> CH1 (GDS)
     CH2 (AFG) --> PS (PORT 2) --> PS (S) --> DUT --> PS (1) --> CH2 (GDS)
-Sends out programmed waveform on both channels of the AFG, with the option to correct for amplitude variation (due to use of the power splitter),
-so that the reflection is calculated correctly (using *proc_chirp.py*)
+    Sends out programmed waveform on both channels of the AFG, with
+    the option to correct for amplitude variation (due to use of
+    the power splitter), so that the reflection is calculated
+    correctly (using *proc_chirp.py*)
+    There are two options for a programmed waveform:
+        (1) A proper chirp from 5 to 25 MHz,
+    and (2) A pulse of a specified frequency
+    These options are chosen by the :pulse_90: boolean,
+    where True is (2) and False is (1).
 '''
 #}}}
 
@@ -150,7 +158,7 @@ while try_again:
     data_name = 'capture%d'%j
     data.name(data_name)
     try:
-        data.hdf5_write('180913_test_probe_8.h5')
+        data.hdf5_write('180920_test_probe_4_9.h5')
         try_again = False
     except Exception as e:
         print e
