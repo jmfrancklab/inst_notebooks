@@ -36,7 +36,7 @@ with SerialInstrument('GDS-3254') as s:
 with SerialInstrument('AFG-2225') as s:
     print s.respond('*idn?')
 
-pulse_90 = False
+pulse_90 = True
 
 #{{{ no sys var = default (3 Vpp), 0 = define amplitudes, 1 = choose from amplitudes
 default = True
@@ -158,7 +158,7 @@ while try_again:
     data_name = 'capture%d'%j
     data.name(data_name)
     try:
-        data.hdf5_write('180920_test_probe_4_9.h5')
+        data.hdf5_write('180920_probe_tdomain.h5')
         try_again = False
     except Exception as e:
         print e
