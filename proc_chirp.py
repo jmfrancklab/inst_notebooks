@@ -9,14 +9,29 @@ with figlist_var(filename='chirp.pdf') as fl:
 #    fl.next('$S_{11}$ : phase', legend=True)
     expno=0
     for date, id_string,corrected_volt in [
-            ('180913','test_probe',True),
-            ('180913','test_probe_2',True),
-            ('180913','test_probe_3',True),
-            ('180913','test_probe_4',True),
-            ('180913','test_probe_5',True),
-            ('180913','test_probe_6',True),
-            ('180913','test_probe_7',True),
-            ('180913','test_probe_8',True),
+            #('180920','test_probe',True),      # varC+100 pF tune
+            #('180920','test_probe_2',True),
+            #('180920','test_probe_3',True),
+            #('180920','test_probe_4',True),
+            #('180920','test_probe_5',True),
+            #('180920','test_probe_6',True),    
+            #('180920','test_probe_7',True),
+            #('180920','test_probe_1_2',True), # varC+56 pF tune
+            #('180920','test_probe_2_1',True), # varC+100 pF tune, varC+13 pF match
+            #('180920','test_probe_3_1',True), # varC+100 pF tune (verifying soldering etc)
+            #('180920','test_probe_3_2',True),
+            #('180920','test_probe_3_3',True),
+            #('180920','test_probe_3_4',True),
+            #('180920','test_probe_3_5',True),
+            ('180920','test_probe_4_1',True), # varC+113 pF tune
+            ('180920','test_probe_4_2',True),
+            ('180920','test_probe_4_3',True),
+            ('180920','test_probe_4_4',True),
+            ('180920','test_probe_4_5',True),
+            ('180920','test_probe_4_6',True),
+            ('180920','test_probe_4_7',True),
+            ('180920','test_probe_4_8',True),
+            ('180920','test_probe_4_9',True),
             ]:
 #{{{ finding file
         try:
