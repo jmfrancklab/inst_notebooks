@@ -1,3 +1,19 @@
+#{{{ Program doc
+r'''Use this program to collect 100 snapshots of noise in
+    about 1 min. This is to generate the Power Spectral
+    Density of the device/system. Set up for testing the
+    noise of the spectrometer is as follows (also
+    see AAB-LAB-2, 9/26/2018):
+    *Attach 50 Ohm terminator to a Tee, then connect this
+    to the DUT.
+    DUT (Tee-port) --> DPX --> LNA1 --> LNA2 --> LP --> CH1 (GDS)
+    Important settings on GDS are:
+    (1) Set to vertical scale to 50 mV/div
+    (2) Set horizontal scale to 20 us/div (100 MSPS)
+    These parameters were determined to be ideal for capturing
+    noise on earliest version of spectrometer (using Probe v1.0)
+'''
+#}}}
 from Instruments import *
 from pyspecdata import *
 import time
@@ -15,7 +31,17 @@ fl = figlist_var()
 #
 #with SerialInstrument('GDS-3254') as s:
 #    print s.respond('*idn?')
-    
+    save = True
+plot_files()
+if not 'saved_data' in globals():
+    saved_data = []
+if save:
+    saved_data.append(grab_data())
+else:
+    new_plot()
+for j in range(len(saved_data)):
+    plot_ratio('saved %d'%(j+1),saved_data[j])
+finalize_plots()
 def collect(date,id_string,captures):
     capture_length = len(captures)
     start = timer()

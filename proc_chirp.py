@@ -40,6 +40,15 @@ with figlist_var(filename='chirp.pdf') as fl:
             #('180926','sprobe_5',True),
             #('180926','sprobe_6',True),
             ('180926','sprobe_7',True),
+            #('180927','sprobe',True),
+            #('180927','sprobe_2',True),
+            #('180927','sprobe_3',True),
+            #('180927','sprobe_4',True),
+            #('180927','sprobe_5',True),
+            #('180927','sprobe_6',True),
+            #('180927','sprobe_7_',True),
+            ('180927','sprobe_8',True),
+            ('180927','sprobe_9',True),
             ]:
 #{{{ finding file
         try:
