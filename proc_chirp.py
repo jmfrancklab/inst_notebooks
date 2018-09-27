@@ -33,12 +33,12 @@ with figlist_var(filename='chirp.pdf') as fl:
             #('180920','test_probe_4_8',True),
             #('180920','test_probe_4_9',True),
             #('180925','sprobe',True),
-            ('180926','sprobe',True),
-            ('180926','sprobe_2',True),
-            ('180926','sprobe_3',True),
-            ('180926','sprobe_4',True),
-            ('180926','sprobe_5',True),
-            ('180926','sprobe_6',True),
+            #('180926','sprobe',True),
+            #('180926','sprobe_2',True),
+            #('180926','sprobe_3',True),
+            #('180926','sprobe_4',True),
+            #('180926','sprobe_5',True),
+            #('180926','sprobe_6',True),
             ('180926','sprobe_7',True),
             ]:
 #{{{ finding file
@@ -105,7 +105,7 @@ with figlist_var(filename='chirp.pdf') as fl:
             fl.plot(abs(ratio),'-', **plot_params) 
         if not corrected_volt:
             fl.plot(2*abs(ratio),'.', **plot_params)
-        axhline(0.425, color='gray', alpha=0.5)
+        axhline(0.47, color='gray', alpha=0.5)
         fl.next('$S_{11}$ : phase')
         fl.plot((ratio).angle/pi, '.', **plot_params)
         expno += 1 
