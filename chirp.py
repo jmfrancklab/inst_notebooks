@@ -4,7 +4,7 @@ r'''Use this program to capture a single S11 (reflection) measurement
     reference channel (CH1). Set up as follows (also see AAB-2, 7/12/2018
     yellow tab):
     CH1 (AFG) --> CH1 (GDS)
-    CH2 (AFG) --> PS (PORT 2) --> PS (S) --> DUT --> PS (1) --> CH2 (GDS)
+    CH2 (AFG) --> PS (PORT 2 [*1?]) --> PS (S) --> DUT --> PS (1 [*2?]) --> CH2 (GDS)
     Sends out programmed waveform on both channels of the AFG, with
     the option to correct for amplitude variation (due to use of
     the power splitter), so that the reflection is calculated
@@ -158,7 +158,7 @@ while try_again:
     data_name = 'capture%d'%j
     data.name(data_name)
     try:
-        data.hdf5_write('180926_sprobe_7.h5')
+        data.hdf5_write('180927_sprobe_9.h5')
         try_again = False
     except Exception as e:
         print e
