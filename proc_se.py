@@ -20,7 +20,8 @@ for date,id_string,numchan in [
         #('180714','SE_exp_offres',2) # 25 cycle measurement, B0 = 3585.85 G 
         #('180714','SE_exp_2',2) # 5 cycle measurement, B0 = 3585.85 G 
         #('180714','SE_exp_2_nosample',2) # 5 cycle measurement, B0 = 3585.85 G no sample 
-        ('180927','SpinEcho',2) # 3 cycle measurement, B0 = 3403.1 G, probe v1.5 
+        ('180927','SpinEcho',2), # 3 cycle measurement, B0 = 3403.1 G, probe v1.5 @ 20 mV/div
+        ('180927','SpinEcho_2',2) # 3 cycle measurement, B0 = 3403.1 G, probe v1.5 @ 50 mV/div 
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
@@ -150,7 +151,6 @@ for date,id_string,numchan in [
     fl.next('signal, probe v1p5')
     fl.plot(signal.real['t':(110e-6,None)])
     fl.plot(signal.imag['t':(110e-6,None)])
-    fl.show();quit()
     #{{{ below are efforts to process for V(t) data 
     #print ndshape(s_analytic)
     #s_avg = s['ch',0]['ph1',3]['ph2',1].C
