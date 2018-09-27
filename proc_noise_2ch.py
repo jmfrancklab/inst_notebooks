@@ -101,40 +101,17 @@ power_dens_CH2_dict = {}
 # {{{ call files
 for date,id_string,numchan,gain_factor in [
         ('180926','noise_probe',2,gain_factor_new),
-        ('180926','noise_probe_TXD',2,gain_factor_new),
-        ('180926','noise_probe_TXD_ENI_off',2,gain_factor_new),
-        ('180926','noise_probe_TXD_ENI_on',2,gain_factor_new),
-        ('180926','noise_probe_TXD_ENI_Magnet',2,gain_factor_new),
-        ('180710','spectrometer_noise_50ohm',2,gain_factor_new),
-        ('180710','spectrometer_noise_AFG',2,gain_factor_new),
-        #('180710','spectrometer_noise_AFG_2',2,gain_factor_new),
-        ('180710','spectrometer_noise_AFG_magnet',2,gain_factor_new),
-        ('180710','spectrometer_noise_AFG_smagnet',2,gain_factor_new),
-        #('180710','spectrometer_noise_AFG_smagnet_2',2,gain_factor_new),
-        #{{{ older files
-        #('180709','control_SE',2,1.0),
-        #('180709','control_SE_250MSPS',2,1.0),
-        #('180709','control_SE_500MSPS',2,1.0),
-        #('180709','control_SE_1GSPS',2,1.0),
-        #('180709','control_SE_2p5GSPS',2,1.0),
-        #('180709','control_SE_nofilter',2,1.0),
-        #('180709','control_SE_250MSPS_nofilter',2,1.0),
-        #('180709','control_SE_500MSPS_nofilter',2,1.0),
-        #('180709','control_SE_1GSPS_nofilter',2,1.0),
-        #('180709','control_SE_2p5GSPS_nofilter',2,1.0),
-        #('180709','network_SE_full',2,gain_factor_new),
-        #('180709','network_SE_full_250MSPS',2,gain_factor_new),
-        #('180709','network_SE_full_500MSPS',2,gain_factor_new),
-        #('180709','network_SE_full_1GSPS',2,gain_factor_new),
-        #('180709','network_SE_full_2p5GSPS',2,gain_factor_new),
-        #('180709','network_SE',2,gain_factor_new),
-        #('180709','network_SE_250MSPS',2,gain_factor_new),
-        #('180709','network_SE_500MSPS',2,gain_factor_new),
-        #('180709','network_SE_1GSPS',2,gain_factor_new),
-        #('180709','network_SE_2p5GSPS',2,gain_factor_new),
-#    ('180526','AFG_terminator_2',2,1.0),#   leave gain set to 1 so we can get the 
-                                         #   absolute number here (not input-referred)
-                                         #}}}
+        ('180927','noise_probe_Magnet',2,gain_factor_new),
+        ('180927','noise_probe_TXD_ENI_Magnet',2,gain_factor_new),
+        ('180927','noise_spectrometer',2,gain_factor_new),
+        #('180926','noise_probe_TXD',2,gain_factor_new),
+        #('180926','noise_probe_TXD_ENI_off',2,gain_factor_new),
+        #('180926','noise_probe_TXD_ENI_on',2,gain_factor_new),
+        #('180926','noise_probe_TXD_ENI_Magnet',2,gain_factor_new),
+        #('180710','spectrometer_noise_50ohm',2,gain_factor_new),
+        #('180710','spectrometer_noise_AFG',2,gain_factor_new),
+        #('180710','spectrometer_noise_AFG_magnet',2,gain_factor_new),
+        #('180710','spectrometer_noise_AFG_smagnet',2,gain_factor_new),
     ]:
     # }}}
     # {{{ plot labels

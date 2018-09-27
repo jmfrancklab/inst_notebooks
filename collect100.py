@@ -31,17 +31,6 @@ fl = figlist_var()
 #
 #with SerialInstrument('GDS-3254') as s:
 #    print s.respond('*idn?')
-    save = True
-plot_files()
-if not 'saved_data' in globals():
-    saved_data = []
-if save:
-    saved_data.append(grab_data())
-else:
-    new_plot()
-for j in range(len(saved_data)):
-    plot_ratio('saved %d'%(j+1),saved_data[j])
-finalize_plots()
 def collect(date,id_string,captures):
     capture_length = len(captures)
     start = timer()
@@ -77,9 +66,9 @@ def collect(date,id_string,captures):
     print "shape of data",ndshape(s)
     return start
 
-date = '180926'
+date = '180927'
 #id_string = 'control_pulse_22MHz_2p5GSPS_zoom'
-id_string = 'noise_probe_TXD_ENI_Magnet'
+id_string = 'noise_spectrometer'
 #id_string = 'network_9_4'
 captures = linspace(1,100,100)
 
