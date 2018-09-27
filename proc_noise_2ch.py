@@ -100,6 +100,11 @@ power_dens_CH2_dict = {}
 
 # {{{ call files
 for date,id_string,numchan,gain_factor in [
+        ('180926','noise_probe',2,gain_factor_new),
+        ('180926','noise_probe_TXD',2,gain_factor_new),
+        ('180926','noise_probe_TXD_ENI_off',2,gain_factor_new),
+        ('180926','noise_probe_TXD_ENI_on',2,gain_factor_new),
+        ('180926','noise_probe_TXD_ENI_Magnet',2,gain_factor_new),
         ('180710','spectrometer_noise_50ohm',2,gain_factor_new),
         ('180710','spectrometer_noise_AFG',2,gain_factor_new),
         #('180710','spectrometer_noise_AFG_2',2,gain_factor_new),
