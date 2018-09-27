@@ -23,15 +23,23 @@ with figlist_var(filename='chirp.pdf') as fl:
             #('180920','test_probe_3_3',True),
             #('180920','test_probe_3_4',True),
             #('180920','test_probe_3_5',True),
-            ('180920','test_probe_4_1',True), # varC+113 pF tune
-            ('180920','test_probe_4_2',True),
-            ('180920','test_probe_4_3',True),
-            ('180920','test_probe_4_4',True),
-            ('180920','test_probe_4_5',True),
-            ('180920','test_probe_4_6',True),
-            ('180920','test_probe_4_7',True),
-            ('180920','test_probe_4_8',True),
-            ('180920','test_probe_4_9',True),
+            #('180920','test_probe_4_1',True), # varC+113 pF tune
+            #('180920','test_probe_4_2',True),
+            #('180920','test_probe_4_3',True),
+            #('180920','test_probe_4_4',True),
+            #('180920','test_probe_4_5',True),
+            #('180920','test_probe_4_6',True),
+            #('180920','test_probe_4_7',True),
+            #('180920','test_probe_4_8',True),
+            #('180920','test_probe_4_9',True),
+            #('180925','sprobe',True),
+            ('180926','sprobe',True),
+            ('180926','sprobe_2',True),
+            ('180926','sprobe_3',True),
+            ('180926','sprobe_4',True),
+            ('180926','sprobe_5',True),
+            ('180926','sprobe_6',True),
+            ('180926','sprobe_7',True),
             ]:
 #{{{ finding file
         try:
