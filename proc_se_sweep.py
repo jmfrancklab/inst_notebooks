@@ -1,8 +1,3 @@
-
-# coding: utf-8
-
-# In[1]:
-
 from pyspecdata import *
 from pyspecdata.plot_funcs.image import imagehsv
 import os
@@ -10,13 +5,18 @@ import sys
 import matplotlib.style
 import matplotlib as mpl
 
-
 mpl.rcParams['image.cmap'] = 'jet'
 fl = figlist_var()
 
-carrier_f = 14.4289e6
+carrier_f = 14.46e6
 
 check_time = False 
+#field_axis:
+#   start = center field - field width/2
+#   stop  = center field + field width/2
+#   steps = no. points*4
+#cycle_time:
+#   avg time between steps (get from check_time)
 for date,id_string,numchan,field_axis,cycle_time, in [
         #('180717','SE_sweep_3',2,linspace(3390,3400,420*4),168),
         #('180718','SE_sweep',2,linspace((3395-25/2),(3395+25/2),1050*4),168),
@@ -27,7 +27,8 @@ for date,id_string,numchan,field_axis,cycle_time, in [
         #('180719','SE_sweep_2',2,linspace((3407.3-0.1/2),(3407.3+0.1/2),420*4),int(20.975*8)), 
         #('180719','SE_sweep_3',2,linspace((3407.4-0.1/2),(3407.4+0.1/2),420*4),int(21.875*8)) 
         #('180725','SE_sweep',2,linspace((3407.30-500./2),(3407.30+500./2),2340*4),int(21.865*8)) 
-        ('180726','SE_sweep',2,linspace((3407.30-50./2),(3407.30+50./2),2340*4),int(21.8325*8)) 
+        #('180726','SE_sweep',2,linspace((3407.30-50./2),(3407.30+50./2),2340*4),int(21.8325*8)) 
+        ('180927','sweep',2,linspace((3403.10-100./2),(3403.10+50./2),351*4),int(21.661*8)) 
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
@@ -76,7 +77,7 @@ for date,id_string,numchan,field_axis,cycle_time, in [
         fl.plot(s_raw['ch',1]['full_cyc',0]['ph2',0].reorder('t').real)
         #{{{ applying time-shift (i.e., defining new, more convenient x-axis below)
         # note, pulse length used below is manually determined
-        pulse_slice = s_raw['t':(6.47267e-6,14.1078e-6)]['ch',1].real
+        pulse_slice = s_raw['t':(6.46e-6,7.79e-6)]['ch',1].real
         normalization = (pulse_slice**2).integrate('t')
         # this creates an nddata of the time averages for each 90 pulse
         average_time = (pulse_slice**2 * pulse_slice.fromaxis('t')).integrate('t')/normalization
@@ -84,10 +85,10 @@ for date,id_string,numchan,field_axis,cycle_time, in [
         # shift the time axis down by the average time, so that 90 is centered around t=0
         s_raw.setaxis('t', lambda t: t-average_time.data.mean())
         # NOTE: check that this centers 90 around 0 on time axis
-        #fl.next('time-shifted data')
-        #fl.image(s_raw)
+        fl.next('time-shifted data')
+        fl.image(s_raw)
         #}}}
-        pulse_slice = s_raw['t':(-4e-6,4e-6)]['ch',1].real
+        pulse_slice = s_raw['t':(-0.61e-6,0.61e-6)]['ch',1].real
         # re-determine nddata of the time averages for the newly centered data
         average_time = (pulse_slice**2 * pulse_slice.fromaxis('t')).integrate('t')/normalization
         print average_time
@@ -116,7 +117,7 @@ for date,id_string,numchan,field_axis,cycle_time, in [
         # with time-shifted, phase corrected raw data, now take analytic
         # measured phase is phase of each 90 after time-shifting and phase correcting
         analytic = raw_corr['ch',1].C.ft('t')['t':(0,16e6)].setaxis('t', lambda f: f-carrier_f).ift('t').reorder(['full_cyc','t'],first=False)
-        measured_phase = analytic['t':(-4e-6,4e-6)].mean('t',return_error=False).mean('ph2',return_error=True).mean('full_cyc',return_error=True)
+        measured_phase = analytic['t':(-0.61e-6,0.61e-6)].mean('t',return_error=False).mean('ph2',return_error=True).mean('full_cyc',return_error=True)
         measured_phase /= abs(measured_phase)
         print "measured phase"
         print measured_phase
@@ -124,8 +125,8 @@ for date,id_string,numchan,field_axis,cycle_time, in [
         expected_phase = nddata(exp(r_[0,1,2,3]*pi/2*1j),[4],['ph1'])
         # phase correcting analytic signal by difference between expected and measured phases
         analytic *= expected_phase/measured_phase
-        #fl.next('analytic signal, ref ch')
-        #fl.image(analytic['t':(-2e-6,75e-6)])
+        fl.next('analytic signal, ref ch')
+        fl.image(analytic['t':(-2e-6,75e-6)])
         # switch to coherence domain
         fl.next('coherence domain, ref ch')
         coherence_domain = analytic.C.ift(['ph1','ph2'])
@@ -137,14 +138,17 @@ for date,id_string,numchan,field_axis,cycle_time, in [
         #s_analytic.ift(['ph1','ph2'])
         #fl.next('Testing coherence domain')
         #fl.image(s_analytic)
-        #fl.show()
-        #quit()
         s_analytic.name('Amplitude').set_units('V')
         #{{{ here plotting sweep data several ways
         s_analytic.rename('full_cyc','magnetic_field')
         # slice out region containing spin echo to get clear frequency domain plots
-        #s_analytic = s_analytic['t':(110e-6,None)]
+        s_analytic = s_analytic['t':(110e-6,None)]
         for x in xrange(ndshape(s_analytic)['magnetic_field']):
+            # NOTE: The time length of each capture (here 168 s) can be determined by looking at
+            # the distance between the values in the 'full_cyc' axis OR determined beforehand --
+
+            # either way, I am sure there is a way to program the number but for now it must be
+            # calculated and entered manually
             s_analytic.getaxis('magnetic_field')[x] = field_axis[x*cycle_time]
             print field_axis[x*cycle_time]
             s_analytic.set_units('magnetic_field','G')
@@ -155,479 +159,33 @@ for date,id_string,numchan,field_axis,cycle_time, in [
         s_analytic.ift(['ph1','ph2'])
         #{{{ here I am making a copy of this dataset to plot with frequency axis converted to Gauss
         s_analytic_f = s_analytic.C.ft('t')
-        s_analytic_f.setaxis('t', lambda x: x/(gammabar_H)*1e4).set_units('t','G')
+        s_analytic_f.setaxis('t', lambda x: x/(2*pi*gammabar_H)*1e4).set_units('t','G')
         s_analytic_f.rename('t',r'$\frac{\Omega}{2 \pi \gamma_{H}}$')
         s_analytic_f.rename('magnetic_field',r'$B_{0}$')
         #}}}
-        fl.next('signal(B) as function of '+r'$B_{0}$ (50 G sweep)')
+        fl.next('image, signal coherence pathway, t domain (100 G width)')
+        fl.image(s_analytic['ph1',1]['ph2',0])
+        s_analytic.ft('t')
+        fl.next('image, signal coherence pathway, f domain (100 G width)')
         fl.image(s_analytic_f['ph1',1]['ph2',0])
-        signal = s_analytic['ph1',1]['ph2',0].C
-        signal.rename('magnetic_field','B0')
-
-
-# In[ ]:
-
-# Pull the dataset generated in the processing code,
-# save to a checkpoint for later reference
-# and other preliminary jupyternb things
-
-
-# In[3]:
-
-get_ipython().magic(u'load_ext pyspecdata.ipy')
-fl = figlist_var()
-raw = signal.C
-
-
-# In[4]:
-
-s = raw.C # checkpoint
-
-
-# In[5]:
-
-s.set_error(None)
-s.setaxis('t', lambda t: t - 107.5e-6)
-s = s['t':(-12e-6,None)]
-print ndshape(s)
-
-
-# In[ ]:
-
-get_ipython().magic(u'matplotlib inline')
-
-
-# In[ ]:
-
-# Choose one dataset to phase, and then apply these phase corrections to the rest
-
-
-# In[ ]:
-
-for x in xrange(ndshape(s)['B0']):
-    figure('time %s'%x);title('time %s'%x)
-    plot(s['B0',x],alpha=0.4)
-#xlim(100,None)
-# Choosing data set 31
-
-
-# In[ ]:
-
-# Check that regions definde by max_hw (max half width) and window_hw contain signal and not noise
-
-
-# In[6]:
-
-s_choice = s['B0',31].C
-
-figure('check our windows');title('check our windows')
-max_hw = 27
-window_hw = 15
-index_max = abs(s_choice).argmax('t', raw_index = True).data
-s_choice.setaxis('t', lambda t: t - s_choice.getaxis('t')[index_max])
-s.setaxis('t', lambda t: t - s.getaxis('t')[index_max]) # NOTE: Need to do this in order to use the Hermitian cost
-# function summed over the indirection dimension...
-plot(abs(s_choice), alpha=0.5)
-center_idx = where(s_choice.getaxis('t') == 0)[0][0]
-for win_name,check_hw in [('max symm halfwidth',max_hw),('window halfwidth',window_hw)]:
-    s_slice = s_choice['t', center_idx - check_hw : center_idx + check_hw + 1]
-    span_min = s_choice.getaxis('t')[center_idx - check_hw]
-    span_max = s_choice.getaxis('t')[center_idx + check_hw + 1]
-    plot(abs(s_choice),':', c='violet')
-    plot(abs(s_slice), c='blue', alpha = 0.5)
-    axvline(span_min, c='k')
-    axvline(span_max, c='k')
-    gridandtick(gca())
-dw = diff(s_choice.getaxis('t')[r_[0,1]])[0]
-max_t_shift = (max_hw - window_hw) * dw
-
-
-# In[7]:
-
-s_copy = s_choice.C
-
-
-# In[8]:
-
-# Generate cost function using Hermitian property of spin echo
-
-
-# In[9]:
-
-s_choice = s_copy.C # checkpoint
-
-
-# In[ ]:
-
-N = 60.
-fl.next('hermitian cost func')
-s_check = s_choice.C
-s_check = s_check['t',center_idx - max_hw : center_idx + max_hw + 1]
-print ndshape(s_check)
-sliced_center_idx = where(s_check.getaxis('t') == 0)[0][0]
-s_check.ft('t')
-ph0 = nddata(r_[-0.5:0.5:1j*N],'ph0').set_units('ph0','cyc')
-ph0 = exp(1j*2*pi*ph0)
-ph1 = nddata(r_[-max_t_shift:max_t_shift:1j*N],'ph1').set_units('ph1','s')
-ph1 = exp(1j*2*pi*ph1*s_check.fromaxis('t'))
-s_check *= ph1
-s_check.ift('t')
-s_check *= ph0
-deviation = s_check['t',sliced_center_idx - window_hw : sliced_center_idx + window_hw + 1]
-deviation = deviation['t',::-1].C.run(conj) - deviation
-deviation.run(lambda x: abs(x)**2).sum('t')
-fl.image(-1*deviation)
-
-
-# In[ ]:
-
-## Adjust with frequency correction if axes are rotated
-
-
-# In[ ]:
-
-s_choice = s_copy.C # checkpoint
-
-
-# In[ ]:
-
-N = 60.
-fl.next('hermitian cost func, adjust')
-frq_corr = 70.3e-3/5.1e-6
-s_choice *= exp(-1j*2*pi*frq_corr*s_choice.fromaxis('t'))
-s_check = s_choice.C
-s_check = s_check['t',center_idx - max_hw : center_idx + max_hw + 1]
-print ndshape(s_check)
-sliced_center_idx = where(s_check.getaxis('t') == 0)[0][0]
-s_check.ft('t')
-ph0 = nddata(r_[-0.5:0.5:1j*N],'ph0').set_units('ph0','cyc')
-ph0 = exp(1j*2*pi*ph0)
-ph1 = nddata(r_[-max_t_shift:max_t_shift:1j*N],'ph1').set_units('ph1','s')
-ph1 = exp(1j*2*pi*ph1*s_check.fromaxis('t'))
-s_check *= ph1
-s_check.ift('t')
-s_check *= ph0
-deviation = s_check['t',sliced_center_idx - window_hw : sliced_center_idx + window_hw + 1]
-deviation = deviation['t',::-1].C.run(conj) - deviation
-deviation.run(lambda x: abs(x)**2).sum('t')
-fl.image(-1*deviation) # easier to see the red
-ph1_corr = 3.97e-6
-ph0_corr = -178.4e-3
-
-
-# In[ ]:
-
-## Annotate the selected region used to find the phase corrections
-
-
-# In[ ]:
-
-s_choice = s_copy.C # checkpoint
-
-
-# In[ ]:
-
-N = 60.
-fl.next('hermitian cost func, adjust, correction')
-frq_corr = 70.3e-3/5.1e-6
-s_choice *= exp(-1j*2*pi*frq_corr*s_choice.fromaxis('t'))
-s_check = s_choice.C
-s_check = s_check['t',center_idx - max_hw : center_idx + max_hw + 1]
-print ndshape(s_check)
-sliced_center_idx = where(s_check.getaxis('t') == 0)[0][0]
-s_check.ft('t')
-ph0 = nddata(r_[-0.5:0.5:1j*N],'ph0').set_units('ph0','cyc')
-ph0 = exp(1j*2*pi*ph0)
-ph1 = nddata(r_[-max_t_shift:max_t_shift:1j*N],'ph1').set_units('ph1','s')
-ph1 = exp(1j*2*pi*ph1*s_check.fromaxis('t'))
-s_check *= ph1
-s_check.ift('t')
-s_check *= ph0
-deviation = s_check['t',sliced_center_idx - window_hw : sliced_center_idx + window_hw + 1]
-deviation = deviation['t',::-1].C.run(conj) - deviation
-deviation.run(lambda x: abs(x)**2).sum('t')
-fl.image(-1*deviation) # easier to see the red
-ph1_corr = 4.05e-6
-ph0_corr = 327e-3
-fl.plot(ph0_corr/1e-3,ph1_corr/1e-6,'x',c='white')
-
-
-# In[ ]:
-
-### NEW APPROACH
-
-
-# In[ ]:
-
-### FOR FASTER PHASE CORRECTION
-
-
-# In[ ]:
-
-### SUM OVER THE INDIRECT (REPEAT/FIELD SWEEP) DIMENSIONS
-### INSTEAD OF JUST PICKING ONE DIMENSION AND PHASING, THEN APPLYING
-
-
-# In[11]:
-
-N = 60.
-
-fl.next('hermitian cost func, sum over indirect')
-s_check = s.C.reorder('t') # use s containing all data instead of just one data set
-# NOTE: s must be treated exactly the same as s_choice -- verify and be careful
-s_check = s_check['t',center_idx - max_hw : center_idx + max_hw + 1]
-print ndshape(s_check)
-sliced_center_idx = where(s_check.getaxis('t') == 0)[0][0]
-s_check.ft('t')
-ph0 = nddata(r_[-0.5:0.5:1j*N],'ph0').set_units('ph0','cyc')
-ph0 = exp(1j*2*pi*ph0)
-ph1 = nddata(r_[-max_t_shift:max_t_shift:1j*N],'ph1').set_units('ph1','s')
-ph1 = exp(1j*2*pi*ph1*s_check.fromaxis('t'))
-s_check *= ph1
-s_check.ift('t')
-s_check *= ph0
-deviation = s_check['t',sliced_center_idx - window_hw : sliced_center_idx + window_hw + 1]
-deviation = deviation['t',::-1].C.run(conj) - deviation
-deviation.run(lambda x: abs(x)**2).sum('t').sum('B0') # sum over indirect dimension
-fl.image(-1*deviation)
-
-
-# In[12]:
-
-## Annotate the selected region used to find these overall phase corrections
-
-
-# In[56]:
-
-s_choice = s_copy.C # checkpoint
-
-
-# In[57]:
-
-fl.next('hermitian cost func, sum over indirect -- corrected')
-s_check = s.C.reorder('t') # use s containing all data instead of just one data set
-# NOTE: s must be treated exactly the same as s_choice -- verify and be careful
-s_check = s_check['t',center_idx - max_hw : center_idx + max_hw + 1]
-print ndshape(s_check)
-sliced_center_idx = where(s_check.getaxis('t') == 0)[0][0]
-s_check.ft('t')
-ph0 = nddata(r_[-0.5:0.5:1j*N],'ph0').set_units('ph0','cyc')
-ph0 = exp(1j*2*pi*ph0)
-ph1 = nddata(r_[-max_t_shift:max_t_shift:1j*N],'ph1').set_units('ph1','s')
-ph1 = exp(1j*2*pi*ph1*s_check.fromaxis('t'))
-s_check *= ph1
-s_check.ift('t')
-s_check *= ph0
-deviation = s_check['t',sliced_center_idx - window_hw : sliced_center_idx + window_hw + 1]
-deviation = deviation['t',::-1].C.run(conj) - deviation
-deviation.run(lambda x: abs(x)**2).sum('t').sum('B0') # sum over indirect dimension
-fl.image(-1*deviation)
-ph1_corr = 2.06e-6
-ph0_corr = 314e-3
-fl.plot(ph0_corr/1e-3,ph1_corr/1e-6,'x',c='white')
-
-
-# In[58]:
-
-full = s.C.reorder('t') # NOTE, not a checkpoint...
-
-
-# In[59]:
-
-full.ft('t')
-full *= exp(1j*2*pi*ph0_corr) * exp(1j*2*pi*ph1_corr*full.fromaxis('t'))
-full.ift('t')
-full = full['t':(0,None)]
-full['t',0] *= 0.5
-full.ft('t')
-# Zero pad begin
-full = full['t':(-200e3,200e3)]
-full.ift('t')
-full.ft('t',pad=1024)
-# End zero pad
-
-
-# In[60]:
-
-# Now make fine adjustments to phase by zooming
-
-
-# In[61]:
-
-this_string = 'adjusting zeroth order'
-figure('%s'%this_string);title('%s'%this_string)
-ph0 = nddata(r_[-100e-3:100e-3:1j*N],'ph0').set_units('ph0','cyc')
-full_ph0 = full * exp(1j*2*pi*ph0)
-print ndshape(full_ph0)
-full_ph0.run(real).run(abs).sum('t').sum('B0')
-plot(full_ph0, c='k', alpha=0.7)
-ph0_corr = full_ph0.C.argmin('ph0').data.item()
-full_corr = full * exp(1j*2*pi*ph0_corr)
-full_ph0 = full_corr * exp(1j*2*pi*ph0) # verify that this is at 0
-full_ph0.run(real).run(abs).sum('t').sum('B0')
-plot(full_ph0, ':', c='purple')
-
-
-# In[62]:
-
-# If the above has been centered to zero,
-# then apply zeroth order correction to dataset outright
-
-
-# In[63]:
-
-chk = full.C
-
-
-# In[105]:
-
-get_ipython().magic(u'matplotlib notebook')
-
-
-# In[117]:
-
-get_ipython().magic(u'matplotlib inline')
-
-
-# In[135]:
-
-full = chk.C # checkpoint
-
-
-# In[146]:
-
-full_sig = full.C
-full_sig.rename('B0',r'$B_{0}$')
-with figlist_var() as fl:
-    fl.next('Signal Across Field Sweep')
-    fl.image(abs(full_sig))
-    gcf().subplots_adjust(bottom=0.15)
-    savefig('I:/My Drive/imagesetc/20180821_sweep_image.png')
-    fl.next('Lineshape of Signal Across Field Sweep')
-    fl.plot(full_sig, alpha=0.65)
-    gcf().subplots_adjust(bottom=0.15)
-    savefig('I:/My Drive/imagesetc/20180821_sweep_lineshape.png')
-    envelope = full_sig.C
-    envelope.run(real)[lambda x: x < 0] = 0
-    envelope.sum(r'$B_{0}$')
-    envelope /= envelope.data.max()
-    envelope *= full_sig.data.real.max()
-    print ndshape(envelope),envelope.get_units(),envelope.get_units('t')
-    #fl.plot(envelope, , linewidth=3, alpha=0.25,human_units=False)
-    fl.next('Excitation Profile')
-    fl.plot(envelope, color='k', alpha=0.5)
-    gcf().subplots_adjust(bottom=0.15)
-    savefig('I:/My Drive/imagesetc/20180821_sweep_profile.png')
-
-
-# In[ ]:
-
-### END NEW APPROACH
-
-
-# In[ ]:
-
-# Apply phase corrections
-
-
-# In[ ]:
-
-s_choice = s_copy.C # checkpoint
-
-
-# In[ ]:
-
-s_choice.ft('t')
-s.ft('t') # do to s as do to s choice
-s_choice *= exp(1j*2*pi*ph0_corr) * exp(1j*2*pi*ph1_corr*s_choice.fromaxis('t'))
-s *= exp(1j*2*pi*ph0_corr) * exp(1j*2*pi*ph1_corr*s.fromaxis('t'))
-s_choice.ift('t')
-s.ift('t')
-figure('show the time domain signal')
-plot(abs(s_choice), 'k', alpha=0.5)
-plot(s_choice.imag, alpha = 0.5)
-s_choice = s_choice['t', center_idx:]
-s = s['t', center_idx:]
-s_choice['t',0] /= 2.
-s['t',0] /= 2.
-plot(s_choice, alpha=0.5)
-gridandtick(gca())
-
-
-# In[ ]:
-
-# Plot phase corrected signal in frequency domain
-# Is there a baseline error?
-
-
-# In[ ]:
-
-s_choice.ft('t')
-s.ft('t')
-figure('ft')
-plot(s_choice)
-plot(s_choice.imag)
-
-
-# In[ ]:
-
-# To fix baseline error, generate cost function using traditional phasing method
-
-
-# In[ ]:
-
-fl.next('traditional cost function')
-s_check = s_choice.C
-ph0 = nddata(r_[-0.5:0.5:1j*N],'ph0').set_units('ph0','cyc')
-ph0 = exp(1j*2*pi*ph0)
-ph1 = nddata(r_[-3*dw:3*dw:1j*N],'ph1').set_units('ph1','s')
-ph1 = exp(1j*2*pi*ph1*s_check.fromaxis('t'))
-s_check *= ph1
-s_check *= ph0
-s_check.run(real).run(abs).sum('t')
-fl.image(-1*s_check)
-
-
-# In[ ]:
-
-# Annotate where selecting phase corrections using this method
-
-
-# In[ ]:
-
-fl.next('traditional cost function')
-s_check = s_choice.C
-ph0 = nddata(r_[-0.5:0.5:1j*N],'ph0').set_units('ph0','cyc')
-ph0 = exp(1j*2*pi*ph0)
-ph1 = nddata(r_[-3*dw:3*dw:1j*N],'ph1').set_units('ph1','s')
-ph1 = exp(1j*2*pi*ph1*s_check.fromaxis('t'))
-s_check = s_check * ph1
-s_check *= ph0
-s_check.run(real).run(abs).sum('t')
-fl.image(-1*s_check)
-ph1_corr = -29e-9
-ph0_corr = -52e-3
-fl.plot(ph0_corr/1e-3,ph1_corr/1e-9,'x',c='white')
-
-
-# In[ ]:
-
-# Apply phase correction and plot in frequency domain
-# Is the baseline error gone?
-
-
-# In[ ]:
-
-s_choice *= exp(1j*2*pi*ph0_corr) * exp(1j*2*pi*ph1_corr*s_choice.fromaxis('t'))
-s *= exp(1j*2*pi*ph0_corr) * exp(1j*2*pi*ph1_corr*s.fromaxis('t'))
-#s_choice.ift('t')
-figure('show the time domain signal, 2')
-plot(abs(s_choice), 'k', alpha=0.5)
-plot(s_choice.imag, alpha = 0.5)
-s_choice = s_choice['t', center_idx:]
-s = s['t', center_idx:]
-s_choice['t',0] /= 2.
-s['t',0] /= 2.
-plot(s_choice, alpha=0.5)
-gridandtick(gca())
-
+        fl.show();quit()
+        #s_analytic.ift('t')
+        #{{{ the if statements in the following for loops
+            # are specific for the file '180718_SE_sweep_3'
+        for x in xrange(ndshape(s_analytic)['magnetic_field']):
+            field_val = s_analytic.getaxis('magnetic_field')[x]
+            #if (field_val > 3406.98) and (field_val < 3407.5) :
+            this_s = s_analytic['magnetic_field',x]['ph1',1]['ph2',0]
+            fl.next('plot, signal coherence pathway, t domain')
+            fl.plot(this_s,alpha=0.3,label='%0.4f G'%field_val)
+        #s_analytic.ft('t')
+        #for x in xrange(ndshape(s_analytic_f)[r'$B_{0}$']):
+        #    field_val = s_analytic_f.getaxis(r'$B_{0}$')[x]
+        #    if (field_val > 3407.29) and (field_val < 3407.4) :
+        #        this_s = s_analytic_f[r'$B_{0}$',x]['ph1',1]['ph2',0]
+        #        fl.next('plot, signal coherence pathway')
+        #        fl.plot(this_s,alpha=0.6,label='%0.4f G'%field_val)
+                #}}}
+            #}}}
+fl.show()
+quit()
