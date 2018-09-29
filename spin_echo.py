@@ -204,7 +204,7 @@ def spin_echo(num_cycles, freq = 14.46e6, p90 = 1.06e-6, d1 = 63.794e-6, T1 = 20
     return start_ph,end_ph 
 #}}}
 #{{{ nutation function increments t90 over specified range in spin echo 
-def nutation(t_90_range, spin_echo = False, freq = 14.4289e6, T1 = 200e-3):
+def nutation(t_90_range, spin_echo = False, freq = 14.46e6, T1 = 200e-3):
 #{{{ documentation
     r'''essentially a modification to the spin_echo(), but with enough changes to warrant
     separate function for now. Sweeps through a range of 90 times and generates a spin echo 
@@ -336,14 +336,17 @@ def nutation(t_90_range, spin_echo = False, freq = 14.4289e6, T1 = 200e-3):
                         a[this_ch].burst = True
                         a[this_ch].ampl = 10
                         with GDS_scope() as g:
-                            g.acquire_mode('average',2)
+                            #g.acquire_mode('average',2)
+                            print "*** *** ***"
+                            print "TURN ON AMPLIFIER"
+                            print "*** *** ***"
                             time.sleep(4*d_interseq)
                             print "**********"
                             print "ACQUIRING PH1",ph1
                             print "**********"
                             ch1_wf = g.waveform(ch=1)
                             ch2_wf = g.waveform(ch=2)
-                            g.acquire_mode('sample')
+                            #g.acquire_mode('sample')
                             if (ph1 == 0 and i == 0):
                                 t_axis = ch1_wf.getaxis('t')
                                 data = ndshape([len(t_90_range),4,len(t_axis),2],['t_90','ph1','t','ch']).alloc(dtype=float64)
@@ -355,6 +358,13 @@ def nutation(t_90_range, spin_echo = False, freq = 14.4289e6, T1 = 200e-3):
                             data['t_90',i]['ph1':ph1]['ch',1] = ch2_wf
                             data.getaxis('t_90')[i] = t_90
                             print "DONE ACQUIRING"
+                    print "*** *** ***"
+                    print "*** *** ***"
+                    print "*** *** ***"
+                    print "TURN OFF AMPLIFIER"
+                    print "*** *** ***"
+                    print "*** *** ***"
+                    print "*** *** ***"
                             #}}}
                 #{{{ if spin echo pulse sequence
                 if spin_echo:
@@ -395,9 +405,9 @@ def nutation(t_90_range, spin_echo = False, freq = 14.4289e6, T1 = 200e-3):
     return
 #}}}
 date = '180928'
-id_string = 'SE_3'
-num_cycles = 2 
-t1,t2 = spin_echo(num_cycles = num_cycles)
-#t_90_range = linspace(6e-6,9e-6,30)
-#nutation(t_90_range, spin_echo=False)
+id_string = 'nutation_2'
+#num_cycles = 2 
+#t1,t2 = spin_echo(num_cycles = num_cycles)
+t_90_range = linspace(0.1e-6,2.5e-6,25)
+nutation(t_90_range, spin_echo=False)
 
