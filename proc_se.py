@@ -52,7 +52,8 @@ for date,id_string,numchan,indirect_range in [
         #('180928','SE_2',2,None) # 1 cycles, 2x GDS avg, B0 = 3406.0 G, t90 = 1.06e-6 s 
         #('180928','SE_3',2,None) # 2 cycles, 2x GDS avg, B0 = 3406.0 G, t90 = 1.06e-6 s
         #('180928','nutation_1',2,linspace(1.06e-6,5.06e-6,5)) 
-        ('180928','nutation_2',2,linspace(0.1e-6,2.5e-6,25)) # use -w 5e-6
+        #('180928','nutation_2',2,linspace(0.1e-6,2.5e-6,25)) # 90 pulses, use -w 5e-6
+        ('180928','nutation_2',2,linspace(0.1e-6,2.5e-6,25)) # spin echo
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
@@ -81,7 +82,7 @@ for date,id_string,numchan,indirect_range in [
     s.setaxis('t',lambda f: f-carrier_f)
     s.ift('t')
 
-    single_90 = True 
+    single_90 = False 
     confirm_triggers = False 
     #{{{ confirm that different phases trigger differently due to differing rising edges
     if confirm_triggers:
@@ -128,8 +129,8 @@ for date,id_string,numchan,indirect_range in [
     pulse_slice = s_raw['t':(avg_t-max_window/2,avg_t+max_window/2)]
     #{{{ NOTE: make sure that pulse_slice includes each pulse during a nutation measurement
         # you can test that with the following:
-    fl.next('image for nutation')
-    fl.image(pulse_slice)
+    #fl.next('image for nutation')
+    #fl.image(pulse_slice)
     #}}}
     avg_t = average_time(pulse_slice)
     print avg_t
@@ -227,6 +228,7 @@ for date,id_string,numchan,indirect_range in [
     if single_90:
         coherence_domain = analytic.C.ift(['ph1'])
     fl.image(coherence_domain['ch',1])
+    fl.show();quit()
     s_analytic = analytic['ch',0].C
     s_analytic.ft('t')
     #s_analytic *= exp(1j*(2*3*pi)/(4*3))
