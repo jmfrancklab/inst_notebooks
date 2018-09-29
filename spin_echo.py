@@ -1,4 +1,5 @@
 from Instruments import *
+from winsound import *
 from pyspecdata import *
 import time
 from timeit import default_timer as timer
@@ -7,6 +8,7 @@ import serial
 import pprint
 from scipy import signal
 
+Beep(7000,3000)
 fl = figlist_var()
 #{{{ Initialize instruments
 print "These are the instruments available:"
@@ -337,9 +339,6 @@ def nutation(t_90_range, spin_echo = False, freq = 14.46e6, T1 = 200e-3):
                         a[this_ch].ampl = 10
                         with GDS_scope() as g:
                             #g.acquire_mode('average',2)
-                            print "*** *** ***"
-                            print "TURN ON AMPLIFIER"
-                            print "*** *** ***"
                             time.sleep(4*d_interseq)
                             print "**********"
                             print "ACQUIRING PH1",ph1
@@ -358,13 +357,6 @@ def nutation(t_90_range, spin_echo = False, freq = 14.46e6, T1 = 200e-3):
                             data['t_90',i]['ph1':ph1]['ch',1] = ch2_wf
                             data.getaxis('t_90')[i] = t_90
                             print "DONE ACQUIRING"
-                    print "*** *** ***"
-                    print "*** *** ***"
-                    print "*** *** ***"
-                    print "TURN OFF AMPLIFIER"
-                    print "*** *** ***"
-                    print "*** *** ***"
-                    print "*** *** ***"
                             #}}}
                 #{{{ if spin echo pulse sequence
                 if spin_echo:
@@ -378,6 +370,11 @@ def nutation(t_90_range, spin_echo = False, freq = 14.46e6, T1 = 200e-3):
                             a[this_ch].burst = True
                             a[this_ch].ampl = 10
                             with GDS_scope() as g:
+                                if (ph1 == 0 and ph2 == 0):
+                                    Beep(9200,5000)
+                                    print "*** *** ***"
+                                    print "TURN ON AMPLIFIER"
+                                    print "*** *** ***"
                                 g.acquire_mode('average',2)
                                 time.sleep(4*d_interseq)
                                 print "**********"
@@ -399,15 +396,19 @@ def nutation(t_90_range, spin_echo = False, freq = 14.46e6, T1 = 200e-3):
                                 data.getaxis('t_90')[i] = t_90
                                 print "DONE ACQUIRING"
                                 #}}}
+                    Beep(11000,2000)
+                    print "*** *** ***"
+                    print "TURN OFF AMPLIFIER"
+                    print "*** *** ***"
     print "*** DATA COLLECTION FINISHED ***"
     data.name("this_capture")
     data.hdf5_write(date+"_"+id_string+".h5")
     return
 #}}}
 date = '180928'
-id_string = 'nutation_2'
+id_string = 'nutation_3'
 #num_cycles = 2 
 #t1,t2 = spin_echo(num_cycles = num_cycles)
-t_90_range = linspace(0.1e-6,2.5e-6,25)
-nutation(t_90_range, spin_echo=False)
+t_90_range = linspace(0.5e-6,5.0e-6,10)
+nutation(t_90_range, spin_echo=True)
 
