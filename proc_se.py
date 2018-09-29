@@ -50,7 +50,9 @@ for date,id_string,numchan,indirect_range in [
         #('180725','SE',2,None) # 3 cycles, 2x GDS avg, B0 = 3407.32 G, t90 = 7.45e-6 s
         #('180928','SE_1',2,None) # Duplicate of below, but this contains glitch 
         #('180928','SE_2',2,None) # 1 cycles, 2x GDS avg, B0 = 3406.0 G, t90 = 1.06e-6 s 
-        ('180928','SE_3',2,None) # 2 cycles, 2x GDS avg, B0 = 3406.0 G, t90 = 1.06e-6 s
+        #('180928','SE_3',2,None) # 2 cycles, 2x GDS avg, B0 = 3406.0 G, t90 = 1.06e-6 s
+        #('180928','nutation_1',2,linspace(1.06e-6,5.06e-6,5)) 
+        ('180928','nutation_2',2,linspace(0.1e-6,2.5e-6,25)) # use -w 5e-6
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
@@ -79,10 +81,8 @@ for date,id_string,numchan,indirect_range in [
     s.setaxis('t',lambda f: f-carrier_f)
     s.ift('t')
 
-    single_90 = False 
+    single_90 = True 
     confirm_triggers = False 
-    fl.next('raw')
-    fl.plot(s['indirect',0]['ch',0]['ph1',0]['ph2',0])
     #{{{ confirm that different phases trigger differently due to differing rising edges
     if confirm_triggers:
         print ndshape(s)
@@ -122,14 +122,14 @@ for date,id_string,numchan,indirect_range in [
         normalization = (pulse_slice**2).integrate('t')
         return (pulse_slice**2 * pulse_slice.fromaxis('t')).integrate('t')/normalization
     if single_90:
-        avg_t = average_time(s_raw['t':(0e-6,30e-6)]).data.mean()
+        avg_t = average_time(s_raw['t':(4e-6,14e-6)]).data.mean()
     if not single_90:
         avg_t = average_time(s_raw['t':(6.5e-6,8e-6)]).data.mean()
     pulse_slice = s_raw['t':(avg_t-max_window/2,avg_t+max_window/2)]
     #{{{ NOTE: make sure that pulse_slice includes each pulse during a nutation measurement
         # you can test that with the following:
-    #fl.image(pulse_slice)
-    #fl.show();quit()
+    fl.next('image for nutation')
+    fl.image(pulse_slice)
     #}}}
     avg_t = average_time(pulse_slice)
     print avg_t
@@ -229,7 +229,7 @@ for date,id_string,numchan,indirect_range in [
     fl.image(coherence_domain['ch',1])
     s_analytic = analytic['ch',0].C
     s_analytic.ft('t')
-    s_analytic *= exp(1j*(2*3*pi)/(4*3))
+    #s_analytic *= exp(1j*(2*3*pi)/(4*3))
     s_analytic.ift('t')
     if not single_90:
         s_analytic.ift(['ph1','ph2'])
@@ -240,15 +240,25 @@ for date,id_string,numchan,indirect_range in [
     fl.next('coherence, sig ch, t slice')
     fl.image(s_analytic['t':(105.8e-6,None)])
     print ndshape(s_analytic)
-    s_analytic.mean('indirect',return_error=False)
+    if not is_nutation:
+        s_analytic.mean('indirect',return_error=False)
     s_analytic.set_units('V')
     if not single_90:
         signal = s_analytic['ph1',1]['ph2',0]
     if single_90:
         signal = (s_analytic['ph1',-1])
+        fl.next('signal, t domain')
+        fl.image(signal)
+        fl.next('signal slice, t domain')
+        fl.image(signal['t':(30e-6,None)])
+        fl.next('signal, t domain')
+        fl.image(abs(signal))
+        fl.next('abs signal slice, t domain')
+        fl.image(abs(signal['t':(30e-6,None)]))
+        fl.show();quit()
     print ndshape(signal)
     fl.next('signal, t domain')
-    fl.plot(abs(signal))
+    fl.image(signal)
     # plot abs value of signal along offset axis to determine
     # adjustment needed on the magnet (B0)
     for_offset = signal.C.ft('t')
