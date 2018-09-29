@@ -28,22 +28,6 @@ globals().update(vars(args)) # this directly inserts the info above into
 #                              namespace of global variables
 
 for date,id_string,numchan,indirect_range in [
-        #('180712','SE_exp',2)
-        #('180712','SE_exp_2',2)
-        #('180712','SE_exp_3',2)
-        #('180713','SE_exp',2)
-        #('180714','SE_exp',2), # 25 cycle measurement, B0 = 3395.75 G
-        #('180714','SE_exp_offres',2) # 25 cycle measurement, B0 = 3585.85 G 
-        #('180716','SE_test',2) # 1 cycle measurement with 8x GDS avg, B0 = 3395.75 G
-        #('180716','SE_test_2',2) # 1 cycle measurement with 4x GDS avg, B0 = 3395.75 G
-        #('180720','nutation_control',2)
-        #('180723','nutation_control',2)
-        #('180723','se_nutation',2,linspace(1.13e-6,6.13e-6,20))
-        #('180723','se_nutation_2',2,linspace(1.5e-6,15e-6,40))
-        #('180724','check_field',2,None),
-        #('180724','check_field_2',2,None)
-        #('180724','se_nutation',2,linspace(3.25e-6,15.25e-6,10))
-        #('180724','90_nutation_control',2,linspace(1e-6,50e-6,5))
         #('180724','90_nutation',2,linspace(1e-6,50e-6,25)) # use -w 60e-6
         #('180725','90_nutation',2,linspace(1e-6,30e-6,30)) # use -w 60e-6
         #('180725','90_nutation_focused',2,linspace(6e-6,9e-6,30))
@@ -52,8 +36,10 @@ for date,id_string,numchan,indirect_range in [
         #('180928','SE_2',2,None) # 1 cycles, 2x GDS avg, B0 = 3406.0 G, t90 = 1.06e-6 s 
         #('180928','SE_3',2,None) # 2 cycles, 2x GDS avg, B0 = 3406.0 G, t90 = 1.06e-6 s
         #('180928','nutation_1',2,linspace(1.06e-6,5.06e-6,5)) 
-        ('180928','nutation_2',2,linspace(0.1e-6,2.5e-6,25)) # 90 pulses, use -w 5e-6
-        #('180928','nutation_2',2,linspace(0.1e-6,2.5e-6,25)) # spin echo
+        #('180928','nutation_2',2,linspace(0.1e-6,2.5e-6,25)) # 90 pulses, use -w 5e-6
+        #('180928','nutation_2',2,linspace(0.1e-6,2.5e-6,25)) # thought was SE
+        ('180928','nutation_3',2,linspace(0.5e-6,5.0e-6,10)) # thought was SE
+        #('180929','nutation_1',2,linspace(0.1e-6,2.5e-6,2)) # spin echo
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
@@ -82,8 +68,12 @@ for date,id_string,numchan,indirect_range in [
     s.setaxis('t',lambda f: f-carrier_f)
     s.ift('t')
 
-    single_90 = True 
+    single_90 = False 
     confirm_triggers = False 
+    fl.next('ciontrl')
+    fl.image(s['indirect',-1]['ch',1])
+    fl.next('control 9')
+    fl.image(s['indirect',0]['ch',1])
     #{{{ confirm that different phases trigger differently due to differing rising edges
     if confirm_triggers:
         print ndshape(s)
@@ -125,12 +115,12 @@ for date,id_string,numchan,indirect_range in [
     if single_90:
         avg_t = average_time(s_raw['t':(4e-6,14e-6)]).data.mean()
     if not single_90:
-        avg_t = average_time(s_raw['t':(6.5e-6,8e-6)]).data.mean()
+        avg_t = average_time(s_raw['t':(6e-6,12e-6)]).data.mean()
     pulse_slice = s_raw['t':(avg_t-max_window/2,avg_t+max_window/2)]
     #{{{ NOTE: make sure that pulse_slice includes each pulse during a nutation measurement
         # you can test that with the following:
-    #fl.next('image for nutation')
-    #fl.image(pulse_slice)
+    fl.next('image for nutation')
+    fl.image(pulse_slice)
     #}}}
     avg_t = average_time(pulse_slice)
     print avg_t
@@ -171,8 +161,9 @@ for date,id_string,numchan,indirect_range in [
         logger.debug(strm('the nutation axis is',analytic.getaxis('indirect')))
         # we want to move forward by (2/pi-1/2)*t90
         logger.debug(strm('correction before pulse shift',phase_factor))
-        phase_factor += -1j*2*pi*(2/pi-0.5)*analytic.fromaxis('indirect')*analytic.fromaxis('t')
-        logger.debug(strm('and after pulse shift',phase_factor))
+        if not single_90:
+            phase_factor += -1j*2*pi*(2/pi-0.5)*analytic.fromaxis('indirect')*analytic.fromaxis('t')
+            logger.debug(strm('and after pulse shift',phase_factor))
     analytic *= exp(phase_factor)
     analytic.ift('t')
     # }}}
@@ -221,7 +212,7 @@ for date,id_string,numchan,indirect_range in [
     analytic.reorder(['indirect','t'],first=False)
     print ndshape(analytic)
     fl.next('analytic signal, ref ch')
-    fl.image(analytic)
+    fl.image(analytic['ch',1])
     fl.next('coherence domain, ref ch')
     if not single_90:
         coherence_domain = analytic.C.ift(['ph1','ph2'])
@@ -230,7 +221,8 @@ for date,id_string,numchan,indirect_range in [
     fl.image(coherence_domain['ch',1])
     s_analytic = analytic['ch',0].C
     s_analytic.ft('t')
-    #s_analytic *= exp(1j*(2*3*pi)/(4*3))
+    #s_analytic *= exp(1j*(2*3*pi)/(4*3)) # phase correction for 180928_SE_3
+    s_analytic *= exp(-1j*2*pi*1/30) # phase correction for 180928_nutation_3
     s_analytic.ift('t')
     if not single_90:
         s_analytic.ift(['ph1','ph2'])
