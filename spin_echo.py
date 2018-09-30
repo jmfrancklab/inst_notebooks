@@ -22,7 +22,7 @@ with SerialInstrument('AFG-2225') as s:
     print s.respond('*idn?')
     #}}}
 #{{{ spin echo function with phase cycling capability
-def spin_echo(num_cycles, freq = 14.46e6, p90 = 1.06e-6, d1 = 63.794e-6, T1 = 200e-3, max_delay = True, complex_exp = True, ph_cyc = True):
+def spin_echo(num_cycles, freq = 14.46e6, p90 = 1.24e-6, d1 = 63.794e-6, T1 = 200e-3, max_delay = True, complex_exp = True, ph_cyc = True):
 #{{{ documentation
     r'''generates spin echo (90 - delay - 180) pulse sequence, defined by
     the frequency, 90 time, and delay time, and outputs on scope.
@@ -406,9 +406,9 @@ def nutation(t_90_range, spin_echo = False, freq = 14.46e6, T1 = 200e-3):
     return
 #}}}
 date = '180929'
-id_string = 'nutation_2'
-#num_cycles = 2 
-#t1,t2 = spin_echo(num_cycles = num_cycles)
-t_90_range = linspace(0.5e-6,2.5e-6,20)
-nutation(t_90_range, spin_echo=True)
+id_string = 'spin_echo_3'
+num_cycles = 1 
+t1,t2 = spin_echo(num_cycles = num_cycles)
+#t_90_range = linspace(0.5e-6,2.5e-6,20)
+#nutation(t_90_range, spin_echo=True)
 
