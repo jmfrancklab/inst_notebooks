@@ -371,7 +371,7 @@ def nutation(t_90_range, spin_echo = False, freq = 14.46e6, T1 = 200e-3):
                             a[this_ch].ampl = 10
                             with GDS_scope() as g:
                                 if (ph1 == 0 and ph2 == 0):
-                                    Beep(9200,5000)
+                                    Beep(9200,10000)
                                     print "*** *** ***"
                                     print "TURN ON AMPLIFIER"
                                     print "*** *** ***"
@@ -405,10 +405,10 @@ def nutation(t_90_range, spin_echo = False, freq = 14.46e6, T1 = 200e-3):
     data.hdf5_write(date+"_"+id_string+".h5")
     return
 #}}}
-date = '180928'
-id_string = 'nutation_3'
+date = '180929'
+id_string = 'nutation_2'
 #num_cycles = 2 
 #t1,t2 = spin_echo(num_cycles = num_cycles)
-t_90_range = linspace(0.5e-6,5.0e-6,10)
+t_90_range = linspace(0.5e-6,2.5e-6,20)
 nutation(t_90_range, spin_echo=True)
 
