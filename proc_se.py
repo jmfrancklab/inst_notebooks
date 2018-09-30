@@ -37,9 +37,9 @@ for date,id_string,numchan,indirect_range in [
         #('180928','SE_3',2,None) # 2 cycles, 2x GDS avg, B0 = 3406.0 G, t90 = 1.06e-6 s
         #('180928','nutation_1',2,linspace(1.06e-6,5.06e-6,5)) 
         #('180928','nutation_2',2,linspace(0.1e-6,2.5e-6,25)) # 90 pulses, use -w 5e-6
-        #('180928','nutation_2',2,linspace(0.1e-6,2.5e-6,25)) # thought was SE
-        ('180928','nutation_3',2,linspace(0.5e-6,5.0e-6,10)) # thought was SE
-        #('180929','nutation_1',2,linspace(0.1e-6,2.5e-6,2)) # spin echo
+        #('180928','nutation_2',2,linspace(0.1e-6,2.5e-6,25)) # 
+        #('180928','nutation_3',2,linspace(0.5e-6,5.0e-6,10)) # 
+        ('180929','nutation_2',2,linspace(0.5e-6,2.5e-6,20)) # spin echo
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
