@@ -11,6 +11,8 @@ with figlist_var(filename='chirp.pdf') as fl:
     for date, id_string,corrected_volt in [
             ('180714','test_chirp_3',True),
             ('180927','sprobe_9',True),
+            ('181001','sprobe_f',True),
+            ('181001','sprobe_f2',True),
             ]:
 #{{{ finding file
         try:
