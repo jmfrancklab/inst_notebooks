@@ -100,6 +100,7 @@ power_dens_CH2_dict = {}
 
 # {{{ call files
 for date,id_string,numchan,gain_factor in [
+        #('180710','spectrometer_noise_50ohm',2,gain_factor_new),
         ('180926','noise_probe',2,gain_factor_new),
         ('180927','noise_probe_Magnet',2,gain_factor_new),
         ('180927','noise_probe_TXD_ENI_Magnet',2,gain_factor_new),
@@ -108,7 +109,6 @@ for date,id_string,numchan,gain_factor in [
         #('180926','noise_probe_TXD_ENI_off',2,gain_factor_new),
         #('180926','noise_probe_TXD_ENI_on',2,gain_factor_new),
         #('180926','noise_probe_TXD_ENI_Magnet',2,gain_factor_new),
-        #('180710','spectrometer_noise_50ohm',2,gain_factor_new),
         #('180710','spectrometer_noise_AFG',2,gain_factor_new),
         #('180710','spectrometer_noise_AFG_magnet',2,gain_factor_new),
         #('180710','spectrometer_noise_AFG_smagnet',2,gain_factor_new),
@@ -123,7 +123,15 @@ for date,id_string,numchan,gain_factor in [
     elif 'spectrometer_noise_AFG' in id_string:
         label = 'spectrometer, AFG'
     elif '50ohm' in id_string:
-        label = 'spectrometer, 50$\Omega$'
+        label = 'Probe v1.0: Spectrometer, 50$\Omega$'
+    elif 'noise_spectrometer' in id_string:
+        label = 'Probe v1.5: Spectrometer, 50$\Omega$'
+    elif 'noise_probe_Magnet' in id_string:
+        label = 'Probe v1.5: Magnet on, 50$\Omega$ input'
+    elif 'noise_probe_TXD' in id_string:
+        label = 'Probe v1.5: Magnet on, 50$\Omega$ input to ENI'
+    elif 'noise_probe' in id_string:
+        label = 'Probe v1.5: 50$\Omega$ input'
     #{{{ plotting parameters -- for older files
     #{{{ plotting AFG waveform, attn, power splitter, with low pass filter
     elif id_string == 'control_SE':

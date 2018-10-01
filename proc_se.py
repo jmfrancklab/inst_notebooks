@@ -40,9 +40,9 @@ for date,id_string,numchan,indirect_range in [
         #('180928','nutation_2',2,linspace(0.1e-6,2.5e-6,25)) # 
         #('180928','nutation_3',2,linspace(0.5e-6,5.0e-6,10)) # 
         #('180929','nutation_2',2,linspace(0.5e-6,2.5e-6,20)) # spin echo
-        #('180929','spin_echo',2,None) # spin echo, B0 = 3406
+        ('180929','spin_echo',2,None) # spin echo, B0 = 3406
         #('180929','spin_echo_2',2,None) # spin echo, B0 = 3405.85
-        ('180929','spin_echo_3',2,None) # spin echo, B0 = 3406.1
+        #('180929','spin_echo_3',2,None) # spin echo, B0 = 3406.1
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
