@@ -9,45 +9,7 @@ with figlist_var(filename='chirp.pdf') as fl:
 #    fl.next('$S_{11}$ : phase', legend=True)
     expno=0
     for date, id_string,corrected_volt in [
-            #('180920','test_probe',True),      # varC+100 pF tune
-            #('180920','test_probe_2',True),
-            #('180920','test_probe_3',True),
-            #('180920','test_probe_4',True),
-            #('180920','test_probe_5',True),
-            #('180920','test_probe_6',True),    
-            #('180920','test_probe_7',True),
-            #('180920','test_probe_1_2',True), # varC+56 pF tune
-            #('180920','test_probe_2_1',True), # varC+100 pF tune, varC+13 pF match
-            #('180920','test_probe_3_1',True), # varC+100 pF tune (verifying soldering etc)
-            #('180920','test_probe_3_2',True),
-            #('180920','test_probe_3_3',True),
-            #('180920','test_probe_3_4',True),
-            #('180920','test_probe_3_5',True),
-            #('180920','test_probe_4_1',True), # varC+113 pF tune
-            #('180920','test_probe_4_2',True),
-            #('180920','test_probe_4_3',True),
-            #('180920','test_probe_4_4',True),
-            #('180920','test_probe_4_5',True),
-            #('180920','test_probe_4_6',True),
-            #('180920','test_probe_4_7',True),
-            #('180920','test_probe_4_8',True),
-            #('180920','test_probe_4_9',True),
-            #('180925','sprobe',True),
-            #('180926','sprobe',True),
-            #('180926','sprobe_2',True),
-            #('180926','sprobe_3',True),
-            #('180926','sprobe_4',True),
-            #('180926','sprobe_5',True),
-            #('180926','sprobe_6',True),
-            ('180926','sprobe_7',True),
-            #('180927','sprobe',True),
-            #('180927','sprobe_2',True),
-            #('180927','sprobe_3',True),
-            #('180927','sprobe_4',True),
-            #('180927','sprobe_5',True),
-            #('180927','sprobe_6',True),
-            #('180927','sprobe_7_',True),
-            ('180927','sprobe_8',True),
+            ('180714','test_chirp_3',True),
             ('180927','sprobe_9',True),
             ]:
 #{{{ finding file
@@ -96,7 +58,10 @@ with figlist_var(filename='chirp.pdf') as fl:
         #fl.next('plot ch 1 %s'%id_string)
         #fl.plot(d['ch',1],':',alpha=0.9,label='processed')
         ##xlim(8,18)
-        label=id_string
+        if '07' in date:
+            label='Probe v1.0'
+        elif '09' in date:
+            label='Probe v1.5'
         d.setaxis('t', lambda x: x-d.getaxis('t')[0])
         if not pulse_90:
             d.setaxis('t', lambda x: 25e6-x*25e6/4096e-8)
@@ -114,7 +79,7 @@ with figlist_var(filename='chirp.pdf') as fl:
             fl.plot(abs(ratio),'-', **plot_params) 
         if not corrected_volt:
             fl.plot(2*abs(ratio),'.', **plot_params)
-        axhline(0.47, color='gray', alpha=0.5)
+        #axhline(0.47, color='gray', alpha=0.5)
         fl.next('$S_{11}$ : phase')
         fl.plot((ratio).angle/pi, '.', **plot_params)
         expno += 1 
@@ -122,9 +87,9 @@ with figlist_var(filename='chirp.pdf') as fl:
     gridandtick(gca())
     #xlim(10,20)
     #ylim(-1.0,1.0)
-    axvline(14.4289,linestyle=':', color='black')
+    #axvline(14.46,linestyle=':', color='black')
     fl.next('$S_{11}$ : analytic amplitude')
     gridandtick(gca())
     #xlim(10,20)
     #ylim(0,1)
-    axvline(14.4289,linestyle=':', color='black')
+    #axvline(14.46,linestyle=':', color='black')
