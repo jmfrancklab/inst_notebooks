@@ -20,9 +20,9 @@ check_time = False
 for date,id_string,numchan,field_axis,cycle_time, in [
         #('180927','sweep',2,linspace((3403.10-100./2),(3403.10+100./2),351*4),int(21.661*8)) 
         #('180927','sweep_2',2,linspace((3427.0-250./2),(3427.0+250./2),318*4),int(21.875*8)), 
-        ('180927','sweep_3',2,linspace((3427.0-70./2),(3427.0+70./2),318*4),int(21.875*8)) 
+        #('180927','sweep_3',2,linspace((3427.0-70./2),(3427.0+70./2),318*4),int(21.875*8)) 
         #('180927','sweep_4',2,linspace((3401.0-7./2),(3401.0+7./2),318*4),int(21.429*8)) 
-        #('180927','sweep_5',2,linspace((3405.0-7./2),(3405.0+7./2),318*4),int(21.875*8)) 
+        ('180927','sweep_5',2,linspace((3405.0-7./2),(3405.0+7./2),318*4),int(21.875*8)) 
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
@@ -157,7 +157,7 @@ for date,id_string,numchan,field_axis,cycle_time, in [
         s_analytic_f.rename('t',r'$\frac{\Omega}{2 \pi \gamma_{H}}$')
         s_analytic_f.rename('magnetic_field',r'$B_{0}$')
         #}}}
-        fl.next('image, signal coherence pathway, t domain (100 G width)')
+        fl.next('image, signal coherence pathway, t domain (7 G width)')
         fl.image(s_analytic['ph1',1]['ph2',0])
         s_analytic.ft('t')
         fl.next('image, signal coherence pathway, f domain (100 G width)')
