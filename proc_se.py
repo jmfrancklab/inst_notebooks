@@ -39,10 +39,7 @@ for date,id_string,numchan,indirect_range in [
         #('180928','nutation_2',2,linspace(0.1e-6,2.5e-6,25)) # 90 pulses, use -w 5e-6
         #('180928','nutation_2',2,linspace(0.1e-6,2.5e-6,25)) # 
         #('180928','nutation_3',2,linspace(0.5e-6,5.0e-6,10)) # 
-        #('180929','nutation_2',2,linspace(0.5e-6,2.5e-6,20)) # spin echo
-        ('180929','spin_echo',2,None) # spin echo, B0 = 3406
-        #('180929','spin_echo_2',2,None) # spin echo, B0 = 3405.85
-        #('180929','spin_echo_3',2,None) # spin echo, B0 = 3406.1
+        ('180929','nutation_2',2,linspace(0.5e-6,2.5e-6,20)) # spin echo
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
@@ -73,6 +70,10 @@ for date,id_string,numchan,indirect_range in [
 
     single_90 = False 
     confirm_triggers = False 
+    fl.next('ciontrl')
+    fl.image(s['indirect',-1]['ch',1])
+    fl.next('control 9')
+    fl.image(s['indirect',0]['ch',1])
     #{{{ confirm that different phases trigger differently due to differing rising edges
     if confirm_triggers:
         print ndshape(s)
@@ -221,8 +222,7 @@ for date,id_string,numchan,indirect_range in [
     s_analytic = analytic['ch',0].C
     s_analytic.ft('t')
     #s_analytic *= exp(1j*(2*3*pi)/(4*3)) # phase correction for 180928_SE_3
-    #s_analytic *= exp(-1j*2*pi*1/30) # phase correction for 180928_nutation_3
-    s_analytic *= exp(-1j*2*pi*3/4) # phase correction for 180929_spin_echo
+    s_analytic *= exp(-1j*2*pi*1/30) # phase correction for 180928_nutation_3
     s_analytic.ift('t')
     if not single_90:
         s_analytic.ift(['ph1','ph2'])
@@ -249,19 +249,18 @@ for date,id_string,numchan,indirect_range in [
         fl.next('abs signal slice, t domain')
         fl.image(abs(signal['t':(30e-6,None)]))
     print ndshape(signal)
+    fl.next('image: signal, t domain')
+    fl.image(signal)
+    fl.next('image: abs signal, t domain')
+    fl.image(abs(signal))
+    cropped_signal = signal.C.cropped_log()
+    fl.next('image: signal, t domain, cropped')
+    fl.image(cropped_signal)
+    fl.next('image: abs(signal), t domain, cropped')
+    fl.image(abs(cropped_signal))
     if is_nutation:
-        fl.next('image: signal, t domain')
-        fl.image(signal)
         fl.show();quit()
-        fl.next('image: abs signal, t domain')
-        fl.image(abs(signal))
-        cropped_signal = signal.C.cropped_log()
-        fl.next('image: signal, t domain, cropped')
-        fl.image(cropped_signal)
-        fl.next('image: abs(signal), t domain, cropped')
-        fl.image(abs(cropped_signal))
-        fl.show();quit()
-    #{{{ for measuring offset
+    #{{{
     # plot abs value of signal along offset axis to determine
     # adjustment needed on the magnet (B0)
     for_offset = signal.C.ft('t')
@@ -269,7 +268,15 @@ for date,id_string,numchan,indirect_range in [
     for_offset.set_units('t','G')
     for_offset.rename('t',r'$\frac{\Omega}{2 \pi \gamma_{H}}$')
     fl.next('signal, offset')
-    fl.plot(abs(for_offset))
+    fl.image(abs(for_offset))
+    #}}}
+    #{{{ for measuring offset
+    #fl.next('Checking offset')
+    #for x in xrange(ndshape(signal)['indirect']):
+    #    fl.plot(signal['indirect',x],alpha=0.34,label='cycle no. %d'%x)
+    #for x,t_90 in enumerate(indirect_range):
+    #    fl.next('plotting')
+    #    fl.plot(signal['indirect',x],label='%f'%t_90)
     #}}}
     #{{{ for plotting signal(t) 
     signal.name('Amplitude')
