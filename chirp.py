@@ -3,8 +3,8 @@ r'''Use this program to capture a single S11 (reflection) measurement
     Must use the appropriate set up of the power splitter (PS) and
     reference channel (CH1). Set up as follows (also see AAB-2, 7/12/2018
     yellow tab):
-    CH1 (AFG) --> CH1 (GDS)
-    CH2 (AFG) --> PS (PORT 2 [*1?]) --> PS (S) --> DUT --> PS (1 [*2?]) --> CH2 (GDS)
+    CH1 (AFG) -*ref*-> CH1 (GDS) *Use coax labeled 'REF'
+    CH2 (AFG) --> PS (PORT 1) --> PS (S) --> DUT --> PS (2) --> CH2 (GDS)
     Sends out programmed waveform on both channels of the AFG, with
     the option to correct for amplitude variation (due to use of
     the power splitter), so that the reflection is calculated
@@ -36,7 +36,7 @@ with SerialInstrument('GDS-3254') as s:
 with SerialInstrument('AFG-2225') as s:
     print s.respond('*idn?')
 
-pulse_90 = False
+pulse_90 = True
 
 #{{{ no sys var = default (3 Vpp), 0 = define amplitudes, 1 = choose from amplitudes
 default = True
@@ -95,8 +95,8 @@ print "Will set amplitude to:",ref_amp,"V"
     #}}}
 #{{{ Generating arbitrary waveform
 if pulse_90:
-    freq = 14.4289e6 #[Hz]
-    t_90 = 7.45e-6 #[micro sec]
+    freq = 14.1838e6 #[Hz]
+    t_90 = 3*1.24e-6 #[micro sec]
     freq_carrier = freq     #[Hz] rf pulse frequency
     points_total = 4096     #[pts] total points, property of AFG
     rate = freq_carrier*4   #[pts/sec] AFG requires for arb waveform
@@ -158,7 +158,7 @@ while try_again:
     data_name = 'capture%d'%j
     data.name(data_name)
     try:
-        data.hdf5_write('180927_sprobe_9.h5')
+        data.hdf5_write('181001_sprobe_t3.h5')
         try_again = False
     except Exception as e:
         print e
