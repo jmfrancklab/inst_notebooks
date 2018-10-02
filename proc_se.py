@@ -41,7 +41,8 @@ for date,id_string,numchan,indirect_range in [
         #('180928','nutation_3',2,linspace(0.5e-6,5.0e-6,10)) # 
         #('180929','nutation_2',2,linspace(0.5e-6,2.5e-6,20)) # spin echo
         #('180929','spin_echo',2,None) # spin echo, B0 = 3406
-        ('181001','spin_echo',2,None) # spin echo, B0 = 3403
+        #('181001','spin_echo',2,None) # spin echo, B0 = 3403
+        ('181001','spin_echo_2',2,None) # spin echo, B0 = 3403
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
@@ -231,7 +232,6 @@ for date,id_string,numchan,indirect_range in [
     fl.image(s_analytic)
     fl.next('coherence, sig ch, t slice')
     fl.image(s_analytic['t':(105.8e-6,None)])
-    fl.show();quit()
     print ndshape(s_analytic)
     if not is_nutation:
         s_analytic.mean('indirect',return_error=False)
