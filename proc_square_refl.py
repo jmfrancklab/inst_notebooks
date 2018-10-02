@@ -12,7 +12,8 @@ fl = figlist_var()
 #expno=0
 for date, id_string,corrected_volt in [
         #('180806','pulse_reflection',True),
-        ('181001','sprobe_t2',True),
+        #('181001','sprobe_t2',True),
+        ('181001','sprobe_t4',True),
         ]:
     d = nddata_hdf5(date+'_'+id_string+'.h5/capture1',
                 directory=getDATADIR(exp_type='test_equip'))
@@ -150,8 +151,9 @@ for date, id_string,corrected_volt in [
         decay.ift('t')
         fl.next('plotting the decay')
         fl.plot(abs(decay))
+        max_time = decay.getaxis('t')[list(abs(decay).data).index(amax(abs(decay).data))]
         decay.ft('t')
-        decay *= exp(1j*2*pi*2.728e-6*decay.fromaxis('t'))
+        decay *= exp(1j*2*pi*max_time*decay.fromaxis('t'))
         decay.ift('t')
         fl.plot(abs(decay),':')
         decay = abs(decay)['t':(0,6e-6)]
@@ -165,7 +167,7 @@ for date, id_string,corrected_volt in [
         fitfunc = lambda p, x: decay.data[0]*exp(-x*2*pi*center_frq/(2*p[0]))
         fl.plot(x, fitfunc(r_[30.],x), ':', label='initial fit, Q=30', human_units=False)
         errfunc = lambda p_arg, x_arg, y_arg: fitfunc(p_arg, x_arg) - y_arg
-        p0 = [27.]
+        p0 = [30.]
         p1, success = leastsq(errfunc, p0[:], args=(x, ydata))
         Q = p1[0]
         x_fit = linspace(x.min(), x.max(), 5000)
