@@ -101,10 +101,16 @@ power_dens_CH2_dict = {}
 # {{{ call files
 for date,id_string,numchan,gain_factor in [
         #('180710','spectrometer_noise_50ohm',2,gain_factor_new),
-        ('180926','noise_probe',2,gain_factor_new),
+        #('180926','noise_probe',2,gain_factor_new),
         ('180927','noise_probe_Magnet',2,gain_factor_new),
         ('180927','noise_probe_TXD_ENI_Magnet',2,gain_factor_new),
-        ('180927','noise_spectrometer',2,gain_factor_new),
+        #('180927','noise_spectrometer',2,gain_factor_new),
+        ('181001','noise_probe_magnet',2,gain_factor_new),
+        ('181001','noise_probe_magnet_ENI',2,gain_factor_new), # 20 us/div
+        ('181001','noise_probe_magnet_ENI_2',2,gain_factor_new), # 50 us/div
+        ('181001','noise_probe_magnet_ENI_3',2,gain_factor_new), # 10 us/div
+        ('181001','noise_spec_1',2,gain_factor_new), # 10 us/div
+        ('181001','noise_spec_2',2,gain_factor_new), # 20 us/div
         #('180926','noise_probe_TXD',2,gain_factor_new),
         #('180926','noise_probe_TXD_ENI_off',2,gain_factor_new),
         #('180926','noise_probe_TXD_ENI_on',2,gain_factor_new),
@@ -116,77 +122,80 @@ for date,id_string,numchan,gain_factor in [
     # }}}
     # {{{ plot labels
     plot_params = False # toggle this to use plot params preset below
-    if '_smagnet' in id_string:
-        label = 'spectrometer, AFG, magnet, sample'
-    elif '_magnet' in id_string:
-        label = 'spectrometer, AFG, magnet'
-    elif 'spectrometer_noise_AFG' in id_string:
-        label = 'spectrometer, AFG'
-    elif '50ohm' in id_string:
-        label = 'Probe v1.0: Spectrometer, 50$\Omega$'
-    elif 'noise_spectrometer' in id_string:
-        label = 'Probe v1.5: Spectrometer, 50$\Omega$'
-    elif 'noise_probe_Magnet' in id_string:
-        label = 'Probe v1.5: Magnet on, 50$\Omega$ input'
-    elif 'noise_probe_TXD' in id_string:
-        label = 'Probe v1.5: Magnet on, 50$\Omega$ input to ENI'
-    elif 'noise_probe' in id_string:
-        label = 'Probe v1.5: 50$\Omega$ input'
-    #{{{ plotting parameters -- for older files
-    #{{{ plotting AFG waveform, attn, power splitter, with low pass filter
-    elif id_string == 'control_SE':
-        plot_params = dict(label = 'Waveform, 100 MSPS', color = 'blue', alpha=0.15, plottype='semilogy')
-    elif id_string == 'control_SE_250MSPS':
-        plot_params = dict(label = 'Waveform, 250 MSPS', color = 'orange', alpha=0.15, plottype='semilogy')
-    elif id_string == 'control_SE_500MSPS':
-        plot_params = dict(label = 'Waveform, 500 MSPS', color = 'green', alpha=0.15, plottype='semilogy')
-    elif id_string == 'control_SE_1GSPS':
-        plot_params = dict(label = 'Waveform, 1 GSPS', color = 'red', alpha=0.15, plottype='semilogy')
-    elif id_string == 'control_SE_2p5GSPS':
-        plot_params = dict(label = 'Waveform, 2.5 GSPS', color = 'purple', alpha=0.15, plottype='semilogy')
-        #}}}
-    #{{{ plotting AFG waveform, attn, power splitter, no input low pass filter
-    elif id_string == 'control_SE_nofilter':
-        plot_params = dict(label = 'Waveform, no filter, 100 MSPS', color = 'blue', alpha=0.15, linestyle=':', plottype='semilogy')
-    elif id_string == 'control_SE_250MSPS_nofilter':
-        plot_params = dict(label = 'Waveform, no filter, 250 MSPS', color = 'orange', alpha=0.15, linestyle=':', plottype='semilogy')
-    elif id_string == 'control_SE_500MSPS_nofilter':
-        plot_params = dict(label = 'Waveform, no filter, 500 MSPS', color = 'green', alpha=0.15, linestyle=':', plottype='semilogy')
-    elif id_string == 'control_SE_1GSPS_nofilter':
-        plot_params = dict(label = 'Waveform, no filter, 1 GSPS', color = 'red', alpha=0.15, linestyle=':', plottype='semilogy')
-    elif id_string == 'control_SE_2p5GSPS_nofilter':
-        plot_params = dict(label = 'Waveform, no filter, 2.5 GSPS', color = 'purple', alpha=0.15, linestyle=':', plottype='semilogy')
-        #}}}
-    #{{{ plotting network, up to ENI amplifier with 50 ohm input
-    elif id_string == 'network_SE':
-        plot_params = dict(label = '50$\Omega$ input ENI, 100 MSPS', color = '#1f77b4', alpha=0.255, linestyle=':', plottype='semilogy')
-    elif id_string == 'network_SE_250MSPS':
-        plot_params = dict(label = '50$\Omega$ input ENI, 250 MSPS', color ='#ff7f0e', alpha=0.25, linestyle=':', plottype='semilogy')
-    elif id_string == 'network_SE_500MSPS':
-        plot_params = dict(label = '50$\Omega$ input ENI, 500 MSPS', color = '#2ca02c', alpha=0.25, linestyle=':', plottype='semilogy')
-    elif id_string == 'network_SE_1GSPS':
-        plot_params = dict(label = '50$\Omega$ input ENI, 1 GSPS', color ='#d62728', alpha=0.25, linestyle=':', plottype='semilogy')
-    elif id_string == 'network_SE_2p5GSPS':
-        plot_params = dict(label = '50$\Omega$ input ENI, 2.5 GSPS', color ='#9467bd', alpha=0.25, linestyle=':', plottype='semilogy')
-        #}}}
-    #{{{ plotting network, everything but magnet and sample
-    elif id_string == 'network_SE_full':
-        plot_params = dict(label = 'Network, 100 MSPS', color = '#1f77b4', alpha=0.25, plottype='semilogy')
-    elif id_string == 'network_SE_full_250MSPS':
-        plot_params = dict(label = 'Network, 250 MSPS', color ='#ff7f0e', alpha=0.25, plottype='semilogy')
-    elif id_string == 'network_SE_full_500MSPS':
-        plot_params = dict(label = 'Network, 500 MSPS', color = '#2ca02c', alpha=0.25, plottype='semilogy')
-    elif id_string == 'network_SE_full_1GSPS':
-        plot_params = dict(label = 'Network, 1 GSPS', color ='#d62728', alpha=0.25, plottype='semilogy')
-    elif id_string == 'network_SE_full_2p5GSPS':
-        plot_params = dict(label = 'Network, 2.5 GSPS', color ='#9467bd', alpha=0.25, plottype='semilogy')
-        #}}}
-        #}}}
-    else:
-        label = date+'_'+id_string 
+    plot_labels = False
+    if plot_labels:
+        if '_smagnet' in id_string:
+            label = 'spectrometer, AFG, magnet, sample'
+        elif '_magnet' in id_string:
+            label = 'spectrometer, AFG, magnet'
+        elif 'spectrometer_noise_AFG' in id_string:
+            label = 'spectrometer, AFG'
+        elif '50ohm' in id_string:
+            label = 'Probe v1.0: Spectrometer, 50$\Omega$'
+        elif 'noise_spectrometer' in id_string:
+            label = 'Probe v1.5: Spectrometer, 50$\Omega$'
+        elif 'noise_probe_Magnet' in id_string:
+            label = 'Probe v1.5: Magnet on, 50$\Omega$ input'
+        elif 'noise_probe_TXD' in id_string:
+            label = 'Probe v1.5: Magnet on, 50$\Omega$ input to ENI'
+        elif 'noise_probe' in id_string:
+            label = 'Probe v1.5: 50$\Omega$ input'
+        #{{{ plotting parameters -- for older files
+        #{{{ plotting AFG waveform, attn, power splitter, with low pass filter
+        elif id_string == 'control_SE':
+            plot_params = dict(label = 'Waveform, 100 MSPS', color = 'blue', alpha=0.15, plottype='semilogy')
+        elif id_string == 'control_SE_250MSPS':
+            plot_params = dict(label = 'Waveform, 250 MSPS', color = 'orange', alpha=0.15, plottype='semilogy')
+        elif id_string == 'control_SE_500MSPS':
+            plot_params = dict(label = 'Waveform, 500 MSPS', color = 'green', alpha=0.15, plottype='semilogy')
+        elif id_string == 'control_SE_1GSPS':
+            plot_params = dict(label = 'Waveform, 1 GSPS', color = 'red', alpha=0.15, plottype='semilogy')
+        elif id_string == 'control_SE_2p5GSPS':
+            plot_params = dict(label = 'Waveform, 2.5 GSPS', color = 'purple', alpha=0.15, plottype='semilogy')
+            #}}}
+        #{{{ plotting AFG waveform, attn, power splitter, no input low pass filter
+        elif id_string == 'control_SE_nofilter':
+            plot_params = dict(label = 'Waveform, no filter, 100 MSPS', color = 'blue', alpha=0.15, linestyle=':', plottype='semilogy')
+        elif id_string == 'control_SE_250MSPS_nofilter':
+            plot_params = dict(label = 'Waveform, no filter, 250 MSPS', color = 'orange', alpha=0.15, linestyle=':', plottype='semilogy')
+        elif id_string == 'control_SE_500MSPS_nofilter':
+            plot_params = dict(label = 'Waveform, no filter, 500 MSPS', color = 'green', alpha=0.15, linestyle=':', plottype='semilogy')
+        elif id_string == 'control_SE_1GSPS_nofilter':
+            plot_params = dict(label = 'Waveform, no filter, 1 GSPS', color = 'red', alpha=0.15, linestyle=':', plottype='semilogy')
+        elif id_string == 'control_SE_2p5GSPS_nofilter':
+            plot_params = dict(label = 'Waveform, no filter, 2.5 GSPS', color = 'purple', alpha=0.15, linestyle=':', plottype='semilogy')
+            #}}}
+        #{{{ plotting network, up to ENI amplifier with 50 ohm input
+        elif id_string == 'network_SE':
+            plot_params = dict(label = '50$\Omega$ input ENI, 100 MSPS', color = '#1f77b4', alpha=0.255, linestyle=':', plottype='semilogy')
+        elif id_string == 'network_SE_250MSPS':
+            plot_params = dict(label = '50$\Omega$ input ENI, 250 MSPS', color ='#ff7f0e', alpha=0.25, linestyle=':', plottype='semilogy')
+        elif id_string == 'network_SE_500MSPS':
+            plot_params = dict(label = '50$\Omega$ input ENI, 500 MSPS', color = '#2ca02c', alpha=0.25, linestyle=':', plottype='semilogy')
+        elif id_string == 'network_SE_1GSPS':
+            plot_params = dict(label = '50$\Omega$ input ENI, 1 GSPS', color ='#d62728', alpha=0.25, linestyle=':', plottype='semilogy')
+        elif id_string == 'network_SE_2p5GSPS':
+            plot_params = dict(label = '50$\Omega$ input ENI, 2.5 GSPS', color ='#9467bd', alpha=0.25, linestyle=':', plottype='semilogy')
+            #}}}
+        #{{{ plotting network, everything but magnet and sample
+        elif id_string == 'network_SE_full':
+            plot_params = dict(label = 'Network, 100 MSPS', color = '#1f77b4', alpha=0.25, plottype='semilogy')
+        elif id_string == 'network_SE_full_250MSPS':
+            plot_params = dict(label = 'Network, 250 MSPS', color ='#ff7f0e', alpha=0.25, plottype='semilogy')
+        elif id_string == 'network_SE_full_500MSPS':
+            plot_params = dict(label = 'Network, 500 MSPS', color = '#2ca02c', alpha=0.25, plottype='semilogy')
+        elif id_string == 'network_SE_full_1GSPS':
+            plot_params = dict(label = 'Network, 1 GSPS', color ='#d62728', alpha=0.25, plottype='semilogy')
+        elif id_string == 'network_SE_full_2p5GSPS':
+            plot_params = dict(label = 'Network, 2.5 GSPS', color ='#9467bd', alpha=0.25, plottype='semilogy')
+            #}}}
+            #}}}
+        else:
+            label = date+'_'+id_string 
         #}}}
     #label += ' (g=%0.2f)'%gain_factor
    # }}}
+    label = date+id_string
     print "\n*** LOADING:",id_string,"***"
     s = load_noise(date,id_string,captures)
     #fl.next('plot')
