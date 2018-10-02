@@ -40,7 +40,8 @@ for date,id_string,numchan,indirect_range in [
         #('180928','nutation_2',2,linspace(0.1e-6,2.5e-6,25)) # 
         #('180928','nutation_3',2,linspace(0.5e-6,5.0e-6,10)) # 
         #('180929','nutation_2',2,linspace(0.5e-6,2.5e-6,20)) # spin echo
-        ('180929','spin_echo',2,None) # spin echo, B0 = 3406
+        #('180929','spin_echo',2,None) # spin echo, B0 = 3406
+        ('181001','spin_echo',2,None) # spin echo, B0 = 3403
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
@@ -220,7 +221,7 @@ for date,id_string,numchan,indirect_range in [
     s_analytic.ft('t')
     #s_analytic *= exp(1j*(2*3*pi)/(4*3)) # phase correction for 180928_SE_3
     #s_analytic *= exp(-1j*2*pi*1/30) # phase correction for 180928_nutation_3
-    s_analytic *= exp(1j*2*pi*4*pi*3.6/4) # phase correction for 180929_spin_echo
+    #s_analytic *= exp(1j*2*pi*4*pi*3.6/4) # phase correction for 180929_spin_echo
     s_analytic.ift('t')
     if not single_90:
         s_analytic.ift(['ph1','ph2'])
@@ -230,7 +231,7 @@ for date,id_string,numchan,indirect_range in [
     fl.image(s_analytic)
     fl.next('coherence, sig ch, t slice')
     fl.image(s_analytic['t':(105.8e-6,None)])
-    #fl.show();quit()
+    fl.show();quit()
     print ndshape(s_analytic)
     if not is_nutation:
         s_analytic.mean('indirect',return_error=False)
