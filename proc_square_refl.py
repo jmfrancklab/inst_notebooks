@@ -162,7 +162,7 @@ for date, id_string,corrected_volt in [
         x = decay.getaxis('t')
         ydata = decay.data
         fl.plot(x,ydata, alpha=0.2, human_units=False)
-        fitfunc = lambda p, x: decay.data[0]*exp(-x*center_frq/(2*p[0]))
+        fitfunc = lambda p, x: decay.data[0]*exp(-x*2*pi*center_frq/(2*p[0]))
         fl.plot(x, fitfunc(r_[30.],x), ':', label='initial fit, Q=30', human_units=False)
         errfunc = lambda p_arg, x_arg, y_arg: fitfunc(p_arg, x_arg) - y_arg
         p0 = [27.]
