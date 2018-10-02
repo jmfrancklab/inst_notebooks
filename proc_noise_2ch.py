@@ -100,16 +100,16 @@ power_dens_CH2_dict = {}
 
 # {{{ call files
 for date,id_string,numchan,gain_factor in [
-        #('180710','spectrometer_noise_50ohm',2,gain_factor_new),
+        ('180710','spectrometer_noise_50ohm',2,gain_factor_new),
         #('180926','noise_probe',2,gain_factor_new),
-        ('180927','noise_probe_Magnet',2,gain_factor_new),
-        ('180927','noise_probe_TXD_ENI_Magnet',2,gain_factor_new),
-        #('180927','noise_spectrometer',2,gain_factor_new),
-        ('181001','noise_probe_magnet',2,gain_factor_new),
-        ('181001','noise_probe_magnet_ENI',2,gain_factor_new), # 20 us/div
-        ('181001','noise_probe_magnet_ENI_2',2,gain_factor_new), # 50 us/div
-        ('181001','noise_probe_magnet_ENI_3',2,gain_factor_new), # 10 us/div
-        ('181001','noise_spec_1',2,gain_factor_new), # 10 us/div
+        #('180927','noise_probe_Magnet',2,gain_factor_new),
+        #('180927','noise_probe_TXD_ENI_Magnet',2,gain_factor_new),
+        ('180927','noise_spectrometer',2,gain_factor_new),
+        #('181001','noise_probe_magnet',2,gain_factor_new),
+        #('181001','noise_probe_magnet_ENI',2,gain_factor_new), # 20 us/div
+        #('181001','noise_probe_magnet_ENI_2',2,gain_factor_new), # 50 us/div
+        #('181001','noise_probe_magnet_ENI_3',2,gain_factor_new), # 10 us/div
+        #('181001','noise_spec_1',2,gain_factor_new), # 10 us/div
         ('181001','noise_spec_2',2,gain_factor_new), # 20 us/div
         #('180926','noise_probe_TXD',2,gain_factor_new),
         #('180926','noise_probe_TXD_ENI_off',2,gain_factor_new),
