@@ -9,8 +9,8 @@ with figlist_var(filename='chirp.pdf') as fl:
 #    fl.next('$S_{11}$ : phase', legend=True)
     expno=0
     for date, id_string,corrected_volt in [
-            ('180714','test_chirp_3',True),
-            ('180927','sprobe_9',True),
+            #('180714','test_chirp_3',True),
+            #('180927','sprobe_9',True),
             ('181001','sprobe_f',True),
             ('181001','sprobe_f2',True),
             ]:
@@ -62,8 +62,12 @@ with figlist_var(filename='chirp.pdf') as fl:
         ##xlim(8,18)
         if '07' in date:
             label='Probe v1.0'
-        elif '09' in date:
+        elif 'sprobe_9' in id_string:
             label='Probe v1.5'
+        elif 'sprobe_f' == id_string:
+            label='f-domain tune'
+        elif 'sprobe_f2' == id_string:
+            label='t-domain tune'
         d.setaxis('t', lambda x: x-d.getaxis('t')[0])
         if not pulse_90:
             d.setaxis('t', lambda x: 25e6-x*25e6/4096e-8)
@@ -71,7 +75,7 @@ with figlist_var(filename='chirp.pdf') as fl:
         fl.next('$S_{11}$ : analytic amplitude')
         ratio = d['ch',1]/d['ch',0]
         ratio.name('Reflection')
-        plot_params = dict(alpha=0.8,
+        plot_params = dict(alpha=0.5,
                 markersize=2,
                 label='%s'%label
                 )
@@ -92,6 +96,6 @@ with figlist_var(filename='chirp.pdf') as fl:
     #axvline(14.46,linestyle=':', color='black')
     fl.next('$S_{11}$ : analytic amplitude')
     gridandtick(gca())
-    #xlim(10,20)
-    #ylim(0,1)
+    xlim(10,20)
+    ylim(0,1)
     #axvline(14.46,linestyle=':', color='black')
