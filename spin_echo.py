@@ -372,10 +372,7 @@ def nutation(t_90_range, spin_echo = False, freq = 14.46e6, T1 = 200e-3):
                             a[this_ch].ampl = 10
                             with GDS_scope() as g:
                                 if (ph1 == 0 and ph2 == 0):
-                                    Beep(9200,10000)
-                                    print "*** *** ***"
-                                    print "TURN ON AMPLIFIER"
-                                    print "*** *** ***"
+                                    Beep(9200,2000)
                                 g.acquire_mode('average',2)
                                 time.sleep(4*d_interseq)
                                 print "**********"
@@ -398,19 +395,16 @@ def nutation(t_90_range, spin_echo = False, freq = 14.46e6, T1 = 200e-3):
                                 print "DONE ACQUIRING"
                                 #}}}
                     Beep(11000,2000)
-                    print "*** *** ***"
-                    print "TURN OFF AMPLIFIER"
-                    print "*** *** ***"
     print "*** DATA COLLECTION FINISHED ***"
     data.name("this_capture")
     data.hdf5_write(date+"_"+id_string+".h5")
     return
 #}}}
 date = '181003'
-#id_string = 'nutation'
-id_string = 'sweep_2'
-num_cycles = 7 
-t1,t2 = spin_echo(num_cycles = num_cycles)
-#t_90_range = linspace(1.2e-6,10.8e-6,10)
-#nutation(t_90_range, spin_echo=True)
+id_string = 'nutation_2'
+#id_string = 'sweep_2'
+#num_cycles = 7 
+#t1,t2 = spin_echo(num_cycles = num_cycles)
+t_90_range = linspace(0.5e-6,3.0e-6,25,endpoint=False)
+nutation(t_90_range, spin_echo=True)
 
