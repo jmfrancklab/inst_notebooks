@@ -22,7 +22,7 @@ with SerialInstrument('AFG-2225') as s:
     print s.respond('*idn?')
     #}}}
 #{{{ spin echo function with phase cycling capability
-def spin_echo(num_cycles, freq = 14.46e6, p90 = 0.9e-6, d1 = 63.794e-6, T1 = 200e-3, max_delay = True, complex_exp = True, ph_cyc = True):
+def spin_echo(num_cycles, freq=14.46e6, p90=0.9e-6, d1=63.794e-6, T1=200e-3, max_delay=True, complex_exp=True, ph_cyc=True, field_sweep=False):
 #{{{ documentation
     r'''generates spin echo (90 - delay - 180) pulse sequence, defined by
     the frequency, 90 time, and delay time, and outputs on scope.
@@ -142,8 +142,9 @@ def spin_echo(num_cycles, freq = 14.46e6, p90 = 0.9e-6, d1 = 63.794e-6, T1 = 200
                 start_ph = time.time()
                 timer_index = 0
                 for x in xrange(num_cycles):
-                    Beep(7000,1000)
-                    raw_input('Update field, then continue')
+                    if field_sweep:
+                        Beep(7000,1000)
+                        raw_input('Update field, then continue')
                     for ph2 in xrange(0,4,num_ph2_steps):
                         for ph1 in xrange(num_ph1_steps):
                             y_ph = y.copy()
@@ -402,8 +403,8 @@ def nutation(t_90_range, spin_echo = False, freq = 14.46e6, T1 = 200e-3):
 #}}}
 date = '181003'
 #id_string = 'nutation_2'
-id_string = 'sweep_3'
-num_cycles = 5 
+id_string = 'spin_echo'
+num_cycles = 3 
 t1,t2 = spin_echo(num_cycles = num_cycles)
 #t_90_range = linspace(0.5e-6,3.0e-6,25,endpoint=False)
 #nutation(t_90_range, spin_echo=True)
