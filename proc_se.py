@@ -42,7 +42,9 @@ for date,id_string,numchan,indirect_range in [
         #('180929','nutation_2',2,linspace(0.5e-6,2.5e-6,20)) # spin echo
         #('180929','spin_echo',2,None) # spin echo, B0 = 3406
         #('181001','spin_echo',2,None) # spin echo, B0 = 3403
-        ('181001','spin_echo_2',2,None) # spin echo, B0 = 3403
+        #('181001','spin_echo_2',2,None) # spin echo, B0 = 3403
+        #('181003','nutation',2,None) # spin echo, B0 = 3403
+        ('181003','nutation_2',2,None) # spin echo, B0 = 3403
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
@@ -220,9 +222,7 @@ for date,id_string,numchan,indirect_range in [
     fl.image(coherence_domain['ch',1])
     s_analytic = analytic['ch',0].C
     s_analytic.ft('t')
-    #s_analytic *= exp(1j*(2*3*pi)/(4*3)) # phase correction for 180928_SE_3
-    #s_analytic *= exp(-1j*2*pi*1/30) # phase correction for 180928_nutation_3
-    #s_analytic *= exp(1j*2*pi*4*pi*3.6/4) # phase correction for 180929_spin_echo
+    #s_analytic *= exp(-1j*2*pi*) # phase correction for 180928_nutation_3
     s_analytic.ift('t')
     if not single_90:
         s_analytic.ift(['ph1','ph2'])
@@ -252,7 +252,6 @@ for date,id_string,numchan,indirect_range in [
     if is_nutation:
         fl.next('image: signal, t domain')
         fl.image(signal)
-        fl.show();quit()
         fl.next('image: abs signal, t domain')
         fl.image(abs(signal))
         cropped_signal = signal.C.cropped_log()
