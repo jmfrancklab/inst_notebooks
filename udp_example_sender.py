@@ -6,7 +6,7 @@ IP = "jmfrancklab-bruker.syr.edu"
 #IP = "128.230.29.95"
 if len(sys.argv) > 1:
     IP = sys.argv[1]
-PORT = 5005
+PORT = 6001
 MESSAGE = "Hello, World!"
 
 use_udp = False
