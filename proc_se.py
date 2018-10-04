@@ -43,8 +43,9 @@ for date,id_string,numchan,indirect_range in [
         #('180929','spin_echo',2,None) # spin echo, B0 = 3406
         #('181001','spin_echo',2,None) # spin echo, B0 = 3403
         #('181001','spin_echo_2',2,None) # spin echo, B0 = 3403
-        #('181003','nutation',2,None) # spin echo, B0 = 3403
-        ('181003','nutation_2',2,None) # spin echo, B0 = 3403
+        #('181003','nutation',2,linspace(0.6e-6,5.4e-6,10,endpoint=False)) # spin echo, B0 = 3403
+        #('181003','nutation_2',2,linspace(0.5e-6,3.0e-6,25,endpoint=False)) # spin echo, B0 = 3403
+        ('181003','spin_echo',2,None) # spin echo, B0 = 3403
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
@@ -222,7 +223,7 @@ for date,id_string,numchan,indirect_range in [
     fl.image(coherence_domain['ch',1])
     s_analytic = analytic['ch',0].C
     s_analytic.ft('t')
-    #s_analytic *= exp(-1j*2*pi*) # phase correction for 180928_nutation_3
+    s_analytic *= exp(1j*2*pi*(0.7/8)) # phase correction for 180928_nutation_3
     s_analytic.ift('t')
     if not single_90:
         s_analytic.ift(['ph1','ph2'])
