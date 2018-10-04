@@ -26,7 +26,8 @@ for date,id_string,numchan,field_axis,cycle_time, in [
         #('180927','sweep_4',2,linspace((3401.0-7./2),(3401.0+7./2),318*4),int(21.429*8)) 
         #('180927','sweep_5',2,linspace((3405.0-7./2),(3405.0+7./2),318*4),int(21.875*8)) 
         #('181003','sweep_1',2,linspace(3400.00,3410.00,10,endpoint=False),int(1)) 
-        ('181003','sweep_2',2,linspace(3408.00,3415.00,7,endpoint=False),int(1)) 
+        #('181003','sweep_2',2,linspace(3408.00,3415.00,7,endpoint=False),int(1)) 
+        ('181003','sweep_3',2,linspace(3407.00,3412.00,5,endpoint=False),int(1)) 
         ]:
     #{{{ for if I manually set field or allow Xepr to sweep
     if cycle_time is not 1:
