@@ -141,8 +141,9 @@ def spin_echo(num_cycles, freq = 14.46e6, p90 = 1.24e-6, d1 = 63.794e-6, T1 = 20
                 num_ph2_steps = 2
                 start_ph = time.time()
                 timer_index = 0
-                raw_input('Update field, then continue')
                 for x in xrange(num_cycles):
+                    Beep(7000,1000)
+                    raw_input('Update field, then continue')
                     for ph2 in xrange(0,4,num_ph2_steps):
                         for ph1 in xrange(num_ph1_steps):
                             y_ph = y.copy()
@@ -405,10 +406,10 @@ def nutation(t_90_range, spin_echo = False, freq = 14.46e6, T1 = 200e-3):
     data.hdf5_write(date+"_"+id_string+".h5")
     return
 #}}}
-date = '181001'
+date = '181003'
 #id_string = 'nutation'
-id_string = 'spin_echo_2'
-num_cycles = 2 
+id_string = 'sweep_2'
+num_cycles = 7 
 t1,t2 = spin_echo(num_cycles = num_cycles)
 #t_90_range = linspace(1.2e-6,10.8e-6,10)
 #nutation(t_90_range, spin_echo=True)

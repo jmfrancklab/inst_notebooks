@@ -10,20 +10,30 @@ fl = figlist_var()
 
 carrier_f = 14.46e6
 
-check_time = False 
+#{{{ if allowing Xepr to sweep fields, read this 
 #field_axis:
 #   start = center field - field width/2
 #   stop  = center field + field width/2
 #   steps = no. points*4
 #cycle_time:
 #   avg time between steps (get from check_time)
+check_time = False
+#}}}
 for date,id_string,numchan,field_axis,cycle_time, in [
         #('180927','sweep',2,linspace((3403.10-100./2),(3403.10+100./2),351*4),int(21.661*8)) 
         #('180927','sweep_2',2,linspace((3427.0-250./2),(3427.0+250./2),318*4),int(21.875*8)), 
         #('180927','sweep_3',2,linspace((3427.0-70./2),(3427.0+70./2),318*4),int(21.875*8)) 
         #('180927','sweep_4',2,linspace((3401.0-7./2),(3401.0+7./2),318*4),int(21.429*8)) 
-        ('180927','sweep_5',2,linspace((3405.0-7./2),(3405.0+7./2),318*4),int(21.875*8)) 
+        #('180927','sweep_5',2,linspace((3405.0-7./2),(3405.0+7./2),318*4),int(21.875*8)) 
+        #('181003','sweep_1',2,linspace(3400.00,3410.00,10,endpoint=False),int(1)) 
+        ('181003','sweep_2',2,linspace(3408.00,3415.00,7,endpoint=False),int(1)) 
         ]:
+    #{{{ for if I manually set field or allow Xepr to sweep
+    if cycle_time is not 1:
+        timeraxis = True
+    if cycle_time is 1:
+        timeraxis = False
+        #}}}
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
     #{{{ for checking time difference between captures
@@ -67,11 +77,12 @@ for date,id_string,numchan,field_axis,cycle_time, in [
         s.setaxis('t',lambda f: f-carrier_f)
         s.ift('t')
 
+        print ndshape(s)
         fl.next('raw data') 
         fl.plot(s_raw['ch',1]['full_cyc',0]['ph2',0].reorder('t').real)
         #{{{ applying time-shift (i.e., defining new, more convenient x-axis below)
         # note, pulse length used below is manually determined
-        pulse_slice = s_raw['t':(6.46e-6,7.79e-6)]['ch',1].real
+        pulse_slice = s_raw['t':(7.7e-6,9.99e-6)]['ch',1].real
         normalization = (pulse_slice**2).integrate('t')
         # this creates an nddata of the time averages for each 90 pulse
         average_time = (pulse_slice**2 * pulse_slice.fromaxis('t')).integrate('t')/normalization
@@ -82,7 +93,7 @@ for date,id_string,numchan,field_axis,cycle_time, in [
         fl.next('time-shifted data')
         fl.image(s_raw)
         #}}}
-        pulse_slice = s_raw['t':(-0.61e-6,0.61e-6)]['ch',1].real
+        pulse_slice = s_raw['t':(-0.72e-6,0.72e-6)]['ch',1].real
         # re-determine nddata of the time averages for the newly centered data
         average_time = (pulse_slice**2 * pulse_slice.fromaxis('t')).integrate('t')/normalization
         print average_time
@@ -111,7 +122,7 @@ for date,id_string,numchan,field_axis,cycle_time, in [
         # with time-shifted, phase corrected raw data, now take analytic
         # measured phase is phase of each 90 after time-shifting and phase correcting
         analytic = raw_corr['ch',1].C.ft('t')['t':(0,16e6)].setaxis('t', lambda f: f-carrier_f).ift('t').reorder(['full_cyc','t'],first=False)
-        measured_phase = analytic['t':(-0.61e-6,0.61e-6)].mean('t',return_error=False).mean('ph2',return_error=True).mean('full_cyc',return_error=True)
+        measured_phase = analytic['t':(-0.72e-6,0.72e-6)].mean('t',return_error=False).mean('ph2',return_error=True).mean('full_cyc',return_error=True)
         measured_phase /= abs(measured_phase)
         print "measured phase"
         print measured_phase
@@ -138,17 +149,19 @@ for date,id_string,numchan,field_axis,cycle_time, in [
         # slice out region containing spin echo to get clear frequency domain plots
         s_analytic = s_analytic['t':(110e-6,None)]
         for x in xrange(ndshape(s_analytic)['magnetic_field']):
+            if timeraxis:
             # NOTE: The time length of each capture (here 168 s) can be determined by looking at
             # the distance between the values in the 'full_cyc' axis OR determined beforehand --
-
             # either way, I am sure there is a way to program the number but for now it must be
             # calculated and entered manually
-            s_analytic.getaxis('magnetic_field')[x] = field_axis[x*cycle_time]
-            print field_axis[x*cycle_time]
+                s_analytic.getaxis('magnetic_field')[x] = field_axis[x*cycle_time]
+                print field_axis[x*cycle_time]
+                #{{{ this is specifically because field sweep stopped before program finished for '180718_SE_sweep'
+                #s_analytic = s_analytic['magnetic_field':(field_axis[0],field_axis[24*cycle_time])]
+                #}}}
+            if not timeraxis:
+                s_analytic.getaxis('magnetic_field')[x] = field_axis[x]
             s_analytic.set_units('magnetic_field','G')
-        #{{{ this is specifically because field sweep stopped before program finished for '180718_SE_sweep'
-        #s_analytic = s_analytic['magnetic_field':(field_axis[0],field_axis[24*cycle_time])]
-        #}}}
         print ndshape(s_analytic)
         s_analytic.ift(['ph1','ph2'])
         #{{{ here I am making a copy of this dataset to plot with frequency axis converted to Gauss
@@ -159,6 +172,7 @@ for date,id_string,numchan,field_axis,cycle_time, in [
         #}}}
         fl.next('image, signal coherence pathway, t domain (7 G width)')
         fl.image(s_analytic['ph1',1]['ph2',0])
+        fl.show();quit()
         s_analytic.ft('t')
         fl.next('image, signal coherence pathway, f domain (100 G width)')
         fl.image(s_analytic_f['ph1',1]['ph2',0])
