@@ -19,7 +19,7 @@ for date, id_string,corrected_volt in [
                 directory=getDATADIR(exp_type='test_equip'))
     d.set_units('t','s')
     d.name('Amplitude $/$ $V$')
-    fl.next('Raw signal', legend=True)
+    fl.next('Raw signal')
     fl.plot(d['ch',0],alpha=0.5,label='control')
     fl.plot(d['ch',1],alpha=0.5,label='reflection')
     # {{{ find the analytic signal
@@ -33,31 +33,47 @@ for date, id_string,corrected_volt in [
     # }}}
     # see PEP-8 https://www.python.org/dev/peps/pep-0008/#other-recommendations
     decay = abs(d['ch',1]).C
-    fl.next('Analytic signal', legend=True)
+    fl.next('Analytic signal')
     fl.plot(abs(d['ch',0]), alpha=0.5, label='control')
     fl.plot(abs(d['ch',1]), alpha=0.5, label='reflection')
     # guess the start of the pulse
     ranges = abs(d['ch',0]).contiguous(lambda x:
-            x > 0.5*x.data.max())
+            x > 0.5*x.data.max()) # returns list of limits for which
+                                  # the contiguous condition holds true
     assert ranges.shape[0] == 1, "seems to be more than one pulse"
     pulse_start,pulse_stop = ranges[0,:]
     # {{{ apply a linear phase to find the frequency
-    fl.next('test frequency axis')
     frq_test = r_[-0.1e6:0.1e6:200j]+max_frq
     f_shift = nddata(frq_test,'f_test')
+    # perform and store 200 frequency modulations of signal
     test_array = d['ch',0].C * exp(-1j*2*pi*f_shift*d.fromaxis('t'))
+    showing_fmod = False
+    #{{{ showing the frequency modulation
+    if showing_fmod:
+        fl.next('showing f mod')
+        fl.plot(d['ch',0],label='none')
+        for k in r_[0,50,100,150,199]:
+            modulation_f = test_array.getaxis('f_test')[k]/1e6
+            fl.plot(test_array['f_test',k],label='%0.2f'%modulation_f)
+        fl.next('image f mod')
+        fl.image(test_array)
+        fl.show();quit()
+        #}}}
     test_array.sum('t').run(abs)
-    fl.plot(test_array)
-    center_frq = test_array.argmax('f_test').data
+    fl.next('test frequency axis')
+    fl.plot(test_array,'.')
+    # when modulating by same frequency of the waveform,
+    # abs(sum(waveform)) will be a maximum
+    center_frq = test_array.argmax('f_test').data 
     print "found center frequency at %0.5f MHz"%(center_frq/1e6)
     # }}}
     # {{{ switch to frequency domain, and relabel using the center frequency
     d.ft('t')
-    d.setaxis('t',lambda x: x-center_frq)
+    d.setaxis('t',lambda x: x-center_frq) # center sinc at f=0 Hz
     # }}}
     # {{{   try the phasing trick on the pulse
     #       because the frequency domain should be causal and therefore a
-    #       sum of lorentzians
+    #       sum of Lorentzians
     #
     #       if the pulse is causal (starts at 0), then its FT is a
     #       superposition of Lorentzians
@@ -77,12 +93,13 @@ for date, id_string,corrected_volt in [
     fl.next('test time axis')
     t_shift_testvals = r_[-1e-6:1e-6:1000j]+pulse_start
     t_shift = nddata(t_shift_testvals,'t_shift')
+    # perform and store 1000 time shifts 
     test_data = d['ch',0].C * exp(-1j*2*pi*t_shift*d.fromaxis('t'))
     test_data_ph = test_data.C.sum('t')
     test_data_ph /= abs(test_data_ph)
     test_data /= test_data_ph
     test_data.run(real).run(abs).sum('t')
-    fl.plot(test_data)
+    fl.plot(test_data,'.')
     pulse_start = test_data.argmin('t_shift').data
     # }}}
     d.ift('t')
@@ -125,53 +142,30 @@ for date, id_string,corrected_volt in [
     fl.plot(abs(response), alpha=0.3, linewidth=3, label='response, abs')
     # }}}
     #expno += 1 
-    from_raw = False
-    from_ph = True
-    if from_raw:
-        fl.next('decay')
-        fl.plot(abs(decay))
-        max_time = decay.getaxis('t')[list(abs(decay).data).index(amax(abs(decay).data))]
-        decay = decay['t':(max_time,None)].C
-        decay.ft('t')
-        decay *= exp(-1j*2*pi*max_time*decay.fromaxis('t'))
-        decay.ift('t')
-        fl.next('decay')
-        fl.plot(abs(decay),':')
-        fl.show();quit()
-        start = decay.getaxis('t')[0]
-        decay.setaxis('t',decay.fromaxis('t') - start)
-        #max_time = decay.getaxis('t')[list(abs(decay).data).index(amax(abs(decay).data))]
-        #print max_time;quit()
-        fl.next('decay 2')
-        fl.plot(abs(decay),':',human_units=False)
-        Q = 1
-        #fl.plot(exp(-decay.getaxis('t')*center_frq/(2*Q)))
-    if from_ph:
-        decay = d['ch',1].C
-        decay.ift('t')
-        fl.next('plotting the decay')
-        fl.plot(abs(decay))
-        max_time = decay.getaxis('t')[list(abs(decay).data).index(amax(abs(decay).data))]
-        decay.ft('t')
-        decay *= exp(1j*2*pi*max_time*decay.fromaxis('t'))
-        decay.ift('t')
-        fl.plot(abs(decay),':')
-        decay = abs(decay)['t':(0,6e-6)]
-        fl.plot(decay,':',c='k')
-        fl.next('decay')
-        fl.plot(decay,human_units=False)
-        fl.next('fitting')
-        x = decay.getaxis('t')
-        ydata = decay.data
-        fl.plot(x,ydata, alpha=0.2, human_units=False)
-        fitfunc = lambda p, x: decay.data[0]*exp(-x*2*pi*center_frq/(2*p[0]))
-        fl.plot(x, fitfunc(r_[30.],x), ':', label='initial fit, Q=30', human_units=False)
-        errfunc = lambda p_arg, x_arg, y_arg: fitfunc(p_arg, x_arg) - y_arg
-        p0 = [30.]
-        p1, success = leastsq(errfunc, p0[:], args=(x, ydata))
-        Q = p1[0]
-        x_fit = linspace(x.min(), x.max(), 5000)
-        fl.plot(x_fit, fitfunc(p1, x_fit),':',c='k', label='final fit, Q=%d'%Q)
-        print "Q:",Q
+    decay = d['ch',1].C
+    decay.ift('t')
+    fl.next('Plotting the decay slice')
+    fl.plot(abs(decay),alpha=0.2,label='Phased analytic reflection')
+    max_time = decay.getaxis('t')[list(abs(decay).data).index(amax(abs(decay).data))]
+    decay.ft('t')
+    decay *= exp(1j*2*pi*max_time*decay.fromaxis('t'))
+    decay.ift('t')
+    fl.plot(abs(decay),':',alpha=0.2,label='Shifted phased analytic reflection')
+    decay = abs(decay)['t':(0,6e-6)]
+    fl.plot(decay,':',c='k',label='Decay slice')
+    fl.next('Fitting decay')
+    x = decay.getaxis('t')
+    ydata = decay.data
+    fl.plot(x,ydata, alpha=0.2, human_units=False)
+    fitfunc = lambda p, x: p[0]*exp(-x*2*pi*center_frq/(2*p[1]))
+    fl.plot(x, fitfunc(r_[0.5,30.],x), ':', label='initial fit, Q=30', human_units=False)
+    errfunc = lambda p_arg, x_arg, y_arg: fitfunc(p_arg, x_arg) - y_arg
+    p0 = [0.5,30.]
+    p1, success = leastsq(errfunc, p0[:], args=(x, ydata))
+    Q = p1[1]
+    x_fit = linspace(x.min(), x.max(), 5000)
+    fl.plot(x_fit, fitfunc(p1, x_fit),':',c='k', label='final fit, Q=%d'%Q)
+    xlabel(r't / $s$')
+    ylabel(r'Amplitude / $V$')
+    print "Q:",Q
     fl.show()
-
