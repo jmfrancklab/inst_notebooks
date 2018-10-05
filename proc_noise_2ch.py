@@ -122,7 +122,7 @@ for date,id_string,numchan,gain_factor in [
     # }}}
     # {{{ plot labels
     plot_params = False # toggle this to use plot params preset below
-    plot_labels = False
+    plot_labels = True
     if plot_labels:
         if '_smagnet' in id_string:
             label = 'spectrometer, AFG, magnet, sample'
@@ -130,12 +130,12 @@ for date,id_string,numchan,gain_factor in [
             label = 'spectrometer, AFG, magnet'
         elif 'spectrometer_noise_AFG' in id_string:
             label = 'spectrometer, AFG'
-        elif '50ohm' in id_string:
+        elif 'spectrometer_noise_50ohm' in id_string:
             label = 'Probe v1.0: Spectrometer, 50$\Omega$'
         elif 'noise_spectrometer' in id_string:
-            label = 'Probe v1.5: Spectrometer, 50$\Omega$'
-        elif 'noise_probe_Magnet' in id_string:
-            label = 'Probe v1.5: Magnet on, 50$\Omega$ input'
+            label = 'Probe v1.5: Spectrometer, 50$\Omega$ (f domain tuning)'
+        elif 'noise_spec_2' in id_string:
+            label = 'Probe v1.5: Spectrometer, 50$\Omega$ (t domain tuning)'
         elif 'noise_probe_TXD' in id_string:
             label = 'Probe v1.5: Magnet on, 50$\Omega$ input to ENI'
         elif 'noise_probe' in id_string:
@@ -195,7 +195,6 @@ for date,id_string,numchan,gain_factor in [
         #}}}
     #label += ' (g=%0.2f)'%gain_factor
    # }}}
-    label = date+id_string
     print "\n*** LOADING:",id_string,"***"
     s = load_noise(date,id_string,captures)
     #fl.next('plot')
@@ -292,7 +291,8 @@ for date,id_string,numchan,gain_factor in [
                     fl.next('Digitally-Filtered Network Noise Power Spectral Density, Input-referred ($\sigma$=%0.3f kHz)'%(width*1e-3))
                     u_filt.name('$S_{xx}(\\nu)$').set_units('W/Hz')
                     fl.plot(u_filt['ch',0]['t':(None,49e6)],alpha=0.35,label='%s'%label,plottype='semilogy')
-                    axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
+                    axhline(y=k_B*T/1e-12, linestyle=':', alpha=0.5, color='purple') # 1e-12 b/c the axis is given in pW
+                    axvline(14.46, linestyle=':', alpha=0.5, c='k')
             if plot_params:
                 fl.next('Network Noise Power Spectral Density (Input-referred) (convolution = %0.1e Hz)'%width)
                 s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
