@@ -10,7 +10,6 @@ import argparse
 mpl.rcParams['image.cmap'] = 'jet'
 fl = figlist_var()
 #init_logging(level='debug')
-gain_factor_dcasc12 = sqrt(114008.55204672)   #gain in units of V
 parser = argparse.ArgumentParser(description='basic command-line options')
 parser.add_argument('--window', '-w',
         help='the maximum size of the window that encompasses all the pulses',
@@ -66,14 +65,19 @@ for date,id_string,numchan,indirect_range in [
     logger.info("*** Code for phase cycling based on 'fix_phase_cycling_180712.py' ***")
     logger.info("WARNING: Need to define time slices for pulses on a by-dataset basis ***")
 
-    s /= gain_factor_dcasc12 # get into units of input-referred Volt
+    this_gain = 73503.77279 # gain factor
+    s /= sqrt(this_gain) 
+    #s.set_units('V')
+    s.labels('ph1',r_[0:4]/4.)
+    s.labels( 'ph2',r_[0:4:2]/4. )
+    fl.next('following ref ch pulses')
+    fl.plot(s['indirect',0]['ph1',0]['ph2',0]['ch',1],label='raw')
     s_raw = s.C.reorder('t',first=False)
-
     s.ft('t',shift=True)
     s = s['t':(0,None)]
     s.setaxis('t',lambda f: f-carrier_f)
     s.ift('t')
-
+    s = s*2
     single_90 = False 
     confirm_triggers = False 
     #{{{ confirm that different phases trigger differently due to differing rising edges
@@ -117,12 +121,13 @@ for date,id_string,numchan,indirect_range in [
     if single_90:
         avg_t = average_time(s_raw['t':(4e-6,14e-6)]).data.mean()
     if not single_90:
-        avg_t = average_time(s_raw['t':(6e-6,12e-6)]).data.mean()
+        avg_t = average_time(s_raw['t':(7.5e-6,9.5e-6)]).data.mean()
     pulse_slice = s_raw['t':(avg_t-max_window/2,avg_t+max_window/2)]
     #{{{ NOTE: make sure that pulse_slice includes each pulse during a nutation measurement
         # you can test that with the following:
-    fl.next('image for nutation')
-    fl.image(pulse_slice)
+    #fl.next('image for nutation')
+    #fl.image(pulse_slice)
+    #fl.show();quit()
     #}}}
     avg_t = average_time(pulse_slice)
     print avg_t
@@ -150,10 +155,13 @@ for date,id_string,numchan,indirect_range in [
     #     redetermine the center here, and reshift the pulses next
     avg_t = average_time(s_raw['t':(-max_window/2,max_window/2)])
     s_raw.setaxis('t', lambda t: t-avg_t.data.mean())
+    fl.next('following ref ch pulses')
+    fl.plot(abs(s_raw)['indirect',0]['ph1',0]['ph2',0]['ch',1],alpha=0.4,label='post phase adjustments')
     # }}}
     # {{{ since this is the last step, take the analytic signal
     #     and then apply the relative shifts again
-    analytic = s_raw.C.ft('t')['t':(13e6,16e6)]
+    analytic = s_raw.C.ft('t')['t':(13e6,16e6)].ift('t')*2 # 2 for the analytic signal
+    analytic.ft('t')
     analytic.setaxis('t',lambda f: f-carrier_f)
     analytic.set_units('indirect','s')
     phase_factor = analytic.fromaxis('t',lambda x: 1j*2*pi*x)
@@ -210,37 +218,47 @@ for date,id_string,numchan,indirect_range in [
     expected_phase = nddata(exp(r_[0,1,2,3]*pi/2*1j),[4],['ph1'])
     # phase correcting analytic signal by difference between expected and measured phases
     analytic *= expected_phase/measured_phase
-    print ndshape(analytic)
-    analytic.reorder(['indirect','t'],first=False)
-    print ndshape(analytic)
+    analytic.ft('t')
+    analytic *= exp(1j*1.28*pi/8.)
+    analytic.ift('t')
+    analytic.reorder(['indirect','t'], first=False)
     fl.next('analytic signal, ref ch')
     fl.image(analytic['ch',1])
     fl.next('coherence domain, ref ch')
     if not single_90:
-        coherence_domain = analytic.C.ift(['ph1','ph2'])
+        analytic.ift(['ph1','ph2'])
     if single_90:
-        coherence_domain = analytic.C.ift(['ph1'])
-    fl.image(coherence_domain['ch',1])
-    s_analytic = analytic['ch',0].C
-    s_analytic.ft('t')
-    s_analytic *= exp(1j*2*pi*(0.7/8)) # phase correction for 180928_nutation_3
-    s_analytic.ift('t')
-    if not single_90:
-        s_analytic.ift(['ph1','ph2'])
-    if single_90:
-        s_analytic.ift(['ph1'])
-    fl.next('coherence, sig ch, t domain')
-    fl.image(s_analytic)
-    fl.next('coherence, sig ch, t slice')
-    fl.image(s_analytic['t':(105.8e-6,None)])
-    print ndshape(s_analytic)
+        analytic.ift(['ph1'])
+    fl.image(analytic['ch',1])
+    fl.next('following ref ch pulses')
+    fl.plot(abs(analytic)['indirect',0]['ch',1]['ph1',-1]['ph2',0], '--', alpha=0.4,label='before avg.: bandpass, phase adj, coh domain, post avg; 90 ch')
     if not is_nutation:
-        s_analytic.mean('indirect',return_error=False)
+        analytic.mean('indirect',return_error=False)
+    fl.plot(abs(analytic)['ch',1]['ph1',-1]['ph2',0], ':', alpha=0.4,label='bandpass, phase adj, coh domain, post avg; 90 ch')
+    fl.plot(abs(analytic['ch',1]['ph1',0]['ph2',-1]), '.-', alpha=0.4,label='bandpass, phase adj, coh domain, post avg; 180 ch')
+    analytic.set_units('V')
+    fl.next('coherence, sig ch, t domain')
+    fl.image(analytic['ch',0])
+    fl.next('coherence, sig ch, t slice')
+    fl.image(analytic['t':(105.e-6,None)])
+    analytic = analytic['ch',0]['ph1',1]['ph2',0] # pulling signal
+    analytic.name('Amplitude (Input-referred)')
+    analytic = analytic['t':(108.5e-6,None)]
+    fl.next('Signal, time domain')
+    fl.plot(analytic.real, alpha=0.6, color='red',label='real')
+    fl.plot(analytic.imag, alpha=0.6, color='blue', label='imag')
+    fl.plot(abs(analytic), alpha=0.6, color='gray', label='abs')
+    axhline(0, linestyle=':', color='black')
+    axvline(127.0, linestyle=':', color='black')
+    analytic.ft('t')
+    fl.next('Signal, frequency domain')
+    fl.plot(abs(analytic), alpha=0.6, color='black', label='abs')
+    fl.show();quit()
     s_analytic.set_units('V')
     if not single_90:
         signal = s_analytic['ph1',1]['ph2',0]
     if single_90:
-        signal = (s_analytic['ph1',-1])
+        signal = analytic['ch',0]['ph1',1]['ph2',0]
         fl.next('signal, t domain')
         fl.image(signal)
         fl.next('signal slice, t domain')
@@ -281,17 +299,17 @@ for date,id_string,numchan,indirect_range in [
     #        fl.plot(s_analytic['ph1',ph1]['ph2',ph2],alpha=0.4) # in order to see units
     #        #xlim(100,None) #units of 1e-6 seconds
     #}}}
-    fl.next(r'$\Delta_{c_{1}}$ = -1, $\Delta_{c_{2}}$ = 0,$\pm 2$')
     #for x in xrange(ndshape(signal)['indirect']):
     #    fl.plot(signal['indirect',x],alpha=0.4) # in order to see units
     #fl.plot(signal,alpha=0.45)
     signal = signal['t':(100e-6,None)]
+    fl.next(r'$\Delta_{c_{1}}$ = -1, $\Delta_{c_{2}}$ = 0,$\pm 2$')
     fl.plot(signal.real,alpha=0.4,label='real')
     fl.plot(signal.imag,alpha=0.4,label='imag')
     fl.plot(abs(signal),':',c='k',alpha=0.15,label='abs')
     axhline(0,linestyle=':',c='gray')
-    #xlim(105,None) #units of 1e-6 seconds
     fl.show();quit()
+    #xlim(105,None) #units of 1e-6 seconds
     #}}}
 
 fl.show()
