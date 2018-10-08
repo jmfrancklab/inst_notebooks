@@ -80,6 +80,7 @@ for date,id_string,numchan,indirect_range in [
     s = s*2
     single_90 = False 
     confirm_triggers = False 
+    proc_1_transient = True # process arbitrary transient, verify phase cycling
     #{{{ confirm that different phases trigger differently due to differing rising edges
     if confirm_triggers:
         print ndshape(s)
@@ -224,6 +225,21 @@ for date,id_string,numchan,indirect_range in [
     analytic.reorder(['indirect','t'], first=False)
     fl.next('analytic signal, ref ch')
     fl.image(analytic['ch',1])
+    if proc_1_transient:
+        analytic = analytic['indirect',0]['ch',0]['ph1',0]['ph2',0]
+        analytic.set_units('V')
+        analytic.name('Amplitude (Input-referred)')
+        analytic = analytic['t':(108.5e-6,None)]
+        fl.next('One transient, time domain')
+        fl.plot(analytic.real, alpha=0.6, color='red',label='real')
+        fl.plot(analytic.imag, alpha=0.6, color='blue', label='imag')
+        fl.plot(abs(analytic), alpha=0.6, color='gray', label='abs')
+        axhline(0, linestyle=':', color='black')
+        axvline(127.0, linestyle=':', color='black')
+        analytic.ft('t')
+        fl.next('One transient, frequency domain')
+        fl.plot(abs(analytic), alpha=0.6, color='black', label='abs')
+        fl.show();quit()
     fl.next('coherence domain, ref ch')
     if not single_90:
         analytic.ift(['ph1','ph2'])
