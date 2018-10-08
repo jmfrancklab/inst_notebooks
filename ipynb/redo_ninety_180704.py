@@ -5,6 +5,7 @@
 
 # In[ ]:
 
+
 get_ipython().magic(u'load_ext pyspecdata.ipy')
 from pyspecdata import strm, gammabar_H, k_B, hbar
 def mdown(x):
@@ -21,6 +22,7 @@ def mdown(x):
 
 # In[ ]:
 
+
 mu0 = 4*pi*1e-7 #permeability of free space in Tm/A
 gamma_H = 2*pi*gammabar_H #gyromagnetic ratio for H in Hz/T
 k_B = 1.38e-23 #Boltzmann constant in J/K
@@ -32,6 +34,7 @@ h = hbar*2*pi #Planck constant in Js
 # Parameters measured on solenoid of interest (second 0.55 uH solenoid)
 
 # In[ ]:
+
 
 L = 0.55e-6 #inductance in microHenries
 l = 22.89e-3 #length of coil in mm
@@ -47,6 +50,7 @@ tube_ID = 4.93e-3
 
 # In[ ]:
 
+
 P = 51.8 #pulse power in Watts
 R = 50. #resistance in Ohms
 Q = 18. # actually measure now
@@ -61,6 +65,7 @@ t90 = 7.45e-6
 
 # In[ ]:
 
+
 nu1 = 1./(4*t90)
 mdown((r'$\omega_1/2\pi=%0.1f$ kHz'%(nu1/1e3)))
 B1_rotfr = nu1/gammabar_H
@@ -114,6 +119,7 @@ mdown(r'$c=%0.2e\;\text{T}/\sqrt{\text{W}}$'%c_exp)
 
 # In[ ]:
 
+
 V_sample = pi*(tube_ID/2)**2*l # replaced with 5mm diameter NMR tube
 mdown("Sample volume %.2e $m^3$ "%V_sample)
 Vc = pi*(CD/2)**2*l
@@ -134,6 +140,7 @@ mdown(r"Ratio of the actual effective cavity volume to the calculated $V_{c,actu
 
 # In[ ]:
 
+
 B1_lf = c_calc*sqrt(P)
 B1_rotfr = B1_lf/2
 omega_1 = gamma_H * B1_rotfr
@@ -146,6 +153,7 @@ mdown(u'Ninety time is %0.2f μs'%(pi/2./omega_1/1e-6))
 
 # In[ ]:
 
+
 N = 2.*55e3*N_A
 
 
@@ -153,6 +161,7 @@ N = 2.*55e3*N_A
 # $M_0 = \frac{N \gamma \hbar^2 \omega_0 I \left( I+1 \right)}{3 k_B T}$ 
 
 # In[ ]:
+
 
 T = 298.
 I = 0.5
@@ -176,11 +185,11 @@ M0 = N * omega0  * gamma_H * hbar**2 * I * (I+1) / (3 * k_B * T)
 
 # In[ ]:
 
+
 V_signal = M0 * omega0 * V_sample * c_exp * sqrt(50.)
 mdown(r'$V_{signal} = %0.2f\;\mu\text{V}$'%(V_signal/1e-6))
 
 
-# In[ ]:
 
 V_signal = M0 * omega0 * V_sample * c_calc * sqrt(50.)
 mdown(r'$V_{calc signal} = %0.2f\;\mu\text{V}$'%(V_signal/1e-6))
@@ -191,6 +200,7 @@ mdown(r'$V_{calc signal} = %0.2f\;\mu\text{V}$'%(V_signal/1e-6))
 # ## Physical constants
 
 # In[ ]:
+
 
 mu0 = 4*pi*1e-7 #permeability of free space in Tm/A
 gamma_H = 2*pi*gammabar_H #gyromagnetic ratio for H in Hz/T
@@ -204,11 +214,20 @@ h = hbar*2*pi #Planck constant in Js
 
 # In[ ]:
 
-l = 41.5e-3 #length of coil in mm
-OD = 2.55e-3+0.4e-3 #outer diameter of coil rings in mm
-thick = 0.4e-3 #thickness of wire in mm
-CD = OD-thick
-tube_ID = 1.6e-3
+
+coil_len = 42.28e-3
+coil_diam = 2.93e-3
+coil_wire = 0.4e-3
+coil_CD = coil_diam - coil_wire
+
+
+# In[ ]:
+
+
+sample_len = 40.73e-3
+sample_diam = 2.15e-3
+sample_wall = 0.38e-3
+sample_ID = sample_diam - (2*sample_wall)
 
 
 # ## Design parameters
@@ -217,9 +236,10 @@ tube_ID = 1.6e-3
 
 # In[ ]:
 
+
 P = 43.1 #pulse power in Watts
 R = 50. #resistance in Ohms
-Q = 22. # actually measure now
+Q = 26. # actually measure now
 omega0 = 2*pi*14.46e6
 t90 = 0.9e-6
 
@@ -230,6 +250,7 @@ t90 = 0.9e-6
 # recall that $B_{1,rot} = \frac{1}{2} B_{1,lab\;frame}$ therefore requires multiplication by a factor of 2 coming to get correct conversion factor
 
 # In[ ]:
+
 
 nu1 = 1./(4*t90)
 mdown((r'$\omega_1/2\pi=%0.1f$ kHz'%(nu1/1e3)))
@@ -284,10 +305,15 @@ mdown(r'$c=%0.2e\;\text{T}/\sqrt{\text{W}}$'%c_exp)
 
 # In[ ]:
 
-V_sample = pi*(tube_ID/2)**2*l # replaced with 5mm diameter NMR tube
+
+V_sample = pi*(sample_ID/2.)**2*sample_len
 mdown("Sample volume %.2e $m^3$ "%V_sample)
-Vc = pi*(CD/2)**2*l
+Vc = pi*(coil_CD/2.)**2*coil_len
 mdown("Coil volume %.2e $m^3$ "%Vc)
+
+
+# In[ ]:
+
 
 c_calc = sqrt(2*Q*mu0/(Vc*omega0))
 mdown(r"Calculated conversion factor %.2e $T/\sqrt{W}$ "%c_calc)
@@ -304,6 +330,7 @@ mdown(r"Ratio of the actual effective cavity volume to the calculated $V_{c,actu
 
 # In[ ]:
 
+
 B1_lf = c_calc*sqrt(P)
 B1_rotfr = B1_lf/2
 omega_1 = gamma_H * B1_rotfr
@@ -316,6 +343,7 @@ mdown(u'Ninety time is %0.2f μs'%(pi/2./omega_1/1e-6))
 
 # In[ ]:
 
+
 N = 2.*55e3*N_A
 
 
@@ -323,6 +351,7 @@ N = 2.*55e3*N_A
 # $M_0 = \frac{N \gamma \hbar^2 \omega_0 I \left( I+1 \right)}{3 k_B T}$ 
 
 # In[ ]:
+
 
 T = 298.
 I = 0.5
@@ -346,11 +375,20 @@ M0 = N * omega0  * gamma_H * hbar**2 * I * (I+1) / (3 * k_B * T)
 
 # In[ ]:
 
+
 V_signal = M0 * omega0 * V_sample * c_exp * sqrt(50.)
 mdown(r'$V_{signal} = %0.2f\;\mu\text{V}$'%(V_signal/1e-6))
 
 
 # In[ ]:
+
+
+V_signal = M0 * omega0 * V_sample * c_calc * sqrt(50.)
+mdown(r'$V_{signal} = %0.2f\;\mu\text{V}$'%(V_signal/1e-6))
+
+
+# In[ ]:
+
 
 
 
