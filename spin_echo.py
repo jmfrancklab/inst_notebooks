@@ -22,7 +22,7 @@ with SerialInstrument('AFG-2225') as s:
     print s.respond('*idn?')
     #}}}
 #{{{ spin echo function with phase cycling capability
-def spin_echo(num_cycles, freq=14.46e6, p90=0.9e-6, d1=27.0e-6, T1=200e-3, max_delay=False, complex_exp=True, ph_cyc=True, field_sweep=False):
+def spin_echo(num_cycles, freq = 14.46e6, p90 = 0.9e-6, d1 = 63.794e-6, T1 = 200e-3, max_delay = True, complex_exp = True, ph_cyc = True):
 #{{{ documentation
     r'''generates spin echo (90 - delay - 180) pulse sequence, defined by
     the frequency, 90 time, and delay time, and outputs on scope.
@@ -88,7 +88,6 @@ def spin_echo(num_cycles, freq=14.46e6, p90=0.9e-6, d1=27.0e-6, T1=200e-3, max_d
         if not max_delay:
             t_d1 = d1
             points_d1 = t_d1/time_spacing
-            points_total = points_90 + points_d1 + points_180
         if max_delay:
             points_d1 = points_total - points_90 - points_180
             t_d1 = points_d1*time_spacing
@@ -96,7 +95,7 @@ def spin_echo(num_cycles, freq=14.46e6, p90=0.9e-6, d1=27.0e-6, T1=200e-3, max_d
         points_sequence = points_90 + points_d1 + points_180
         assert points_sequence < 4097
         #{{{ generating the arbitrary waveform
-        t = r_[0:int(points_total)]
+        t = r_[0:4096]
         freq_sampling = 0.25
         y = exp(1j*2*pi*t[1 : -1]*freq_sampling)
         y[int(points_90) : int(points_90+points_d1)] = 0
@@ -143,9 +142,8 @@ def spin_echo(num_cycles, freq=14.46e6, p90=0.9e-6, d1=27.0e-6, T1=200e-3, max_d
                 start_ph = time.time()
                 timer_index = 0
                 for x in xrange(num_cycles):
-                    if field_sweep:
-                        Beep(7000,1000)
-                        raw_input('Update field, then continue')
+                    Beep(7000,1000)
+                    raw_input('Update field, then continue')
                     for ph2 in xrange(0,4,num_ph2_steps):
                         for ph1 in xrange(num_ph1_steps):
                             y_ph = y.copy()
@@ -404,8 +402,8 @@ def nutation(t_90_range, spin_echo = False, freq = 14.46e6, T1 = 200e-3):
 #}}}
 date = '181103'
 #id_string = 'nutation_2'
-id_string = 'spin_echo_2'
-num_cycles = 3 
+id_string = 'sweep'
+num_cycles = 10 
 t1,t2 = spin_echo(num_cycles = num_cycles)
 #t_90_range = linspace(0.5e-6,3.0e-6,25,endpoint=False)
 #nutation(t_90_range, spin_echo=True)
