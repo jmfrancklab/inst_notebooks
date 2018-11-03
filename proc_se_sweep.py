@@ -149,7 +149,7 @@ for date,id_string,numchan,field_axis,cycle_time, in [
         #{{{ here plotting sweep data several ways
         s_analytic.rename('full_cyc','magnetic_field')
         # slice out region containing spin echo to get clear frequency domain plots
-        s_analytic = s_analytic['t':(110e-6,None)]
+        s_analytic = s_analytic['t':(90e-6,None)]
         for x in xrange(ndshape(s_analytic)['magnetic_field']):
             if timeraxis:
             # NOTE: The time length of each capture (here 168 s) can be determined by looking at
