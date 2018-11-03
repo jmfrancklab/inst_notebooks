@@ -13,7 +13,8 @@ fl = figlist_var()
 for date, id_string,corrected_volt in [
         #('180806','pulse_reflection',True),
         #('181001','sprobe_t2',True),
-        ('181001','sprobe_t4',True),
+        #('181001','sprobe_t4',True),
+        ('181103','probe',True),
         ]:
     d = nddata_hdf5(date+'_'+id_string+'.h5/capture1',
                 directory=getDATADIR(exp_type='test_equip'))
