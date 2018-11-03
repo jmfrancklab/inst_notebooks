@@ -111,6 +111,7 @@ for date,id_string,numchan,gain_factor in [
         #('181001','noise_probe_magnet_ENI_3',2,gain_factor_new), # 10 us/div
         #('181001','noise_spec_1',2,gain_factor_new), # 10 us/div
         ('181001','noise_spec_2',2,gain_factor_new), # 20 us/div
+        ('181103','noise_spec',2,gain_factor_new), # 20 us/div
         #('180926','noise_probe_TXD',2,gain_factor_new),
         #('180926','noise_probe_TXD_ENI_off',2,gain_factor_new),
         #('180926','noise_probe_TXD_ENI_on',2,gain_factor_new),

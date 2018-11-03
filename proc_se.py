@@ -44,7 +44,8 @@ for date,id_string,numchan,indirect_range in [
         #('181001','spin_echo_2',2,None) # spin echo, B0 = 3403
         #('181003','nutation',2,linspace(0.6e-6,5.4e-6,10,endpoint=False)) # spin echo, B0 = 3403
         #('181003','nutation_2',2,linspace(0.5e-6,3.0e-6,25,endpoint=False)) # spin echo, B0 = 3403
-        ('181003','spin_echo',2,None) # spin echo, B0 = 3403
+        #('181003','spin_echo',2,None) # spin echo, B0 = 3403
+        ('181103','spin_echo',2,None) # spin echo, B0 = 3409
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
@@ -80,7 +81,6 @@ for date,id_string,numchan,indirect_range in [
     s = s*2
     single_90 = False 
     confirm_triggers = False 
-    proc_1_transient = True # process arbitrary transient, verify phase cycling
     #{{{ confirm that different phases trigger differently due to differing rising edges
     if confirm_triggers:
         print ndshape(s)
@@ -220,26 +220,11 @@ for date,id_string,numchan,indirect_range in [
     # phase correcting analytic signal by difference between expected and measured phases
     analytic *= expected_phase/measured_phase
     analytic.ft('t')
-    analytic *= exp(1j*1.28*pi/8.)
+    #analytic *= exp(1j*0.8*pi/8.)
     analytic.ift('t')
     analytic.reorder(['indirect','t'], first=False)
     fl.next('analytic signal, ref ch')
     fl.image(analytic['ch',1])
-    if proc_1_transient:
-        analytic = analytic['indirect',0]['ch',0]['ph1',0]['ph2',0]
-        analytic.set_units('V')
-        analytic.name('Amplitude (Input-referred)')
-        analytic = analytic['t':(108.5e-6,None)]
-        fl.next('One transient, time domain')
-        fl.plot(analytic.real, alpha=0.6, color='red',label='real')
-        fl.plot(analytic.imag, alpha=0.6, color='blue', label='imag')
-        fl.plot(abs(analytic), alpha=0.6, color='gray', label='abs')
-        axhline(0, linestyle=':', color='black')
-        axvline(127.0, linestyle=':', color='black')
-        analytic.ft('t')
-        fl.next('One transient, frequency domain')
-        fl.plot(abs(analytic), alpha=0.6, color='black', label='abs')
-        fl.show();quit()
     fl.next('coherence domain, ref ch')
     if not single_90:
         analytic.ift(['ph1','ph2'])
