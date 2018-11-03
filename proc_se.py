@@ -48,7 +48,8 @@ for date,id_string,numchan,indirect_range in [
         #('181103','spin_echo',2,None) # spin echo, B0 = 3409
         #('181103','spin_echo_TL',2,None) # spin echo, B0 = 3409
         #('181103','spin_echo_3',2,None) # spin echo, B0 = 3409
-        ('181103','nutation',2,None) # spin echo, B0 = 3409
+        #('181103','nutation',2,None) # spin echo, B0 = 3409
+        ('181103','spin_echo_4',2,None) # spin echo, B0 = 3409
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
@@ -259,8 +260,6 @@ for date,id_string,numchan,indirect_range in [
         fl.next('Signal, frequency domain')
         fl.plot(abs(analytic), alpha=0.6, color='black', label='abs')
     analytic.set_units('V')
-    #if not single_90:
-    #    signal = analytic['ph1',1]['ph2',0]
     if single_90:
         signal = analytic['ch',0]['ph1',1]['ph2',0]
         fl.next('signal, t domain')
@@ -283,6 +282,7 @@ for date,id_string,numchan,indirect_range in [
         fl.next('image: abs(signal), t domain, cropped')
         fl.image(abs(cropped_signal))
         fl.show();quit()
+    fl.show();quit()
     #{{{ for measuring offset
     # plot abs value of signal along offset axis to determine
     # adjustment needed on the magnet (B0)
