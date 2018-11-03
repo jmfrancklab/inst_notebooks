@@ -46,7 +46,9 @@ for date,id_string,numchan,indirect_range in [
         #('181003','nutation_2',2,linspace(0.5e-6,3.0e-6,25,endpoint=False)) # spin echo, B0 = 3403
         #('181003','spin_echo',2,None) # spin echo, B0 = 3403
         #('181103','spin_echo',2,None) # spin echo, B0 = 3409
-        ('181103','spin_echo_TL',2,None) # spin echo, B0 = 3409
+        #('181103','spin_echo_TL',2,None) # spin echo, B0 = 3409
+        #('181103','spin_echo_3',2,None) # spin echo, B0 = 3409
+        ('181103','nutation',2,None) # spin echo, B0 = 3409
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
@@ -221,7 +223,7 @@ for date,id_string,numchan,indirect_range in [
     # phase correcting analytic signal by difference between expected and measured phases
     analytic *= expected_phase/measured_phase
     analytic.ft('t')
-    #analytic *= exp(1j*0.8*pi/8.)
+    #analytic *= exp(1j*1.1*pi/8.)
     analytic.ift('t')
     analytic.reorder(['indirect','t'], first=False)
     fl.next('analytic signal, ref ch')
@@ -242,23 +244,23 @@ for date,id_string,numchan,indirect_range in [
     fl.next('coherence, sig ch, t domain')
     fl.image(analytic['ch',0])
     fl.next('coherence, sig ch, t slice')
-    fl.image(analytic['ch',0]['t':(96.9e-6,None)])
+    fl.image(analytic['ch',0]['t':(50.e-6,None)])
     analytic = analytic['ch',0]['ph1',1]['ph2',0] # pulling signal
     analytic.name('Amplitude (Input-referred)')
-    analytic = analytic['t':(96.9e-6,None)]
-    fl.next('Signal, time domain')
-    fl.plot(analytic.real, alpha=0.6, color='red',label='real')
-    fl.plot(analytic.imag, alpha=0.6, color='blue', label='imag')
-    fl.plot(abs(analytic), alpha=0.6, color='gray', label='abs')
-    axhline(0, linestyle=':', color='black')
-    axvline(127.0, linestyle=':', color='black')
-    analytic.ft('t')
-    fl.next('Signal, frequency domain')
-    fl.plot(abs(analytic), alpha=0.6, color='black', label='abs')
-    fl.show();quit()
-    s_analytic.set_units('V')
-    if not single_90:
-        signal = s_analytic['ph1',1]['ph2',0]
+    analytic = analytic['t':(50.e-6,None)]
+    if not is_nutation:
+        fl.next('Signal, time domain')
+        fl.plot(analytic.real, alpha=0.6, color='red',label='real')
+        fl.plot(analytic.imag, alpha=0.6, color='blue', label='imag')
+        fl.plot(abs(analytic), alpha=0.6, color='gray', label='abs')
+        axhline(0, linestyle=':', color='black')
+        #axvline(127.0, linestyle=':', color='black')
+        analytic.ft('t')
+        fl.next('Signal, frequency domain')
+        fl.plot(abs(analytic), alpha=0.6, color='black', label='abs')
+    analytic.set_units('V')
+    #if not single_90:
+    #    signal = analytic['ph1',1]['ph2',0]
     if single_90:
         signal = analytic['ch',0]['ph1',1]['ph2',0]
         fl.next('signal, t domain')
@@ -269,8 +271,8 @@ for date,id_string,numchan,indirect_range in [
         fl.image(abs(signal))
         fl.next('abs signal slice, t domain')
         fl.image(abs(signal['t':(30e-6,None)]))
-    print ndshape(signal)
     if is_nutation:
+        signal = analytic.C
         fl.next('image: signal, t domain')
         fl.image(signal)
         fl.next('image: abs signal, t domain')
