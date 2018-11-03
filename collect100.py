@@ -67,7 +67,7 @@ def collect(date,id_string,captures):
     return start
 
 date = '181103'
-id_string = 'noise_spec'
+id_string = 'noise_spec_TL'
 captures = linspace(1,100,100)
 
 print "Starting collection..."

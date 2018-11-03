@@ -45,7 +45,8 @@ for date,id_string,numchan,indirect_range in [
         #('181003','nutation',2,linspace(0.6e-6,5.4e-6,10,endpoint=False)) # spin echo, B0 = 3403
         #('181003','nutation_2',2,linspace(0.5e-6,3.0e-6,25,endpoint=False)) # spin echo, B0 = 3403
         #('181003','spin_echo',2,None) # spin echo, B0 = 3403
-        ('181103','spin_echo',2,None) # spin echo, B0 = 3409
+        #('181103','spin_echo',2,None) # spin echo, B0 = 3409
+        ('181103','spin_echo_TL',2,None) # spin echo, B0 = 3409
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
@@ -241,10 +242,10 @@ for date,id_string,numchan,indirect_range in [
     fl.next('coherence, sig ch, t domain')
     fl.image(analytic['ch',0])
     fl.next('coherence, sig ch, t slice')
-    fl.image(analytic['t':(105.e-6,None)])
+    fl.image(analytic['ch',0]['t':(96.9e-6,None)])
     analytic = analytic['ch',0]['ph1',1]['ph2',0] # pulling signal
     analytic.name('Amplitude (Input-referred)')
-    analytic = analytic['t':(108.5e-6,None)]
+    analytic = analytic['t':(96.9e-6,None)]
     fl.next('Signal, time domain')
     fl.plot(analytic.real, alpha=0.6, color='red',label='real')
     fl.plot(analytic.imag, alpha=0.6, color='blue', label='imag')
@@ -303,7 +304,7 @@ for date,id_string,numchan,indirect_range in [
     #for x in xrange(ndshape(signal)['indirect']):
     #    fl.plot(signal['indirect',x],alpha=0.4) # in order to see units
     #fl.plot(signal,alpha=0.45)
-    signal = signal['t':(100e-6,None)]
+    signal = signal['t':(96e-6,None)]
     fl.next(r'$\Delta_{c_{1}}$ = -1, $\Delta_{c_{2}}$ = 0,$\pm 2$')
     fl.plot(signal.real,alpha=0.4,label='real')
     fl.plot(signal.imag,alpha=0.4,label='imag')
