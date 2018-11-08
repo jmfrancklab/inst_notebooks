@@ -57,7 +57,8 @@ for date,id_string,numchan,indirect_range in [
         #('181103','spin_echo_9',2,None) # spin echo, B0 = 3409
         #('181103','spin_echo_10',2,None) # spin echo, B0 = 3409
         #('181103','spin_echo_11',2,None) # spin echo, B0 = 3409
-        ('181103','spin_echo_12',2,None) # spin echo, B0 = 3409
+        #('181103','spin_echo_12',2,None) # spin echo, B0 = 3409
+        ('181107','spin_echo',2,None) # spin echo, B0 = 3409
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
@@ -253,10 +254,10 @@ for date,id_string,numchan,indirect_range in [
     fl.next('coherence, sig ch, t domain')
     fl.image(analytic['ch',0])
     fl.next('coherence, sig ch, t slice')
-    fl.image(analytic['ch',0]['t':(50.e-6,None)])
+    fl.image(analytic['ch',0]['t':(106e-6,None)])
     analytic = analytic['ch',0]['ph1',1]['ph2',0] # pulling signal
     analytic.name('Amplitude (Input-referred)')
-    analytic = analytic['t':(50.e-6,None)]
+    analytic = analytic['t':(106e-6,None)]
     if not is_nutation:
         fl.next('Signal, time domain')
         fl.plot(analytic.real, alpha=0.6, color='red',label='real')
