@@ -402,9 +402,9 @@ def nutation(t_90_range, spin_echo = False, freq = 14.46e6, T1 = 200e-3):
     data.hdf5_write(date+"_"+id_string+".h5")
     return
 #}}}
-date = '181103'
+date = '181107'
 #id_string = 'nutation_2'
-id_string = 'spin_echo_12'
+id_string = 'spin_echo'
 num_cycles = 1 
 t1,t2 = spin_echo(num_cycles = num_cycles)
 #t_90_range = linspace(0.5e-6,3.0e-6,25,endpoint=False)
