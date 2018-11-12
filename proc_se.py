@@ -255,10 +255,10 @@ for date,id_string,numchan,indirect_range in [
     fl.next('coherence, sig ch, t domain')
     fl.image(analytic['ch',0])
     fl.next('coherence, sig ch, t slice')
-    fl.image(analytic['ch',0]['t':(106e-6,None)])
+    fl.image(analytic['ch',0]['t':(95e-6,None)])
     analytic = analytic['ch',0]['ph1',1]['ph2',0] # pulling signal
     analytic.name('Amplitude (Input-referred)')
-    analytic = analytic['t':(106e-6,None)]
+    analytic = analytic['t':(95e-6,None)]
     if not is_nutation:
         fl.next('Signal, time domain')
         fl.plot(analytic.real, alpha=0.6, color='red',label='real')
