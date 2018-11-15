@@ -5,3 +5,7 @@
 *.un~
 .gitignore~
 *.h5
+*.mat
+*.png
+ipynb/find_50percent_crossings.ipynb
+Bridge12_Class_181126.ipynb

@@ -1,12 +1,6 @@
 
 # coding: utf-8
 
-# 
-
-
-
-
-
 # ## Initialization
 #  
 # To run on a different computer, run ``jupyter notebook --ip='*'`` copy and paste address and replace ``localhost`` with
@@ -195,6 +189,28 @@ class Bridge12 (serial.Serial):
             if result == setting:
                 return
         raise RuntimeError("After checking status 10 times, I can't get the power to change")
+    def rxpowermv_int_singletry(self):
+        self.write('rxpowermv?\r')
+        return int(self.readline())
+    def rxpowermv_float(self):
+        "need two consecutive responses that match"
+        h = self.rxpowermv_int_singletry()
+        i = self.rxpowermv_int_singletry()
+        while h != i:
+            h = i
+            i = self.rxpowermv_int_singletry()
+        return float(h)/10.
+    def txpowermv_int_singletry(self):
+        self.write('txpowermv?\r')
+        return int(self.readline())
+    def txpowermv_float(self):
+        "need two consecutive responses that match"
+        h = self.txpowermv_int_singletry()
+        i = self.txpowermv_int_singletry()
+        while h != i:
+            h = i
+            i = self.txpowermv_int_singletry()
+        return float(h)/10.
     def __enter__(self):
         self.bridge12_wait()
         return self
@@ -206,20 +222,20 @@ class Bridge12 (serial.Serial):
         return
 
 
+# Print out the com ports, so we know what we're looking for
+
 # 
 
-
-# Print out the com ports, so we know what we're looking for
 
 [(j.device, j.hwid, j.vid, j.description, j.manufacturer) for j in comports()] #list comprehension
 
 
 # ## Code for MW Power Test
 
+# check that all the ``set_`` functions work correctly:
+
 # 
 
-
-# check that all the ``set_`` functions work correctly:
 
 with Bridge12() as b:
     print "initial wg status:", b.wgstatus_int()
@@ -243,12 +259,12 @@ with Bridge12() as b:
 # 
 
 
-def freq_sweep(s,freq):
+def freq_sweep(b,freq):
     """sweep over an array of frequencies
 
     Parameters
     ==========
-    s: Serial object
+    b: Bridge12 object
         gives the connection
     freq: array of floats
         frequencies in Hz
@@ -267,14 +283,10 @@ def freq_sweep(s,freq):
     for j,f in enumerate(freq):
             time.sleep(0.5)
             generate_beep(500, 300)
-            s.write('freq %.1f\r'%(f/1e3))
+            b.write('freq %.1f\r'%(f/1e3))
             time.sleep(0.1)
-            s.write('rxpowerdbm?\r') 
-            rx =s.readline()
-            rxvalues[j] = float(rx)/10
-            s.write('txpowerdbm?\r') 
-            tx =s.readline()
-            txvalues[j] = float(tx)/10
+            txvalues[j] = b.txpowermv_float()
+            rxvalues[j] = b.rxpowermv_float()
     return rxvalues, txvalues
 
 
@@ -315,6 +327,9 @@ legend(**dict(bbox_to_anchor=(1.05,1),loc=2,borderaxespad=0.))
 #     set_rf(s,False)
 #     set_wg(s,False)
 
+# 
+
+
 savemat(x+'.mat',{'freq':freq,'tx':txvalues,'rx':rxvalues})
 
 
@@ -324,7 +339,13 @@ savemat(x+'.mat',{'freq':freq,'tx':txvalues,'rx':rxvalues})
 
 
 a= loadmat(x+'.mat')
+
+
 # a=loadmat('tuning_curve_fixedB12_181115_zoom.mat')
+
+# 
+
+
 #How do I add a title and Axis Labels to this Plot???
 plt.plot(a['freq'].flatten(),a['rx'].flatten(), label='Rx')
 plt.plot(a['freq'].flatten(), a['tx'].flatten(), label='Tx')
