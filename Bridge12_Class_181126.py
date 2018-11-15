@@ -191,13 +191,15 @@ class Bridge12 (serial.Serial):
         raise RuntimeError("After checking status 10 times, I can't get the power to change")
     def rxpowermv_int_singletry(self):
         self.write('rxpowermv?\r')
-        return int(self.readline())
+        retval = self.readline()
+        #print retval
+        return int(retval)
     def rxpowermv_float(self):
         "need two consecutive responses that match"
         h = self.rxpowermv_int_singletry()
         i = self.rxpowermv_int_singletry()
         while h != i:
-            h = i
+            h = self.rxpowermv_int_singletry()
             i = self.rxpowermv_int_singletry()
         return float(h)/10.
     def txpowermv_int_singletry(self):
@@ -215,9 +217,15 @@ class Bridge12 (serial.Serial):
         self.bridge12_wait()
         return self
     def __exit__(self, exception_type, exception_value, traceback):
-        self.set_power(0)
-        self.set_rf(False)
-        self.set_wg(False)
+        try:
+            self.set_power(0)
+            self.set_rf(False)
+            self.set_wg(False)
+        except:
+            print "error on standard shutdown -- running fallback shutdown"
+            self.write('power %d\r'%0)
+            self.write('rfstatus %d\r'%0)
+            self.write('wgstatus %d\r'%0)
         self.close()
         return
 
@@ -259,7 +267,7 @@ with Bridge12() as b:
 # 
 
 
-def freq_sweep(b,freq):
+def freq_sweep(b,freq, old_code=False):
     """sweep over an array of frequencies
 
     Parameters
@@ -285,8 +293,17 @@ def freq_sweep(b,freq):
             generate_beep(500, 300)
             b.write('freq %.1f\r'%(f/1e3))
             time.sleep(0.1)
-            txvalues[j] = b.txpowermv_float()
-            rxvalues[j] = b.rxpowermv_float()
+            if old_code:
+                b.write('txpowermv?\r')
+                retval = b.readline()
+                txvalues[j] = float(retval)/10
+                b.write('rxpowermv?\r')
+                retval = b.readline()
+                rxvalues[j] = float(retval)/10
+            else:
+                txvalues[j] = b.txpowermv_float()
+                rxvalues[j] = b.rxpowermv_float()
+            
     return rxvalues, txvalues
 
 
@@ -296,7 +313,7 @@ def freq_sweep(b,freq):
 
 
 x = 'tuning_curve_181126'
-freq = linspace(9.848e9,9.855e9, 50)
+freq = linspace(9.85e9,9.854e9, 100)
 
 with Bridge12() as b:
     b.set_wg(True)
@@ -304,12 +321,29 @@ with Bridge12() as b:
     b.set_rf(True)
     b.set_power(10)
     rxvalues, txvalues = freq_sweep(b, freq)
+    rxvalues_old, txvalues_old = freq_sweep(b, freq, old_code=True)
 
-plot(freq, rxvalues, alpha=0.5) #tuning curve
-plot(freq, txvalues, alpha=0.5) #tuning curve
-xlabel('frequency / Hz')
+
+# 
+
+
+plot(freq/1e9, rxvalues, 'o-', alpha=0.5, markersize=3, label='rx - new') #tuning curve
+plot(freq/1e9, txvalues, alpha=0.5, label='tx - new') #tuning curve
+plot(freq/1e9, rxvalues_old, 'o-', alpha=0.5, markersize=3, label='rx - old') #tuning curve
+plot(freq/1e9, txvalues_old, alpha=0.5, label='tx - old') #tuning curve
+xlabel('frequency / GHz')
 title('tuning curve')
+ylim(-0.5,3)
+minorticks_on()
+grid(True, which='both', alpha=0.1, linestyle='-')
 legend(**dict(bbox_to_anchor=(1.05,1),loc=2,borderaxespad=0.))
+
+
+# 
+
+
+with Bridge12() as b:
+    print "test"
 
 
 # with serial.Serial(thisport, timeout=3, baudrate=115200) as s:
