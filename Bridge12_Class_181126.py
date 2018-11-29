@@ -196,6 +196,9 @@ class Bridge12 (serial.Serial):
         return int(retval)
     def rxpowermv_float(self):
         "need two consecutive responses that match"
+        for j in range(3):
+            # burn a few measurements
+            self.rxpowermv_int_singletry()
         h = self.rxpowermv_int_singletry()
         i = self.rxpowermv_int_singletry()
         while h != i:
@@ -207,12 +210,39 @@ class Bridge12 (serial.Serial):
         return int(self.readline())
     def txpowermv_float(self):
         "need two consecutive responses that match"
+        for j in range(3):
+            # burn a few measurements
+            self.txpowermv_int_singletry()
         h = self.txpowermv_int_singletry()
         i = self.txpowermv_int_singletry()
         while h != i:
-            h = i
+            h = self.txpowermv_int_singletry()
             i = self.txpowermv_int_singletry()
         return float(h)/10.
+#insert set_freq here
+    def set_freq(self,Hz):
+        """set frequency
+
+        Parameters
+        ==========
+        s: Serial object
+            gives the connection
+        Hz: float
+            frequency values -- give a Hz as a floating point number
+        """
+        setting = int(Hz/1e3+0.5)
+        self.write('freq %d\r'%(setting))
+        if self.freq_int() != setting:
+            for j in range(10):
+                result = self.freq_int()
+                if result == setting:
+                    return
+            raise RuntimeError("After checking status 10 times, I can't get the "
+                           "frequency to change -- result is %d setting is %d"%(result,setting))
+    def freq_int(self):
+        "return the frequency, in kHz (since it's set as an integer kHz)"
+        self.write('freq?\r')
+        return int(self.readline())
     def __enter__(self):
         self.bridge12_wait()
         return self
@@ -228,6 +258,23 @@ class Bridge12 (serial.Serial):
             self.write('wgstatus %d\r'%0)
         self.close()
         return
+
+
+# 
+
+
+with Bridge12() as b:
+    b.write('freq 9500101\r')
+    time.sleep(1)
+    b.write('freq?\r')
+    print b.readline()
+
+
+# 
+
+
+with Bridge12() as b:
+    b.set_freq(9.500401e9)
 
 
 # Print out the com ports, so we know what we're looking for
@@ -307,13 +354,47 @@ def freq_sweep(b,freq, old_code=False):
     return rxvalues, txvalues
 
 
+# 
+
+
+#edited to use set_freq function
+
+def freq_sweep(b,freq, old_code=False):
+    """sweep over an array of frequencies
+
+    Parameters
+    ==========
+    b: Bridge12 object
+        gives the connection
+    freq: array of floats
+        frequencies in Hz
+        
+    Returns
+    =======
+    rxvalues: array
+        An array of floats, same length as freq, containing the receiver (reflected) power in dBm at each frequency.
+    txvalues: array
+        An array of floats, same length as freq, containing the transmitted power in dBm at each frequency.
+    
+    """    
+    rxvalues = zeros(len(freq))
+    txvalues = zeros(len(freq))
+    #FREQUENCY AND RXPOWER SWEEP
+    for j,f in enumerate(freq):
+            generate_beep(500, 300)
+            b.set_freq(f)  #is this what I would put here (the 'f')?
+            txvalues[j] = b.txpowermv_float()
+            rxvalues[j] = b.rxpowermv_float()     
+    return rxvalues, txvalues
+
+
 # b. Run Tuning Curve
 
 # 
 
 
 x = 'tuning_curve_181126'
-freq = linspace(9.85e9,9.854e9, 100)
+freq = linspace(9.83e9,9.86e9, 100)
 
 with Bridge12() as b:
     b.set_wg(True)
@@ -321,22 +402,53 @@ with Bridge12() as b:
     b.set_rf(True)
     b.set_power(10)
     rxvalues, txvalues = freq_sweep(b, freq)
-    rxvalues_old, txvalues_old = freq_sweep(b, freq, old_code=True)
+    #rxvalues_old, txvalues_old = freq_sweep(b, freq, old_code=True)
 
 
 # 
 
 
+show_old = False
 plot(freq/1e9, rxvalues, 'o-', alpha=0.5, markersize=3, label='rx - new') #tuning curve
 plot(freq/1e9, txvalues, alpha=0.5, label='tx - new') #tuning curve
-plot(freq/1e9, rxvalues_old, 'o-', alpha=0.5, markersize=3, label='rx - old') #tuning curve
-plot(freq/1e9, txvalues_old, alpha=0.5, label='tx - old') #tuning curve
+if show_old:
+    plot(freq/1e9, rxvalues_old, 'o-', alpha=0.5, markersize=3, label='rx - old') #tuning curve
+    plot(freq/1e9, txvalues_old, alpha=0.5, label='tx - old') #tuning curve
 xlabel('frequency / GHz')
 title('tuning curve')
-ylim(-0.5,3)
+#ylim(-0.5,3)
 minorticks_on()
 grid(True, which='both', alpha=0.1, linestyle='-')
 legend(**dict(bbox_to_anchor=(1.05,1),loc=2,borderaxespad=0.))
+
+
+# 
+
+
+
+data = loadmat('TC2_10dBm_181127.mat')rx = data['rx'].flatten() #flatten the data
+freq = data['freq'].flatten()
+rx1 = rx[1:] #removes the faulty first data point at 6.8 mV
+freq1 = freq[1:] #remove first frequency to match
+md = (max(rx1)+min(rx1))/2
+
+plot(freq1, rx1)
+xlabel('Freq (Hz)')
+ylabel('Rx (mV)')
+title('Tuning Curve for Bridge 12')
+axhline(y=md) #plot a line to see the half-maximum of the tuning dip
+
+#determining where the dip crosses the rx-value md
+crossovers = diff(rx1<md) 
+halfway_idx = argwhere(diff(rx1<md))
+
+#finding the frequency values at which this occurs
+x_crossings = freq1[halfway_idx].flatten()
+plot(x_crossings,r_[md,md],'o')
+
+#printing out those values
+print x_crossings
+freq=linspace(x_crossings[0],x_crossings[1],100)
 
 
 # 
@@ -364,7 +476,16 @@ with Bridge12() as b:
 # 
 
 
-savemat(x+'.mat',{'freq':freq,'tx':txvalues,'rx':rxvalues})
+x += '_oldvnew'
+
+
+# 
+
+
+savemat(x+'.mat',{'freq':freq,
+                  'tx':txvalues,'rx':rxvalues,
+                  'tx_old':txvalues_old,'rx_old':rxvalues_old
+                 })
 
 
 # c. Load and Save the Image
@@ -375,7 +496,18 @@ savemat(x+'.mat',{'freq':freq,'tx':txvalues,'rx':rxvalues})
 a= loadmat(x+'.mat')
 
 
-# a=loadmat('tuning_curve_fixedB12_181115_zoom.mat')
+# 
+
+
+a = loadmat(x+'.mat')
+x_axis = a.pop('freq').flatten()
+for yname in a.keys():
+    if not yname[0] == '_':
+        plt.plot(x_axis,a[yname].flatten(), label=yname)
+legend(**dict(bbox_to_anchor=(1.05,1),loc=2,borderaxespad=0.))
+title(x)
+savefig(x+'.png')
+
 
 # 
 
