@@ -175,8 +175,8 @@ class Bridge12 (Serial):
         """
         if not self._inside_with_block: raise ValueError("you MUST use a with block so the error handling works well")
         setting = int(10*dBm+0.5)
-        if setting > 200:
-            raise ValueError("You are not allowed to use this function to set a power of greater than 20 dBm for safety reasons")
+        if setting > 400:
+            raise ValueError("You are not allowed to use this function to set a power of greater than 40 dBm for safety reasons")
         elif setting < 0:
             raise ValueError("Negative dBm -- not supported")
         elif setting > 100:
