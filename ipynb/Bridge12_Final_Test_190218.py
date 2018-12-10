@@ -53,13 +53,19 @@ with Bridge12() as b:
 # 
 
 
-x = '190227_Tuning_Curves_after_update_run5'
+x = '190227_Tuning_Curves_after_update_run8'
+def convert_to_power(x):
+    y = 0
+    c = r_[2.78135,25.7302,5.48909]
+    for j in range(len(c)):
+        y += c[j] * (x*1e-3)**(3-j)
+    return log10(y)*10.0+2.2
 from scipy.io import savemat, loadmat
 series_names = [j.split('_')[0] for j in tuning_curve_data.keys() if '_freq' in j]
 for this_series in series_names:
     figure(1)
     plot(tuning_curve_data[this_series+'_freq']/1e9,
-         tuning_curve_data[this_series+'_rx'],
+         convert_to_power(tuning_curve_data[this_series+'_rx']),
          'o-',
          markersize=3,
          alpha=0.5,
@@ -72,7 +78,7 @@ for this_series in series_names:
          label=this_series)
 figure(1)
 legend(**dict(bbox_to_anchor=(1.05,1),loc=2,borderaxespad=0.))
-title('Rx power (mV)')
+title('Rx power (dBm)')
 # xlim(9.8495e9,9.851e9)
 # ylim(-0.2,3)
 plt.gca().get_xaxis().get_major_formatter().set_useOffset(False)
@@ -85,7 +91,7 @@ title('Tx power (mV)')
 plt.gca().get_xaxis().get_major_formatter().set_useOffset(False)
 xticks(rotation=45)
 xlabel('freq / GHz')
-# savemat(x+'.mat',tuning_curve_data)
+savemat(x+'.mat',tuning_curve_data)
 
 
 # ## crank up the power, and then hold frequency
@@ -102,17 +108,13 @@ with Bridge12() as b:
     b.set_power(10)
     b.freq_sweep(freq)
     tuning_curve_data = b.tuning_curve_data
-    for j in range(6):
+    for j in range(9):
         tuning_curve_data = b.tuning_curve_data
         print "power currently at %f and increasing by 1 dB"%(b.cur_pwr_int/10.0)
         b.increase_power_zoom(dBm_increment=1,n_freq_steps=15)
     center_freq = tuning_curve_data[b.last_sweep_name+'_freq'].mean()
     print "setting frequency to %f GHz"%(center_freq/1e9)
     b.set_freq(center_freq)
-    print "safe rx level is currently %f mV"%(b.safe_rx_level_int/10.0)
-    new_safe_rx_level = 80
-    print "WARNING, SETTING SAFE Rx Level to %f mV"%(new_safe_rx_level/10.0)
-    b.safe_rx_level_int = new_safe_rx_level
     for j in range(19*2):
         new_power = float(b.cur_pwr_int) / 10.0 + 0.5
         print "%d increasing power to %f dBm"%(j,new_power)
