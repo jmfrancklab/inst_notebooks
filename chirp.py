@@ -35,7 +35,8 @@ with SerialInstrument('GDS-3254') as s:
 with SerialInstrument('AFG-2225') as s:
     print s.respond('*idn?')
 
-pulse_90 = False
+
+pulse_90 = True
 
 #{{{ no sys var = default (3 Vpp), 0 = define amplitudes, 1 = choose from amplitudes
 default = True
@@ -119,7 +120,8 @@ if not pulse_90: # standard chirp
 with AFG() as a:
     a.reset()
     DUT_amp = sqrt(((((ref_amp/2/sqrt(2))**2)/50)/4)*50)*2*sqrt(2)
-    for this_ch in range(2):
+    #for this_ch in range(2):
+    for this_ch in [0]:
         if pulse_90:
             a[this_ch].digital_ndarray(y,rate)
         if not pulse_90:
@@ -157,7 +159,7 @@ while try_again:
     data_name = 'capture%d'%j
     data.name(data_name)
     try:
-        data.hdf5_write('190215_LCR2.h5')
+        data.hdf5_write('190219_pulse6.h5')
         try_again = False
     except Exception as e:
         print e
