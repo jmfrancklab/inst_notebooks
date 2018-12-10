@@ -80,8 +80,8 @@ savemat(x+'.mat',tuning_curve_data)
 # 
 
 
-x = '190227_Tuning_Curves_before_update'
-power_array = r_[10:17+1:1]
+x = '190227_Tuning_Curves_after_update_run7'
+power_array = r_[11:19+1:1]
 from scipy.io import savemat, loadmat
 rpi = True
 if rpi:
@@ -154,7 +154,7 @@ def polycurve(fdata,p):
     return retval
 dB_scaling = 6.0
 #for this_series in series_names:
-for power_level in power_array[1:-5]:
+for power_level in power_array:
     dB_step = 2. # ideally, this should be smaller -- 0.5?
     # -- again, this is hard coded, but is an argument of
     # the zoom function inside the class

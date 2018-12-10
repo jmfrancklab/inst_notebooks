@@ -21,7 +21,7 @@ class Bridge12 (Serial):
         super(self.__class__, self).__init__(thisport, timeout=3, baudrate=115200)
         # this number represents the highest possible reasonable value for the
         # Rx power -- it is lowered as we observe the Tx values
-        self.safe_rx_level_int = 1700
+        self.safe_rx_level_int = 5000
         self.frq_sweep_10dBm_has_been_run = False
         self.tuning_curve_data = {}
         self._inside_with_block = False
