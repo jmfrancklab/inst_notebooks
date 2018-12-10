@@ -11,10 +11,14 @@ import time
 #a dBm_increment of 0.1 does not work but 0.5 does
 
 
+# # our basic test to see that Bridge12 behaves reasonably
+# 
+# (frequency range is appropriate when NMR probe is in cavity)
+
 # 
 
 
-freq = linspace(9.81e9,9.825e9, 100)
+freq = linspace(9.816e9,9.825e9, 100)
 with Bridge12() as b:
     b.set_wg(True)
     b.set_amp(True)
@@ -22,7 +26,8 @@ with Bridge12() as b:
     b.set_power(10)
     b.freq_sweep(freq)
     tuning_curve_data = b.tuning_curve_data
-    for j in range(7):
+    for j in range(6):
+        print "power currently at %f and increasing by 1 dB"%(b.cur_pwr_int/10.0)
         tuning_curve_data = b.tuning_curve_data
         b.increase_power_zoom(dBm_increment=1,n_freq_steps=8)
 
@@ -30,18 +35,25 @@ with Bridge12() as b:
 # 
 
 
-# check the zero point of the mV reading
+# check the zero point of the mV reading -- was giving some -0.2 mV before update
+
 with Bridge12() as b:
     time.sleep(5)
     print "power Rx",b.rxpowermv_float()
     print "power Tx",b.txpowermv_float()
+    b.write('rxdiodesn?\r')
+    print "serial number for rx serial:"
+    print b.readline()
+    b.write('txdiodesn?\r')
+    print "serial number for tx serial:"
+    print b.readline()
     time.sleep(5)
 
 
 # 
 
 
-x = '190227_Tuning_Curves_before_update_run3'
+x = '190227_Tuning_Curves_right_before_update'
 from scipy.io import savemat, loadmat
 series_names = [j.split('_')[0] for j in tuning_curve_data.keys() if '_freq' in j]
 for this_series in series_names:
