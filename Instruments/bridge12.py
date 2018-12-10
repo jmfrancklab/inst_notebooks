@@ -21,7 +21,7 @@ class Bridge12 (Serial):
         super(self.__class__, self).__init__(thisport, timeout=3, baudrate=115200)
         # this number represents the highest possible reasonable value for the
         # Rx power -- it is lowered as we observe the Tx values
-        self.safe_rx_level_int = 80
+        self.safe_rx_level_int = 1700
         self.frq_sweep_10dBm_has_been_run = False
         self.tuning_curve_data = {}
         self._inside_with_block = False
@@ -38,6 +38,7 @@ class Bridge12 (Serial):
                     break
         look_for('MPS Started')
         look_for('System Ready')
+        look_for('Synthesizer detected')
         return
     def help(self):
         self.write("help\r") #command for "help"
@@ -251,7 +252,7 @@ class Bridge12 (Serial):
         "return the frequency, in kHz (since it's set as an integer kHz)"
         self.write('freq?\r')
         return int(self.readline())
-    def freq_sweep(self,freq):
+    def freq_sweep(self,freq,dummy_readings=1):
         """Sweep over an array of frequencies.
         **Must** be run at 10 dBm the first time around; will fail otherwise.
 
@@ -278,6 +279,11 @@ class Bridge12 (Serial):
             if self.cur_pwr_int != 100:
                 raise ValueError("You must run the frequency sweep for the first time at 10 dBm")
         #FREQUENCY AND RXPOWER SWEEP
+        for j in range(dummy_readings):
+            self.set_freq(freq[0])  #is this what I would put here (the 'f')?
+            time.sleep(10e-3) # allow synthesizer to settle
+            _ = self.txpowermv_float()
+            _ = self.rxpowermv_float()
         for j,f in enumerate(freq):
             generate_beep(500, 300)
             self.set_freq(f)  #is this what I would put here (the 'f')?
@@ -289,7 +295,7 @@ class Bridge12 (Serial):
             self.frq_sweep_10dBm_has_been_run = True
             # reset the safe rx level to the top of the tuning curve at 10 dBm
             # (this is the condition where we are reflecting 10 dBm onto the Rx diode)
-            self.safe_rx_level_int = int(10*rxvalues.max())
+            #self.safe_rx_level_int = int(10*rxvalues.max())
         sweep_name = '%gdBm'%(self.cur_pwr_int/10.)
         self.tuning_curve_data[sweep_name+'_tx'] = txvalues
         self.tuning_curve_data[sweep_name+'_rx'] = rxvalues
@@ -318,6 +324,10 @@ class Bridge12 (Serial):
         freq = self.tuning_curve_data[self.last_sweep_name+'_freq']
         rx1 = rx[1:]
         rx_midpoint = 0.25*max(rx1)+0.75*min(rx1)
+        if hasattr(self,'last_rx_midpoint') and self.last_rx_midpoint > rx_midpoint:
+            rx_midpoint = self.last_rx_midpoint
+        else:
+            self.last_rx_midpoint = rx_midpoint
         # {{{ construct two lists of lists that store the contiguous blocks where frequencies are under and over, respectively, the rx midpoint
         under_midpoint = []
         over_bool = rx1 > rx_midpoint

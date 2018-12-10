@@ -29,7 +29,7 @@ with Bridge12() as b:
     for j in range(6):
         print "power currently at %f and increasing by 1 dB"%(b.cur_pwr_int/10.0)
         tuning_curve_data = b.tuning_curve_data
-        b.increase_power_zoom(dBm_increment=1,n_freq_steps=8)
+        b.increase_power_zoom(dBm_increment=1,n_freq_steps=15)
 
 
 # 
@@ -53,7 +53,7 @@ with Bridge12() as b:
 # 
 
 
-x = '190227_Tuning_Curves_right_before_update'
+x = '190227_Tuning_Curves_after_update_run5'
 from scipy.io import savemat, loadmat
 series_names = [j.split('_')[0] for j in tuning_curve_data.keys() if '_freq' in j]
 for this_series in series_names:
@@ -77,6 +77,7 @@ title('Rx power (mV)')
 # ylim(-0.2,3)
 plt.gca().get_xaxis().get_major_formatter().set_useOffset(False)
 xticks(rotation=45)
+xlim((9.82,9.821))
 xlabel('freq / GHz')
 figure(2)
 legend(**dict(bbox_to_anchor=(1.05,1),loc=2,borderaxespad=0.))
@@ -104,7 +105,7 @@ with Bridge12() as b:
     for j in range(6):
         tuning_curve_data = b.tuning_curve_data
         print "power currently at %f and increasing by 1 dB"%(b.cur_pwr_int/10.0)
-        b.increase_power_zoom(dBm_increment=1,n_freq_steps=8)
+        b.increase_power_zoom(dBm_increment=1,n_freq_steps=15)
     center_freq = tuning_curve_data[b.last_sweep_name+'_freq'].mean()
     print "setting frequency to %f GHz"%(center_freq/1e9)
     b.set_freq(center_freq)
