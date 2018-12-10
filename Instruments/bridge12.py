@@ -175,8 +175,8 @@ class Bridge12 (Serial):
         """
         if not self._inside_with_block: raise ValueError("you MUST use a with block so the error handling works well")
         setting = int(10*dBm+0.5)
-        if setting > 150:
-            raise ValueError("You are not allowed to use this function to set a power of greater than 15 dBm for safety reasons")
+        if setting > 200:
+            raise ValueError("You are not allowed to use this function to set a power of greater than 20 dBm for safety reasons")
         elif setting < 0:
             raise ValueError("Negative dBm -- not supported")
         elif setting > 100:
@@ -317,7 +317,7 @@ class Bridge12 (Serial):
         rx = self.tuning_curve_data[self.last_sweep_name+'_rx']
         freq = self.tuning_curve_data[self.last_sweep_name+'_freq']
         rx1 = rx[1:]
-        rx_midpoint = 0.5*max(rx1)+0.5*min(rx1)
+        rx_midpoint = 0.25*max(rx1)+0.75*min(rx1)
         # {{{ construct two lists of lists that store the contiguous blocks where frequencies are under and over, respectively, the rx midpoint
         under_midpoint = []
         over_bool = rx1 > rx_midpoint
