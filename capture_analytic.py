@@ -22,7 +22,7 @@ start = time.time()
 fl = figlist_var()
 
 args = sys.argv[1:]
-filename = '181212_testing_2.h5'
+filename = '181212_testing_3.h5'
 if '-f' in args:
     force_acq = True
     args.pop(args.index('-f'))
