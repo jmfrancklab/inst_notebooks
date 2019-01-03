@@ -1,3 +1,4 @@
+#!/usr/bin/python
 from nbformat import v3, v4
 import sys
 import re
