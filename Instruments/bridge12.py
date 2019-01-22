@@ -285,7 +285,7 @@ class Bridge12 (Serial):
         return rxvalues, txvalues
     # ### Need an increase_power_zoom function for zooming in on the tuning dip:
     def increase_power_zoom(self, dBm, freq):
-         """Sweep over an array of frequencies.
+         """Zoom in on freqs at half maximum of previous RX power, increase power by 3dBm, and run freq_sweep again.
         Parameters
         ==========
         s: Serial object
@@ -309,7 +309,9 @@ class Bridge12 (Serial):
         halfway_idx = argwhere(diff(rx1<md))
         x_crossings = fq1[halfway_idx].flatten()
         freq = linspace(x_crossings[0], x_crossings[1], 1000)
+        self.set_power(30+self.cur_pwr_int)#will this even work? wouldn't the current power be 0 after the first tuning curve is obtained?
         self.freq_sweep(freq)
+        #if this is good, we could make a loop to run this iteratively, zooming in and ramping up the power each time :)
     def __enter__(self):
         self.bridge12_wait()
         return self
