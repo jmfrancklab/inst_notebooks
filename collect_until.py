@@ -14,6 +14,7 @@ def collect(date,id_string,captures):
     print "about to load GDS"
     with GDS_scope() as g:
         print "loaded GDS"
+        start = time.time()
         for x in xrange(1,cap_len+1):
             print "entering capture",x
             ch1_waveform = g.waveform(ch=1)
@@ -24,6 +25,7 @@ def collect(date,id_string,captures):
                 channels.setaxis('t',data.getaxis('t')).set_units('t','s')
                 channels.setaxis('ch',data.getaxis('ch'))
             channels['capture',x-1] = data
+        end = time.time()
     # {{{ in case it pulled from an inactive channel
     if not isfinite(data.getaxis('t')[0]):
         j = 0
@@ -40,10 +42,11 @@ def collect(date,id_string,captures):
     print "name of data",s.name()
     print "units should be",s.get_units('t')
     print "shape of data",ndshape(s)
+    print "TIME:",end-start
     return
 
-date = '180630'
-id_string = 'spin_echo_exp_block5'
+date = '190201'
+id_string = 'SpinCore_pulses'
 captures = linspace(1,300,300)
 collect(date,id_string,captures) # as of now, last variable is node index
                                    # and this needs to be updated with run 
