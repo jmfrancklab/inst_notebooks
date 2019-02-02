@@ -22,7 +22,7 @@ start = time.time()
 fl = figlist_var()
 
 args = sys.argv[1:]
-filename = '181212_test_steps_2.h5'
+filename = '181214_test_5step_2.h5'
 if '-f' in args:
     force_acq = True
     args.pop(args.index('-f'))
@@ -61,7 +61,7 @@ for j,dataset in enumerate(args):
     print "type is",data.data.dtype
     fl.next('analytic signal -- abs')
     data.ift('t')
-    data *= exp(-1j*2*pi*data.fromaxis('t')*5e6)
+    data *= exp(-1j*2*pi*data.fromaxis('t')*14.46e6)
     fl.plot(abs(data['ch',0]),alpha=0.5,label=dataset)
     fl.next('analytic signal -- phase',legend=True)
     fl.plot(data['ch',0].angle/pi/2,',',alpha=0.5,label=dataset)
