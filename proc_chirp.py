@@ -14,8 +14,10 @@ for date, id_string,corrected_volt in [
         #('190208','LCR5',True),
         #('190208','LCR6',True),
         #('190208','LCR7',True),
-        ('190212','LCR1',True),
-        ('190212','LCR2',True),
+        #('190212','LCR1',True),
+        #('190212','LCR2',True),
+        ('190215','LCR1',True),
+        ('190215','LCR2',True),
         ]:
     #{{{ finding file
     try:
