@@ -180,13 +180,16 @@ class Bridge12 (Serial):
             if setting > 30+self.cur_pwr_int: 
                 raise RuntimeError("Once you are above 10 dBm, you must raise the power in MAX 3 dB increments.  The power is currently %g, and you tried to set it to %g -- this is not allowed!"%(self.cur_pwr_int/10.,setting/10.))
         self.write('power %d\r'%setting)
+        self.rxpowermv_int_singletry() # doing this just for safety interlock
         for j in range(10):
             result = self.power_int()
+            self.rxpowermv_int_singletry() # doing this just for safety interlock
             if result == setting:
                 self.cur_pwr_int = result
                 return
         raise RuntimeError("After checking status 10 times, I can't get the power to change")
     def rxpowermv_int_singletry(self):
+        """read the integer value for the Rx power (which is 10* the value in mV).  Also has a software interlock so that if the Rx power ever exceeds self.safe_rx_level_int, then the amp shuts down."""
         self.write('rxpowermv?\r')
         retval = self.readline()
         retval = int(retval)
@@ -276,11 +279,7 @@ class Bridge12 (Serial):
             txvalues[j] = self.txpowermv_float()
             # here is where I include the rxpower safety: is this a good spot, or should I include it right before the return function? 
             # I put it here so that if any of the values are too high WHILE reading, it will immediately turn off.
-            if self.rxpowermv_float() < (self.txpowermv_float()/1.2): 
-                rxvalues[j] = self.rxpowermv_float()
-            else:                     
-                self.safe_shutdown()
-                raise RuntimeError("Ratio of Rxpower to Txpower is too high!!!"),
+            rxvalues[j] = self.rxpowermv_float()
         if self.cur_pwr_int == 100:
             self.frq_sweep_10dBm_has_been_run = True
             # reset the safe rx level to the top of the tuning curve at 10 dBm
