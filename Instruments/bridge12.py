@@ -18,6 +18,7 @@ class Bridge12 (Serial):
         # Rx power -- it is lowered as we observe the Tx values
         self.safe_rx_level_int = 80
         self.frq_sweep_10dBm_has_been_run = False
+        self.tuning_curve_data = {}
     def bridge12_wait(self):
         #time.sleep(5)
         def look_for(this_str):
@@ -171,21 +172,24 @@ class Bridge12 (Serial):
             raise ValueError("You are not allowed to use this function to set a power of greater than 15 dBm for safety reasons")
         elif setting < 0:
             raise ValueError("Negative dBm -- not supported")
-        elif setting >= 100:
+        elif setting > 100:
             if not self.frq_sweep_10dBm_has_been_run:
                 raise RuntimeError("Before you try to set the power above 10 dBm, you must first run a tuning curve at 10 dBm!!!")
             if not hasattr(self,'cur_pwr_int'):
                 raise RuntimeError("Before you try to set the power above 10 dBm, you must first set a lower power!!!")
             if setting > 30+self.cur_pwr_int: 
-                raise RuntimeError("Cannot raise power by this much! We are over 10dBm.")
+                raise RuntimeError("Once you are above 10 dBm, you must raise the power in MAX 3 dB increments.  The power is currently %g, and you tried to set it to %g -- this is not allowed!"%(self.cur_pwr_int/10.,setting/10.))
         self.write('power %d\r'%setting)
+        self.rxpowermv_int_singletry() # doing this just for safety interlock
         for j in range(10):
             result = self.power_int()
+            self.rxpowermv_int_singletry() # doing this just for safety interlock
             if result == setting:
                 self.cur_pwr_int = result
                 return
         raise RuntimeError("After checking status 10 times, I can't get the power to change")
     def rxpowermv_int_singletry(self):
+        """read the integer value for the Rx power (which is 10* the value in mV).  Also has a software interlock so that if the Rx power ever exceeds self.safe_rx_level_int, then the amp shuts down."""
         self.write('rxpowermv?\r')
         retval = self.readline()
         retval = int(retval)
@@ -243,8 +247,11 @@ class Bridge12 (Serial):
         return int(self.readline())
     def freq_sweep(self,freq):
         """Sweep over an array of frequencies.
+        **Must** be run at 10 dBm the first time around; will fail otherwise.
 
-        Also includes a safety for the return power. 
+        Add arrays to the `self.tuning_curve_data` dictionary,
+        stored with keys XXXdBm_rx XXXdBm_tx and XXXdBm_freq
+        which store the tuning curve data.
 
         Parameters
         ==========
@@ -272,24 +279,23 @@ class Bridge12 (Serial):
             txvalues[j] = self.txpowermv_float()
             # here is where I include the rxpower safety: is this a good spot, or should I include it right before the return function? 
             # I put it here so that if any of the values are too high WHILE reading, it will immediately turn off.
-            if self.rxpowermv_float() < (self.txpowermv_float()/1.2): 
-                rxvalues[j] = self.rxpowermv_float()
-            else:                     
-                self.safe_shutdown()
-                raise RuntimeError("Ratio of Rxpower to Txpower is too high!!!"),
+            rxvalues[j] = self.rxpowermv_float()
         if self.cur_pwr_int == 100:
             self.frq_sweep_10dBm_has_been_run = True
             # reset the safe rx level to the top of the tuning curve at 10 dBm
             # (this is the condition where we are reflecting 10 dBm onto the Rx diode)
             self.safe_rx_level_int = int(10*rxvalues.max())
+        sweep_name = '%gdBm'%(self.cur_pwr_int)
+        self.tuning_curve_data[sweep_name+'_tx'] = txvalues
+        self.tuning_curve_data[sweep_name+'_rx'] = rxvalues
+        self.tuning_curve_data[sweep_name+'_freq'] = freq
+        self.last_sweep_name = sweep_name
         return rxvalues, txvalues
     # ### Need an increase_power_zoom function for zooming in on the tuning dip:
-    def increase_power_zoom(self, dBm, freq):
+    def increase_power_zoom(self, dBm_increment = 3, n_freq_steps = 1000):
          """Zoom in on freqs at half maximum of previous RX power, increase power by 3dBm, and run freq_sweep again.
         Parameters
         ==========
-        s: Serial object
-            gives the connection
         dBm: power value in dBm
         freq: array of floats
             frequencies in Hz
@@ -300,17 +306,30 @@ class Bridge12 (Serial):
         txvalues: array
             An array of floats, same length as freq, containing the transmitted power in dBm at each frequency.
         """    
-        rx = ['rx'].flatten()
-        fq = ['freq'].flatten
+        assert self.frq_sweep_10dBm_has_been_run, "You're trying to run increase_power_zoom before you ran a frequency sweep at 10 dBm -- something is wonky!!!"
+        rx = self.tuning_curve_data[self.last_sweep_name+'_rx']
         rx1 = rx[1:]
-        fq1 = fq[1:]
-        md = (max(rx1)+min(rx1))/2
-        crossovers = diff(rx1<md)
-        halfway_idx = argwhere(diff(rx1<md))
-        x_crossings = fq1[halfway_idx].flatten()
-        freq = linspace(x_crossings[0], x_crossings[1], 1000)
-        self.set_power(30+self.cur_pwr_int)#will this even work? wouldn't the current power be 0 after the first tuning curve is obtained?
-        self.freq_sweep(freq)
+        rx_midpoint = (max(rx1)+min(rx1))/2.
+        # {{{ construct two lists of lists that store the contiguous blocks where frequencies are under and over, respectively, the rx midpoint
+        assert rx1[0] > rx_midpoint, "the first point has an Rx value that's lower than the midpoint -- can't do this"
+        under_midpoint = []
+        over_bool = rx1 > rx_midpoint
+        currently_over = True
+        for j,val in enumerate(over_bool):
+            if currently_over:
+                if not val:
+                    start_under = j
+                    currently_over = False
+            else:
+                if val:
+                    under_midpoint.append([start_under,j])
+                    currently_over = True
+        longest_under_range = diff(array(under_midpoint),axis=0).argmax()
+        start_idx,stop_idx = array(under_midpoint[longest_under_range])+1 # for where the dip is underneath the midpoint
+        # }}}
+        freq = linspace(freq[start_idx], freq[stop_idx],1000 )
+        self.set_power(dBm_increment+self.cur_pwr_int/10.)#will this even work? wouldn't the current power be 0 after the first tuning curve is obtained?
+        return self.freq_sweep(freq)
         #if this is good, we could make a loop to run this iteratively, zooming in and ramping up the power each time :)
     def __enter__(self):
         self.bridge12_wait()
