@@ -16,8 +16,21 @@ for date, id_string,corrected_volt in [
         #('190208','LCR7',True),
         #('190212','LCR1',True),
         #('190212','LCR2',True),
-        ('190215','LCR1',True),
-        ('190215','LCR2',True),
+        #('190215','LCR1',True),
+        #('190215','LCR2',True),
+        #('190215','probe',True),
+        ##('190218','LCR2',True),
+        ##('190218','LCR3',True),
+        ##('190218','LCR4',True),
+        ##('190218','LCR5',True),
+        ##('190218','LCR6',True),
+        ##('190218','LCR7',True),
+        ##('190218','LCR8',True),
+        ('190218','LCR9',True),
+        ('190218','LCR10',True),
+        ('190218','LCR11',True),
+        ('190218','LCR12',True),
+        ('190218','LCR13',True),
         ]:
     #{{{ finding file
     try:
@@ -43,9 +56,9 @@ for date, id_string,corrected_volt in [
         pulse_90 = False
     d.set_units('t','s')
     d.name('Amplitude $/$ $V$')
-    for ch_no in xrange(2):
-        fl.next('plot ch %d %s'%(ch_no,id_string))
-        fl.plot(d['ch',ch_no],alpha=0.6,label='raw data')
+    #for ch_no in xrange(2):
+    #    fl.next('plot ch %d %s'%(ch_no,id_string))
+    #    fl.plot(d['ch',ch_no],alpha=0.6,label='raw data')
     d.ft('t',shift=True)
     d = d['t':(0,100e6)] # throw out negative frequencies and low-pass
     d.reorder('ch', first=False) # move ch dimension last
@@ -58,9 +71,9 @@ for date, id_string,corrected_volt in [
     ranges = ranges[0,:].tolist()
     print 'Slicing chirp for',id_string,'from',ranges[0]*1e6,'to',ranges[1]*1e6,'us...'
     d = d['t':tuple(ranges)]
-    for ch_no in xrange(2):
-        fl.next('plot ch %d %s'%(ch_no,id_string))
-        fl.plot(d['ch',ch_no],':',alpha=0.9,label='processed')
+    #for ch_no in xrange(2):
+    #    fl.next('plot ch %d %s'%(ch_no,id_string))
+    #    fl.plot(d['ch',ch_no],':',alpha=0.9,label='processed')
     label=id_string
     d.setaxis('t', lambda x: x-d.getaxis('t')[0])
     if not pulse_90:
