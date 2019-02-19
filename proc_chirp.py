@@ -26,11 +26,15 @@ for date, id_string,corrected_volt in [
         ##('190218','LCR6',True),
         ##('190218','LCR7',True),
         ##('190218','LCR8',True),
-        ('190218','LCR9',True),
-        ('190218','LCR10',True),
-        ('190218','LCR11',True),
+        #('190218','LCR9',True),
+        #('190218','LCR10',True),
+        #('190218','LCR11',True),
         ('190218','LCR12',True),
         ('190218','LCR13',True),
+        ('190219','LCR',True),
+        ('190219','LCR2',True),
+        ('190219','LCR3',True),
+        ('190219','LCR4',True),
         ]:
     #{{{ finding file
     try:
@@ -50,6 +54,10 @@ for date, id_string,corrected_volt in [
             d = nddata_hdf5(date+'_'+id_string+'.h5/capture1',
                         directory=getDATADIR(exp_type='test_equip'))
             #}}}
+    if 'LCR12' in id_string:
+        id_string = 'Max C$_{tune}$'
+    if 'LCR13' in id_string:
+        id_string = 'Min C$_{tune}$'
     if 'pulse' in id_string:
         pulse_90 = True
     else :
