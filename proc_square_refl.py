@@ -15,14 +15,19 @@ for date, id_string,corrected_volt in [
         #('181001','sprobe_t2',True),
         #('181001','sprobe_t4',True),
         #('181103','probe',True),
-        ('181107','probe',True),
+        #('181107','probe',True),
+        #('190219','pulse1',True),
+        #('190219','pulse2',True),
+        #('190219','pulse3',True),
+        #('190219','pulse4',True),
+        ('190219','pulse5',True),
         ]:
     d = nddata_hdf5(date+'_'+id_string+'.h5/capture1',
                 directory=getDATADIR(exp_type='test_equip'))
     d.set_units('t','s')
     d.name('Amplitude $/$ $V$')
     fl.next('Raw signal')
-    fl.plot(d['ch',0],alpha=0.5,label='control')
+    #fl.plot(d['ch',0],alpha=0.5,label='control')
     fl.plot(d['ch',1],alpha=0.5,label='reflection')
     # {{{ find the analytic signal
     d.ft('t',shift=True)
@@ -36,7 +41,7 @@ for date, id_string,corrected_volt in [
     # see PEP-8 https://www.python.org/dev/peps/pep-0008/#other-recommendations
     decay = abs(d['ch',1]).C
     fl.next('Analytic signal')
-    fl.plot(abs(d['ch',0]), alpha=0.5, label='control')
+    #fl.plot(abs(d['ch',0]), alpha=0.5, label='control')
     fl.plot(abs(d['ch',1]), alpha=0.5, label='reflection')
     # guess the start of the pulse
     ranges = abs(d['ch',0]).contiguous(lambda x:
