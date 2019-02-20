@@ -116,12 +116,19 @@ for date,id_string,numchan,gain_factor in [
         #('180926','noise_probe_TXD',2,gain_factor_new),
         #('180926','noise_probe_TXD_ENI_off',2,gain_factor_new),
         #('180926','noise_probe_TXD_ENI_on',2,gain_factor_new),
-        #('180926','noise_probe_TXD_ENI_Magnet',2,gain_factor_new),
+        ('180926','noise_probe_TXD_ENI_Magnet',2,gain_factor_new),
         #('180710','spectrometer_noise_AFG',2,gain_factor_new),
         #('180710','spectrometer_noise_AFG_magnet',2,gain_factor_new),
         #('180710','spectrometer_noise_AFG_smagnet',2,gain_factor_new),
         #('181107','SpinCore_HahnEcho',2,1.0),
-        ('181107','SpinCore_HahnEcho_2',2,1.0),
+        #('181107','SpinCore_HahnEcho_2',2,1.0),
+        ('190219','DNP_probe',1,1.0),
+        ('190219','DNP_probe_DPX_LNA',1,gain_factor_new),
+        ('190219','DNP_probe_ENI_off',1,gain_factor_new),
+        ('190219','DNP_probe_ENI_on',1,gain_factor_new),
+        ('190219','DNP_probe_ENI_mag',1,gain_factor_new),
+        ('190219','DNP_probe2_mag',1,gain_factor_new),
+        ('190219','DNP_probe2_ENI_mag',1,gain_factor_new),
     ]:
     # }}}
     # {{{ plot labels
