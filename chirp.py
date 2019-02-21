@@ -120,7 +120,8 @@ if not pulse_90: # standard chirp
 with AFG() as a:
     a.reset()
     DUT_amp = sqrt(((((ref_amp/2/sqrt(2))**2)/50)/4)*50)*2*sqrt(2)
-    for this_ch in range(2):
+    #for this_ch in range(2):
+    for this_ch in [0]:
         if pulse_90:
             a[this_ch].digital_ndarray(y,rate)
         if not pulse_90:
