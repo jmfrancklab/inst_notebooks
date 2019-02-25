@@ -101,6 +101,7 @@ power_dens_CH2_dict = {}
 # {{{ call files
 for date,id_string,numchan,gain_factor in [
         #('180710','spectrometer_noise_50ohm',2,gain_factor_new),
+        ('180710','spectrometer_noise_AFG_smagnet',2,gain_factor_new),
         #('180926','noise_probe',2,gain_factor_new),
         #('180927','noise_probe_Magnet',2,gain_factor_new),
         #('180927','noise_probe_TXD_ENI_Magnet',2,gain_factor_new),
@@ -111,7 +112,7 @@ for date,id_string,numchan,gain_factor in [
         #('181001','noise_probe_magnet_ENI_3',2,gain_factor_new), # 10 us/div
         #('181001','noise_spec_1',2,gain_factor_new), # 10 us/div
         #('181001','noise_spec_2',2,gain_factor_new), # 20 us/div
-        #('181103','noise_spec',2,gain_factor_new), # 20 us/div
+        ('181103','noise_spec',2,gain_factor_new), # 20 us/div
         #('181103','noise_spec_TL',2,gain_factor_new), # 20 us/div
         #('180926','noise_probe_TXD',2,gain_factor_new),
         #('180926','noise_probe_TXD_ENI_off',2,gain_factor_new),
@@ -134,9 +135,9 @@ for date,id_string,numchan,gain_factor in [
         #('190220','probev2_noTL_2',1,gain_factor_new),
         #('190220','probev2_ENI',1,gain_factor_new),
         #('190220','probev2_ENI_2',1,gain_factor_new),
-        ('190220','probev2_ENI_3',1,gain_factor_new),
-        ('190220','probev2_SC',1,gain_factor_new),
-        ('190220','probev2_magoff',1,gain_factor_new),
+        #('190220','probev2_ENI_3',1,gain_factor_new),
+        #('190220','probev2_SC',1,gain_factor_new),
+        #('190220','probev2_magoff',1,gain_factor_new),
         #('190220','probev2_magon',1,gain_factor_new),
         #('190220','probev2_magon_2',1,gain_factor_new),
         #('190220','probev2A_magoff',1,gain_factor_new),
@@ -170,7 +171,8 @@ for date,id_string,numchan,gain_factor in [
     probe2 = True
     if probe2:
         if 'probev2D_magon' in id_string:
-            label = 'spectrometer (EPR system on, DC on) probe v2.0'
+            #label = 'spectrometer (EPR system on, DC on) probe v2.0'
+            label = 'spectrometer noise, probe v2.0'
         if 'ENI' in id_string:
             label = r'50$\Omega$ input to ENI, probe v2.0'
         if 'SC' in id_string:
@@ -182,7 +184,8 @@ for date,id_string,numchan,gain_factor in [
     plot_labels = True
     if plot_labels:
         if '_smagnet' in id_string:
-            label = 'spectrometer, AFG, magnet, sample'
+            #label = 'spectrometer, AFG, magnet, sample'
+            label = 'spectrometer noise, probe v1.0'
         elif '_magnet' in id_string:
             label = 'spectrometer, AFG, magnet'
         elif 'spectrometer_noise_AFG' in id_string:
@@ -198,7 +201,8 @@ for date,id_string,numchan,gain_factor in [
         elif 'noise_probe' in id_string:
             label = 'Probe v1.5: 50$\Omega$ input'
         elif 'noise_spec' in id_string:
-            label = 'full spectrometer, probe v1.5'
+            #label = 'full spectrometer, probe v1.5'
+            label = 'spectrometer noise, probe v1.5'
         #{{{ plotting parameters -- for older files
         #{{{ plotting AFG waveform, attn, power splitter, with low pass filter
         elif id_string == 'control_SE':
@@ -340,7 +344,7 @@ for date,id_string,numchan,gain_factor in [
                 fl.plot(u['ch',0],alpha=0.35,label='%s'%label,plottype='semilogy')
                 #axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
                 if filtering:
-                    fl.next('Digitally-Filtered Network Noise Power Spectral Density, Input-referred ($\sigma$=%0.3f kHz)'%(width*1e-3))
+                    fl.next('Digitally-Filtered Network Noise Power Spectral Density,\n Input-referred ($\sigma$=%0.3f kHz)'%(width*1e-3))
                     u_filt.name('${S_{xx}(\\nu)}/{k_{B}T}$')
                     fl.plot(u_filt['ch',0]['t':(None,49e6)],alpha=0.35,label='%s'%label,plottype='semilogy')
                     #axhline(y=k_B*T/1e-12, linestyle=':', alpha=0.5, color='purple') # 1e-12 b/c the axis is given in pW
