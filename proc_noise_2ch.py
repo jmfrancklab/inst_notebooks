@@ -111,7 +111,7 @@ for date,id_string,numchan,gain_factor in [
         #('181001','noise_probe_magnet_ENI_3',2,gain_factor_new), # 10 us/div
         #('181001','noise_spec_1',2,gain_factor_new), # 10 us/div
         #('181001','noise_spec_2',2,gain_factor_new), # 20 us/div
-        #('181103','noise_spec',2,gain_factor_new), # 20 us/div
+        ('181103','noise_spec',2,gain_factor_new), # 20 us/div
         #('181103','noise_spec_TL',2,gain_factor_new), # 20 us/div
         #('180926','noise_probe_TXD',2,gain_factor_new),
         #('180926','noise_probe_TXD_ENI_off',2,gain_factor_new),
@@ -134,9 +134,9 @@ for date,id_string,numchan,gain_factor in [
         #('190220','probev2_noTL_2',1,gain_factor_new),
         #('190220','probev2_ENI',1,gain_factor_new),
         #('190220','probev2_ENI_2',1,gain_factor_new),
-        ('190220','probev2_ENI_3',1,gain_factor_new),
-        ('190220','probev2_SC',1,gain_factor_new),
-        ('190220','probev2_magoff',1,gain_factor_new),
+        #('190220','probev2_ENI_3',1,gain_factor_new),
+        #('190220','probev2_SC',1,gain_factor_new),
+        #('190220','probev2_magoff',1,gain_factor_new),
         #('190220','probev2_magon',1,gain_factor_new),
         #('190220','probev2_magon_2',1,gain_factor_new),
         #('190220','probev2A_magoff',1,gain_factor_new),
@@ -147,21 +147,21 @@ for date,id_string,numchan,gain_factor in [
         #('190220','probev2C_magon',1,gain_factor_new),
         #('190220','probev2C_magon_2',1,gain_factor_new),
         #('190220','probev2D_magoff',1,gain_factor_new),
-        ('190220','probev2D_magon',1,gain_factor_new),
-        #('190220','probev2D_magon_2',1,gain_factor_new),
+        #('190220','probev2D_magon',1,gain_factor_new),
+        ('190220','probev2D_magon_2',1,gain_factor_new),
         #('190220','probev2B_ENI_1',1,gain_factor_new),
         #('190220','probev2B_ENI_2',1,gain_factor_new),
         #('190220','probev2B_ENI_3',1,gain_factor_new),
         #('190220','probev2B_SC',1,gain_factor_new),
         #('190220','probev2B_magoff',1,gain_factor_new),
         #('190220','probev2B_magon',1,gain_factor_new),
-        #('190220','probev2B_magon_2',1,gain_factor_new),
+        ('190220','probev2B_magon_2',1,gain_factor_new),
         #('190221','probev2',2,gain_factor_new), #50 mV/div, CH2 200 mV
         #('190221','probev2_1',2,gain_factor_new), #50 mV/div, CH2 200 mV
         #('190221','probev2_2',2,gain_factor_new), #10 mV/div, CH2 200 mV
         #('190221','probev2_3',2,gain_factor_new), #20 mV/div, CH2 200 mV
         #('190221','probev2_6',2,gain_factor_new), #20 mV/div, CH2 200 mV
-        ('190221','probev2_7',2,gain_factor_new), #20 mV/div, CH2 200 mV
+        #('190221','probev2_7',2,gain_factor_new), #20 mV/div, CH2 200 mV
     ]:
     # }}}
     # {{{ plot labels
@@ -170,7 +170,8 @@ for date,id_string,numchan,gain_factor in [
     probe2 = True
     if probe2:
         if 'probev2D_magon' in id_string:
-            label = 'spectrometer (EPR system on, DC on) probe v2.0'
+            #label = 'spectrometer (EPR system on, DC on) probe v2.0'
+            label = 'full spectrometer, probe v2.0'
         if 'ENI' in id_string:
             label = r'50$\Omega$ input to ENI, probev2.0'
         if 'SC' in id_string:
@@ -178,7 +179,7 @@ for date,id_string,numchan,gain_factor in [
         if 'magoff' in id_string:
             label = 'spectrometer, EPR system on, DC off, probe v2.0'
         if 'probev2B_magon' in id_string:
-            label = 'spectrometer, probe v2.0 detached from cavity'
+            label = 'full spectrometer, probe v2.0 detached from cavity'
     plot_labels = True
     if plot_labels:
         if '_smagnet' in id_string:
@@ -328,34 +329,37 @@ for date,id_string,numchan,gain_factor in [
     #}}}
     if not integration:
             if not plot_params:
+                s /= k_B*T
+                u /= k_B*T
+                u_filt /= k_B*T
                 fl.next('Network Noise Power Spectral Density (Input-referred) (convolution = %0.1e Hz)'%width)
-                s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
+                s.name('${S_{xx}(\\nu)}/{k_{B}T}$')
                 fl.plot(s['ch',0],alpha=0.35,label='%s'%label,plottype='semilogy')
-                axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
+                #axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
                 fl.next('Network Noise Power Spectral Density, Input-referred')
-                u.name('$S_{xx}(\\nu)$').set_units('W/Hz')
+                u.name('${S_{xx}(\\nu)}/{k_{B}T}$')
                 fl.plot(u['ch',0],alpha=0.35,label='%s'%label,plottype='semilogy')
-                axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
+                #axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
                 if filtering:
                     fl.next('Digitally-Filtered Network Noise Power Spectral Density, Input-referred ($\sigma$=%0.3f kHz)'%(width*1e-3))
-                    u_filt.name('$S_{xx}(\\nu)$').set_units('W/Hz')
+                    u_filt.name('${S_{xx}(\\nu)}/{k_{B}T}$')
                     fl.plot(u_filt['ch',0]['t':(None,49e6)],alpha=0.35,label='%s'%label,plottype='semilogy')
-                    axhline(y=k_B*T/1e-12, linestyle=':', alpha=0.5, color='purple') # 1e-12 b/c the axis is given in pW
-                    axvline(14.46, linestyle=':', alpha=0.5, c='k')
+                    #axhline(y=k_B*T/1e-12, linestyle=':', alpha=0.5, color='purple') # 1e-12 b/c the axis is given in pW
+                    #axvline(14.46, linestyle=':', alpha=0.5, c='k')
             if plot_params:
                 fl.next('Network Noise Power Spectral Density (Input-referred) (convolution = %0.1e Hz)'%width)
-                s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
+                s.name('${S_{xx}(\\nu)}/{k_{B}T}$')
                 fl.plot(s['ch',0],**plot_params)
-                axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
+                #axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
                 fl.next('Network Noise Power Spectral Density, Input-referred')
-                u.name('$S_{xx}(\\nu)$').set_units('W/Hz')
+                u.name('${S_{xx}(\\nu)}/{k_{B}T}$')
                 fl.plot(u['ch',0],**plot_params)
-                axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
+                #axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
                 if filtering:
                     fl.next('Digitally-Filtered Network Noise Power Spectral Density, Input-referred')
-                    u_filt.name('$S_{xx}(\\nu)$').set_units('W/Hz')
+                    u_filt.name('${S_{xx}(\\nu)}/{k_{B}T}$')
                     fl.plot(u_filt['ch',0]**plot_params)
-                    axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
+                    #axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
             #}}}
     #{{{ processing with integration over frequency bands
     if integration:
