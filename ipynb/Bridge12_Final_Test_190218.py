@@ -6,7 +6,7 @@
 
 get_ipython().magic(u'pylab inline')
 sys.path.append('..')
-from cycler import cycler # if needed, pip install cycler
+from itertools import cycle
 from Instruments.bridge12 import Bridge12
 #a dBm_increment of 0.1 does not work but 0.5 does
 
@@ -73,10 +73,13 @@ title('Tx power (mV)')
 savemat(x+'.mat',tuning_curve_data)
 
 
+# # working with pre-saved data
+# 
+# this is for loading from the bruker computer
+
 # 
 
 
-# this is for loading from the bruker computer
 x = '190222_Tuning_Curves_success'
 from scipy.io import savemat, loadmat
 tuning_curve_data = loadmat('/home/xuser/Downloads/Sams_Downloads/190222_Tuning_Curves4.mat')
@@ -119,6 +122,13 @@ xlim(9.8511e9,9.8515e9)
 # Now we see if we can polynomial fit these guys.
 # 
 # We can, and also assuming the voltage reading is similar to power, we can predict the next curve up somewhat reasonably, *until* we hit a 22 dBm, and then the power read at the center of the dip is much higher than expected.
+# 
+# #### A note on the dB scaling parameter
+# this is set empirically, so our prediction is ideally higher than
+# the actual Rx voltage we see when we increase the power
+# if Rx voltage were proportional to power, and Rx Voltage only changed in response to power,
+# this should theoretically be 10.0; if Rx Voltage were proportional to incident voltage,
+# this would be 20.0
 
 # 
 
@@ -137,6 +147,7 @@ def polycurve(fdata,p):
         retval += c * fdata**currorder
         currorder -= 1
     return retval
+dB_scaling = 6.0
 #for this_series in series_names:
 for power_level in r_[12:26:2]:
     dB_step = 2. # ideally, this should be smaller -- 0.5?
@@ -153,7 +164,7 @@ for power_level in r_[12:26:2]:
     p = polyfit(fdata,rxdata,2)
     c,b,a = p
     print "for power level %g, center frequency is %g"%(power_level,-b/2/c)
-    a,b,c = p * 10**(dB_step/10.0) # quadratic equation to predict next power up
+    a,b,c = p * 10**(dB_step/dB_scaling) # quadratic equation to predict next power up
     c -= 0.5*safe_voltage # want quadratic equation where it intercepts the safe voltage
     intercepts = (-b+r_[-sqrt(b**2-4*a*c),sqrt(b**2-4*a*c)])/2/a
     # VERY IMPORTANT: not allowed to *increase* the range in frequencies, ever
@@ -177,19 +188,19 @@ for power_level in r_[12:26:2]:
          color=thiscolor,
          alpha=0.5)
     plot(fdata_smooth/1e9,
-         polycurve(fdata_smooth,p)*10**(dB_step/10.),
+         polycurve(fdata_smooth,p)*10**(dB_step/dB_scaling),
          '--',
          color=thisnextcolor,
          alpha=0.5,
          label='at %f predict %f'%(power_level,power_level+dB_step))
     plot(intercepts/1e9,
-         polycurve(intercepts,p)*10**(dB_step/10.),
+         polycurve(intercepts,p)*10**(dB_step/dB_scaling),
          'x',
          color=thisnextcolor,
          alpha=0.5,
          label='at %f in.cep. for %f'%(power_level,power_level+dB_step))
     plot(fdata_smooth/1e9,
-         polycurve(fdata_smooth,p)*10**(2*dB_step/10.),
+         polycurve(fdata_smooth,p)*10**(2*dB_step/dB_scaling),
          '-.',
          color=thisafternextcolor,
          alpha=0.5,
