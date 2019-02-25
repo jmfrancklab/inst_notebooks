@@ -100,8 +100,10 @@ power_dens_CH2_dict = {}
 
 # {{{ call files
 for date,id_string,numchan,gain_factor in [
+        ('180601','noise_pomona_dpx_cascade12_2CH',2,gain_factor_casc12),
+        ('180530','noise_dpx_cascade12_2CH',2,gain_factor_casc12),
         #('180710','spectrometer_noise_50ohm',2,gain_factor_new),
-        ('180710','spectrometer_noise_AFG_smagnet',2,gain_factor_new),
+        #('180710','spectrometer_noise_AFG_smagnet',2,gain_factor_new),
         #('180926','noise_probe',2,gain_factor_new),
         #('180927','noise_probe_Magnet',2,gain_factor_new),
         #('180927','noise_probe_TXD_ENI_Magnet',2,gain_factor_new),
@@ -112,7 +114,7 @@ for date,id_string,numchan,gain_factor in [
         #('181001','noise_probe_magnet_ENI_3',2,gain_factor_new), # 10 us/div
         #('181001','noise_spec_1',2,gain_factor_new), # 10 us/div
         #('181001','noise_spec_2',2,gain_factor_new), # 20 us/div
-        ('181103','noise_spec',2,gain_factor_new), # 20 us/div
+        #('181103','noise_spec',2,gain_factor_new), # 20 us/div
         #('181103','noise_spec_TL',2,gain_factor_new), # 20 us/div
         #('180926','noise_probe_TXD',2,gain_factor_new),
         #('180926','noise_probe_TXD_ENI_off',2,gain_factor_new),
@@ -148,7 +150,7 @@ for date,id_string,numchan,gain_factor in [
         #('190220','probev2C_magon',1,gain_factor_new),
         #('190220','probev2C_magon_2',1,gain_factor_new),
         #('190220','probev2D_magoff',1,gain_factor_new),
-        ('190220','probev2D_magon',1,gain_factor_new),
+        #('190220','probev2D_magon',1,gain_factor_new),
         #('190220','probev2D_magon_2',1,gain_factor_new),
         #('190220','probev2B_ENI_1',1,gain_factor_new),
         #('190220','probev2B_ENI_2',1,gain_factor_new),
@@ -341,7 +343,7 @@ for date,id_string,numchan,gain_factor in [
                 #axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
                 fl.next('Network Noise Power Spectral Density, Input-referred')
                 u.name('${S_{xx}(\\nu)}/{k_{B}T}$')
-                fl.plot(u['ch',0],alpha=0.35,label='%s'%label,plottype='semilogy')
+                fl.plot(u['ch',0],alpha=0.35,plottype='semilogy')
                 #axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
                 if filtering:
                     fl.next('Digitally-Filtered Network Noise Power Spectral Density,\n Input-referred ($\sigma$=%0.3f kHz)'%(width*1e-3))
