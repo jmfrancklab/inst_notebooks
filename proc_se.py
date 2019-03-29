@@ -30,7 +30,7 @@ for date,id_string,numchan,indirect_range in [
         #('180724','90_nutation',2,linspace(1e-6,50e-6,25)) # use -w 60e-6
         #('180725','90_nutation',2,linspace(1e-6,30e-6,30)) # use -w 60e-6
         #('180725','90_nutation_focused',2,linspace(6e-6,9e-6,30))
-        #('180725','SE',2,None) # 3 cycles, 2x GDS avg, B0 = 3407.32 G, t90 = 7.45e-6 s
+        ('180725','SE',2,None) # 3 cycles, 2x GDS avg, B0 = 3407.32 G, t90 = 7.45e-6 s
         #('180928','SE_1',2,None) # Duplicate of below, but this contains glitch 
         #('180928','SE_2',2,None) # 1 cycles, 2x GDS avg, B0 = 3406.0 G, t90 = 1.06e-6 s 
         #('180928','SE_3',2,None) # 2 cycles, 2x GDS avg, B0 = 3406.0 G, t90 = 1.06e-6 s
@@ -59,7 +59,6 @@ for date,id_string,numchan,indirect_range in [
         #('181103','spin_echo_11',2,None) # spin echo, B0 = 3409
         #('181103','spin_echo_12',2,None) # spin echo, B0 = 3409
         #('181107','spin_echo',2,None) # spin echo, B0 = 3409
-        ('181109','spin_echo',2,None) # spin echo, B0 = 3409
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
@@ -255,10 +254,23 @@ for date,id_string,numchan,indirect_range in [
     fl.next('coherence, sig ch, t domain')
     fl.image(analytic['ch',0])
     fl.next('coherence, sig ch, t slice')
-    fl.image(analytic['ch',0]['t':(95e-6,None)])
+    fl.image(analytic['ch',0]['t':(106e-6,None)])
+    analytic.name('Amplitude')
+    fl.next('signal tests')
+    fl.plot(analytic['ch',0]['ph1',1]['ph2',0].imag,alpha=0.6)
+    #fl.plot(analytic['ch',0]['ph1',0]['ph2',1].imag,alpha=0.6)
+    #fl.plot(analytic['ch',0]['ph1',-1]['ph2',0].imag,alpha=0.6)
+    fl.show();quit()
+    not_pc = analytic.C
+    not_pc.ft(['ph1','ph2'])
+    not_pc = not_pc['ch',0]['ph1',0]['ph2',0].C
+    fl.next('signal')
+    fl.plot((not_pc.imag))
     analytic = analytic['ch',0]['ph1',1]['ph2',0] # pulling signal
+    fl.plot((analytic.imag))
+    fl.show();quit()
     analytic.name('Amplitude (Input-referred)')
-    analytic = analytic['t':(95e-6,None)]
+    analytic = analytic['t':(106e-6,None)]
     if not is_nutation:
         fl.next('Signal, time domain')
         fl.plot(analytic.real, alpha=0.6, color='red',label='real')
