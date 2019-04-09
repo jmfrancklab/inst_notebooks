@@ -159,7 +159,7 @@ for date,id_string,numchan,gain_factor in [
         #('190220','probev2B_magoff',1,gain_factor_new),
         #('190220','probev2B_magon',1,gain_factor_new),
         #('190220','probev2B_magon_2',1,gain_factor_new),
-        ('190221','probev2',2,gain_factor_new), #50 mV/div, CH2 200 mV
+        #('190221','probev2',2,gain_factor_new), #50 mV/div, CH2 200 mV
         #('190221','probev2_1',2,gain_factor_new), #50 mV/div, CH2 200 mV
         #('190221','probev2_2',2,gain_factor_new), #10 mV/div, CH2 200 mV
         #('190221','probev2_3',2,gain_factor_new), #20 mV/div, CH2 200 mV
@@ -169,9 +169,14 @@ for date,id_string,numchan,gain_factor in [
         ('190408','noise_2',2,gain_factor_new),
         #('190408','noise_3',2,gain_factor_new),
         #('190408','noise_4',2,gain_factor_new),
-        ('190408','noise_5',2,gain_factor_new),
+        #('190408','noise_5',2,gain_factor_new),
         ('190408','noise_6',2,gain_factor_new),
         ('190408','noise_7',2,gain_factor_new),
+        ('190409','noise_1',2,gain_factor_new),
+        ('190409','noise_2',2,gain_factor_new),
+        ('190409','noise_3',2,gain_factor_new),
+        ('190409','noise_4',2,gain_factor_new),
+        ('190409','noise_4_1',2,gain_factor_new),
     ]:
     # }}}
     # {{{ plot labels
