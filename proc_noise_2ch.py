@@ -100,8 +100,8 @@ power_dens_CH2_dict = {}
 
 # {{{ call files
 for date,id_string,numchan,gain_factor in [
-        ('180601','noise_pomona_dpx_cascade12_2CH',2,gain_factor_casc12),
-        ('180530','noise_dpx_cascade12_2CH',2,gain_factor_casc12),
+        #('180601','noise_pomona_dpx_cascade12_2CH',2,gain_factor_casc12),
+        #('180530','noise_dpx_cascade12_2CH',2,gain_factor_casc12),
         #('180710','spectrometer_noise_50ohm',2,gain_factor_new),
         #('180710','spectrometer_noise_AFG_smagnet',2,gain_factor_new),
         #('180926','noise_probe',2,gain_factor_new),
@@ -159,12 +159,19 @@ for date,id_string,numchan,gain_factor in [
         #('190220','probev2B_magoff',1,gain_factor_new),
         #('190220','probev2B_magon',1,gain_factor_new),
         #('190220','probev2B_magon_2',1,gain_factor_new),
-        #('190221','probev2',2,gain_factor_new), #50 mV/div, CH2 200 mV
+        ('190221','probev2',2,gain_factor_new), #50 mV/div, CH2 200 mV
         #('190221','probev2_1',2,gain_factor_new), #50 mV/div, CH2 200 mV
         #('190221','probev2_2',2,gain_factor_new), #10 mV/div, CH2 200 mV
         #('190221','probev2_3',2,gain_factor_new), #20 mV/div, CH2 200 mV
         #('190221','probev2_6',2,gain_factor_new), #20 mV/div, CH2 200 mV
         #('190221','probev2_7',2,gain_factor_new), #20 mV/div, CH2 200 mV
+        ('190408','noise_1',2,gain_factor_new),
+        ('190408','noise_2',2,gain_factor_new),
+        #('190408','noise_3',2,gain_factor_new),
+        #('190408','noise_4',2,gain_factor_new),
+        ('190408','noise_5',2,gain_factor_new),
+        ('190408','noise_6',2,gain_factor_new),
+        ('190408','noise_7',2,gain_factor_new),
     ]:
     # }}}
     # {{{ plot labels
