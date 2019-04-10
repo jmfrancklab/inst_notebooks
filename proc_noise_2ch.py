@@ -123,15 +123,6 @@ for date,id_string,numchan,gain_factor in [
         #('180710','spectrometer_noise_AFG',2,gain_factor_new),
         #('180710','spectrometer_noise_AFG_magnet',2,gain_factor_new),
         #('180710','spectrometer_noise_AFG_smagnet',2,gain_factor_new),
-        #('181107','SpinCore_HahnEcho',2,1.0),
-        #('181107','SpinCore_HahnEcho_2',2,1.0),
-        #('190219','DNP_probe',1,1.0),
-        #('190219','DNP_probe_DPX_LNA',1,gain_factor_new),
-        #('190219','DNP_probe_ENI_off',1,gain_factor_new),
-        #('190219','DNP_probe_ENI_on',1,gain_factor_new),
-        #('190219','DNP_probe_ENI_mag',1,gain_factor_new),
-        #('190219','DNP_probe2_mag',1,gain_factor_new),
-        #('190219','DNP_probe2_ENI_mag',1,gain_factor_new),
         #('190220','probev2',1,gain_factor_new),
         #('190220','probev2_noTL',1,gain_factor_new),
         #('190220','probev2_noTL_2',1,gain_factor_new),
@@ -165,18 +156,23 @@ for date,id_string,numchan,gain_factor in [
         #('190221','probev2_3',2,gain_factor_new), #20 mV/div, CH2 200 mV
         #('190221','probev2_6',2,gain_factor_new), #20 mV/div, CH2 200 mV
         #('190221','probev2_7',2,gain_factor_new), #20 mV/div, CH2 200 mV
-        ('190408','noise_1',2,gain_factor_new),
-        ('190408','noise_2',2,gain_factor_new),
+        #('190408','noise_1',2,gain_factor_new),
+        #('190408','noise_2',2,gain_factor_new),
         #('190408','noise_3',2,gain_factor_new),
         #('190408','noise_4',2,gain_factor_new),
         #('190408','noise_5',2,gain_factor_new),
-        ('190408','noise_6',2,gain_factor_new),
-        ('190408','noise_7',2,gain_factor_new),
-        ('190409','noise_1',2,gain_factor_new),
-        ('190409','noise_2',2,gain_factor_new),
-        ('190409','noise_3',2,gain_factor_new),
-        ('190409','noise_4',2,gain_factor_new),
-        ('190409','noise_4_1',2,gain_factor_new),
+        #('190408','noise_6',2,gain_factor_new),
+        #('190408','noise_7',2,gain_factor_new),
+        #('190409','noise_1',2,gain_factor_new),
+        #('190409','noise_2',2,gain_factor_new),
+        #('190409','noise_3',2,gain_factor_new),
+        #('190409','noise_4',2,gain_factor_new),
+        #('190409','noise_4_1',2,gain_factor_new),
+        ('190410','noise_50Ohm_RX',2,gain_factor_new), #50 mVdiv
+        ('190410','noise_50Ohm_RX_2',2,gain_factor_new), #5 mVdiv
+        ('190410','noise_50Ohm_RX_3',2,gain_factor_new), #10 mVdiv
+        ('190410','noise_50Ohm_RX_4',2,gain_factor_new), #20 mVdiv
+
     ]:
     # }}}
     # {{{ plot labels
