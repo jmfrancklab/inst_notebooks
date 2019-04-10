@@ -168,10 +168,19 @@ for date,id_string,numchan,gain_factor in [
         #('190409','noise_3',2,gain_factor_new),
         #('190409','noise_4',2,gain_factor_new),
         #('190409','noise_4_1',2,gain_factor_new),
-        ('190410','noise_50Ohm_RX',2,gain_factor_new), #50 mVdiv
-        ('190410','noise_50Ohm_RX_2',2,gain_factor_new), #5 mVdiv
-        ('190410','noise_50Ohm_RX_3',2,gain_factor_new), #10 mVdiv
+        #('190410','noise_50Ohm_RX',2,gain_factor_new), #50 mVdiv
+        #('190410','noise_50Ohm_RX_2',2,gain_factor_new), #5 mVdiv
+        #('190410','noise_50Ohm_RX_3',2,gain_factor_new), #10 mVdiv
         ('190410','noise_50Ohm_RX_4',2,gain_factor_new), #20 mVdiv
+        ('190410','noise_50Ohm_AMP_RX',2,gain_factor_new),
+        ('190410','noise_50Ohm_AMP_RX_2',2,gain_factor_new),
+        ('190410','noise_50Ohm_AMP_TXD_RX',2,gain_factor_new),
+        ('190410','noise_50Ohm_AMP_TXD_RX_2',2,gain_factor_new),
+        ('190410','noise_TX_RX',2,gain_factor_new),
+        ('190410','noise_TX_RX_console',2,gain_factor_new),
+        ('190410','noise_TX_RX_magnet',2,gain_factor_new), #20 mVdiv
+        ('190410','noise_TX_RX_magnet_2',2,gain_factor_new), #50 mVdiv
+        ('190410','noise_TX_RX_magnet_3',2,gain_factor_new), #100 mVdiv
 
     ]:
     # }}}
