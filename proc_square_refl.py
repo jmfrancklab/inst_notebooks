@@ -21,7 +21,11 @@ for date, id_string,corrected_volt in [
         #('190219','pulse3',True),
         #('190219','pulse4',True),
         #('190219','pulse5',True),
-        ('190219','pulse6',True),
+        #('190219','pulse6',True),
+        #('190412','pulse_max_match_1000',True),
+        #('190412','pulse_min_match_1000',True),
+        ('190413','pulse_1',True),
+        ('190413','pulse_2',True),
         ]:
     d = nddata_hdf5(date+'_'+id_string+'.h5/capture1',
                 directory=getDATADIR(exp_type='test_equip'))
