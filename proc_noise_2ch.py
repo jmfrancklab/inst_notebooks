@@ -178,8 +178,8 @@ for date,id_string,numchan,gain_factor in [
         #('190410','noise_50Ohm_AMP_TXD_RX_2',2,gain_factor_new),
         #('190410','noise_TX_RX',2,gain_factor_new),
         #('190410','noise_TX_RX_console',2,gain_factor_new),
-        ('190410','noise_TX_RX_magnet',2,gain_factor_new), #20 mVdiv
-        ('190410','noise_TX_RX_magnet_2',2,gain_factor_new), #50 mVdiv
+        #('190410','noise_TX_RX_magnet',2,gain_factor_new), #20 mVdiv
+        #('190410','noise_TX_RX_magnet_2',2,gain_factor_new), #50 mVdiv
         #('190410','noise_TX_RX_magnet_3',2,gain_factor_new), #100 mVdiv
         #('190410','noise_TX_RX_magnet_3_2',2,gain_factor_new),
         #('190410','noise_TX_RX_magnet_2_2',2,gain_factor_new),
@@ -193,12 +193,33 @@ for date,id_string,numchan,gain_factor in [
         #('190411','50AMP_RX_2',2,gain_factor_new),
         #('190411','TX_RX_1',2,gain_factor_new),
         #('190411','TX_RX_2',2,gain_factor_new),
-        ('190411','console_TX_RX_1',2,gain_factor_new),
+        #('190411','console_TX_RX_1',2,gain_factor_new),
         #('190411','console_TX_RX_2',2,gain_factor_new),
-        ('190411','magnet_TX_RX_1',2,gain_factor_new),
+        #('190411','magnet_TX_RX_1',2,gain_factor_new),
         #('190411','magnet_TX_RX_2',2,gain_factor_new),
-        ('190411','Cu_1',2,gain_factor_new),
-        ('190411','Cu_2',2,gain_factor_new),
+        #('190411','Cu_1',2,gain_factor_new),
+        #('190411','Cu_2',2,gain_factor_new),
+        #('190415','probe',2,gain_factor_new),
+        #('190415','probe_2',2,gain_factor_new),
+        #('190415','TX_RX',2,gain_factor_new),
+        #('190415','TX_RX_2',2,gain_factor_new),
+        #('190415','console',2,gain_factor_new),
+        #('190415','console_2',2,gain_factor_new),
+        #('190415','magnet',2,gain_factor_new),
+        #('190423','probe',2,gain_factor_new),
+        #('190423','AMP',2,gain_factor_new),
+        #('190423','TX',2,gain_factor_new),
+        #('190423','TX_2',2,gain_factor_new),
+        #('190423','system',2,gain_factor_new),
+        #('190423','magnet',2,gain_factor_new),
+        ('190423','magnet_2',2,gain_factor_new),
+        #('190423','disconnected',2,gain_factor_new),
+        #('190423','magnet_3',2,gain_factor_new),
+        #('190423','magnet_4',2,gain_factor_new),
+        ('190423','probe_B',2,gain_factor_new),
+        ('190423','probe_foil',2,gain_factor_new),
+        ('190423','probe_foil_magnet',2,gain_factor_new),
+        ('190423','probe_B_magnet',2,gain_factor_new),
 
     ]:
     # }}}
@@ -240,6 +261,18 @@ for date,id_string,numchan,gain_factor in [
         elif 'noise_spec' in id_string:
             #label = 'full spectrometer, probe v1.5'
             label = 'spectrometer noise, probe v1.5'
+        elif 'probe' in id_string:
+            label = 'probe and receiver'
+        elif 'AMP' in id_string:
+            label = 'amplifier, probe, receiver'
+        elif 'TX' in id_string:
+            label = 'transmitter, amplifier, probe, receiver'
+        elif 'system' in id_string:
+            label = 'console on, magnet off'
+        elif 'magnet' in id_string:
+            label = 'console on, magnet on'
+        elif 'disconnected' in id_string:
+            label = 'console on, magnet on, disconnected from bridge'
         #{{{ plotting parameters -- for older files
         #{{{ plotting AFG waveform, attn, power splitter, with low pass filter
         elif id_string == 'control_SE':
