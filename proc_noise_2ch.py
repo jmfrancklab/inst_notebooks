@@ -107,14 +107,14 @@ for date,id_string,numchan,gain_factor in [
         #('180926','noise_probe',2,gain_factor_new),
         #('180927','noise_probe_Magnet',2,gain_factor_new),
         #('180927','noise_probe_TXD_ENI_Magnet',2,gain_factor_new),
-        #('180927','noise_spectrometer',2,gain_factor_new),
+        ('180927','noise_spectrometer',2,gain_factor_new),
         #('181001','noise_probe_magnet',2,gain_factor_new),
         #('181001','noise_probe_magnet_ENI',2,gain_factor_new), # 20 us/div
         #('181001','noise_probe_magnet_ENI_2',2,gain_factor_new), # 50 us/div
         #('181001','noise_probe_magnet_ENI_3',2,gain_factor_new), # 10 us/div
         #('181001','noise_spec_1',2,gain_factor_new), # 10 us/div
         #('181001','noise_spec_2',2,gain_factor_new), # 20 us/div
-        #('181103','noise_spec',2,gain_factor_new), # 20 us/div
+        ('181103','noise_spec',2,gain_factor_new), # 20 us/div
         #('181103','noise_spec_TL',2,gain_factor_new), # 20 us/div
         #('180926','noise_probe_TXD',2,gain_factor_new),
         #('180926','noise_probe_TXD_ENI_off',2,gain_factor_new),
@@ -132,7 +132,7 @@ for date,id_string,numchan,gain_factor in [
         #('190220','probev2_SC',1,gain_factor_new),
         #('190220','probev2_magoff',1,gain_factor_new),
         #('190220','probev2_magon',1,gain_factor_new),
-        #('190220','probev2_magon_2',1,gain_factor_new),
+        ('190220','probev2_magon_2',1,gain_factor_new),
         #('190220','probev2A_magoff',1,gain_factor_new),
         #('190220','probev2A_magon',1,gain_factor_new),
         #('190220','probev2A_magon_2',1,gain_factor_new),
@@ -211,15 +211,25 @@ for date,id_string,numchan,gain_factor in [
         #('190423','TX',2,gain_factor_new),
         #('190423','TX_2',2,gain_factor_new),
         #('190423','system',2,gain_factor_new),
-        #('190423','magnet',2,gain_factor_new),
-        ('190423','magnet_2',2,gain_factor_new),
+        ('190423','magnet',2,gain_factor_new),
+        #('190423','magnet_2',2,gain_factor_new),
         #('190423','disconnected',2,gain_factor_new),
         #('190423','magnet_3',2,gain_factor_new),
         #('190423','magnet_4',2,gain_factor_new),
-        ('190423','probe_B',2,gain_factor_new),
-        ('190423','probe_foil',2,gain_factor_new),
-        ('190423','probe_foil_magnet',2,gain_factor_new),
-        ('190423','probe_B_magnet',2,gain_factor_new),
+        #('190423','probe_B',2,gain_factor_new),
+        #('190423','probe_foil',2,gain_factor_new),
+        #('190423','probe_foil_magnet',2,gain_factor_new),
+        #('190423','probe_B_magnet',2,gain_factor_new),
+        #('190424','probev1p5_solenoid_1',2,gain_factor_new),
+        #('190424','probev1p5_solenoid_2',2,gain_factor_new),
+        #('190424','probev1p5_solenoid_3',2,gain_factor_new),
+        #('190424','probev1p5_solenoid_4',2,gain_factor_new),
+        #('190424','probev1p5_solenoid_5',2,gain_factor_new),
+        #('190424','probev1p5_solenoid_6',2,gain_factor_new),
+        #('190424','probev1p5_solenoid_7',2,gain_factor_new),
+        #('190424','probev1p5_solenoid_8',2,gain_factor_new),
+        ('190424','probev1p5_solenoid_10',2,gain_factor_new),
+        #('190424','probev1p5_solenoid_11',2,gain_factor_new),
 
     ]:
     # }}}
@@ -241,7 +251,17 @@ for date,id_string,numchan,gain_factor in [
             label = 'full spectrometer, probe v2.0 detached from cavity'
     plot_labels = True
     if plot_labels:
-        if '_smagnet' in id_string:
+        if 'noise_spectrometer' in id_string:
+            label = '180927 - probe 1.5, PTFE var caps'
+        elif 'noise_spec' in id_string:
+            label = '181103 - probe 1.5, PTFE var caps'
+        elif 'probev2_magon_2' in id_string:
+            label = '190220 - probe 2.0, glass var caps (voltronics)'
+        elif 'magnet' in id_string:
+            label = '190423 - probe 2.0, glass var caps (SG)'
+        elif 'probev1p5_solenoid_10' in id_string:
+            label = '190424 - probe 1.5, glass var caps (SG)'
+        elif '_smagnet' in id_string:
             #label = 'spectrometer, AFG, magnet, sample'
             label = 'spectrometer noise, probe v1.0'
         elif '_magnet' in id_string:
