@@ -196,7 +196,7 @@ for date,id_string,numchan,gain_factor in [
         #('190411','console_TX_RX_1',2,gain_factor_new),
         #('190411','console_TX_RX_2',2,gain_factor_new),
         #('190411','magnet_TX_RX_1',2,gain_factor_new),
-        ('190411','magnet_TX_RX_2',2,gain_factor_new),
+        #('190411','magnet_TX_RX_2',2,gain_factor_new),
         #('190411','Cu_1',2,gain_factor_new),
         #('190411','Cu_2',2,gain_factor_new),
         #('190415','probe',2,gain_factor_new),
@@ -228,7 +228,7 @@ for date,id_string,numchan,gain_factor in [
         #('190424','probev1p5_solenoid_6',2,gain_factor_new),
         #('190424','probev1p5_solenoid_7',2,gain_factor_new),
         #('190424','probev1p5_solenoid_8',2,gain_factor_new),
-        ('190424','probev1p5_solenoid_10',2,gain_factor_new),
+        #('190424','probev1p5_solenoid_10',2,gain_factor_new),
         #('190424','probev1p5_solenoid_11',2,gain_factor_new),
         #('190425','probev1p5_solenoid_1',2,gain_factor_new),
         #('190425','term_1',2,gain_factor_new),
@@ -270,8 +270,7 @@ for date,id_string,numchan,gain_factor in [
         #('190425','term_25_0_1',2,gain_factor_new),
         #('190425','term_25_0_2',2,gain_factor_new),
         #('190425','term_25_0_0_1',2,gain_factor_new),
-        #('190425','term_test_0_0',2,gain_factor_new),
-        #('190425','term_test_0_1',2,gain_factor_new),
+        ('190425','term_test_0_1',2,gain_factor_new),
         #('190425','term_test_0_2',2,gain_factor_new),
         #('190425','term_test_1_0',2,gain_factor_new),
         #('190425','term_test_1_1',2,gain_factor_new),
@@ -280,19 +279,19 @@ for date,id_string,numchan,gain_factor in [
         #('190425','term_test_2_1',2,gain_factor_new),
         #('190425','term_test_2_2',2,gain_factor_new),
         #('190425','term_test_2_3',2,gain_factor_new),
-        #('190425','term_test_1_0_0',2,gain_factor_new),
+        ('190425','term_test_1_0_0',2,gain_factor_new),
+        ('190425','term_test_1_0_0_0_0_0',2,gain_factor_new),
         #('190425','term_test_1_0_1',2,gain_factor_new),
         #('190425','term_test_1_0_2',2,gain_factor_new),
-        #('190425','term_test_1_0_0_0',2,gain_factor_new),
+        ('190425','term_test_1_0_0_0',2,gain_factor_new),
         #('190425','term_test_1_0_0_1',2,gain_factor_new),
         #('190425','term_test_1_0_0_2',2,gain_factor_new),
-        #('190425','term_test_1_0_0_0_0',2,gain_factor_new),
+        ('190425','term_test_1_0_0_0_0',2,gain_factor_new),
         #('190425','term_test_1_0_0_0_1',2,gain_factor_new),
-        #('190425','term_test_1_0_0_0_0_0',2,gain_factor_new),
         #('190425','term_test_1_0_0_0_0_1',2,gain_factor_new),
-        #('190425','term_test_1_0_0_0_0_0_0',2,gain_factor_new),
+        ('190425','term_test_1_0_0_0_0_0_0',2,gain_factor_new),
         #('190425','term_test_1_0_0_0_0_0_1',2,gain_factor_new),
-        ('190425','term_test_3_0',2,gain_factor_new),
+        #('190425','term_test_3_0',2,gain_factor_new),
         #('190425','term_test_3_1',2,gain_factor_new),
 
     ]:
@@ -315,10 +314,18 @@ for date,id_string,numchan,gain_factor in [
             label = 'full spectrometer, probe v2.0 detached from cavity'
     plot_labels = True
     if plot_labels:
-        if 'magnet' in id_string:
-            label = 'Full spectrometer, probe 2.0'
-        elif 'probev1p5_solenoid_10' in id_string:
-            label = 'Full spectrometer, probe 1.5'
+        if 'term_test_0_1' == id_string:
+            label = 'Terminator at LNA input'
+        elif 'term_test_1_0_0' == id_string:
+            label = 'Terminator at 9" BNC at LNA input'
+        elif 'term_test_1_0_0_0' == id_string:
+            label = 'Terminator at 58" BNC at LNA input'
+        elif 'term_test_1_0_0_0_0' == id_string:
+            label = 'Terminator at 60" BNC at LNA input'
+        elif 'term_test_1_0_0_0_0_0' == id_string:
+            label = 'Terminator at 10" BNC at LNA input'
+        elif 'term_test_1_0_0_0_0_0_0' == id_string:
+            label = 'Terminator at 72" BNC at LNA input'
         elif 'term_test_3_0' in id_string:
             label = 'Full spectrometer, terminators for probe and amp'
         #{{{ plotting parameters -- for older files
