@@ -196,7 +196,7 @@ for date,id_string,numchan,gain_factor in [
         #('190411','console_TX_RX_1',2,gain_factor_new),
         #('190411','console_TX_RX_2',2,gain_factor_new),
         #('190411','magnet_TX_RX_1',2,gain_factor_new),
-        #('190411','magnet_TX_RX_2',2,gain_factor_new),
+        ('190411','magnet_TX_RX_2',2,gain_factor_new),
         #('190411','Cu_1',2,gain_factor_new),
         #('190411','Cu_2',2,gain_factor_new),
         #('190415','probe',2,gain_factor_new),
@@ -228,7 +228,7 @@ for date,id_string,numchan,gain_factor in [
         #('190424','probev1p5_solenoid_6',2,gain_factor_new),
         #('190424','probev1p5_solenoid_7',2,gain_factor_new),
         #('190424','probev1p5_solenoid_8',2,gain_factor_new),
-        #('190424','probev1p5_solenoid_10',2,gain_factor_new),
+        ('190424','probev1p5_solenoid_10',2,gain_factor_new),
         #('190424','probev1p5_solenoid_11',2,gain_factor_new),
         #('190425','probev1p5_solenoid_1',2,gain_factor_new),
         #('190425','term_1',2,gain_factor_new),
@@ -249,7 +249,7 @@ for date,id_string,numchan,gain_factor in [
         #('190425','term_8',2,gain_factor_new),
         #('190425','term_9',2,gain_factor_new),
         #('190425','term_11',2,gain_factor_new),
-        ('190425','term_12',2,gain_factor_new),
+        #('190425','term_12',2,gain_factor_new),
         #('190425','term_13',2,gain_factor_new),
         #('190425','term_14',2,gain_factor_new),
         #('190425','term_15',2,gain_factor_new),
@@ -293,7 +293,7 @@ for date,id_string,numchan,gain_factor in [
         #('190425','term_test_1_0_0_0_0_0_0',2,gain_factor_new),
         #('190425','term_test_1_0_0_0_0_0_1',2,gain_factor_new),
         ('190425','term_test_3_0',2,gain_factor_new),
-        ('190425','term_test_3_1',2,gain_factor_new),
+        #('190425','term_test_3_1',2,gain_factor_new),
 
     ]:
     # }}}
@@ -315,48 +315,12 @@ for date,id_string,numchan,gain_factor in [
             label = 'full spectrometer, probe v2.0 detached from cavity'
     plot_labels = True
     if plot_labels:
-        if 'noise_spectrometer' in id_string:
-            label = '180927 - probe 1.5, PTFE var caps'
-        elif 'noise_spec' in id_string:
-            label = '181103 - probe 1.5, PTFE var caps'
-        elif 'probev2_magon_2' in id_string:
-            label = '190220 - probe 2.0, glass var caps (voltronics)'
-        elif 'magnet' in id_string:
-            label = '190423 - probe 2.0, glass var caps (SG)'
+        if 'magnet' in id_string:
+            label = 'Full spectrometer, probe 2.0'
         elif 'probev1p5_solenoid_10' in id_string:
-            label = '190424 - probe 1.5, glass var caps (SG)'
-        elif '_smagnet' in id_string:
-            #label = 'spectrometer, AFG, magnet, sample'
-            label = 'spectrometer noise, probe v1.0'
-        elif '_magnet' in id_string:
-            label = 'spectrometer, AFG, magnet'
-        elif 'spectrometer_noise_AFG' in id_string:
-            label = 'spectrometer, AFG'
-        elif 'spectrometer_noise_50ohm' in id_string:
-            label = 'Probe v1.0: Spectrometer, 50$\Omega$'
-        elif 'noise_spectrometer' in id_string:
-            label = 'Probe v1.5: Spectrometer, 50$\Omega$ (f domain tuning)'
-        elif 'noise_spec_2' in id_string:
-            label = 'Probe v1.5: Spectrometer, 50$\Omega$ (t domain tuning)'
-        elif 'noise_probe_TXD' in id_string:
-            label = 'Probe v1.5: Magnet on, 50$\Omega$ input to ENI'
-        elif 'noise_probe' in id_string:
-            label = 'Probe v1.5: 50$\Omega$ input'
-        elif 'noise_spec' in id_string:
-            #label = 'full spectrometer, probe v1.5'
-            label = 'spectrometer noise, probe v1.5'
-        elif 'probe' in id_string:
-            label = 'probe and receiver'
-        elif 'AMP' in id_string:
-            label = 'amplifier, probe, receiver'
-        elif 'TX' in id_string:
-            label = 'transmitter, amplifier, probe, receiver'
-        elif 'system' in id_string:
-            label = 'console on, magnet off'
-        elif 'magnet' in id_string:
-            label = 'console on, magnet on'
-        elif 'disconnected' in id_string:
-            label = 'console on, magnet on, disconnected from bridge'
+            label = 'Full spectrometer, probe 1.5'
+        elif 'term_test_3_0' in id_string:
+            label = 'Full spectrometer, terminators for probe and amp'
         #{{{ plotting parameters -- for older files
         #{{{ plotting AFG waveform, attn, power splitter, with low pass filter
         elif id_string == 'control_SE':
