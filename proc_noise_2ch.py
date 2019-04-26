@@ -107,14 +107,14 @@ for date,id_string,numchan,gain_factor in [
         #('180926','noise_probe',2,gain_factor_new),
         #('180927','noise_probe_Magnet',2,gain_factor_new),
         #('180927','noise_probe_TXD_ENI_Magnet',2,gain_factor_new),
-        ('180927','noise_spectrometer',2,gain_factor_new),
+        #('180927','noise_spectrometer',2,gain_factor_new),
         #('181001','noise_probe_magnet',2,gain_factor_new),
         #('181001','noise_probe_magnet_ENI',2,gain_factor_new), # 20 us/div
         #('181001','noise_probe_magnet_ENI_2',2,gain_factor_new), # 50 us/div
         #('181001','noise_probe_magnet_ENI_3',2,gain_factor_new), # 10 us/div
         #('181001','noise_spec_1',2,gain_factor_new), # 10 us/div
         #('181001','noise_spec_2',2,gain_factor_new), # 20 us/div
-        ('181103','noise_spec',2,gain_factor_new), # 20 us/div
+        #('181103','noise_spec',2,gain_factor_new), # 20 us/div
         #('181103','noise_spec_TL',2,gain_factor_new), # 20 us/div
         #('180926','noise_probe_TXD',2,gain_factor_new),
         #('180926','noise_probe_TXD_ENI_off',2,gain_factor_new),
@@ -132,7 +132,7 @@ for date,id_string,numchan,gain_factor in [
         #('190220','probev2_SC',1,gain_factor_new),
         #('190220','probev2_magoff',1,gain_factor_new),
         #('190220','probev2_magon',1,gain_factor_new),
-        ('190220','probev2_magon_2',1,gain_factor_new),
+        #('190220','probev2_magon_2',1,gain_factor_new),
         #('190220','probev2A_magoff',1,gain_factor_new),
         #('190220','probev2A_magon',1,gain_factor_new),
         #('190220','probev2A_magon_2',1,gain_factor_new),
@@ -211,7 +211,7 @@ for date,id_string,numchan,gain_factor in [
         #('190423','TX',2,gain_factor_new),
         #('190423','TX_2',2,gain_factor_new),
         #('190423','system',2,gain_factor_new),
-        ('190423','magnet',2,gain_factor_new),
+        #('190423','magnet',2,gain_factor_new),
         #('190423','magnet_2',2,gain_factor_new),
         #('190423','disconnected',2,gain_factor_new),
         #('190423','magnet_3',2,gain_factor_new),
@@ -228,8 +228,72 @@ for date,id_string,numchan,gain_factor in [
         #('190424','probev1p5_solenoid_6',2,gain_factor_new),
         #('190424','probev1p5_solenoid_7',2,gain_factor_new),
         #('190424','probev1p5_solenoid_8',2,gain_factor_new),
-        ('190424','probev1p5_solenoid_10',2,gain_factor_new),
+        #('190424','probev1p5_solenoid_10',2,gain_factor_new),
         #('190424','probev1p5_solenoid_11',2,gain_factor_new),
+        #('190425','probev1p5_solenoid_1',2,gain_factor_new),
+        #('190425','term_1',2,gain_factor_new),
+        #('190425','term_2',2,gain_factor_new),
+        #('190425','term_3',2,gain_factor_new),
+        #('190425','term_4',2,gain_factor_new),
+        #('190425','term_4_1',2,gain_factor_new),
+        #('190425','term_5',2,gain_factor_new),
+        #('190425','term_5_1',2,gain_factor_new),
+        #('190425','term_5_2',2,gain_factor_new),
+        #('190425','term_5_3',2,gain_factor_new),
+        #('190425','term_5_4',2,gain_factor_new),
+        #('190425','term_5_5',2,gain_factor_new),
+        #('190425','term_6',2,gain_factor_new),
+        #('190425','term_7',2,gain_factor_new),
+        #('190425','term_7_1',2,gain_factor_new),
+        #('190425','term_7_1_1',2,gain_factor_new),
+        #('190425','term_8',2,gain_factor_new),
+        #('190425','term_9',2,gain_factor_new),
+        #('190425','term_11',2,gain_factor_new),
+        ('190425','term_12',2,gain_factor_new),
+        #('190425','term_13',2,gain_factor_new),
+        #('190425','term_14',2,gain_factor_new),
+        #('190425','term_15',2,gain_factor_new),
+        #('190425','term_16',2,gain_factor_new),
+        #('190425','term_17',2,gain_factor_new),
+        #('190425','term_17_1',2,gain_factor_new),
+        #('190425','term_17_1_1',2,gain_factor_new),
+        #('190425','term_18',2,gain_factor_new),
+        #('190425','term_19',2,gain_factor_new),
+        #('190425','term_20',2,gain_factor_new),
+        #('190425','term_21',2,gain_factor_new),
+        #('190425','term_22',2,gain_factor_new),
+        #('190425','term_23',2,gain_factor_new),
+        #('190425','term_24',2,gain_factor_new),
+        #('190425','term_24_9inch',2,gain_factor_new),
+        #('190425','term_24_58inch',2,gain_factor_new),
+        #('190425','term_25_0_0',2,gain_factor_new),
+        #('190425','term_25_0_1',2,gain_factor_new),
+        #('190425','term_25_0_2',2,gain_factor_new),
+        #('190425','term_25_0_0_1',2,gain_factor_new),
+        #('190425','term_test_0_0',2,gain_factor_new),
+        #('190425','term_test_0_1',2,gain_factor_new),
+        #('190425','term_test_0_2',2,gain_factor_new),
+        #('190425','term_test_1_0',2,gain_factor_new),
+        #('190425','term_test_1_1',2,gain_factor_new),
+        #('190425','term_test_1_2',2,gain_factor_new),
+        #('190425','term_test_2_0',2,gain_factor_new),
+        #('190425','term_test_2_1',2,gain_factor_new),
+        #('190425','term_test_2_2',2,gain_factor_new),
+        #('190425','term_test_2_3',2,gain_factor_new),
+        #('190425','term_test_1_0_0',2,gain_factor_new),
+        #('190425','term_test_1_0_1',2,gain_factor_new),
+        #('190425','term_test_1_0_2',2,gain_factor_new),
+        #('190425','term_test_1_0_0_0',2,gain_factor_new),
+        #('190425','term_test_1_0_0_1',2,gain_factor_new),
+        #('190425','term_test_1_0_0_2',2,gain_factor_new),
+        #('190425','term_test_1_0_0_0_0',2,gain_factor_new),
+        #('190425','term_test_1_0_0_0_1',2,gain_factor_new),
+        #('190425','term_test_1_0_0_0_0_0',2,gain_factor_new),
+        #('190425','term_test_1_0_0_0_0_1',2,gain_factor_new),
+        #('190425','term_test_1_0_0_0_0_0_0',2,gain_factor_new),
+        #('190425','term_test_1_0_0_0_0_0_1',2,gain_factor_new),
+        ('190425','term_test_3_0',2,gain_factor_new),
+        ('190425','term_test_3_1',2,gain_factor_new),
 
     ]:
     # }}}
@@ -436,7 +500,7 @@ for date,id_string,numchan,gain_factor in [
                 if filtering:
                     fl.next('Digitally-Filtered Network Noise Power Spectral Density,\n Input-referred ($\sigma$=%0.3f kHz)'%(width*1e-3))
                     u_filt.name('${S_{xx}(\\nu)}/{k_{B}T}$')
-                    fl.plot(u_filt['ch',0]['t':(None,49e6)],alpha=0.35,label='%s'%label,plottype='semilogy')
+                    fl.plot(u_filt['ch',0],alpha=0.35,label='%s'%label,plottype='semilogy')
                     #axhline(y=k_B*T/1e-12, linestyle=':', alpha=0.5, color='purple') # 1e-12 b/c the axis is given in pW
                     #axvline(14.46, linestyle=':', alpha=0.5, c='k')
             if plot_params:
