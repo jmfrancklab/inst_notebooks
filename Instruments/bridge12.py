@@ -11,11 +11,25 @@ import time
 def generate_beep(f,dur):
     # do nothing -- can be used to generate a beep, but platform-dependent
     return
+def convert_to_power_hacked(x):
+    "Convert Rx mV values to powers -- probably done in the most recent version?"
+    y = 0
+    c = r_[2.78135,25.7302,5.48909]
+    for j in range(len(c)):
+        y += c[j] * (x*1e-3)**(len(c)-j)
+    return log10(y)*10.0+2.2
 
 class Bridge12 (Serial):
     def __init__(self, *args, **kwargs):
         # Grab the port labeled as Arduino (since the Bridge12 microcontroller is an Arduino)
-        portlist = [j.device for j in comports() if u'Arduino Due' in j.description]
+        cport = comports()
+        if type(cport) is list and hasattr(cport[0],'device'):
+            portlist = [j.device for j in comports() if u'Arduino Due' in j.description]
+        elif type(cport.next()) is tuple:
+            print "using fallback comport method"
+            portlist = [j[0] for j in comports() if u'Arduino Due' in j[1]]
+        else:
+            raise RuntimeError("Not sure how how to gram the USB ports!!!")
         assert len(portlist)==1, "I need to see exactly one Arduino Due hooked up to the Raspberry Pi"
         thisport = portlist[0]
         super(self.__class__, self).__init__(thisport, timeout=3, baudrate=115200)
@@ -305,6 +319,7 @@ class Bridge12 (Serial):
     # ### Need an increase_power_zoom function for zooming in on the tuning dip:
     def increase_power_zoom(self, dBm_increment = 3, n_freq_steps = 100):
         """Zoom in on freqs at half maximum of previous RX power, increase power by 3dBm, and run freq_sweep again.
+
         Parameters
         ==========
         dBm_increment: float
