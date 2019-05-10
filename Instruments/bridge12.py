@@ -11,7 +11,7 @@ import time
 def generate_beep(f,dur):
     # do nothing -- can be used to generate a beep, but platform-dependent
     return
-def convert_to_power_hacked(x):
+def convert_to_power(x):
     "Convert Rx mV values to powers -- probably done in the most recent version?"
     y = 0
     c = r_[2.78135,25.7302,5.48909]
