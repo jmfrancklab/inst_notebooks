@@ -266,7 +266,7 @@ class Bridge12 (Serial):
         "return the frequency, in kHz (since it's set as an integer kHz)"
         self.write('freq?\r')
         return int(self.readline())
-    def freq_sweep(self,freq,dummy_readings=1):
+    def freq_sweep(self,freq,dummy_readings=1,fast_run=True):
         """Sweep over an array of frequencies.
         **Must** be run at 10 dBm the first time around; will fail otherwise.
 
@@ -302,9 +302,23 @@ class Bridge12 (Serial):
             generate_beep(500, 300)
             self.set_freq(f)  #is this what I would put here (the 'f')?
             txvalues[j] = self.txpowermv_float()
-            # here is where I include the rxpower safety: is this a good spot, or should I include it right before the return function? 
-            # I put it here so that if any of the values are too high WHILE reading, it will immediately turn off.
-            rxvalues[j] = self.rxpowermv_float()
+            if fast_run:
+                rxvalues[j] = self.rxpowermv_float()
+            else:
+                # the rxpowermv itself demands two consecutive responses to match
+                # this then makes sure that three of those measurements match (so essentially, six in a row must match)
+                def grab_consist_power():
+                    rx_try1 = self.rxpowermv_float()
+                    rx_try2 = self.rxpowermv_float()
+                    for j in range(20):
+                        rx_try3 = self.rxpowermv_float()
+                        if rx_try1 == rx_try2 and rx_try2 == rx_try3:
+                            rxvalues[j] = rx_try1
+                            return rx_try1
+                        else:
+                            rx_try1,rx_try2 = rx_try2,rx_try3
+                    raise ValueError("I tried 20 times to grab a consistent power, and could not (most recent %f, %f, %f)"%(rx_try1,rx_try2,rx_try3))
+                rxvalues[j] = grab_consist_power()
         if self.cur_pwr_int == 100:
             self.frq_sweep_10dBm_has_been_run = True
             # reset the safe rx level to the top of the tuning curve at 10 dBm
@@ -316,8 +330,7 @@ class Bridge12 (Serial):
         self.tuning_curve_data[sweep_name+'_freq'] = freq
         self.last_sweep_name = sweep_name
         return rxvalues, txvalues
-   
-    def increase_power_zoom2(self, dBm_increment = 3, n_freq_steps = 100):
+    def lock_on_dip(self, dBm_increment = 3, n_freq_steps = 100):
         """Zoom in on freqs at half maximum of previous RX power, increase power by 3dBm, and run freq_sweep again.
 
         Parameters
@@ -334,7 +347,11 @@ class Bridge12 (Serial):
         txvalues: array
             An array of floats, same length as freq, containing the transmitted power in dBm at each frequency.
         """    
-        assert self.frq_sweep_10dBm_has_been_run, "You're trying to run increase_power_zoom before you ran a frequency sweep at 10 dBm -- something is wonky!!!"
+        if not self.frq_sweep_10dBm_has_been_run:
+            self.set_power(10.0)
+            self.set_mw(True)
+            self.freq_sweep(
+        assert self.frq_sweep_10dBm_has_been_run, "I should have run the 10 dBm curve -- not sure what happened"
         rx = self.tuning_curve_data[self.last_sweep_name+'_rx']
         freq = self.tuning_curve_data[self.last_sweep_name+'_freq']
         rx_dBm = convert_to_power(rx)
@@ -385,6 +402,7 @@ class Bridge12 (Serial):
         return self.freq_sweep(freq)
 
     # ### Need an increase_power_zoom function for zooming in on the tuning dip:
+    # delete the following function
     def increase_power_zoom(self, dBm_increment = 3, n_freq_steps = 100):
         """Zoom in on freqs at half maximum of previous RX power, increase power by 3dBm, and run freq_sweep again.
 
