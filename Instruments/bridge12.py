@@ -12,7 +12,7 @@ def generate_beep(f,dur):
     # do nothing -- can be used to generate a beep, but platform-dependent
     return
 def convert_to_power(x):
-    "Convert Rx mV values to powers -- probably done in the most recent version?"
+    "Convert Rx mV values to powers (dBm)"
     y = 0
     c = r_[2.78135,25.7302,5.48909]
     for j in range(len(c)):
@@ -29,7 +29,7 @@ class Bridge12 (Serial):
             print "using fallback comport method"
             portlist = [j[0] for j in comports() if u'Arduino Due' in j[1]]
         else:
-            raise RuntimeError("Not sure how how to gram the USB ports!!!")
+            raise RuntimeError("Not sure how how to grab the USB ports!!!")
         assert len(portlist)==1, "I need to see exactly one Arduino Due hooked up to the Raspberry Pi"
         thisport = portlist[0]
         super(self.__class__, self).__init__(thisport, timeout=3, baudrate=115200)
@@ -174,7 +174,7 @@ class Bridge12 (Serial):
             i = self.power_int_singletry()
         return h
     def set_power(self,dBm):
-        """set *and check* power.  On succesful completion, set `self.cur_pwr_int` to 10*(power in dBm).
+        """set *and check* power.  On successful completion, set `self.cur_pwr_int` to 10*(power in dBm).
 
         Need to have 2 safeties for set_power:
 
@@ -316,6 +316,74 @@ class Bridge12 (Serial):
         self.tuning_curve_data[sweep_name+'_freq'] = freq
         self.last_sweep_name = sweep_name
         return rxvalues, txvalues
+   
+    def increase_power_zoom2(self, dBm_increment = 3, n_freq_steps = 100):
+        """Zoom in on freqs at half maximum of previous RX power, increase power by 3dBm, and run freq_sweep again.
+
+        Parameters
+        ==========
+        dBm_increment: float
+            Increase the power by this many dB.
+        n_freq_steps: int
+            In the increased power frequency sweep, use this many linearly interpolated frequency steps.
+
+        Returns
+        =======
+        rxvalues: array
+            An array of floats, same length as freq, containing the receiver (reflected) power in dBm at each frequency.
+        txvalues: array
+            An array of floats, same length as freq, containing the transmitted power in dBm at each frequency.
+        """    
+        assert self.frq_sweep_10dBm_has_been_run, "You're trying to run increase_power_zoom before you ran a frequency sweep at 10 dBm -- something is wonky!!!"
+        rx = self.tuning_curve_data[self.last_sweep_name+'_rx']
+        freq = self.tuning_curve_data[self.last_sweep_name+'_freq']
+        rx_dBm = convert_to_power(rx)
+        #rx_midpoint = 0.25*max(rx_dBm)+0.75*min(rx_dBm)
+        #if hasattr(self,'last_rx_midpoint') and self.last_rx_midpoint > rx_midpoint:
+        #    rx_midpoint = self.last_rx_midpoint
+        #else:
+        #    self.last_rx_midpoint = rx_midpoint
+        rx_midpoint = max(rx_dBm) - (abs(max(rx_dBm)) + abs(min(rx_dBm))/2)
+        if hasattr(self,'last_rx_midpoint') and self.last_rx_midpoint > rx_midpoint:
+            rx_midpoint = self.last_rx_midpoint
+        else:
+            self.last_rx_midpoint = rx_midpoint
+        under_midpoint = []
+        over_bool = rx_dBm > rx_midpoint
+        currently_over = True
+        for j,val in enumerate(over_bool):
+            if currently_over:
+                if not val:
+                    start_under = j
+                    currently_over = False
+            else:
+                if val:
+                    under_midpoint.append([start_under,j])
+                    currently_over = True
+        under_midpoint_lengths = diff(array(under_midpoint),axis=0)
+        if len(under_midpoint_lengths) > 1:
+            longest_under_range = under_midpoint_lengths.argmax()
+        else:
+            longest_under_range = 0
+        start_idx,stop_idx = array(under_midpoint[longest_under_range])
+        start_idx = start_idx - 1
+        freq_fit = linspace(freq[start_idx],freq[stop_idx],(stop_idx-start_idx+1))
+        rx_fit = []
+        for x in xrange(stop_idx-start_idx+1):
+            rx_fit.append(rx_dBm[x+start_idx])
+        p = polyfit(freq_fit,rx_fit,2)
+        c,b,a = p 
+        center = -b/2/c
+        print "Predicted center frequency:",center*1e-9
+        safe_rx = 3.0 #dBm, setting based off of values seeing in tests
+        a -= safe_rx #shift parabola to safety threshold
+        safe_crossing = (-b+r_[-sqrt(b**2-4*a*c),sqrt(b**2-4*a*c)])/2/c
+        safe_crossing.sort()
+        start_f,stop_f = safe_crossing
+        freq = linspace(start_f,stop_f,n_freq_steps)
+        self.set_power(dBm_increment+self.cur_pwr_int/10.)
+        return self.freq_sweep(freq)
+
     # ### Need an increase_power_zoom function for zooming in on the tuning dip:
     def increase_power_zoom(self, dBm_increment = 3, n_freq_steps = 100):
         """Zoom in on freqs at half maximum of previous RX power, increase power by 3dBm, and run freq_sweep again.
@@ -356,6 +424,7 @@ class Bridge12 (Serial):
                 if val:
                     under_midpoint.append([start_under,j])
                     currently_over = True
+
         under_midpoint_lengths = diff(array(under_midpoint),axis=0)
         if len(under_midpoint_lengths) > 1:
             longest_under_range = under_midpoint_lengths.argmax()
