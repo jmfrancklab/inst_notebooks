@@ -39,6 +39,7 @@ class Bridge12 (Serial):
         self.frq_sweep_10dBm_has_been_run = False
         self.tuning_curve_data = {}
         self._inside_with_block = False
+        self._locked_on_dip = False
     def bridge12_wait(self):
         #time.sleep(5)
         def look_for(this_str):
@@ -253,6 +254,9 @@ class Bridge12 (Serial):
         Hz: float
             frequency values -- give a Hz as a floating point number
         """
+        if hasattr(self,'freq_bounds'):
+            assert Hz >= self.freq_bounds[0]
+            assert Hz <= self.freq_bounds[1]
         setting = int(Hz/1e3+0.5)
         self.write('freq %d\r'%(setting))
         if self.freq_int() != setting:
@@ -266,7 +270,7 @@ class Bridge12 (Serial):
         "return the frequency, in kHz (since it's set as an integer kHz)"
         self.write('freq?\r')
         return int(self.readline())
-    def freq_sweep(self,freq,dummy_readings=1):
+    def freq_sweep(self,freq,dummy_readings=1,fast_run=True):
         """Sweep over an array of frequencies.
         **Must** be run at 10 dBm the first time around; will fail otherwise.
 
@@ -302,9 +306,23 @@ class Bridge12 (Serial):
             generate_beep(500, 300)
             self.set_freq(f)  #is this what I would put here (the 'f')?
             txvalues[j] = self.txpowermv_float()
-            # here is where I include the rxpower safety: is this a good spot, or should I include it right before the return function? 
-            # I put it here so that if any of the values are too high WHILE reading, it will immediately turn off.
-            rxvalues[j] = self.rxpowermv_float()
+            if fast_run:
+                rxvalues[j] = self.rxpowermv_float()
+            else:
+                # the rxpowermv itself demands two consecutive responses to match
+                # this then makes sure that three of those measurements match (so essentially, six in a row must match)
+                def grab_consist_power():
+                    rx_try1 = self.rxpowermv_float()
+                    rx_try2 = self.rxpowermv_float()
+                    for j in range(20):
+                        rx_try3 = self.rxpowermv_float()
+                        if rx_try1 == rx_try2 and rx_try2 == rx_try3:
+                            rxvalues[j] = rx_try1
+                            return rx_try1
+                        else:
+                            rx_try1,rx_try2 = rx_try2,rx_try3
+                    raise ValueError("I tried 20 times to grab a consistent power, and could not (most recent %f, %f, %f)"%(rx_try1,rx_try2,rx_try3))
+                rxvalues[j] = grab_consist_power()
         if self.cur_pwr_int == 100:
             self.frq_sweep_10dBm_has_been_run = True
             # reset the safe rx level to the top of the tuning curve at 10 dBm
@@ -316,126 +334,95 @@ class Bridge12 (Serial):
         self.tuning_curve_data[sweep_name+'_freq'] = freq
         self.last_sweep_name = sweep_name
         return rxvalues, txvalues
-   
-    def increase_power_zoom2(self, dBm_increment = 3, n_freq_steps = 100):
-        """Zoom in on freqs at half maximum of previous RX power, increase power by 3dBm, and run freq_sweep again.
-
-        Parameters
-        ==========
-        dBm_increment: float
-            Increase the power by this many dB.
-        n_freq_steps: int
-            In the increased power frequency sweep, use this many linearly interpolated frequency steps.
-
-        Returns
-        =======
-        rxvalues: array
-            An array of floats, same length as freq, containing the receiver (reflected) power in dBm at each frequency.
-        txvalues: array
-            An array of floats, same length as freq, containing the transmitted power in dBm at each frequency.
-        """    
-        assert self.frq_sweep_10dBm_has_been_run, "You're trying to run increase_power_zoom before you ran a frequency sweep at 10 dBm -- something is wonky!!!"
-        rx = self.tuning_curve_data[self.last_sweep_name+'_rx']
-        freq = self.tuning_curve_data[self.last_sweep_name+'_freq']
+    def lock_on_dip(self, ini_range=(9.848e9,9.855e9),
+            ini_step=0.5e6,# should be half 3 dB width for Q=10,000
+            dBm_increment=3, n_freq_steps=15):
+        """Locks onto the main dip, and finds the first polynomial fit also sets the current frequency bounds."""    
+        if not self.frq_sweep_10dBm_has_been_run:
+            print "Did not find previous 10 dBm run, running now"
+            self.set_wg(True)
+            self.set_rf(True)
+            self.set_amp(True)
+            self.set_power(10.0)
+            freq = r_[ini_range[0]:ini_range[1]:ini_step]
+            rx, tx = self.freq_sweep(freq)
+        assert self.frq_sweep_10dBm_has_been_run, "I should have run the 10 dBm curve -- not sure what happened"
+        rx,freq = [self.tuning_curve_data['%gdBm_%s'%(10.0,j)] for j in ['rx','freq']]
         rx_dBm = convert_to_power(rx)
-        #rx_midpoint = 0.25*max(rx_dBm)+0.75*min(rx_dBm)
-        #if hasattr(self,'last_rx_midpoint') and self.last_rx_midpoint > rx_midpoint:
-        #    rx_midpoint = self.last_rx_midpoint
-        #else:
-        #    self.last_rx_midpoint = rx_midpoint
-        rx_midpoint = max(rx_dBm) - (abs(max(rx_dBm)) + abs(min(rx_dBm))/2)
-        if hasattr(self,'last_rx_midpoint') and self.last_rx_midpoint > rx_midpoint:
-            rx_midpoint = self.last_rx_midpoint
-        else:
-            self.last_rx_midpoint = rx_midpoint
-        under_midpoint = []
-        over_bool = rx_dBm > rx_midpoint
-        currently_over = True
-        for j,val in enumerate(over_bool):
-            if currently_over:
-                if not val:
-                    start_under = j
-                    currently_over = False
-            else:
-                if val:
-                    under_midpoint.append([start_under,j])
-                    currently_over = True
-        under_midpoint_lengths = diff(array(under_midpoint),axis=0)
-        if len(under_midpoint_lengths) > 1:
-            longest_under_range = under_midpoint_lengths.argmax()
-        else:
-            longest_under_range = 0
-        start_idx,stop_idx = array(under_midpoint[longest_under_range])
-        start_idx = start_idx - 1
-        freq_fit = linspace(freq[start_idx],freq[stop_idx],(stop_idx-start_idx+1))
-        rx_fit = []
-        for x in xrange(stop_idx-start_idx+1):
-            rx_fit.append(rx_dBm[x+start_idx])
-        p = polyfit(freq_fit,rx_fit,2)
+        rx_midpoint = (max(rx_dBm) + min(rx_dBm))/2.0
+        over_bool = rx_dBm > rx_midpoint # Contains False everywhere rx_dBm is under
+        if not over_bool[0]:
+            raise ValueError("Tuning curve doesn't start over the midpoint, which doesn't make sense -- check %gdBm_%s"%(10.0,'rx'))
+        over_diff = r_[0,diff(int32(over_bool))]# should indicate whether this position has lifted over (+1) or dropped under (-1) the midpoint
+        mask = over_diff == 0 # Contains False for 1st under and 1st over (following being under)
+        over_idx = r_[0:len(over_diff)]
+        over_diff = over_diff[mask]
+        over_idx = over_idx[mask]
+        false_mask = [] # Store indices at which Mask evaluates False
+        for i,x in enumerate(mask):
+            if not x:
+                false_mask.append(i)
+        # where do we fall below and rise above the particular y axis
+        start_idx,stop_idx = false_mask
+        # not sure why the following two lines do not work, but to stay
+        # compatible with ValueError checks below, needed to do the following
+        #stop_dip = array(freq[stop_idx])
+        #start_dip = array(freq[start_idx])
+        start_dip = []
+        stop_dip = []
+        start_dip.append(freq[start_idx])
+        stop_dip.append(freq[stop_idx])
+        start_dip = array(start_dip)
+        stop_dip = array(stop_dip)
+        # be sure to check for the condition where we end on a dip
+        # which apparently refers to if we find more than one -1 to +1 region in over_diff
+        if (len(stop_dip) < len(start_dip) and stop_dip[-1] < start_dip[-1]):
+            stop_dip = r_[stop_dip,over_idx[-1]] # end on a dip
+        if len(stop_dip) != len(start_dip):
+            raise ValueError("the dip starts and stops don't line up, and I'm not sure why!!")
+        largest_dip = (stop_dip-start_dip).argmax()
+        print largest_dip
+        if (largest_dip == len(start_dip)-1) and (stop_dip[-1] == over_idx[-1]):
+            raise ValueError("The trace ends in the largest dip -- this is not allowed -- check %gdBm_%s"%(10.0,'rx'))
+        self.set_power(11.0) # move to 11 dBm, just to distinguish the trace name
+        self.freq_bounds = r_[start_dip[largest_dip],stop_dip[largest_dip]]
+        freq_axis = r_[self.freq_bounds[0]:self.freq_bounds[1]:10j]
+        rx, tx = self.freq_sweep(freq_axis, fast_run=False)
+        return self.zoom(dBm_increment=dBm_increment,n_freq_steps=n_freq_steps)
+    def zoom(self, dBm_increment=3, n_freq_steps=5):
+        "please write a docstring here"
+        assert self.frq_sweep_10dBm_has_been_run, "You're trying to run zoom before you ran a frequency sweep at 10 dBm -- something is wonky!!!"
+        assert hasattr(self,'freq_bounds'), "you probably haven't run lock_on_dip, which you need to do before zoom"
+        # start by pulling the data from the last tuning curve
+        rx, tx, freq = [self.tuning_curve_data[self.last_sweep_name + '_' + j] for j in ['rx','tx','freq']]
+        p = polyfit(freq,convert_to_power(rx),2)
         c,b,a = p 
+        # polynomial of form a+bx+cx^2
+        # the following should be decided from doing algebra (I haven't double-checked them)
         center = -b/2/c
         print "Predicted center frequency:",center*1e-9
-        safe_rx = 3.0 #dBm, setting based off of values seeing in tests
-        a -= safe_rx #shift parabola to safety threshold
+        safe_rx = 5.0 # dBm, setting based off of values seeing in tests
+        # MISSING (lower priority than the rest) --> we could probably raise
+        # this but we need to interpolate from dBm values back to rx mV values
+        # using the calibration curve (convert_to_power)
+        #
+        # Actually, once you have done such an interpolation, it allows you to
+        # set your intercept using an mV value.  I believe that you will find
+        # that the mV rx curves fit better to a polynomial than after you
+        # convert them to a dB value
+        a -= safe_rx-dBm_increment # this allows us to find the x values where a+bx+cx^2=safe_rx-dBm_increment
         safe_crossing = (-b+r_[-sqrt(b**2-4*a*c),sqrt(b**2-4*a*c)])/2/c
         safe_crossing.sort()
         start_f,stop_f = safe_crossing
+        if start_f < self.freq_bounds[0]: start_f = self.freq_bounds[0]
+        if stop_f > self.freq_bounds[1]: stop_f = self.freq_bounds[1]
         freq = linspace(start_f,stop_f,n_freq_steps)
         self.set_power(dBm_increment+self.cur_pwr_int/10.)
-        return self.freq_sweep(freq)
-
-    # ### Need an increase_power_zoom function for zooming in on the tuning dip:
-    def increase_power_zoom(self, dBm_increment = 3, n_freq_steps = 100):
-        """Zoom in on freqs at half maximum of previous RX power, increase power by 3dBm, and run freq_sweep again.
-
-        Parameters
-        ==========
-        dBm_increment: float
-            Increase the power by this many dB.
-        n_freq_steps: int
-            In the increased power frequency sweep, use this many linearly interpolated frequency steps.
-
-        Returns
-        =======
-        rxvalues: array
-            An array of floats, same length as freq, containing the receiver (reflected) power in dBm at each frequency.
-        txvalues: array
-            An array of floats, same length as freq, containing the transmitted power in dBm at each frequency.
-        """    
-        assert self.frq_sweep_10dBm_has_been_run, "You're trying to run increase_power_zoom before you ran a frequency sweep at 10 dBm -- something is wonky!!!"
-        rx = self.tuning_curve_data[self.last_sweep_name+'_rx']
-        freq = self.tuning_curve_data[self.last_sweep_name+'_freq']
-        rx1 = rx[1:]
-        rx_midpoint = 0.25*max(rx1)+0.75*min(rx1)
-        if hasattr(self,'last_rx_midpoint') and self.last_rx_midpoint > rx_midpoint:
-            rx_midpoint = self.last_rx_midpoint
-        else:
-            self.last_rx_midpoint = rx_midpoint
-        # {{{ construct two lists of lists that store the contiguous blocks where frequencies are under and over, respectively, the rx midpoint
-        under_midpoint = []
-        over_bool = rx1 > rx_midpoint
-        currently_over = True
-        for j,val in enumerate(over_bool):
-            if currently_over:
-                if not val:
-                    start_under = j
-                    currently_over = False
-            else:
-                if val:
-                    under_midpoint.append([start_under,j])
-                    currently_over = True
-
-        under_midpoint_lengths = diff(array(under_midpoint),axis=0)
-        if len(under_midpoint_lengths) > 1:
-            longest_under_range = under_midpoint_lengths.argmax()
-        else:
-            longest_under_range = 0
-        start_idx,stop_idx = array(under_midpoint[longest_under_range])+1 # for where the dip is underneath the midpoint
-        # }}}
-        freq = linspace(freq[start_idx], freq[stop_idx], n_freq_steps)
-        self.set_power(dBm_increment+self.cur_pwr_int/10.)#will this even work? wouldn't the current power be 0 after the first tuning curve is obtained?
-        return self.freq_sweep(freq)
-        #if this is good, we could make a loop to run this iteratively, zooming in and ramping up the power each time :)
+        rx, tx = self.freq_sweep(freq, fast_run=False)
+        # MISSING -- DO BEFORE MOVING TO HIGHER POWERS!
+        # test to see if any of the powers actually exceed the safety limit
+        # if they do, then contract freq_bounds to include those powers
+        return rx, tx
     def __enter__(self):
         self.bridge12_wait()
         self._inside_with_block = True
