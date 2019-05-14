@@ -39,7 +39,7 @@ class Bridge12 (Serial):
         self.frq_sweep_10dBm_has_been_run = False
         self.tuning_curve_data = {}
         self._inside_with_block = False
-        self._locked_on_dip = False
+        self.fit_data = {}
     def bridge12_wait(self):
         #time.sleep(5)
         def look_for(this_str):
@@ -305,6 +305,7 @@ class Bridge12 (Serial):
         for j,f in enumerate(freq):
             generate_beep(500, 300)
             self.set_freq(f)  #is this what I would put here (the 'f')?
+            time.sleep(1e-3) # determined this by making sure 11 dB and 10 dB curves line up
             txvalues[j] = self.txpowermv_float()
             if fast_run:
                 rxvalues[j] = self.rxpowermv_float()
@@ -317,7 +318,6 @@ class Bridge12 (Serial):
                     for j in range(20):
                         rx_try3 = self.rxpowermv_float()
                         if rx_try1 == rx_try2 and rx_try2 == rx_try3:
-                            rxvalues[j] = rx_try1
                             return rx_try1
                         else:
                             rx_try1,rx_try2 = rx_try2,rx_try3
@@ -354,42 +354,26 @@ class Bridge12 (Serial):
         if not over_bool[0]:
             raise ValueError("Tuning curve doesn't start over the midpoint, which doesn't make sense -- check %gdBm_%s"%(10.0,'rx'))
         over_diff = r_[0,diff(int32(over_bool))]# should indicate whether this position has lifted over (+1) or dropped under (-1) the midpoint
-        mask = over_diff == 0 # Contains False for 1st under and 1st over (following being under)
         over_idx = r_[0:len(over_diff)]
-        over_diff = over_diff[mask]
-        over_idx = over_idx[mask]
-        false_mask = [] # Store indices at which Mask evaluates False
-        for i,x in enumerate(mask):
-            if not x:
-                false_mask.append(i)
-        # where do we fall below and rise above the particular y axis
-        start_idx,stop_idx = false_mask
-        # not sure why the following two lines do not work, but to stay
-        # compatible with ValueError checks below, needed to do the following
-        #stop_dip = array(freq[stop_idx])
-        #start_dip = array(freq[start_idx])
-        start_dip = []
-        stop_dip = []
-        start_dip.append(freq[start_idx])
-        stop_dip.append(freq[stop_idx])
-        start_dip = array(start_dip)
-        stop_dip = array(stop_dip)
+        # store the indices at the start and stop of a dip
+        start_dip = over_idx[over_diff == -1]
+        stop_dip = over_idx[over_diff == 1]
         # be sure to check for the condition where we end on a dip
-        # which apparently refers to if we find more than one -1 to +1 region in over_diff
+        # i.e., if we find more than one -1 to +1 region in over_diff
         if (len(stop_dip) < len(start_dip) and stop_dip[-1] < start_dip[-1]):
             stop_dip = r_[stop_dip,over_idx[-1]] # end on a dip
         if len(stop_dip) != len(start_dip):
             raise ValueError("the dip starts and stops don't line up, and I'm not sure why!!")
-        largest_dip = (stop_dip-start_dip).argmax()
-        print largest_dip
-        if (largest_dip == len(start_dip)-1) and (stop_dip[-1] == over_idx[-1]):
+        largest_dip_idx = (stop_dip-start_dip).argmax()
+        print largest_dip_idx
+        if (largest_dip_idx == len(start_dip)-1) and (stop_dip[-1] == over_idx[-1]):
             raise ValueError("The trace ends in the largest dip -- this is not allowed -- check %gdBm_%s"%(10.0,'rx'))
         self.set_power(11.0) # move to 11 dBm, just to distinguish the trace name
-        self.freq_bounds = r_[start_dip[largest_dip],stop_dip[largest_dip]]
+        self.freq_bounds = freq[r_[start_dip[largest_dip_idx],stop_dip[largest_dip_idx]]]
         freq_axis = r_[self.freq_bounds[0]:self.freq_bounds[1]:15j]
         rx, tx = self.freq_sweep(freq_axis, fast_run=True)
         return self.zoom(dBm_increment=dBm_increment,n_freq_steps=n_freq_steps)
-    def zoom(self, dBm_increment=3, n_freq_steps=5):
+    def zoom(self, dBm_increment=3, n_freq_steps=15):
         "please write a docstring here"
         assert self.frq_sweep_10dBm_has_been_run, "You're trying to run zoom before you ran a frequency sweep at 10 dBm -- something is wonky!!!"
         assert hasattr(self,'freq_bounds'), "you probably haven't run lock_on_dip, which you need to do before zoom"
@@ -398,6 +382,8 @@ class Bridge12 (Serial):
         p = polyfit(freq,convert_to_power(rx),2)
         c,b,a = p 
         # polynomial of form a+bx+cx^2
+        self.fit_data[self.last_sweep_name + '_func'] = lambda x: a+b*x+c*x**2
+        self.fit_data[self.last_sweep_name + '_range'] = freq[r_[0,-1]]
         # the following should be decided from doing algebra (I haven't double-checked them)
         center = -b/2/c
         print "Predicted center frequency:",center*1e-9
