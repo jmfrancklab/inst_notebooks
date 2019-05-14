@@ -254,6 +254,9 @@ class Bridge12 (Serial):
         Hz: float
             frequency values -- give a Hz as a floating point number
         """
+        if hasattr(self,'freq_bounds'):
+            assert Hz > self.freq_bounds[0]
+            assert Hz < self.freq_bounds[1]
         setting = int(Hz/1e3+0.5)
         self.write('freq %d\r'%(setting))
         if self.freq_int() != setting:
@@ -367,8 +370,8 @@ class Bridge12 (Serial):
         self.freq_bounds = r_[start_dip[largest_dip],stop_dip[largest_dip]
         freq_axis = r_[self.freq_bounds[0]:self.freq_bounds[1]:20j]
         rx, tx = self.freq_sweep(freq_axis, fast_run=False)
-        return self.increase_power_zoom(dBm_increment=dBm_increment,n_freq_steps=n_freq_steps)
-    def increase_power_zoom(self, dBm_increment=3, n_freq_steps=5):
+        return self.zoom(dBm_increment=dBm_increment,n_freq_steps=n_freq_steps)
+    def zoom(self, dBm_increment=3, n_freq_steps=5):
         "please write a docstring here"
         assert self.frq_sweep_10dBm_has_been_run, "You're trying to run increase_power_zoom before you ran a frequency sweep at 10 dBm -- something is wonky!!!"
         assert hasattr(self,'freq_bounds'), "you probably haven't run lock_on_dip, which you need to do before increase_power_zoom"
@@ -381,6 +384,14 @@ class Bridge12 (Serial):
         center = -b/2/c
         print "Predicted center frequency:",center*1e-9
         safe_rx = 5.0 # dBm, setting based off of values seeing in tests
+        # MISSING (lower priority than the rest) --> we could probably raise
+        # this but we need to interpolate from dBm values back to rx mV values
+        # using the calibration curve (convert_to_power)
+        #
+        # Actually, once you have done such an interpolation, it allows you to
+        # set your intercept using an mV value.  I believe that you will find
+        # that the mV rx curves fit better to a polynomial than after you
+        # convert them to a dB value
         a -= safe_rx-dBm_increment # this allows us to find the x values where a+bx+cx^2=safe_rx-dBm_increment
         safe_crossing = (-b+r_[-sqrt(b**2-4*a*c),sqrt(b**2-4*a*c)])/2/c
         safe_crossing.sort()
@@ -389,7 +400,11 @@ class Bridge12 (Serial):
         if stop_f > self.freq_bounds[1]: stop_f = self.freq_bounds[1]
         freq = linspace(start_f,stop_f,n_freq_steps)
         self.set_power(dBm_increment+self.cur_pwr_int/10.)
-        return self.freq_sweep(freq, fast_run=False)
+        rx, tx = self.freq_sweep(freq, fast_run=False)
+        # MISSING -- DO BEFORE MOVING TO HIGHER POWERS!
+        # test to see if any of the powers actually exceed the safety limit
+        # if they do, then contract freq_bounds to include those powers
+        return rx, tx
     def __enter__(self):
         self.bridge12_wait()
         self._inside_with_block = True
