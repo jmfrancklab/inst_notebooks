@@ -376,15 +376,14 @@ class Bridge12 (Serial):
         if len(stop_dip) != len(start_dip):
             raise ValueError("the dip starts and stops don't line up, and I'm not sure why!!")
         largest_dip_idx = (stop_dip-start_dip).argmax()
-        print largest_dip_idx
         if (largest_dip_idx == len(start_dip)-1) and (stop_dip[-1] == over_idx[-1]):
             raise ValueError("The trace ends in the largest dip -- this is not allowed -- check %gdBm_%s"%(10.0,'rx'))
         self.set_power(11.0) # move to 11 dBm, just to distinguish the trace name
         self.freq_bounds = freq[r_[start_dip[largest_dip_idx],stop_dip[largest_dip_idx]]]
         freq_axis = r_[self.freq_bounds[0]:self.freq_bounds[1]:15j]
         rx, tx = self.freq_sweep(freq_axis, fast_run=True)
-        return self.zoom(dBm_increment=dBm_increment,n_freq_steps=n_freq_steps)
-    def zoom(self, dBm_increment=3, n_freq_steps=15):
+        return self.zoom(dBm_increment=2,n_freq_steps=n_freq_steps)
+    def zoom(self, dBm_increment=2, n_freq_steps=15):
         "please write a docstring here"
         assert self.frq_sweep_10dBm_has_been_run, "You're trying to run zoom before you ran a frequency sweep at 10 dBm -- something is wonky!!!"
         assert hasattr(self,'freq_bounds'), "you probably haven't run lock_on_dip, which you need to do before zoom"
@@ -398,7 +397,7 @@ class Bridge12 (Serial):
         # the following should be decided from doing algebra (I haven't double-checked them)
         center = -b/2/c
         print "Predicted center frequency:",center*1e-9
-        safe_rx = 5.0 # dBm, setting based off of values seeing in tests
+        safe_rx = 6.0 # dBm, setting based off of values seeing in tests
         # MISSING (lower priority than the rest) --> we could probably raise
         # this but we need to interpolate from dBm values back to rx mV values
         # using the calibration curve (convert_to_power)

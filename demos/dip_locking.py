@@ -16,6 +16,7 @@ if run_bridge12:
         b.lock_on_dip()
         for j in range(5):
             b.zoom(dBm_increment=3)
+        b.zoom(dBm_increment=2)
         
         #for j in range(15):
         #    b.increase_power_zoom2(dBm_increment=1,n_freq_steps=15)
