@@ -333,7 +333,7 @@ class Bridge12 (Serial):
         return rxvalues, txvalues
     def lock_on_dip(self, ini_range=(9.83e9,9.86e9),
             ini_step=0.5e6,# should be half 3 dB width for Q=10,000
-            dBm_increment = 3, n_freq_steps = 100):
+            dBm_increment=3, n_freq_steps=5):
         """Locks onto the main dip, and finds the first polynomial fit also sets the current frequency bounds."""    
         if not self.frq_sweep_10dBm_has_been_run:
             self.set_power(10.0)
@@ -367,26 +367,8 @@ class Bridge12 (Serial):
         self.freq_bounds = r_[start_dip[largest_dip],stop_dip[largest_dip]
         freq_axis = r_[self.freq_bounds[0]:self.freq_bounds[1]:20j]
         rx, tx = self.freq_sweep(freq_axis, fast_run=False)
-        p = polyfit(freq_axis,convert_to_power(rx),2)
-        c,b,a = p 
-        # polynomial of form a+bx+cx^2
-        # the following should be decided from doing algebra (I haven't double-checked them)
-        center = -b/2/c
-        print "Predicted center frequency:",center*1e-9
-        safe_rx = 5.0 # dBm, setting based off of values seeing in tests
-        a -= safe_rx-dBm_increment # this allows us to find the x values where a+bx+cx^2=safe_rx-dBm_increment
-        safe_crossing = (-b+r_[-sqrt(b**2-4*a*c),sqrt(b**2-4*a*c)])/2/c
-        safe_crossing.sort()
-        start_f,stop_f = safe_crossing
-        if start_f < self.freq_bounds[0]: start_f = self.freq_bounds[0]
-        if stop_f > self.freq_bounds[1]: stop_f = self.freq_bounds[1]
-        freq = linspace(start_f,stop_f,n_freq_steps)
-        self.set_power(dBm_increment+self.cur_pwr_int/10.)
-        return self.freq_sweep(freq)
-
-    # ### Need an increase_power_zoom function for zooming in on the tuning dip:
-    # delete the following function
-    def increase_power_zoom(self, dBm_increment = 3, n_freq_steps = 5):
+        return self.increase_power_zoom(dBm_increment=dBm_increment,n_freq_steps=n_freq_steps)
+    def increase_power_zoom(self, dBm_increment=3, n_freq_steps=5):
         "please write a docstring here"
         assert self.frq_sweep_10dBm_has_been_run, "You're trying to run increase_power_zoom before you ran a frequency sweep at 10 dBm -- something is wonky!!!"
         assert hasattr(self,'freq_bounds'), "you probably haven't run lock_on_dip, which you need to do before increase_power_zoom"
@@ -407,7 +389,7 @@ class Bridge12 (Serial):
         if stop_f > self.freq_bounds[1]: stop_f = self.freq_bounds[1]
         freq = linspace(start_f,stop_f,n_freq_steps)
         self.set_power(dBm_increment+self.cur_pwr_int/10.)
-        return self.freq_sweep(freq)
+        return self.freq_sweep(freq, fast_run=False)
     def __enter__(self):
         self.bridge12_wait()
         self._inside_with_block = True
