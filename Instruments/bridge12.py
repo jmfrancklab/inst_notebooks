@@ -330,7 +330,9 @@ class Bridge12 (Serial):
         self.tuning_curve_data[sweep_name+'_freq'] = freq
         self.last_sweep_name = sweep_name
         return rxvalues, txvalues
-    def lock_on_dip(self, dBm_increment = 3, n_freq_steps = 100):
+    def lock_on_dip(self, ini_range=(9.83e9,9.86e9),
+            ini_step=0.5e6,# should be half 3 dB width for Q=10,000
+            dBm_increment = 3, n_freq_steps = 100):
         """Zoom in on freqs at half maximum of previous RX power, increase power by 3dBm, and run freq_sweep again.
 
         Parameters
@@ -350,33 +352,23 @@ class Bridge12 (Serial):
         if not self.frq_sweep_10dBm_has_been_run:
             self.set_power(10.0)
             self.set_mw(True)
-            self.freq_sweep(
+            freq = r_[ini_range[0]:ini_range[1]:ini_step]
+            rx, tx = self.freq_sweep(freq)
         assert self.frq_sweep_10dBm_has_been_run, "I should have run the 10 dBm curve -- not sure what happened"
-        rx = self.tuning_curve_data[self.last_sweep_name+'_rx']
-        freq = self.tuning_curve_data[self.last_sweep_name+'_freq']
+        rx,tx = [self.tuning_curve_data['%gdBm_%s'%(10.0,j)] for j in ['rx','freq']]
         rx_dBm = convert_to_power(rx)
-        #rx_midpoint = 0.25*max(rx_dBm)+0.75*min(rx_dBm)
-        #if hasattr(self,'last_rx_midpoint') and self.last_rx_midpoint > rx_midpoint:
-        #    rx_midpoint = self.last_rx_midpoint
-        #else:
-        #    self.last_rx_midpoint = rx_midpoint
-        rx_midpoint = max(rx_dBm) - (abs(max(rx_dBm)) + abs(min(rx_dBm))/2)
-        if hasattr(self,'last_rx_midpoint') and self.last_rx_midpoint > rx_midpoint:
-            rx_midpoint = self.last_rx_midpoint
-        else:
-            self.last_rx_midpoint = rx_midpoint
-        under_midpoint = []
+        rx_midpoint = (max(rx_dBm) + min(rx_dBm))/2.0
         over_bool = rx_dBm > rx_midpoint
-        currently_over = True
-        for j,val in enumerate(over_bool):
-            if currently_over:
-                if not val:
-                    start_under = j
-                    currently_over = False
-            else:
-                if val:
-                    under_midpoint.append([start_under,j])
-                    currently_over = True
+        if not over_bool[0]:
+            raise ValueError("Tuning curve doesn't start over the midpoint, which doesn't make sense -- check %gdBm_%s"%(10.0,rx))
+        over_diff = r_[0,diff(int32(over_bool))]# should indicate whether this position has lifted over (+1) or dropped under (-1) the midpoint
+        over_diff_mask = over_diff == 0
+        over_idx = r_[0:len(over_diff)]
+        over_diff = over_diff[over_diff_mask]
+        over_idx = over_idx[over_diff_mask]
+        # stopped here -- should be able to pull out the ranges for which we are under
+        # be sure to check for the condition where we end on a dip, which should create an error
+        # after this point, we should be able to zoom on the dip, then start fitting polynomials
         under_midpoint_lengths = diff(array(under_midpoint),axis=0)
         if len(under_midpoint_lengths) > 1:
             longest_under_range = under_midpoint_lengths.argmax()
