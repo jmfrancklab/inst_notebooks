@@ -386,8 +386,8 @@ class Bridge12 (Serial):
             raise ValueError("The trace ends in the largest dip -- this is not allowed -- check %gdBm_%s"%(10.0,'rx'))
         self.set_power(11.0) # move to 11 dBm, just to distinguish the trace name
         self.freq_bounds = r_[start_dip[largest_dip],stop_dip[largest_dip]]
-        freq_axis = r_[self.freq_bounds[0]:self.freq_bounds[1]:10j]
-        rx, tx = self.freq_sweep(freq_axis, fast_run=False)
+        freq_axis = r_[self.freq_bounds[0]:self.freq_bounds[1]:15j]
+        rx, tx = self.freq_sweep(freq_axis, fast_run=True)
         return self.zoom(dBm_increment=dBm_increment,n_freq_steps=n_freq_steps)
     def zoom(self, dBm_increment=3, n_freq_steps=5):
         "please write a docstring here"
@@ -418,7 +418,7 @@ class Bridge12 (Serial):
         if stop_f > self.freq_bounds[1]: stop_f = self.freq_bounds[1]
         freq = linspace(start_f,stop_f,n_freq_steps)
         self.set_power(dBm_increment+self.cur_pwr_int/10.)
-        rx, tx = self.freq_sweep(freq, fast_run=False)
+        rx, tx = self.freq_sweep(freq, fast_run=True)
         # MISSING -- DO BEFORE MOVING TO HIGHER POWERS!
         # test to see if any of the powers actually exceed the safety limit
         # if they do, then contract freq_bounds to include those powers
