@@ -5,12 +5,22 @@
 # ``jmfranck-pi2.syr.edu`` (if on the internet) or ``192.168.1.20`` (if on local network)
 from serial.tools.list_ports import comports
 from serial import Serial
+from scipy.interpolate import interp1d
 from numpy import *
 import time
 
 def generate_beep(f,dur):
     # do nothing -- can be used to generate a beep, but platform-dependent
     return
+def convert_to_mv(x):
+    "Go from dB values back to mV values"
+    y = r_[0.:600.:1000j]
+    func = interp1d(convert_to_power(y),y)
+    retval = func(x)
+    if retval.size == 1:
+        return retval.item()
+    else:
+        return retval
 def convert_to_power(x):
     "Convert Rx mV values to powers (dBm)"
     y = 0
@@ -35,7 +45,8 @@ class Bridge12 (Serial):
         super(self.__class__, self).__init__(thisport, timeout=3, baudrate=115200)
         # this number represents the highest possible reasonable value for the
         # Rx power -- it is lowered as we observe the Tx values
-        self.safe_rx_level_int = 5000
+        self.safe_rx_level_int = int(convert_to_mv(7.)*10+0.5)# i.e. a setting of 10 dB
+        if self.safe_rx_level_int > 2500: self.safe_rx_level_int = 2500 # a 7 dBm setting shoudn't exceed this
         self.frq_sweep_10dBm_has_been_run = False
         self.tuning_curve_data = {}
         self._inside_with_block = False
@@ -356,7 +367,7 @@ class Bridge12 (Serial):
         over_diff = r_[0,diff(int32(over_bool))]# should indicate whether this position has lifted over (+1) or dropped under (-1) the midpoint
         over_idx = r_[0:len(over_diff)]
         # store the indices at the start and stop of a dip
-        start_dip = over_idx[over_diff == -1]
+        start_dip = over_idx[over_diff == -1] -1 # because this identified the point *after* the crossing
         stop_dip = over_idx[over_diff == 1]
         # be sure to check for the condition where we end on a dip
         # i.e., if we find more than one -1 to +1 region in over_diff
@@ -379,7 +390,7 @@ class Bridge12 (Serial):
         assert hasattr(self,'freq_bounds'), "you probably haven't run lock_on_dip, which you need to do before zoom"
         # start by pulling the data from the last tuning curve
         rx, tx, freq = [self.tuning_curve_data[self.last_sweep_name + '_' + j] for j in ['rx','tx','freq']]
-        p = polyfit(freq,convert_to_power(rx),2)
+        p = polyfit(freq,rx,2)
         c,b,a = p 
         # polynomial of form a+bx+cx^2
         self.fit_data[self.last_sweep_name + '_func'] = lambda x: a+b*x+c*x**2
@@ -396,14 +407,15 @@ class Bridge12 (Serial):
         # set your intercept using an mV value.  I believe that you will find
         # that the mV rx curves fit better to a polynomial than after you
         # convert them to a dB value
-        a -= safe_rx-dBm_increment # this allows us to find the x values where a+bx+cx^2=safe_rx-dBm_increment
-        safe_crossing = (-b+r_[-sqrt(b**2-4*a*c),sqrt(b**2-4*a*c)])/2/c
+        a_new = a - convert_to_mv(safe_rx-dBm_increment) # this allows us to find the x values where a_new+bx+cx^2=safe_rx-dBm_increment
+        safe_crossing = (-b+r_[-sqrt(b**2-4*a_new*c),sqrt(b**2-4*a_new*c)])/2/c
         safe_crossing.sort()
         start_f,stop_f = safe_crossing
         if start_f < self.freq_bounds[0]: start_f = self.freq_bounds[0]
         if stop_f > self.freq_bounds[1]: stop_f = self.freq_bounds[1]
         freq = linspace(start_f,stop_f,n_freq_steps)
         self.set_power(dBm_increment+self.cur_pwr_int/10.)
+        # with the new time constant added for freq_sweep, should we eliminate fast_run?
         rx, tx = self.freq_sweep(freq, fast_run=True)
         # MISSING -- DO BEFORE MOVING TO HIGHER POWERS!
         # test to see if any of the powers actually exceed the safety limit
