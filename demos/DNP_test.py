@@ -4,25 +4,40 @@ from Instruments.bridge12 import convert_to_power, convert_to_mv
 from serial import Serial
 import time
 from itertools import cycle
+# {{{ determine the list of power settings
+powers = r_[1e-3:1.:20j]
+dB_settings = round_(2*log10(powers/1e-3)*10.)/2
+dB_settings = unique(dB_settings)
+def check_for_3dB_step(x):
+    assert len(x.shape) == 1
+    if any(diff(x)>3.0):
+        idx = nonzero(diff(x) > 3)[0][0] # pull the first one
+        x = insert(x,idx+1,r_[x[idx]:x[idx+1]:3.0][1:]) # insert an array spaced by 3dB
+        x = check_for_3dB_step(x)
+        return x
+    else:
+        return x
+ini_len = len(dB_settings)
+dB_settings = check_for_3dB_step(dB_settings)
+print "adjusted my power list by",len(dB_settings)-len(powers),"to satisfy the 3dB step requirement and the 0.5 dB resolution"
+powers = 1e-3*10**(dB_settings/10.)
+# }}}
 
-run_bridge12 = True
-if run_bridge12:
-    with Bridge12() as b:
-        b.set_wg(True)
-        b.set_rf(True)
-        b.set_amp(True)
-        b.set_power(10.0)
-        b.freq_sweep(r_[9.80:9.83:20j]*1e9)
-        b.lock_on_dip()
-        for j in range(5):
-            b.zoom(dBm_increment=3)
-        b.zoom(dBm_increment=2)
+with Bridge12() as b:
+    b.lock_on_dip(ini_range=(9.81e9,9.83e9))
+    for j in xrange(3):
+        b.zoom(dBm_increment=3)
+    zoom_return = b.zoom(dBm_increment=2)
+    dip_f = zoom_return[2]
+    result = b.tuning_curve_data
+    b.set_freq(dip_f)
+    rx_array = zeros_like(dB_settings)
+    for j,this_power in enumerate(dB_settings):
+        print "Setting",this_power,"which is",powers[j],"W"
+        b.set_power(this_power)
+        rx_array[j] = b.rxpowermv_float()
+        time.sleep(0.1)
         
-        #for j in range(15):
-        #    b.increase_power_zoom2(dBm_increment=1,n_freq_steps=15)
-    
-        result = b.tuning_curve_data
-        #fits = b.fit_data
 def plot_all():
     figure()
     powerlist = []
