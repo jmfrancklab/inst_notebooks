@@ -8,11 +8,11 @@ from itertools import cycle
 run_bridge12 = True
 if run_bridge12:
     with Bridge12() as b:
-    #    b.set_wg(True)
-    #    b.set_rf(True)
-    #    b.set_amp(True)
-    #    b.set_power(10.0)
-    #    b.freq_sweep(r_[9.848:9.855:100j]*1e9)
+        b.set_wg(True)
+        b.set_rf(True)
+        b.set_amp(True)
+        b.set_power(10.0)
+        b.freq_sweep(r_[9.81:9.83:20j]*1e9)
         b.lock_on_dip()
         for j in range(5):
             b.zoom(dBm_increment=3)
@@ -22,7 +22,7 @@ if run_bridge12:
         #    b.increase_power_zoom2(dBm_increment=1,n_freq_steps=15)
     
         result = b.tuning_curve_data
-        fits = b.fit_data
+        #fits = b.fit_data
 def plot_all():
     figure()
     powerlist = []

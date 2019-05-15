@@ -7,13 +7,19 @@ from itertools import cycle
 from pyspecdata import *
 
 with Bridge12() as b:
+    b.set_wg(True)
+    b.set_rf(True)
+    b.set_amp(True)
+    b.set_power(10.0)
+    b.freq_sweep(r_[9.81:9.83:20j]*1e9)
     b.lock_on_dip()
-    for j in xrange(3):
+    for j in xrange(5):
         b.zoom(dBm_increment=3)
+    #b.zoom(dBm_increment=2)
         
     result = b.tuning_curve_data
     
-    f_axis = result['22dBm_freq']
+    f_axis = result['28dBm_freq']
     time_points = 5
     f_step = 2 # every other freq
     
@@ -27,13 +33,13 @@ with Bridge12() as b:
         b.set_amp(True)
         b.set_rf(True)
         b.set_freq(f_axis[j])
-        b.set_power(22)
+        b.set_power(28)
         print "AT FREQUENCY NO. %d of %d"%(j,len(f_axis))
         # acquire 10 rxpower values 2 seconds apart (may need to adjust depending on length of DNP measurements to accuarately predict drift)
         for k in xrange(time_points):
             print "TIME POINT NO. %d"%k
             rxpowers['freq',i]['t_point',k] = b.rxpowermv_float()
-            time.sleep(2)
+            time.sleep(10)
         b.set_rf(False)
         time.sleep(2)
         
