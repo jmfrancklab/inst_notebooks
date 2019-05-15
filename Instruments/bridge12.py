@@ -201,7 +201,7 @@ class Bridge12 (Serial):
             power values -- give a dBm (not 10*dBm) as a floating point number
         """
         if not self._inside_with_block: raise ValueError("you MUST use a with block so the error handling works well")
-        setting = int(10*dBm+0.5)
+        setting = int(10*round(dBm*2)/2.+0.5)# find closest 0.5 dBm, and round
         if setting > 400:
             raise ValueError("You are not allowed to use this function to set a power of greater than 40 dBm for safety reasons")
         elif setting < 0:
@@ -221,7 +221,11 @@ class Bridge12 (Serial):
             if result == setting:
                 self.cur_pwr_int = result
                 return
-        raise RuntimeError("After checking status 10 times, I can't get the power to change")
+            time.sleep(10e-3)
+        raise RuntimeError(("After checking status 10 times, I can't get the"
+            "power to change: I'm trying to set to %d/10 dBm, but the Bridge12"
+            "keeps replying saying that it's set to %d/10"
+            "dBm")%(setting,result))
     def rxpowermv_int_singletry(self):
         """read the integer value for the Rx power (which is 10* the value in mV).  Also has a software interlock so that if the Rx power ever exceeds self.safe_rx_level_int, then the amp shuts down."""
         self.write('rxpowermv?\r')
@@ -345,7 +349,7 @@ class Bridge12 (Serial):
         self.tuning_curve_data[sweep_name+'_freq'] = freq
         self.last_sweep_name = sweep_name
         return rxvalues, txvalues
-    def lock_on_dip(self, ini_range=(9.848e9,9.855e9),
+    def lock_on_dip(self, ini_range=(9.81e9,9.83e9),
             ini_step=0.5e6,# should be half 3 dB width for Q=10,000
             dBm_increment=3, n_freq_steps=15):
         """Locks onto the main dip, and finds the first polynomial fit also sets the current frequency bounds."""    
@@ -419,7 +423,8 @@ class Bridge12 (Serial):
         # MISSING -- DO BEFORE MOVING TO HIGHER POWERS!
         # test to see if any of the powers actually exceed the safety limit
         # if they do, then contract freq_bounds to include those powers
-        return rx, tx
+        min_f = freq[rx.argmin()]
+        return rx, tx, min_f
     def __enter__(self):
         self.bridge12_wait()
         self._inside_with_block = True
