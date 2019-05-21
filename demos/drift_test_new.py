@@ -29,11 +29,8 @@ with Bridge12() as b:
             rx_array[j,k] = b.rxpowermv_int_singletry()
             t_array[j,k] = time.time() - start
             k += 1
-    id_string = '20190521_drift_test_air'
-    with open(''+id_string+'.txt','w') as f:
-        for j,thisfreq in enumerate(f_axis):
-            for k in r_[0:len(t_array)]:
-                f.write("%f %d %f\n"%(f_axis[j],rx_array[j,k],t_array[j,k]))
+    id_string = '20190521_drift_test_air_15dBm'
+    savez(id_string,freq=f_axis,rx=rx_array,t=t_array)
 def plot_all():
     figure()
     powerlist = []
