@@ -8,15 +8,17 @@ from itertools import cycle
 run_bridge12 = True
 if run_bridge12:
     with Bridge12() as b:
-        b.set_wg(True)
-        b.set_rf(True)
-        b.set_amp(True)
-        b.set_power(10.0)
-        b.freq_sweep(r_[9.80:9.83:20j]*1e9)
-        b.lock_on_dip()
-        for j in range(5):
-            b.zoom(dBm_increment=3)
+        #b.set_wg(True)
+        #b.set_rf(True)
+        #b.set_amp(True)
+        #b.set_power(10.0)
+        #b.freq_sweep(r_[9.80:9.83:20j]*1e9)
+        b.lock_on_dip(ini_range=(9.80e9,9.83e9))
         b.zoom(dBm_increment=2)
+        b.zoom(dBm_increment=2)
+
+       # for j in range(5):
+       #     b.zoom(dBm_increment=3)
         
         #for j in range(15):
         #    b.increase_power_zoom2(dBm_increment=1,n_freq_steps=15)
