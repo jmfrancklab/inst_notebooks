@@ -5,7 +5,7 @@ from serial import Serial
 import time
 from itertools import cycle
 # {{{ determine the list of power settings
-powers = r_[1e-3:1.:20j]
+powers = r_[1e-3:4.0:20j]
 dB_settings = round_(2*log10(powers/1e-3)*10.)/2
 dB_settings = unique(dB_settings)
 def check_for_3dB_step(x):
@@ -25,19 +25,24 @@ powers = 1e-3*10**(dB_settings/10.)
 
 with Bridge12() as b:
     b.lock_on_dip(ini_range=(9.81e9,9.83e9))
-    for j in xrange(3):
+    for j in xrange(5):
         b.zoom(dBm_increment=3)
     zoom_return = b.zoom(dBm_increment=2)
     dip_f = zoom_return[2]
     result = b.tuning_curve_data
     b.set_freq(dip_f)
     rx_array = zeros_like(dB_settings)
-    for j,this_power in enumerate(dB_settings):
-        print "Setting",this_power,"which is",powers[j],"W"
-        b.set_power(this_power)
-        rx_array[j] = b.rxpowermv_float()
-        time.sleep(0.1)
-        
+    #for j,this_power in enumerate(dB_settings):
+    #    print "Setting",this_power,"which is",powers[j],"W"
+    #    b.set_power(this_power)
+    #    if this_power >= 29.0:
+    #        raw_input("Minimzie RX...")
+    #        print "Accepted."
+    #    rx_array[j] = b.rxpowermv_float()
+    #    if this_power < 29.0:
+    #        time.sleep(10)
+    #    elif this_power > 29.0:
+    #        time.sleep(2)
 def plot_all():
     figure()
     powerlist = []
