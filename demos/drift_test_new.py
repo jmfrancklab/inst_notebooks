@@ -7,13 +7,24 @@ import time
 with Bridge12() as b:
     b.lock_on_dip(ini_range=(9.80e9,9.83e9))
     b.zoom(dBm_increment=2)
+    b.zoom(dBm_increment=2)
+    b.zoom(dBm_increment=2)
+    b.zoom(dBm_increment=2)
+    b.zoom(dBm_increment=2)
+
+
+
+
+
     result = b.tuning_curve_data
-    f_axis = result['15dBm_freq']
-    #f_axis = r_[faxis[0],f_axis[result['15dBm_rx'].argmin()],faxis[-1]]
+    f_axis = result['23dBm_freq']
+    dip_index = faxis.argmin()
+    
+    f_axis = r_[faxis[0],faxis[dip_index-3],faxis[dip_index],faxis[dip_index+3],faxis[-1]]
     b.set_rf(False)
 
     sleep_time = 2.0
-    collect_time = 120.0
+    collect_time = 3*60.0
     time_pts = int(collect_time/sleep_time)
     rx_array = zeros((len(f_axis),time_pts),dtype=int32)
     t_array = zeros((len(f_axis),time_pts),dtype=double)
@@ -23,13 +34,15 @@ with Bridge12() as b:
         start = time.time()
         b.set_rf(True)
         b.set_freq(thisfreq)
-        b.set_power(15)
+        b.set_power(23)
         while time.time() - start < collect_time:
             time.sleep(sleep_time)
-            rx_array[j,k] = b.rxpowermv_int_singletry()
+            rx_array[j,k] = b.rxpowermv_float()
             t_array[j,k] = time.time() - start
             k += 1
-    id_string = '20190521_drift_test_air_15dBm'
+        b.set_rf(False)
+        time.sleep(10)
+    id_string = '190522_drift_test_air_23dBm_3min'
     savez(id_string,freq=f_axis,rx=rx_array,t=t_array)
 def plot_all():
     figure()

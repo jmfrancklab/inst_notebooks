@@ -16,6 +16,12 @@ if run_bridge12:
         b.lock_on_dip(ini_range=(9.80e9,9.83e9))
         b.zoom(dBm_increment=2)
         b.zoom(dBm_increment=2)
+        b.zoom(dBm_increment=2)
+        b.zoom(dBm_increment=2)
+        b.zoom(dBm_increment=2)
+
+
+        #b.zoom(dBm_increment=2)
 
        # for j in range(5):
        #     b.zoom(dBm_increment=3)
