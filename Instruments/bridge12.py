@@ -230,6 +230,18 @@ class Bridge12 (Serial):
         """read the integer value for the Rx power (which is 10* the value in mV).  Also has a software interlock so that if the Rx power ever exceeds self.safe_rx_level_int, then the amp shuts down."""
         self.write('rxpowermv?\r')
         retval = self.readline()
+        retval = retval.strip()
+        if retval == 'ERROR':
+            print "Found ERROR condition on trying to read rxpowermv -- trying again"
+            j = 0
+            while j < 10:
+                time.sleep(10e-3)
+                self.write('rxpowermv?\r')
+                retval = self.readline()
+                retval = retval.strip()
+                if retval != 'ERROR':
+                    print "after try %d, it responded with %s"%(j+1,retval)
+                    break
         retval = int(retval)
         if retval > self.safe_rx_level_int:
             raise RuntimeError("Read an unsafe Rx level of %0.1fmV"%(retval/10.))
