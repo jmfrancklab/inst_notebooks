@@ -10,14 +10,14 @@ with Bridge12() as b:
     b.zoom(dBm_increment=3)
     b.zoom(dBm_increment=3)
     b.zoom(dBm_increment=3)
-    b.zoom(dBm_increment=3)
+    b.zoom(dBm_increment=2)
 
 
     result = b.tuning_curve_data
-    faxis = result['28dBm_freq']
+    faxis = result['27dBm_freq']
     dip_index = faxis.argmin()
     
-    f_axis = r_[faxis[0],faxis[dip_index-3],faxis[dip_index],faxis[dip_index+3],faxis[-1]]
+    f_axis = r_[faxis[0],faxis[dip_index-2],faxis[dip_index],faxis[dip_index+2],faxis[-1]]
     b.set_rf(False)
 
     sleep_time = 2.0
@@ -31,7 +31,7 @@ with Bridge12() as b:
         b.set_rf(True)
         b.set_freq(thisfreq)
         start = time.time()
-        b.set_power(28)
+        b.set_power(27)
         while time.time() - start < collect_time:
             time.sleep(sleep_time)
             rx_array[j,k] = b.rxpowermv_int_singletry()
@@ -39,7 +39,7 @@ with Bridge12() as b:
             k += 1
         b.set_rf(False)
         time.sleep(10)
-    id_string = '190522_drift_test_air_28dBm_3min'
+    id_string = '190522_drift_test_air_27dBm_3min'
     savez(id_string,freq=f_axis,rx=rx_array,t=t_array)
 def plot_all():
     figure()
