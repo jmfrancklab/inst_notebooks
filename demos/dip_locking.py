@@ -14,11 +14,20 @@ if run_bridge12:
         #b.set_power(10.0)
         #b.freq_sweep(r_[9.80:9.83:20j]*1e9)
         b.lock_on_dip(ini_range=(9.80e9,9.83e9))
-        b.zoom(dBm_increment=2)
-        b.zoom(dBm_increment=2)
-        b.zoom(dBm_increment=2)
-        b.zoom(dBm_increment=2)
-        b.zoom(dBm_increment=2)
+        b.zoom(dBm_increment=3)
+        b.zoom(dBm_increment=3)
+        b.zoom(dBm_increment=3)
+        b.zoom(dBm_increment=1)
+        b.zoom(dBm_increment=1)
+        b.zoom(dBm_increment=1)
+        b.zoom(dBm_increment=1)
+        b.zoom(dBm_increment=1)
+        b.zoom(dBm_increment=1)
+        #b.zoom(dBm_increment=1)
+        #b.zoom(dBm_increment=1)
+
+
+
 
 
         #b.zoom(dBm_increment=2)
