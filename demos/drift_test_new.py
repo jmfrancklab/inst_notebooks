@@ -15,9 +15,9 @@ with Bridge12() as b:
 
     result = b.tuning_curve_data
     faxis = result['27dBm_freq']
-    dip_index = faxis.argmin()
+    dip_index = result['27dBm_rx'].argmin()
     
-    f_axis = r_[faxis[0],faxis[dip_index-2],faxis[dip_index],faxis[dip_index+2],faxis[-1]]
+    f_axis = r_[faxis[dip_index-5],faxis[dip_index-2],faxis[dip_index],faxis[dip_index+2],faxis[dip_index+5]]
     b.set_rf(False)
 
     sleep_time = 2.0
@@ -39,7 +39,7 @@ with Bridge12() as b:
             k += 1
         b.set_rf(False)
         time.sleep(10)
-    id_string = '190522_drift_test_oil_27dBm_3min_75DC'
+    id_string = '190523_drift_test_oil_27dBm_3min_50DC_2'
     savez(id_string,freq=f_axis,rx=rx_array,t=t_array)
 def plot_all():
     figure()
