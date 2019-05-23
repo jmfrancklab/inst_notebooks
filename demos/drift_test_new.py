@@ -39,7 +39,7 @@ with Bridge12() as b:
             k += 1
         b.set_rf(False)
         time.sleep(10)
-    id_string = '190522_drift_test_air_27dBm_3min'
+    id_string = '190522_drift_test_oil_27dBm_3min_75DC'
     savez(id_string,freq=f_axis,rx=rx_array,t=t_array)
 def plot_all():
     figure()
