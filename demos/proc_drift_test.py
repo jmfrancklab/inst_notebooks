@@ -1,5 +1,5 @@
 from pyspecdata import *
-data = load('190523_drift_test_oil_27dBm_3min_75DC_2.npz')
+data = load('190523_drift_test_oil_33dBm_iris.npz')
 f_axis = data[data.files[0]]
 rx_axis = data[data.files[1]]
 t_axis = data[data.files[2]]
