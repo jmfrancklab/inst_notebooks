@@ -17,15 +17,13 @@ if run_bridge12:
         b.zoom(dBm_increment=3)
         b.zoom(dBm_increment=3)
         b.zoom(dBm_increment=3)
-        b.zoom(dBm_increment=1)
-        b.zoom(dBm_increment=1)
-        b.zoom(dBm_increment=1)
-        b.zoom(dBm_increment=1)
-        b.zoom(dBm_increment=1)
-        #b.zoom(dBm_increment=1)
-        #b.zoom(dBm_increment=1)
-        #b.zoom(dBm_increment=1)
+        b.zoom(dBm_increment=3)
+        b.zoom(dBm_increment=3)
+        b.zoom(dBm_increment=2)
+        b.zoom(dBm_increment=3)
 
+    #b.zoom(dBm_increment=3)
+    #b.zoom(dBm_increment=2)
 
 
 
