@@ -12,6 +12,7 @@ r'''Use this program to collect 100 snapshots of noise in
     (2) Set horizontal scale to 20 us/div (100 MSPS)
     These parameters were determined to be ideal for capturing
     noise on earliest version of spectrometer (using Probe v1.0)
+    Note: Set Trigger (Menu) --> Mode --> Auto
 '''
 #}}}
 from Instruments import *
@@ -66,8 +67,8 @@ def collect(date,id_string,captures):
     print "shape of data",ndshape(s)
     return start
 
-date = '190425'
-id_string = 'term_test_3_1'
+date = '190531'
+id_string = 'triax_1'
 captures = linspace(1,100,100)
 
 print "Starting collection..."
