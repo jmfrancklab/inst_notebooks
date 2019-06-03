@@ -319,9 +319,12 @@ for date,id_string,numchan,gain_factor in [
         #('190602','test_3',2,gain_factor_new),
         #('190602','test_4',2,gain_factor_new),
         ('190602','test_5',2,gain_factor_new),
-        ('190602','test_6',2,gain_factor_new),
+        #('190602','test_6',2,gain_factor_new),
         ('190602','test_7',2,gain_factor_new),
         ('190602','test_8',2,gain_factor_new),
+        #('190603','test_1',2,gain_factor_new),
+        #('190603','test_2',2,gain_factor_new),
+        ('190603','test_3',2,gain_factor_new),
     ]:
     # }}}
     # {{{ plot labels
@@ -351,13 +354,14 @@ for date,id_string,numchan,gain_factor in [
         elif 'test_2_2' == id_string:
             label = 'New BNC 36", triax box terminator'
         elif 'test_3' == id_string:
-            label = 'Triax 36", Mini-Circuits terminator'
+            if date == '190602':
+                label = 'Triax 36", Mini-Circuits terminator'
+            elif date == '190603':
+                label = 'Triax with Balun, foil'
         elif 'test_4' == id_string:
             label = 'Triax 36", triax box terminator'
         elif 'test_5' == id_string:
             label = 'Triax with Balun, no foil'
-        elif 'test_6' == id_string:
-            label = 'Triax with Balun, foil'
         elif 'test_7' == id_string:
             label = 'Balun, no foil'
         elif 'test_8' == id_string:
