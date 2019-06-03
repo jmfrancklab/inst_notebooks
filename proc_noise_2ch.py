@@ -300,8 +300,18 @@ for date,id_string,numchan,gain_factor in [
         ('190531','term_test_0_48in',2,gain_factor_new),
         ('190531','term_test_0_60in',2,gain_factor_new),
         ('190531','term_test_0_72in',2,gain_factor_new),
-        ('190531','term_test_0_triax',2,gain_factor_new),
-        ('190531','term_test_0_triax_1',2,gain_factor_new),
+        #('190531','term_test_0_triax',2,gain_factor_new),
+        #('190531','triax_1_0',2,gain_factor_new),
+        #('190531','triax_1_1',2,gain_factor_new),
+        #('190531','triax_1_2',2,gain_factor_new),
+        #('190531','triax_1_3',2,gain_factor_new),
+        #('190531','triax_1_4',2,gain_factor_new),
+        #('190531','triax_2_0',2,gain_factor_new),
+        #('190531','triax_2_0_1',2,gain_factor_new),
+        #('190531','triax_1_4_1',2,gain_factor_new),
+        #('190531','triax_3_2',2,gain_factor_new),
+        ('190531','triax_3_3',2,gain_factor_new),
+        #('190531','triax_4_0',2,gain_factor_new),
 
     ]:
     # }}}
