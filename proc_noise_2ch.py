@@ -312,12 +312,12 @@ for date,id_string,numchan,gain_factor in [
         #('190531','triax_3_2',2,gain_factor_new),
         #('190531','triax_3_3',2,gain_factor_new),
         #('190531','triax_4_0',2,gain_factor_new),
-        ('190602','test_1_1',2,gain_factor_new),
-        ('190602','test_1_2',2,gain_factor_new),
-        ('190602','test_2_1',2,gain_factor_new),
-        ('190602','test_2_2',2,gain_factor_new),
-        ('190602','test_3',2,gain_factor_new),
-        ('190602','test_4',2,gain_factor_new),
+        #('190602','test_1_1',2,gain_factor_new),
+        #('190602','test_1_2',2,gain_factor_new),
+        #('190602','test_2_1',2,gain_factor_new),
+        #('190602','test_2_2',2,gain_factor_new),
+        #('190602','test_3',2,gain_factor_new),
+        #('190602','test_4',2,gain_factor_new),
         ('190602','test_5',2,gain_factor_new),
         ('190602','test_6',2,gain_factor_new),
         ('190602','test_7',2,gain_factor_new),
@@ -342,20 +342,26 @@ for date,id_string,numchan,gain_factor in [
             label = 'full spectrometer, probe v2.0 detached from cavity'
     plot_labels = True
     if plot_labels:
-        if 'term_test_0_1' == id_string:
-            label = 'Terminator at LNA input'
-        elif 'term_test_1_0_0' == id_string:
-            label = 'Terminator at 9" BNC at LNA input'
-        elif 'term_test_1_0_0_0' == id_string:
-            label = 'Terminator at 58" BNC at LNA input'
-        elif 'term_test_1_0_0_0_0' == id_string:
-            label = 'Terminator at 60" BNC at LNA input'
-        elif 'term_test_1_0_0_0_0_0' == id_string:
-            label = 'Terminator at 10" BNC at LNA input'
-        elif 'term_test_1_0_0_0_0_0_0' == id_string:
-            label = 'Terminator at 72" BNC at LNA input'
-        elif 'term_test_3_0' in id_string:
-            label = 'Full spectrometer, terminators for probe and amp'
+        if 'test_1_1' == id_string:
+            label = 'Old BNC 36", Mini-Circuits terminator'
+        elif 'test_1_2' == id_string:
+            label = 'Old BNC 36", triax box terminator'
+        elif 'test_2_1' == id_string:
+            label = 'New BNC 36", Mini-Circuits terminator'
+        elif 'test_2_2' == id_string:
+            label = 'New BNC 36", triax box terminator'
+        elif 'test_3' == id_string:
+            label = 'Triax 36", Mini-Circuits terminator'
+        elif 'test_4' == id_string:
+            label = 'Triax 36", triax box terminator'
+        elif 'test_5' == id_string:
+            label = 'Triax with Balun, no foil'
+        elif 'test_6' == id_string:
+            label = 'Triax with Balun, foil'
+        elif 'test_7' == id_string:
+            label = 'Balun, no foil'
+        elif 'test_8' == id_string:
+            label = 'Balun, foil'
         #{{{ plotting parameters -- for older files
         #{{{ plotting AFG waveform, attn, power splitter, with low pass filter
         elif id_string == 'control_SE':
