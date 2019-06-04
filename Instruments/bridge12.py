@@ -12,19 +12,22 @@ import time
 def generate_beep(f,dur):
     # do nothing -- can be used to generate a beep, but platform-dependent
     return
-def convert_to_mv(x):
+def convert_to_mv(x, which_cal='Rx'):
     "Go from dB values back to mV values"
     y = r_[0.:600.:1000j]
-    func = interp1d(convert_to_power(y),y)
+    func = interp1d(convert_to_power(y,which_cal=which_cal),y)
     retval = func(x)
     if retval.size == 1:
         return retval.item()
     else:
         return retval
-def convert_to_power(x):
+def convert_to_power(x,which_cal='Rx'):
     "Convert Rx mV values to powers (dBm)"
     y = 0
-    c = r_[2.78135,25.7302,5.48909]
+    if which_cal == 'Rx':
+        c = r_[2.78135,25.7302,5.48909]
+    elif which_cal == 'Tx':
+        c =r_[5.6378,38.2242,6.33419]
     for j in range(len(c)):
         y += c[j] * (x*1e-3)**(len(c)-j)
     return log10(y)*10.0+2.2
