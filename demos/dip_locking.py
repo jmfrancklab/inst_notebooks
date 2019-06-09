@@ -15,34 +15,19 @@ if run_bridge12:
         #b.freq_sweep(r_[9.80:9.83:20j]*1e9)
         b.lock_on_dip(ini_range=(9.80e9,9.83e9))
         b.zoom(dBm_increment=3)
+        b.zoom(dBm_increment=3)
+        b.zoom(dBm_increment=3)
+        b.zoom(dBm_increment=3)
+        b.zoom(dBm_increment=3)
+        b.zoom(dBm_increment=3)
         manual_iris_adjust = False
         if manual_iris_adjust:
-            zoom_return = b.zoom(dBm_increment=3)
+            zoom_return = b.zoom(dBm_increment=2)
             dip_f = zoom_return[2]
             b.set_freq(dip_f)
             raw_input("Minimzie RX...")
         else:
-            b.zoom(dBm_increment=3)
-        #b.zoom(dBm_increment=2)
-        #b.zoom(dBm_increment=3)
-        #b.zoom(dBm_increment=2)
-        #b.zoom(dBm_increment=3)
-
-
-    #b.zoom(dBm_increment=3)
-    #b.zoom(dBm_increment=2)
-
-
-
-
-        #b.zoom(dBm_increment=2)
-
-       # for j in range(5):
-       #     b.zoom(dBm_increment=3)
-        
-        #for j in range(15):
-        #    b.increase_power_zoom2(dBm_increment=1,n_freq_steps=15)
-    
+            b.zoom(dBm_increment=2)
         result = b.tuning_curve_data
         #fits = b.fit_data
 def plot_all():

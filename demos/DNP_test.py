@@ -25,24 +25,28 @@ powers = 1e-3*10**(dB_settings/10.)
 
 with Bridge12() as b:
     b.lock_on_dip(ini_range=(9.81e9,9.83e9))
-    for j in xrange(5):
+    for j in xrange(3):
         b.zoom(dBm_increment=3)
     zoom_return = b.zoom(dBm_increment=2)
     dip_f = zoom_return[2]
     result = b.tuning_curve_data
     b.set_freq(dip_f)
     rx_array = zeros_like(dB_settings)
-    #for j,this_power in enumerate(dB_settings):
-    #    print "Setting",this_power,"which is",powers[j],"W"
-    #    b.set_power(this_power)
-    #    if this_power >= 29.0:
-    #        raw_input("Minimzie RX...")
-    #        print "Accepted."
-    #    rx_array[j] = b.rxpowermv_float()
-    #    if this_power < 29.0:
-    #        time.sleep(10)
-    #    elif this_power > 29.0:
-    #        time.sleep(2)
+    tx_array = zeros_like(dB_settings)
+    for j,this_power in enumerate(dB_settings):
+        print "Setting",this_power,"which is",powers[j],"W"
+        b.set_power(this_power)
+        if this_power >= 24.0:
+            raw_input("Minimzie RX...")
+            print "Accepted."
+        rx_array[j] = b.rxpowermv_float()
+        tx_array[j] = b.txpowermv_float()
+        
+
+        #if this_power < 29.0:
+        #    time.sleep(10)
+        #elif this_power > 29.0:
+        #    time.sleep(2)
 def plot_all():
     figure()
     powerlist = []

@@ -11,10 +11,10 @@ with Bridge12() as b:
     b.zoom(dBm_increment=3)
     b.zoom(dBm_increment=3)
     b.zoom(dBm_increment=3)
-    b.zoom(dBm_increment=2)
     b.zoom(dBm_increment=3)
-
+    b.zoom(dBm_increment=2)
     result = b.tuning_curve_data
+    
     faxis = result['33dBm_freq']
     dip_index = result['33dBm_rx'].argmin()
     
@@ -38,8 +38,10 @@ with Bridge12() as b:
             k += 1
         b.set_rf(False)
         time.sleep(10)
-    id_string = '190523_drift_test_air_33dBm_iris'
+    id_string = '190607_Katie_drift_test_air_33dBm_iris'
     savez(id_string,freq=f_axis,rx=rx_array,t=t_array)
+    
+    
 def plot_all():
     figure()
     powerlist = []
