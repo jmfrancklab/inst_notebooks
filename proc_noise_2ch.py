@@ -316,7 +316,7 @@ for date,id_string,numchan,gain_factor in [
         #('190602','test_1_2',2,gain_factor_new),
         #('190602','test_2_1',2,gain_factor_new),
         #('190602','test_2_2',2,gain_factor_new),
-        #('190602','test_3',2,gain_factor_new),
+        ('190602','test_3',2,gain_factor_new), # Triax, Minicircuits
         #('190602','test_4',2,gain_factor_new),
         #('190602','test_5',2,gain_factor_new),
         #('190602','test_6',2,gain_factor_new),
@@ -325,14 +325,11 @@ for date,id_string,numchan,gain_factor in [
         #('190603','test_1',2,gain_factor_new),
         #('190603','test_2',2,gain_factor_new),
         #('190603','test_3',2,gain_factor_new),
-        ('190612','test_1',2,gain_factor_new),
-        ('190612','test_2',2,gain_factor_new),
-        ('190612','test_3',2,gain_factor_new),
-        ('190612','test_3_0',2,gain_factor_new),
-        ('190612','test_4',2,gain_factor_new),
-        ('190612','test_5',2,gain_factor_new),
-        ('190612','test_6',2,gain_factor_new),
-        ('190612','test_7',2,gain_factor_new),
+        ('190614','test_1_0',2,gain_factor_new), # Triax, Minicircuits
+        ('190614','test_3',2,gain_factor_new), # Triax, DNP probe
+        ('190614','test_4',2,gain_factor_new), # Triax, probe v2.0
+        ('190614','test_5',2,gain_factor_new), # Coax, probe v2.0
+        ('190614','test_6',2,gain_factor_new), # Coax, DNP probe 
     ]:
     # }}}
     # {{{ plot labels
@@ -353,27 +350,20 @@ for date,id_string,numchan,gain_factor in [
             label = 'full spectrometer, probe v2.0 detached from cavity'
     plot_labels = True
     if plot_labels:
-        if 'test_1_1' == id_string:
-            label = 'Old BNC 36", Mini-Circuits terminator'
-        elif 'test_1_2' == id_string:
-            label = 'Old BNC 36", triax box terminator'
-        elif 'test_2_1' == id_string:
-            label = 'New BNC 36", Mini-Circuits terminator'
-        elif 'test_2_2' == id_string:
-            label = 'New BNC 36", triax box terminator'
-        elif 'test_3' == id_string:
-            if date == '190602':
-                label = 'Triax 36", Mini-Circuits terminator'
-            elif date == '190603':
-                label = 'Triax with Balun, foil'
-        elif 'test_4' == id_string:
-            label = 'Triax 36", triax box terminator'
-        elif 'test_5' == id_string:
-            label = 'Triax with Balun, no foil'
-        elif 'test_7' == id_string:
-            label = 'Balun, no foil'
-        elif 'test_8' == id_string:
-            label = 'Balun, foil'
+        if '190602' == date:
+            if 'test_3' == id_string:
+                label = 'Triax 36", Mini-Circuits terminator (6/2/2019)'
+        elif '190614' == date:
+            if 'test_1_0' == id_string:
+                label = 'Triax 36", Mini-Circuits terminator (6/14/2019)'
+            elif 'test_3' == id_string:
+                label = 'Triax 36", DNP probe (6/14/2019)'
+            elif 'test_4' == id_string:
+                label = 'Triax 36", probe v2.0 (6/14/2019)'
+            elif 'test_5' == id_string:
+                label = 'New coax 36", probe v2.0 (6/14/2019)'
+            elif 'test_6' == id_string:
+                label = 'New coax 36", DNP probe (6/14/2019)'
         #{{{ plotting parameters -- for older files
         #{{{ plotting AFG waveform, attn, power splitter, with low pass filter
         elif id_string == 'control_SE':
