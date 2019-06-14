@@ -330,6 +330,7 @@ for date,id_string,numchan,gain_factor in [
         ('190614','test_4',2,gain_factor_new), # Triax, probe v2.0
         ('190614','test_5',2,gain_factor_new), # Coax, probe v2.0
         ('190614','test_6',2,gain_factor_new), # Coax, DNP probe 
+        ('190614','test_7',2,gain_factor_new), # Coax, DNP probe 
     ]:
     # }}}
     # {{{ plot labels
