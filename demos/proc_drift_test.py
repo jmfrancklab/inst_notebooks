@@ -11,6 +11,10 @@ mpl.rc('font', **font)
 rcParams['mathtext.fontset'] = 'cm'
 
 filename = '190610_Katie_drift_test_oil_34dBm_iris'
+presentation = True # only for presentation purposes -- for the purposes
+#                     of viewing results, you want to see where your
+#                     datapoints are, what the interpolation is doing,
+#                     etc.
 data = load(getDATADIR(exp_type='test_equip')+filename+'.npz')
 f_axis = data[data.files[0]]
 rx_axis = data[data.files[1]]
@@ -54,11 +58,22 @@ savefig(filename+'.png',
         )
 # {{{ generate the surface plot using fancy methods for a nice plot
 # creates the Delauney meshing
-tri_x = t_axis.ravel()
-tri_y = (f_axis[:,newaxis]*ones_like(t_axis)).ravel()
+tri_y = t_axis.ravel()
+# interestingly, if I just divide the first part by 1e9, the plot becomes
+# terrible
+tri_x = ((f_axis[:,newaxis]*ones_like(t_axis)).ravel()
+        -f_axis.mean())/1e3
+tri_z = rx_axis.ravel()
+# {{{ this part is actually very important, and prevents the data from
+# interpolating to 0 at the edges!
+# --> in the future, note that nan is a good placeholder for "lack of data"
+mask = tri_y == 0 # t=0 are not valid datapoints
+tri_y = tri_y[~mask]
+tri_x = tri_x[~mask]
+tri_z = tri_z[~mask]
+# }}}
 tri = Triangulation(tri_x,
         tri_y)
-tri_z = rx_axis.ravel()
 # {{{ refining the data -- see https://matplotlib.org/3.1.0/gallery/images_contours_and_fields/tricontour_smooth_delaunay.html#sphx-glr-gallery-images-contours-and-fields-tricontour-smooth-delaunay-py
 #     I don't see a difference in the refined vs. unrefined, but I'm quite possibly missing something
 refiner = UniformTriRefiner(tri)
@@ -66,31 +81,39 @@ subdiv = 3  # Number of recursive subdivisions of the initial mesh for smooth
             # plots. Values >3 might result in a very high number of triangles
             # for the refine mesh: new triangles numbering = (4**subdiv)*ntri
 tri_refi, tri_z_refi = refiner.refine_field(tri_z, subdiv=subdiv)
+mask = TriAnalyzer(tri_refi).get_flat_tri_mask(10)
+tri_refi = tri_refi.set_mask(~mask)
 # }}}
-figure(figsize=(15,5),
+figure(figsize=(5,15),
         facecolor=(1,1,1,0))
-plot(tri_x,tri_y,'o',
-        color='k',alpha=0.3)
-triplot(tri,
-        color='k',alpha=0.3)
+if not presentation:
+    plot(tri_x,tri_y,'o',
+            color='k',alpha=0.3)
+    triplot(tri,
+            color='k',alpha=0.3)
 tricontourf(tri,tri_z,
         levels=linspace(tri_z.min(),tri_z.max(),100)
         )
-ylabel('frequency')
-xlabel('time')
+xlabel('frequency ($\\nu_{\\mu w}-%0.4f$ GHz)/ kHz'%(f_axis.mean()/1e9))
+ylabel('time / s')
 title('unrefined')
 # now show refined
-figure(figsize=(15,5),
+figure(figsize=(5,15),
         facecolor=(1,1,1,0))
-plot(tri_x,tri_y,'o',
-        color='k',alpha=0.3)
-triplot(tri,
-        color='k',alpha=0.3)
+if not presentation:
+    plot(tri_x,tri_y,'o',
+            color='k',alpha=0.3)
+    triplot(tri,
+            color='k',alpha=0.3)
 tricontourf(tri,tri_z,
         levels=linspace(tri_z.min(),tri_z.max(),100)
         )
-ylabel('frequency')
-xlabel('time')
+xlabel('frequency ($\\nu_{\\mu w}-%0.4f$ GHz)/ kHz'%(f_axis.mean()/1e9))
+ylabel('time / s')
 title('refined')
+savefig(filename+'_contour.png',
+        dpi=300,bbox_inches='tight',
+        facecolor=(1,1,1,0),
+        )
 # }}}
 show()
