@@ -11,7 +11,7 @@ mpl.rc('font', **font)
 rcParams['mathtext.fontset'] = 'cm'
 
 filename = '190610_Katie_drift_test_oil_34dBm_iris'
-presentation = True # only for presentation purposes -- for the purposes
+presentation = False # only for presentation purposes -- for the purposes
 #                     of viewing results, you want to see where your
 #                     datapoints are, what the interpolation is doing,
 #                     etc.
@@ -75,7 +75,8 @@ tri_z = tri_z[~mask]
 tri = Triangulation(tri_x,
         tri_y)
 # {{{ refining the data -- see https://matplotlib.org/3.1.0/gallery/images_contours_and_fields/tricontour_smooth_delaunay.html#sphx-glr-gallery-images-contours-and-fields-tricontour-smooth-delaunay-py
-#     I don't see a difference in the refined vs. unrefined, but I'm quite possibly missing something
+#     I don't see a difference in the refined (tri_refi) vs. unrefined (tri),
+#     but I'm quite possibly missing something, or it's more helpful in other cases
 refiner = UniformTriRefiner(tri)
 subdiv = 3  # Number of recursive subdivisions of the initial mesh for smooth
             # plots. Values >3 might result in a very high number of triangles
@@ -84,7 +85,7 @@ tri_refi, tri_z_refi = refiner.refine_field(tri_z, subdiv=subdiv)
 mask = TriAnalyzer(tri_refi).get_flat_tri_mask(10)
 tri_refi = tri_refi.set_mask(~mask)
 # }}}
-figure(figsize=(5,15),
+figure(figsize=(10,30),
         facecolor=(1,1,1,0))
 if not presentation:
     plot(tri_x,tri_y,'o',
@@ -94,23 +95,9 @@ if not presentation:
 tricontourf(tri,tri_z,
         levels=linspace(tri_z.min(),tri_z.max(),100)
         )
-xlabel('frequency ($\\nu_{\\mu w}-%0.4f$ GHz)/ kHz'%(f_axis.mean()/1e9))
+colorbar()
+xlabel('frequency\n($\\nu_{\\mu w}-%0.5f$ GHz)/ kHz'%(f_axis.mean()/1e9))
 ylabel('time / s')
-title('unrefined')
-# now show refined
-figure(figsize=(5,15),
-        facecolor=(1,1,1,0))
-if not presentation:
-    plot(tri_x,tri_y,'o',
-            color='k',alpha=0.3)
-    triplot(tri,
-            color='k',alpha=0.3)
-tricontourf(tri,tri_z,
-        levels=linspace(tri_z.min(),tri_z.max(),100)
-        )
-xlabel('frequency ($\\nu_{\\mu w}-%0.4f$ GHz)/ kHz'%(f_axis.mean()/1e9))
-ylabel('time / s')
-title('refined')
 savefig(filename+'_contour.png',
         dpi=300,bbox_inches='tight',
         facecolor=(1,1,1,0),
