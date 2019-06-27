@@ -38,7 +38,7 @@ with Bridge12() as b:
             k += 1
         b.set_rf(False)
         time.sleep(10)
-    id_string = '190626_Katie_drift_test_oil_34dBm_dip_only'
+    id_string = '190627_Katie_drift_test_oil_34dBm_dip_only'
     savez(id_string,freq=f_axis,rx=rx_array,t=t_array)
     
     
