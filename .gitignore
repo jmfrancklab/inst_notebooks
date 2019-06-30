@@ -1,3 +1,4 @@
+*.h5
 *.egg-info
 *.ipynb
 *.png
