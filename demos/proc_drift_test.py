@@ -10,7 +10,7 @@ font = {'family' : 'sans-serif',
 mpl.rc('font', **font)
 rcParams['mathtext.fontset'] = 'cm'
 
-filename = '190610_Katie_drift_test_oil_34dBm_iris'
+filename = '190628_Katie_drift_test_oil_34dBm_test2'
 presentation = False # only for presentation purposes -- for the purposes
 #                     of viewing results, you want to see where your
 #                     datapoints are, what the interpolation is doing,
