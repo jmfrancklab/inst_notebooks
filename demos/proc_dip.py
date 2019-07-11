@@ -1,7 +1,8 @@
 from pyspecdata import *
 from itertools import cycle
 
-filename = '190711_MiniCircuits_Narda_test'
+#filename = '190711_MiniCircuits_Narda_test'
+filename = '190711_just_Narda_test'
 data = load(getDATADIR(exp_type='test_equip')+filename+'.npz')
 
 for x in xrange(int(shape(data.keys())[0])):
@@ -41,6 +42,7 @@ def plot_all():
 
 
 plot_all()
+title('Narda test')
 xlabel('frequency (Hz)')
 ylabel('detected power (dBm)')
 legend()

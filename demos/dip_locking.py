@@ -41,6 +41,10 @@ if run_bridge12:
         result = b.tuning_curve_data
         
         #fits = b.fit_data
+save_data = False
+if save_data:
+    filename = '190711_test'
+    np.savez(filename+'.npz', **result)
 def plot_all():
     figure()
     powerlist = []
