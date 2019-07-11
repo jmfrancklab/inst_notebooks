@@ -8,30 +8,38 @@ from itertools import cycle
 run_bridge12 = True
 if run_bridge12:
     with Bridge12() as b:
-        #b.set_wg(True)
-        #b.set_rf(True)
-        #b.set_amp(True)
-        #b.set_power(10.0)
-        #b.freq_sweep(r_[9.80:9.83:20j]*1e9)
-        b.lock_on_dip(ini_range=(9.80e9,9.82e9))
-        b.zoom(dBm_increment=3)
-        b.zoom(dBm_increment=3)
-        b.zoom(dBm_increment=3)
-        b.zoom(dBm_increment=3)
-        b.zoom(dBm_increment=3)
-        b.zoom(dBm_increment=3)
-        b.zoom(dBm_increment=2)
-        b.zoom(dBm_increment=1)
-        #b.zoom(dBm_increment=1) #Ends at 36 dBm
-        manual_iris_adjust = False
-        if manual_iris_adjust:
-            zoom_return = b.zoom(dBm_increment=1)
-            dip_f = zoom_return[2]
-            b.set_freq(dip_f)
-            raw_input("Minimzie RX...")
+        b.set_wg(True)
+        b.set_rf(True)
+        b.set_amp(True)
+        b.set_power(10.0)
+        b.freq_sweep(r_[9.80:9.83:100j]*1e9)
+        b.set_power(11.0)
+        b.freq_sweep(r_[9.80:9.83:25j]*1e9)
+        b.set_power(13.0)
+        b.freq_sweep(r_[9.80:9.83:25j]*1e9)
+        b.set_power(14.0)
+        b.freq_sweep(r_[9.80:9.83:25j]*1e9)
+        #b.lock_on_dip(ini_range=(9.80e9,9.83e9))
+        #b.zoom(dBm_increment=3)
+        #b.zoom(dBm_increment=3)
+        #b.zoom(dBm_increment=3)
+        #b.zoom(dBm_increment=3)
+        #b.zoom(dBm_increment=3)
+        #b.zoom(dBm_increment=3)
+        #b.zoom(dBm_increment=2)
+        #b.zoom(dBm_increment=2)
+        #manual_iris_adjust = False
+        #if not manual_iris_adjust:
+        #    b.zoom(dBm_increment=1) # Ends at 36 dBm
+        #if manual_iris_adjust:
+        #    zoom_return = b.zoom(dBm_increment=1)
+        #    dip_f = zoom_return[2]
+        #    b.set_freq(dip_f)
+        #    raw_input("Minimzie RX...")
         #else:
         #    b.zoom(dBm_increment=1)
         result = b.tuning_curve_data
+        
         #fits = b.fit_data
 def plot_all():
     figure()
@@ -41,7 +49,7 @@ def plot_all():
     powerlist.sort()
     print "powerlist is",powerlist
     for power in powerlist:
-        show_log_scale = True
+        show_log_scale = False
         if show_log_scale:
             fmt = convert_to_power
         else:
