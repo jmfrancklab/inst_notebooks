@@ -1,8 +1,11 @@
 from pyspecdata import *
 from itertools import cycle
+from Instruments.bridge12 import convert_to_power,convert_to_mv
 
-#filename = '190711_MiniCircuits_Narda_test'
-filename = '190711_just_Narda_test'
+#filename = '190712_MiniCircuits_Narda_test'
+#filename = '190712_Narda_test'
+#filename = '190712_empty_cavity'
+filename = '190712_empty_cavity_lock_on_dip'
 data = load(getDATADIR(exp_type='test_equip')+filename+'.npz')
 
 for x in xrange(int(shape(data.keys())[0])):
@@ -16,11 +19,13 @@ def plot_all():
     powerlist.sort()
     print "powerlist is",powerlist
     for power in powerlist:
-        show_log_scale = False
+        show_log_scale = True
         if show_log_scale:
             fmt = convert_to_power
+            ylabel_str = 'power (dBm)'
         else:
             fmt = lambda x: x
+            ylabel_str = 'power (mV)'
         thiscolor = thesecolors.next()
         show_fits = False
         plotstyle = 'o-'
@@ -39,11 +44,12 @@ def plot_all():
                         fmt(fits['%ddBm_func'%power](f_axis)),
                         '-',
                         color=thiscolor)
+    return ylabel_str
 
 
-plot_all()
-title('Narda test')
+ylabel_str = plot_all()
+title('%s'%filename)
 xlabel('frequency (Hz)')
-ylabel('detected power (dBm)')
+ylabel('%s'%ylabel_str)
 legend()
 show()

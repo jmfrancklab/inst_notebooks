@@ -8,18 +8,18 @@ from itertools import cycle
 run_bridge12 = True
 if run_bridge12:
     with Bridge12() as b:
-        b.set_wg(True)
-        b.set_rf(True)
-        b.set_amp(True)
-        b.set_power(10.0)
-        b.freq_sweep(r_[9.80:9.83:100j]*1e9)
-        b.set_power(11.0)
-        b.freq_sweep(r_[9.80:9.83:25j]*1e9)
-        b.set_power(13.0)
-        b.freq_sweep(r_[9.80:9.83:25j]*1e9)
-        b.set_power(14.0)
-        b.freq_sweep(r_[9.80:9.83:25j]*1e9)
-        #b.lock_on_dip(ini_range=(9.80e9,9.83e9))
+        #b.set_wg(True)
+        #b.set_rf(True)
+        #b.set_amp(True)
+        #b.set_power(10.0)
+        #b.freq_sweep(r_[9.83:9.86:50j]*1e9)
+        #b.set_power(11.0)
+        #b.freq_sweep(r_[9.83:9.86:25j]*1e9)
+        #b.set_power(13.0)
+        #b.freq_sweep(r_[9.84:9.87:25j]*1e9)
+        #b.set_power(14.0)
+        #b.freq_sweep(r_[9.84:9.87:25j]*1e9)
+        b.lock_on_dip(ini_range=(9.835e9,9.855e9))
         #b.zoom(dBm_increment=3)
         #b.zoom(dBm_increment=3)
         #b.zoom(dBm_increment=3)
@@ -41,9 +41,9 @@ if run_bridge12:
         result = b.tuning_curve_data
         
         #fits = b.fit_data
-save_data = False
+save_data = True
 if save_data:
-    filename = '190711_test'
+    filename = '190712_empty_cavity_lock_on_dip'
     np.savez(filename+'.npz', **result)
 def plot_all():
     figure()
@@ -53,7 +53,7 @@ def plot_all():
     powerlist.sort()
     print "powerlist is",powerlist
     for power in powerlist:
-        show_log_scale = False
+        show_log_scale = True
         if show_log_scale:
             fmt = convert_to_power
         else:
