@@ -1,4 +1,4 @@
-# coding: utf-8
+## coding: utf-8
 # ## Initialization
 #  
 # To run on a different computer, run ``jupyter notebook --ip='*'`` copy and paste address and replace ``localhost`` with
@@ -8,6 +8,7 @@ from serial import Serial
 from scipy.interpolate import interp1d
 from numpy import *
 import time
+from Instruments import HP8672A
 
 def generate_beep(f,dur):
     # do nothing -- can be used to generate a beep, but platform-dependent
@@ -216,19 +217,22 @@ class Bridge12 (Serial):
                 raise RuntimeError("Before you try to set the power above 10 dBm, you must first set a lower power!!!")
             if setting > 30+self.cur_pwr_int: 
                 raise RuntimeError("Once you are above 10 dBm, you must raise the power in MAX 3 dB increments.  The power is currently %g, and you tried to set it to %g -- this is not allowed!"%(self.cur_pwr_int/10.,setting/10.))
-        self.write('power %d\r'%setting)
+        print "Setting HP power to",(setting/10.)-35.0,"dBm, which is",setting/10.,"dBm after amplifier"
+        with HP8672A(gpibaddress=19) as h:
+            h.set_power((setting/10.)-35.0)
+        #self.write('power %d\r'%setting)
         if setting > 0: self.rxpowermv_int_singletry() # doing this just for safety interlock
-        for j in range(10):
-            result = self.power_int()
-            if setting > 0: self.rxpowermv_int_singletry() # doing this just for safety interlock
-            if result == setting:
-                self.cur_pwr_int = result
-                return
-            time.sleep(10e-3)
-        raise RuntimeError(("After checking status 10 times, I can't get the"
-            "power to change: I'm trying to set to %d/10 dBm, but the Bridge12"
-            "keeps replying saying that it's set to %d/10"
-            "dBm")%(setting,result))
+        #for j in range(10):
+        #    result = self.power_int()
+        #    if setting > 0: self.rxpowermv_int_singletry() # doing this just for safety interlock
+        #    if result == setting:
+        #        self.cur_pwr_int = result
+        #        return
+        #    time.sleep(10e-3)
+        #raise RuntimeError(("After checking status 10 times, I can't get the"
+        #    "power to change: I'm trying to set to %d/10 dBm, but the Bridge12"
+        #    "keeps replying saying that it's set to %d/10"
+        #    "dBm")%(setting,result))
     def rxpowermv_int_singletry(self):
         """read the integer value for the Rx power (which is 10* the value in mV).  Also has a software interlock so that if the Rx power ever exceeds self.safe_rx_level_int, then the amp shuts down."""
         self.write('rxpowermv?\r')
@@ -288,14 +292,17 @@ class Bridge12 (Serial):
             assert Hz >= self.freq_bounds[0]
             assert Hz <= self.freq_bounds[1]
         setting = int(Hz/1e3+0.5)
-        self.write('freq %d\r'%(setting))
-        if self.freq_int() != setting:
-            for j in range(10):
-                result = self.freq_int()
-                if result == setting:
-                    return
-            raise RuntimeError("After checking status 10 times, I can't get the "
-                           "frequency to change -- result is %d setting is %d"%(result,setting))
+        print "Setting frequency to",setting*1e3*1e-9,"GHz"
+        with HP8672A(gpibaddress=19) as h:
+            h.set_frequency(setting*1e3)
+        #self.write('freq %d\r'%(setting))
+        #if self.freq_int() != setting:
+        #    for j in range(10):
+        #        result = self.freq_int()
+        #        if result == setting:
+        #            return
+        #    raise RuntimeError("After checking status 10 times, I can't get the "
+        #                   "frequency to change -- result is %d setting is %d"%(result,setting))
     def freq_int(self):
         "return the frequency, in kHz (since it's set as an integer kHz)"
         self.write('freq?\r')
@@ -445,8 +452,10 @@ class Bridge12 (Serial):
         self._inside_with_block = True
         return self
     def safe_shutdown(self):
+        print "Entering safe shut down..."
         try:
-            self.set_power(0)
+            with HP8672A(gpibaddress=19) as h:
+                h.set_power(-111)
         except Exception as e:
             print "error on standard shutdown during set_power -- running fallback shutdown"
             print "original error:"
