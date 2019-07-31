@@ -23,7 +23,6 @@ data = load(getDATADIR(exp_type='test_equip')+filename+'.npz')
 f_axis = data[data.files[0]]
 rx_axis = data[data.files[1]]
 t_axis = data[data.files[2]]
-print f_axis
 stop_index = where(rx_axis==180)
 print "shape of t_axis",shape(t_axis)
 # DO NOT index multi-dimensional arrays using a single index -- it creates code that is very hard to read
@@ -34,7 +33,6 @@ figure(figsize=(15,5),
 ax = axes(#frameon=False,
         facecolor=(1,1,1,0.5))
 #ax.set_alpha(0.5)
-
 for x in r_[0:len(f_axis)]:
     plot(t_axis[x,:len(t_axis[1])-1],rx_axis[x,:len(t_axis[1])-1]/10.,'o-',label='%0.7f GHz'%(f_axis[x]*1e-9))
 fs = filename.split('_')

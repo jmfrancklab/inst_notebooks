@@ -5,16 +5,14 @@ from serial import Serial
 import time
 
 with Bridge12() as b:
-    b.lock_on_dip(ini_range=(9.80e9,9.83e9))
+    b.lock_on_dip(ini_range=(9.80e9,9.82e9))
     b.zoom(dBm_increment=3)
     b.zoom(dBm_increment=3)
     b.zoom(dBm_increment=3)
     b.zoom(dBm_increment=3)
     b.zoom(dBm_increment=3)
-    b.zoom(dBm_increment=2)
-    b.zoom(dBm_increment=1)
-    b.zoom(dBm_increment=2)
-    b.zoom(dBm_increment=1)
+    b.zoom(dBm_increment=3)
+    b.zoom(dBm_increment=3)
     result = b.tuning_curve_data
     
     faxis = result['34dBm_freq']
@@ -26,7 +24,7 @@ with Bridge12() as b:
     time_pts = int(collect_time/sleep_time)
     rx_array = zeros((len(f_axis),time_pts),dtype=int32)
     t_array = zeros((len(f_axis),time_pts),dtype=double)
-    for j,thisfreq in enumerate(f_axis):
+    for j,thisfreq in enumerate(f_axis): 
         print "FREQUENCY POINT...",j,"which is",thisfreq
         k = 0
         b.set_rf(True)
@@ -40,7 +38,7 @@ with Bridge12() as b:
             k += 1
         b.set_rf(False)
         time.sleep(10)
-    id_string = '190610_Katie_drift_test_air_34dBm_iris'
+    id_string = '190628_Katie_drift_test_oil_34dBm_test2'
     savez(id_string,freq=f_axis,rx=rx_array,t=t_array)
     
     
