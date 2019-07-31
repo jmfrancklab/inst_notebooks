@@ -221,7 +221,9 @@ class Bridge12 (Serial):
         with HP8672A(gpibaddress=19) as h:
             h.set_power((setting/10.)-35.0)
         #self.write('power %d\r'%setting)
-        if setting > 0: self.rxpowermv_int_singletry() # doing this just for safety interlock
+        if setting > 0:
+            self.rxpowermv_int_singletry() # doing this just for safety interlock
+            self.cur_pwr_int = setting
         #for j in range(10):
         #    result = self.power_int()
         #    if setting > 0: self.rxpowermv_int_singletry() # doing this just for safety interlock
