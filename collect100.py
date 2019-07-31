@@ -1,4 +1,4 @@
-#{{{ Program doc
+#_1{{{ Program doc
 r'''Use this program to collect 100 snapshots of noise in
     about 1 min. This is to generate the Power Spectral
     Density of the device/system. Set up for testing the
@@ -67,8 +67,8 @@ def collect(date,id_string,captures):
     print "shape of data",ndshape(s)
     return start
 
-date = '190712'
-id_string = 'test_6_1'
+date = '190716'
+id_string = 'test_3'
 captures = linspace(1,100,100)
 
 print "Starting collection..."
