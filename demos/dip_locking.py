@@ -19,31 +19,31 @@ if run_bridge12:
         #b.freq_sweep(r_[9.84:9.87:25j]*1e9)
         #b.set_power(14.0)
         #b.freq_sweep(r_[9.84:9.87:25j]*1e9)
-        b.lock_on_dip(ini_range=(9.835e9,9.855e9))
-        #b.zoom(dBm_increment=3)
-        #b.zoom(dBm_increment=3)
+        b.lock_on_dip(ini_range=(9.84e9,9.855e9))
+        b.zoom(dBm_increment=3)
+        b.zoom(dBm_increment=3)
         #b.zoom(dBm_increment=3)
         #b.zoom(dBm_increment=3)
         #b.zoom(dBm_increment=3)
         #b.zoom(dBm_increment=3)
         #b.zoom(dBm_increment=2)
         #b.zoom(dBm_increment=2)
-        #manual_iris_adjust = False
-        #if not manual_iris_adjust:
-        #    b.zoom(dBm_increment=1) # Ends at 36 dBm
-        #if manual_iris_adjust:
-        #    zoom_return = b.zoom(dBm_increment=1)
-        #    dip_f = zoom_return[2]
-        #    b.set_freq(dip_f)
-        #    raw_input("Minimzie RX...")
-        #else:
-        #    b.zoom(dBm_increment=1)
+        manual_iris_adjust = False
+        if not manual_iris_adjust:
+            b.zoom(dBm_increment=1) # Ends at 36 dBm
+        if manual_iris_adjust:
+            zoom_return = b.zoom(dBm_increment=1)
+            dip_f = zoom_return[2]
+            b.set_freq(dip_f)
+            raw_input("Minimzie RX...")
+        else:
+            b.zoom(dBm_increment=1)
         result = b.tuning_curve_data
         
         #fits = b.fit_data
 save_data = True
 if save_data:
-    filename = '190712_empty_cavity_lock_on_dip'
+    filename = '190730_empty_cavity_lock_on_dip_1'
     np.savez(filename+'.npz', **result)
 def plot_all():
     figure()
