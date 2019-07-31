@@ -9,6 +9,7 @@ from scipy.interpolate import interp1d
 from numpy import *
 import time
 from Instruments import HP8672A
+import logging
 
 def generate_beep(f,dur):
     # do nothing -- can be used to generate a beep, but platform-dependent
@@ -40,7 +41,7 @@ class Bridge12 (Serial):
         if type(cport) is list and hasattr(cport[0],'device'):
             portlist = [j.device for j in comports() if u'Arduino Due' in j.description]
         elif type(cport.next()) is tuple:
-            print "using fallback comport method"
+            logging.debug("using fallback comport method")
             portlist = [j[0] for j in comports() if u'Arduino Due' in j[1]]
         else:
             raise RuntimeError("Not sure how how to grab the USB ports!!!")
@@ -62,9 +63,9 @@ class Bridge12 (Serial):
                 a = self.read_until(this_str+'\r\n')
                 time.sleep(0.1)
                 #print "a is",repr(a)
-                print "look for",this_str,"try",j+1
+                logging.debug("look for "+str(this_str)+" try"+str(j+1))
                 if this_str in a:
-                    print "found: ",this_str
+                    logging.debug("found: "+this_str)
                     break
         look_for('MPS Started')
         look_for('System Ready')
@@ -72,7 +73,7 @@ class Bridge12 (Serial):
         return
     def help(self):
         self.write("help\r") #command for "help"
-        print "after help:"
+        logging.info("after help:")
         entire_response = ''
         start = time.time()
         entire_response += self.readline()
@@ -84,7 +85,7 @@ class Bridge12 (Serial):
             entire_response += more
             if len(more) == 0:
                 grab_more_lines = False
-        print repr(entire_response)
+        logging.info(repr(entire_response))
     def wgstatus_int_singletry(self):
         self.write('wgstatus?\r')
         return int(self.readline())
@@ -147,7 +148,7 @@ class Bridge12 (Serial):
         self.write('rfstatus?\r')
         retval = self.readline()
         if retval.strip() == 'ERROR':
-            print "got an error from rfstatus, trying again"
+            logging.info("got an error from rfstatus, trying again")
             self.write('rfstatus?\r')
             retval = self.readline()
             if retval.strip() == 'ERROR':
@@ -241,7 +242,7 @@ class Bridge12 (Serial):
         retval = self.readline()
         retval = retval.strip()
         if retval == 'ERROR':
-            print "Found ERROR condition on trying to read rxpowermv -- trying again"
+            logging.info("Found ERROR condition on trying to read rxpowermv -- trying again")
             j = 0
             while j < 10:
                 time.sleep(10e-3)
@@ -249,7 +250,7 @@ class Bridge12 (Serial):
                 retval = self.readline()
                 retval = retval.strip()
                 if retval != 'ERROR':
-                    print "after try %d, it responded with %s"%(j+1,retval)
+                    logging.info("after try %d, it responded with %s"%(j+1,retval))
                     break
         retval = int(retval)
         if retval > self.safe_rx_level_int:
@@ -291,8 +292,8 @@ class Bridge12 (Serial):
             frequency values -- give a Hz as a floating point number
         """
         if hasattr(self,'freq_bounds'):
-            assert Hz >= self.freq_bounds[0]
-            assert Hz <= self.freq_bounds[1]
+            assert Hz >= self.freq_bounds[0], "You are trying to set the frequency outside the frequency bounds, which are: "+str(self.freq_bounds)
+            assert Hz <= self.freq_bounds[1], "You are trying to set the frequency outside the frequency bounds, which are: "+str(self.freq_bounds)
         setting = int(Hz/1e3+0.5)
         print "Setting frequency to",setting*1e3*1e-9,"GHz"
         with HP8672A(gpibaddress=19) as h:
@@ -378,7 +379,7 @@ class Bridge12 (Serial):
             dBm_increment=3, n_freq_steps=15):
         """Locks onto the main dip, and finds the first polynomial fit also sets the current frequency bounds."""    
         if not self.frq_sweep_10dBm_has_been_run:
-            print "Did not find previous 10 dBm run, running now"
+            logging.info("Did not find previous 10 dBm run, running now")
             self.set_wg(True)
             self.set_rf(True)
             self.set_amp(True)
@@ -415,6 +416,7 @@ class Bridge12 (Serial):
         "please write a docstring here"
         assert self.frq_sweep_10dBm_has_been_run, "You're trying to run zoom before you ran a frequency sweep at 10 dBm -- something is wonky!!!"
         assert hasattr(self,'freq_bounds'), "you probably haven't run lock_on_dip, which you need to do before zoom"
+        # {{{ fit the mV values
         # start by pulling the data from the last tuning curve
         rx, tx, freq = [self.tuning_curve_data[self.last_sweep_name + '_' + j] for j in ['rx','tx','freq']]
         p = polyfit(freq,rx,2)
@@ -424,26 +426,23 @@ class Bridge12 (Serial):
         self.fit_data[self.last_sweep_name + '_range'] = freq[r_[0,-1]]
         # the following should be decided from doing algebra (I haven't double-checked them)
         center = -b/2/c
-        print "Predicted center frequency:",center*1e-9
+        logging.info("Predicted center frequency: "+str(center*1e-9))
+        # }}}
+        # {{{ use the parabola fit to determine the new "safe" bounds for the next sweep
         safe_rx = 6.0 # dBm, setting based off of values seeing in tests
-        # MISSING (lower priority than the rest) --> we could probably raise
-        # this but we need to interpolate from dBm values back to rx mV values
-        # using the calibration curve (convert_to_power)
-        #
-        # Actually, once you have done such an interpolation, it allows you to
-        # set your intercept using an mV value.  I believe that you will find
-        # that the mV rx curves fit better to a polynomial than after you
-        # convert them to a dB value
         a_new = a - convert_to_mv(safe_rx-dBm_increment) # this allows us to find the x values where a_new+bx+cx^2=safe_rx-dBm_increment
         safe_crossing = (-b+r_[-sqrt(b**2-4*a_new*c),sqrt(b**2-4*a_new*c)])/2/c
         safe_crossing.sort()
         start_f,stop_f = safe_crossing
         if start_f < self.freq_bounds[0]: start_f = self.freq_bounds[0]
         if stop_f > self.freq_bounds[1]: stop_f = self.freq_bounds[1]
+        # }}}
+        # {{{ run the frequency sweep with the new limits
         freq = linspace(start_f,stop_f,n_freq_steps)
         self.set_power(dBm_increment+self.cur_pwr_int/10.)
         # with the new time constant added for freq_sweep, should we eliminate fast_run?
         rx, tx = self.freq_sweep(freq, fast_run=True)
+        # }}}
         # MISSING -- DO BEFORE MOVING TO HIGHER POWERS!
         # test to see if any of the powers actually exceed the safety limit
         # if they do, then contract freq_bounds to include those powers
