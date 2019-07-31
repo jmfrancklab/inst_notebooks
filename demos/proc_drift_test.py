@@ -2,7 +2,11 @@ from pyspecdata import *
 import matplotlib as mpl
 from matplotlib.pylab import text
 from matplotlib.tri import Triangulation, TriAnalyzer, UniformTriRefiner
+from matplotlib.colors import ListedColormap
 
+data = load(getDATADIR(exp_type='test_equip')+'contourcm.npz')
+cm = ListedColormap(data['cm'],
+        name='test')
 font = {'family' : 'sans-serif',
         'sans-serif' : 'Times New Roman',
         'weight' : 'normal',
@@ -11,7 +15,7 @@ mpl.rc('font', **font)
 rcParams['mathtext.fontset'] = 'cm'
 
 filename = '190610_Katie_drift_test_oil_34dBm_iris'
-presentation = False # only for presentation purposes -- for the purposes
+presentation = True # only for presentation purposes -- for the purposes
 #                     of viewing results, you want to see where your
 #                     datapoints are, what the interpolation is doing,
 #                     etc.
@@ -59,8 +63,6 @@ savefig(filename+'.png',
 # {{{ generate the surface plot using fancy methods for a nice plot
 # creates the Delauney meshing
 tri_y = t_axis.ravel()
-# interestingly, if I just divide the first part by 1e9, the plot becomes
-# terrible
 tri_x = ((f_axis[:,newaxis]*ones_like(t_axis)).ravel()
         -f_axis.mean())/1e3
 tri_z = rx_axis.ravel()
@@ -85,7 +87,7 @@ tri_refi, tri_z_refi = refiner.refine_field(tri_z, subdiv=subdiv)
 mask = TriAnalyzer(tri_refi).get_flat_tri_mask(10)
 tri_refi = tri_refi.set_mask(~mask)
 # }}}
-figure(figsize=(10,30),
+figure(figsize=(5,15),
         facecolor=(1,1,1,0))
 if not presentation:
     plot(tri_x,tri_y,'o',
@@ -93,7 +95,8 @@ if not presentation:
     triplot(tri,
             color='k',alpha=0.3)
 tricontourf(tri,tri_z,
-        levels=linspace(tri_z.min(),tri_z.max(),100)
+        levels=linspace(tri_z.min(),tri_z.max(),100),
+        #cmap=cm,
         )
 colorbar()
 xlabel('frequency\n($\\nu_{\\mu w}-%0.5f$ GHz)/ kHz'%(f_axis.mean()/1e9))
