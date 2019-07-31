@@ -461,9 +461,10 @@ class Bridge12 (Serial):
             print "error on standard shutdown during set_power -- running fallback shutdown"
             print "original error:"
             print e
-            self.write('power %d\r'%0)
             self.write('rfstatus %d\r'%0)
             self.write('wgstatus %d\r'%0)
+            with HP8672A(gpibaddress=19) as h:
+                h.set_power(-111)
             self.close()
             return
         try:
@@ -472,9 +473,10 @@ class Bridge12 (Serial):
             print "error on standard shutdown during set_rf -- running fallback shutdown"
             print "original error:"
             print e
-            self.write('power %d\r'%0)
             self.write('rfstatus %d\r'%0)
             self.write('wgstatus %d\r'%0)
+            with HP8672A(gpibaddress=19) as h:
+                h.set_power(-111)
             self.close()
             return
         try:
@@ -483,9 +485,10 @@ class Bridge12 (Serial):
             print "error on standard shutdown during set_wg -- running fallback shutdown"
             print "original error:"
             print e
-            self.write('power %d\r'%0)
             self.write('rfstatus %d\r'%0)
             self.write('wgstatus %d\r'%0)
+            with HP8672A(gpibaddress=19) as h:
+                h.set_power(-111)
             self.close()
             return
         self.close()
