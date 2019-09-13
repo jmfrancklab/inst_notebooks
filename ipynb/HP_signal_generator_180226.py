@@ -4,30 +4,41 @@ cd ..
 
 # 
 
-from Instruments import HP8672A
+
+from Instruments import HP8672A, prologix_connection, gigatronics
 
 
-# This next block is how I found the correct GPIB address (set a frequency that matches the address)
+# This next block is how I found the correct GPIB address (set frequency to 10.XX, where XX is the GPIB address)
+# 
+# After fixing GPIB issue, this seems to be working for all, which is not correct!
 
+# 
+
+
+import time
 with prologix_connection() as p:
     for j in range(50):
         testaddr = j+1
-        with HP8672A(prologix_connection=p, address=testaddr) as h:
-            h.set_frequency(10e9+0.1e9*testaddr)
+        with HP8672A(prologix_instance=p, address=testaddr) as h:
+            time.sleep(0.5)
+            h.set_frequency(10e9+0.01e9*testaddr)
 
 
 # Note that the manual makes it seem like there might be a different address for receiving info from the instrument, but I also didn't find any info about commands where you can get it to speak to you. 
 
 with prologix_connection() as p:
-    with HP8672A(prologix_connection=p, gpibaddress=19) as h:
+    with HP8672A(prologix_instance=p, address=19) as h:
         h.set_frequency(9.8e9)
 
 
 # If I have the "RF OUTPUT" switch set to on when I start up the instrument, and then run the following at 9.2 GHz, and see how the HP333308 changes in response, I can see the power changing.
+# also read the power on the gigatronics
 
 with prologix_connection() as p:
-    with HP8672A(prologix_connection=p, gpibaddress=19) as h:
-        h.set_power(-110)
+    with HP8672A(prologix_instance=p, address=19) as h:
+        h.set_power(-20)
+    with gigatronics(prologix_instance=p, address=7) as g:
+        print g.respond('ID')
 
 
 # The following is some example socket code from online somewhere -- the StringIO might be useful
