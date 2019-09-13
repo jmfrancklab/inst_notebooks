@@ -9,22 +9,25 @@ from Instruments import HP8672A
 
 # This next block is how I found the correct GPIB address (set a frequency that matches the address)
 
-for j in range(50):
-    testaddr = j+1
-    with HP8672A(gpibaddress=testaddr) as h:
-        h.set_frequency(10e9+0.1e9*testaddr)
+with prologix_connection() as p:
+    for j in range(50):
+        testaddr = j+1
+        with HP8672A(prologix_connection=p, address=testaddr) as h:
+            h.set_frequency(10e9+0.1e9*testaddr)
 
 
 # Note that the manual makes it seem like there might be a different address for receiving info from the instrument, but I also didn't find any info about commands where you can get it to speak to you. 
 
-with HP8672A(gpibaddress=19) as h:
-    h.set_frequency(9.8e9)
+with prologix_connection() as p:
+    with HP8672A(prologix_connection=p, gpibaddress=19) as h:
+        h.set_frequency(9.8e9)
 
 
 # If I have the "RF OUTPUT" switch set to on when I start up the instrument, and then run the following at 9.2 GHz, and see how the HP333308 changes in response, I can see the power changing.
 
-with HP8672A(gpibaddress=19) as h:
-    h.set_power(-110)
+with prologix_connection() as p:
+    with HP8672A(prologix_connection=p, gpibaddress=19) as h:
+        h.set_power(-110)
 
 
 # The following is some example socket code from online somewhere -- the StringIO might be useful
