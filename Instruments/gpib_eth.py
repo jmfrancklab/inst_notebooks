@@ -60,6 +60,7 @@ class gpib_eth (object):
     def respond(self,addr,gpibstr,printstr):
         self.write(addr,gpibstr)
         print printstr % self.read(addr)
+        return self.read(addr)
         
     #{{{ Functions for Newer Tek Scope
     def tek_query_var(self,addr,varname):
