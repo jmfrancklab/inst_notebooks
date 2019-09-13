@@ -2,12 +2,11 @@ from pylab import *
 from .gpib_eth import gpib_eth
 
 class HP8672A (gpib_eth):
-    def __init__(self, gpibaddress=51):
-        super(self.__class__,self).__init__()
-        self.gpibaddress = gpibaddress
+    def __init__(self, address=51):
+        super(self.__class__,self).__init__(address=address)
         self.stepsize = 0.5e6 # this is a lie, but it's used as a default by wobbandmin
     def set_frequency(self,frequency):
-        self.write(self.gpibaddress,'P%08dZ0'%int(round(frequency*1e-3)))# just use the 10 GHz setting, and fill out all the other decimal places with zeros
+        self.write('P%08dZ0'%int(round(frequency*1e-3)))# just use the 10 GHz setting, and fill out all the other decimal places with zeros
         return
     def set_power(self,dBm):
         assert dBm <= 3 and dBm >= -120, "dBm value must be between -120 and 3 dBm"
