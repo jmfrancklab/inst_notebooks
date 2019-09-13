@@ -1,8 +1,8 @@
 from pylab import *
 from .gpib_eth import gpib_eth
 
-class gigatronics_powermeter (gpib_eth):
-    def __init__(self,prologix_instance=None,address=15):
+class gigatronics (gpib_eth):
+    def __init__(self,prologix_instance=None,address=13):
         super(self.__class__,self).__init__(prologix_instance,address)
         idstring = self.respond('ID') # Check ID command
         if idstring[0:4] == 'GIGA':

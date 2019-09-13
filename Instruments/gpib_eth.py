@@ -81,6 +81,7 @@ class gpib_eth (object):
     def setaddr(self):
         if(self.prologix_instance.current_address != self.address):
             self.socket.send('++self.address '+str(self.address)+"\r")
+            print "I am setting the GPIB address to "+str(self.address)
             self.prologix_instance.current_address = self.address
     def readandchop(self): # unique to the ethernet one
         self.setaddr()
@@ -100,7 +101,7 @@ class gpib_eth (object):
         self.setaddr()
         print "about to send:",gpibstr,"to address",self.address
         self.socket.send(gpibstr+"\r")
-    def respond(self,gpibstr,printstr):
+    def respond(self,gpibstr,printstr='%s'):
         self.write(gpibstr)
         print printstr % self.read()
         return self.read()
