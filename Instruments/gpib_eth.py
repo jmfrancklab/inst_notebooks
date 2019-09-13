@@ -3,73 +3,83 @@ import time
 from pylab import *
 
 class prologix_connection (object):
-    """I need to keep track of which instrument I am 'facing' (what ++addr was set to last)"""
-    def __init__(self, ip="jmfrancklab-prologix.syr.edu", port=1234, gpibaddress=None):
-        self.current_address = -1
+    """This controls the IP connection to the prologix -- all classes
+    that use prologix must be nested inside a prologix_connection with
+    block.
+
+    Contains both the TCP connection to the prologix device and a record
+    of which instrument we are "facing".
+    """
+    def __init__(self, ip="jmfrancklab-prologix.syr.edu", port=1234):
+        self.current_address = None
         self.opened_port = None
         self.opened_ip = None
         self.socket = None
+        self.open(ip,port)
         return
-
-global prol_inst
-if not 'prol_inst' in globals():
-    print "I am about to make the prol_inst instance -- this should only happen once!!"
-    prol_inst = prologix_status()
-
-class gpib_eth (object):
-    """WARNING: I modified the names of this file and the classes to make it
-    less ambiguous -- this probably breaks a lot of stuff -- see the
-    appropriate git commit"""
-    def __init__(self, ip="jmfrancklab-prologix.syr.edu", port=1234, gpibaddress=None):
-        global prol_inst
-        # Switch for OS X
-        self.flags = {}
-        self.address = gpibaddress # the GPIB address of the instrument for which I have generated this instance of gpib_eth
-        if gpibaddress is None:
-            raise ValueError("you need to set the GPIB address!!!!")
-        self.open(ip=ip, port=port)
-        self.setaddr()
-        self.prologix_status = prol_inst
     def __enter__(self):
         return self
     def __exit__(self, exception_type, exception_value, traceback):
         self.close()
         return
-    def open(self, ip="jmfrancklab-prologix.syr.edu", port=1234):
-        if self.prologix_status.opened_port is None:
-            self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP)
-            try:
-                self.socket.connect((ip,port))
-            except:
-                raise ValueError("Can't connect to port "+str(port)+" on "+ip)
-            # here I don't set a timeout, since that seems to demand that we receive everything in the buffer
-            self.socket.send('++mode 1'+"\r")
-            self.socket.send('++ifc'+"\r")
-            self.socket.send('++auto 0'+"\r")
-            self.socket.send('++eoi 0'+"\r")
-            self.socket.send("++ver\r")
-            versionstring = self.socket.recv(1000)
-            self.prologix_status.current_address = -1
-            if versionstring[0:8]=='Prologix':
-                print 'connected to: ',versionstring
-            else:
-                print 'Error! can\'t find prologix on %s:%d'%(ip,port)
-                raise
-            self.prologix_status.socket = self.socket
-            self.prologix_status.opened_port = port
-            self.prologix_status.opened_ip = ip
+    def open(self, ip, port):
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM,
+                socket.IPPROTO_TCP)
+        try:
+            self.socket.connect((ip,port))
+        except:
+            raise ValueError("Can't connect to port "+str(port)+" on "+ip)
+        # here I don't set a timeout, since that seems to demand that we receive everything in the buffer
+        self.socket.send('++mode 1'+"\r")
+        self.socket.send('++ifc'+"\r")
+        self.socket.send('++auto 0'+"\r")
+        self.socket.send('++eoi 0'+"\r")
+        self.socket.send("++ver\r")
+        versionstring = self.socket.recv(1000)
+        if versionstring[0:8]=='Prologix':
+            print 'connected to: ',versionstring
         else:
-            assert self.opened_port == port and self.ip == ip, "do you really have 2 prologix devices (you gave a different port or a different ip)?? -- I'm guessing not, and I don't currently support this"
-            self.sock
+            print 'Error! can\'t find prologix on %s:%d'%(ip,port)
+            raise
+        self.opened_port = port
+        self.opened_ip = ip
+        return self
     def close(self):
         self.socket.close()
-        self.prologix_status.opened_port = None
-        self.prologix_status.opened_ip = None
-        self.prologix_status.current_address = None
+class gpib_eth (object):
+    """WARNING: I modified the names of this file and the classes to make it
+    less ambiguous -- this probably breaks a lot of stuff -- see the
+    appropriate git commit"""
+    def __init__(self, prologix, address):
+        """Initialize a GPIB instrument
+        
+        Parameters
+        ==========
+        prologix: a prologix_connection instance
+            Both the TCP connection to the prologix device and a record
+            of which instrument we are "facing".
+        address: int
+            the GPIB address
+        """
+        # Switch for OS X
+        self.flags = {}
+        self.address = address # the GPIB address of the instrument for which I have generated this instance of gpib_eth
+        if address is None:
+            raise ValueError("you need to set the GPIB address (address=xxx)!!!!")
+        self.prologix_instance = prologix
+        self.socket = self.prologix_instance.socket
+        self.setaddr()
+    def __enter__(self):
+        return self
+    def __exit__(self, exception_type, exception_value, traceback):
+        self.close()
+        return
+    def close(self):
+        self.prologix_instance.current_address = None
     def setaddr(self):
-        if(self.prologix_status.current_address != self.address):
+        if(self.prologix_instance.current_address != self.address):
             self.socket.send('++self.address '+str(self.address)+"\r")
-            self.prologix_status.current_address = self.address
+            self.prologix_instance.current_address = self.address
     def readandchop(self): # unique to the ethernet one
         self.setaddr()
         retval = self.socket.recv(1024) # get rid of dos newline
