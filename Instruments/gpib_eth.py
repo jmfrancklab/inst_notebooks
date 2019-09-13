@@ -50,23 +50,25 @@ class gpib_eth (object):
     """WARNING: I modified the names of this file and the classes to make it
     less ambiguous -- this probably breaks a lot of stuff -- see the
     appropriate git commit"""
-    def __init__(self, prologix, address):
+    def __init__(self, prologix_instance, address):
         """Initialize a GPIB instrument
         
         Parameters
         ==========
         prologix: a prologix_connection instance
-            Both the TCP connection to the prologix device and a record
+            Both the TCP connection to the prologix_instance device and a record
             of which instrument we are "facing".
         address: int
             the GPIB address
         """
+        if prologix_instance is None or not isinstance(prologix_instance, prologix_connection):
+            raise ValueError("you must specify a prologix_instance instance")
         # Switch for OS X
         self.flags = {}
         self.address = address # the GPIB address of the instrument for which I have generated this instance of gpib_eth
         if address is None:
             raise ValueError("you need to set the GPIB address (address=xxx)!!!!")
-        self.prologix_instance = prologix
+        self.prologix_instance = prologix_instance
         self.socket = self.prologix_instance.socket
         self.setaddr()
     def __enter__(self):
