@@ -80,7 +80,7 @@ class gpib_eth (object):
         self.prologix_instance.current_address = None
     def setaddr(self):
         if(self.prologix_instance.current_address != self.address):
-            self.socket.send('++self.address '+str(self.address)+"\r")
+            self.socket.send('++addr '+str(self.address)+"\r")
             print "I am setting the GPIB address to "+str(self.address)
             self.prologix_instance.current_address = self.address
     def readandchop(self): # unique to the ethernet one
