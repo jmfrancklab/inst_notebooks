@@ -5,7 +5,7 @@ from Instruments.bridge12 import convert_to_power,convert_to_mv
 #filename = '190712_MiniCircuits_Narda_test'
 #filename = '190712_Narda_test'
 #filename = '190712_empty_cavity'
-filename = '190712_empty_cavity_lock_on_dip'
+filename = '190730_empty_cavity_lock_on_dip_1'
 data = load(getDATADIR(exp_type='test_equip')+filename+'.npz')
 
 for x in xrange(int(shape(data.keys())[0])):
