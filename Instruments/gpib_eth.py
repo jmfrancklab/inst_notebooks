@@ -103,8 +103,10 @@ class gpib_eth (object):
         self.socket.send(gpibstr+"\r")
     def respond(self,gpibstr,printstr='%s'):
         self.write(gpibstr)
-        print printstr % self.read()
-        return self.read()
+        #print printstr % self.readline()
+        idstring1 = self.readline()
+        idstring2 = self.readline()
+        return idstring1,idstring2
         
     #{{{ Functions for Newer Tek Scope
     def tek_query_var(self,varname):
