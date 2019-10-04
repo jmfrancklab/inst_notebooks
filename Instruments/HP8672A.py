@@ -1,5 +1,6 @@
 from pylab import *
 from .gpib_eth import gpib_eth
+from .log_inst import logger
 
 class HP8672A (gpib_eth):
     def __init__(self, prologix_instance=None, address=None):
@@ -18,8 +19,7 @@ class HP8672A (gpib_eth):
         coarse_idx = argmin(abs(dBm - coarse_values))
         residual = dBm - coarse_values[coarse_idx]
         vernier_idx = argmin(abs(residual - vernier))
-        print "I'm going to set the coarse value to",coarse_values[coarse_idx],"and the vernier to",vernier[vernier_idx]
+        logger.debug("I'm going to set the coarse value to %f and the vernier to %f"%(coarse_values[coarse_idx],vernier[vernier_idx]))
         cmd = 'K' + ascii_set[coarse_idx] + ascii_set[vernier_idx]
-        print "command for this is",cmd
         self.write(cmd)
         return

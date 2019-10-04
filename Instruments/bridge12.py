@@ -10,7 +10,7 @@ from numpy import *
 import time
 from .HP8672A import HP8672A
 from .gpib_eth import prologix_connection
-import logging
+from .log_inst import logger
 
 def generate_beep(f,dur):
     # do nothing -- can be used to generate a beep, but platform-dependent
@@ -42,7 +42,7 @@ class Bridge12 (Serial):
         if type(cport) is list and hasattr(cport[0],'device'):
             portlist = [j.device for j in comports() if u'Arduino Due' in j.description]
         elif type(cport.next()) is tuple:
-            logging.debug("using fallback comport method")
+            logger.debug("using fallback comport method")
             portlist = [j[0] for j in comports() if u'Arduino Due' in j[1]]
         else:
             raise RuntimeError("Not sure how how to grab the USB ports!!!")
@@ -64,9 +64,9 @@ class Bridge12 (Serial):
                 a = self.read_until(this_str+'\r\n')
                 time.sleep(0.1)
                 #print "a is",repr(a)
-                logging.debug("look for "+str(this_str)+" try"+str(j+1))
+                logger.debug("look for "+str(this_str)+" try"+str(j+1))
                 if this_str in a:
-                    logging.debug("found: "+this_str)
+                    logger.debug("found: "+this_str)
                     break
         look_for('MPS Started')
         look_for('System Ready')
@@ -74,7 +74,7 @@ class Bridge12 (Serial):
         return
     def help(self):
         self.write("help\r") #command for "help"
-        logging.info("after help:")
+        logger.info("after help:")
         entire_response = ''
         start = time.time()
         entire_response += self.readline()
@@ -86,7 +86,7 @@ class Bridge12 (Serial):
             entire_response += more
             if len(more) == 0:
                 grab_more_lines = False
-        logging.info(repr(entire_response))
+        logger.info(repr(entire_response))
     def wgstatus_int_singletry(self):
         self.write('wgstatus?\r')
         return int(self.readline())
@@ -149,7 +149,7 @@ class Bridge12 (Serial):
         self.write('rfstatus?\r')
         retval = self.readline()
         if retval.strip() == 'ERROR':
-            logging.info("got an error from rfstatus, trying again")
+            logger.info("got an error from rfstatus, trying again")
             self.write('rfstatus?\r')
             retval = self.readline()
             if retval.strip() == 'ERROR':
@@ -219,7 +219,7 @@ class Bridge12 (Serial):
                 raise RuntimeError("Before you try to set the power above 10 dBm, you must first set a lower power!!!")
             if setting > 30+self.cur_pwr_int: 
                 raise RuntimeError("Once you are above 10 dBm, you must raise the power in MAX 3 dB increments.  The power is currently %g, and you tried to set it to %g -- this is not allowed!"%(self.cur_pwr_int/10.,setting/10.))
-        print "Setting HP power to",(setting/10.)-35.0,"dBm, which is",setting/10.,"dBm after amplifier"
+        logger.info("Setting HP power to %f dBm, which is %f dBm after amplifier"%((setting/10.)-35.0,setting/10.))
         with prologix_connection() as p:
             with HP8672A(prologix_instance=p, address=19) as h:
                 h.set_power((setting/10.)-35.0)
@@ -244,7 +244,7 @@ class Bridge12 (Serial):
         retval = self.readline()
         retval = retval.strip()
         if retval == 'ERROR':
-            logging.info("Found ERROR condition on trying to read rxpowermv -- trying again")
+            logger.info("Found ERROR condition on trying to read rxpowermv -- trying again")
             j = 0
             while j < 10:
                 time.sleep(10e-3)
@@ -252,7 +252,7 @@ class Bridge12 (Serial):
                 retval = self.readline()
                 retval = retval.strip()
                 if retval != 'ERROR':
-                    logging.info("after try %d, it responded with %s"%(j+1,retval))
+                    logger.info("after try %d, it responded with %s"%(j+1,retval))
                     break
         retval = int(retval)
         if retval > self.safe_rx_level_int:
@@ -382,7 +382,7 @@ class Bridge12 (Serial):
             dBm_increment=3, n_freq_steps=15):
         """Locks onto the main dip, and finds the first polynomial fit also sets the current frequency bounds."""    
         if not self.frq_sweep_10dBm_has_been_run:
-            logging.info("Did not find previous 10 dBm run, running now")
+            logger.info("Did not find previous 10 dBm run, running now")
             self.set_wg(True)
             self.set_rf(True)
             self.set_amp(True)
@@ -429,7 +429,7 @@ class Bridge12 (Serial):
         self.fit_data[self.last_sweep_name + '_range'] = freq[r_[0,-1]]
         # the following should be decided from doing algebra (I haven't double-checked them)
         center = -b/2/c
-        logging.info("Predicted center frequency: "+str(center*1e-9))
+        logger.info("Predicted center frequency: "+str(center*1e-9))
         # }}}
         # {{{ use the parabola fit to determine the new "safe" bounds for the next sweep
         safe_rx = 6.0 # dBm, setting based off of values seeing in tests
@@ -437,8 +437,14 @@ class Bridge12 (Serial):
         safe_crossing = (-b+r_[-sqrt(b**2-4*a_new*c),sqrt(b**2-4*a_new*c)])/2/c
         safe_crossing.sort()
         start_f,stop_f = safe_crossing
-        if start_f < self.freq_bounds[0]: start_f = self.freq_bounds[0]
-        if stop_f > self.freq_bounds[1]: stop_f = self.freq_bounds[1]
+        info_str = 'dB value should be %g at %g and %g'%(safe_rx,start_f,stop_f)
+        if start_f < self.freq_bounds[0]:
+            start_f = self.freq_bounds[0]
+            info_str += ', leaving start_f at %g'%start_f
+        if stop_f > self.freq_bounds[1]:
+            stop_f = self.freq_bounds[1]
+            info_str += ', leaving stop_f at %g'%stop_f
+        logger.info(info_str)
         # }}}
         # {{{ run the frequency sweep with the new limits
         freq = linspace(start_f,stop_f,n_freq_steps)
