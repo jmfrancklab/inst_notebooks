@@ -11,7 +11,7 @@ if run_bridge12:
         b.set_wg(True)
         b.set_rf(True)
         b.set_amp(True)
-        this_return = b.lock_on_dip(ini_range=(9.815e9,9.83e9))
+        this_return = b.lock_on_dip(ini_range=(9.815e9,9.84e9))
         print "Finished lock on dip, about to zoom"
         dip_f = this_return[2] 
         print dip_f

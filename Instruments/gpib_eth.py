@@ -37,7 +37,7 @@ class prologix_connection (object):
         self.socket.send("++ver\r")
         versionstring = self.socket.recv(1000)
         if versionstring[0:8]=='Prologix':
-            print 'connected to: ',versionstring
+            pass #print 'connected to: ',versionstring
         else:
             print 'Error! can\'t find prologix on %s:%d'%(ip,port)
             raise
@@ -81,7 +81,6 @@ class gpib_eth (object):
     def setaddr(self):
         if(self.prologix_instance.current_address != self.address):
             self.socket.send('++addr '+str(self.address)+"\r")
-            print "I am setting the GPIB address to "+str(self.address)
             self.prologix_instance.current_address = self.address
     def readandchop(self): # unique to the ethernet one
         self.setaddr()
@@ -99,7 +98,6 @@ class gpib_eth (object):
         return self.readandchop()
     def write(self,gpibstr):
         self.setaddr()
-        print "about to send:",gpibstr,"to address",self.address
         self.socket.send(gpibstr+"\r")
     def respond(self,gpibstr,printstr='%s'):
         self.write(gpibstr)
