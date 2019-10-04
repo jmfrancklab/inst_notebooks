@@ -8,7 +8,8 @@ from serial import Serial
 from scipy.interpolate import interp1d
 from numpy import *
 import time
-from Instruments import HP8672A
+from .HP8672A import HP8672A
+from .gpib_eth import prologix_connection
 import logging
 
 def generate_beep(f,dur):
@@ -219,8 +220,9 @@ class Bridge12 (Serial):
             if setting > 30+self.cur_pwr_int: 
                 raise RuntimeError("Once you are above 10 dBm, you must raise the power in MAX 3 dB increments.  The power is currently %g, and you tried to set it to %g -- this is not allowed!"%(self.cur_pwr_int/10.,setting/10.))
         print "Setting HP power to",(setting/10.)-35.0,"dBm, which is",setting/10.,"dBm after amplifier"
-        with HP8672A(gpibaddress=19) as h:
-            h.set_power((setting/10.)-35.0)
+        with prologix_connection() as p:
+            with HP8672A(prologix_instance=p, address=19) as h:
+                h.set_power((setting/10.)-35.0)
         #self.write('power %d\r'%setting)
         if setting > 0:
             self.rxpowermv_int_singletry() # doing this just for safety interlock
@@ -295,9 +297,10 @@ class Bridge12 (Serial):
             assert Hz >= self.freq_bounds[0], "You are trying to set the frequency outside the frequency bounds, which are: "+str(self.freq_bounds)
             assert Hz <= self.freq_bounds[1], "You are trying to set the frequency outside the frequency bounds, which are: "+str(self.freq_bounds)
         setting = int(Hz/1e3+0.5)
-        print "Setting frequency to",setting*1e3*1e-9,"GHz"
-        with HP8672A(gpibaddress=19) as h:
-            h.set_frequency(setting*1e3)
+        #print "Setting frequency to",setting*1e3*1e-9,"GHz"
+        with prologix_connection() as p:
+            with HP8672A(prologix_instance=p, address=19) as h:
+                h.set_frequency(setting*1e3)
         #self.write('freq %d\r'%(setting))
         #if self.freq_int() != setting:
         #    for j in range(10):
@@ -455,16 +458,18 @@ class Bridge12 (Serial):
     def safe_shutdown(self):
         print "Entering safe shut down..."
         try:
-            with HP8672A(gpibaddress=19) as h:
-                h.set_power(-111)
+            with prologix_connection() as p:
+                with HP8672A(prologix_instance=p, address=19) as h:
+                    h.set_power(-111)
         except Exception as e:
             print "error on standard shutdown during set_power -- running fallback shutdown"
             print "original error:"
             print e
             self.write('rfstatus %d\r'%0)
             self.write('wgstatus %d\r'%0)
-            with HP8672A(gpibaddress=19) as h:
-                h.set_power(-111)
+            with prologix_connection() as p:
+                with HP8672A(prologix_instance=p, address=19) as h:
+                    h.set_power(-111)
             self.close()
             return
         try:
@@ -475,8 +480,9 @@ class Bridge12 (Serial):
             print e
             self.write('rfstatus %d\r'%0)
             self.write('wgstatus %d\r'%0)
-            with HP8672A(gpibaddress=19) as h:
-                h.set_power(-111)
+            with prologix_connection() as p:
+                with HP8672A(prologix_instance=p, address=19) as h:
+                    h.set_power(-111)
             self.close()
             return
         try:
@@ -487,8 +493,9 @@ class Bridge12 (Serial):
             print e
             self.write('rfstatus %d\r'%0)
             self.write('wgstatus %d\r'%0)
-            with HP8672A(gpibaddress=19) as h:
-                h.set_power(-111)
+            with prologix_connection() as p:
+                with HP8672A(prologix_instance=p, address=19) as h:
+                    h.set_power(-111)
             self.close()
             return
         self.close()
