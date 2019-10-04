@@ -99,12 +99,15 @@ class gpib_eth (object):
     def write(self,gpibstr):
         self.setaddr()
         self.socket.send(gpibstr+"\r")
-    def respond(self,gpibstr,printstr='%s'):
+    def respond(self,gpibstr,printstr='%s',lines=1):
         self.write(gpibstr)
         #print printstr % self.readline()
-        idstring1 = self.readline()
-        idstring2 = self.readline()
-        return idstring1,idstring2
+        return self.readline()
+        if lines > 1:
+            retval = []
+            for j in range(lines):
+                retval.append(self.readline())
+            return tuple(retval)
         
     #{{{ Functions for Newer Tek Scope
     def tek_query_var(self,varname):
