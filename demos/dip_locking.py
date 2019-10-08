@@ -15,6 +15,8 @@ if run_bridge12:
         print "Finished lock on dip, about to zoom"
         dip_f = this_return[2] 
         print dip_f
+        for j in range(8):
+            b.zoom()
         # Initial test stops here AB 08132019
         #b.set_freq(dip_f)
         #b.set_power(16.0)
@@ -110,7 +112,7 @@ save_data = False
 if save_data:
     filename = '190805_dip_1'
     np.savez(filename+'.npz', **result)
-def plot_all():
+def plot_all(show_log_scale=True):
     figure()
     powerlist = []
     thesecolors = cycle(list('bgrcmyk'))
@@ -118,7 +120,6 @@ def plot_all():
     powerlist.sort()
     print "powerlist is",powerlist
     for power in powerlist:
-        show_log_scale = True
         if show_log_scale:
             fmt = convert_to_power
         else:
