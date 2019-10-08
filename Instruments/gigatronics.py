@@ -4,7 +4,7 @@ from .gpib_eth import gpib_eth
 class gigatronics (gpib_eth):
     def __init__(self,prologix_instance=None,address=13):
         super(self.__class__,self).__init__(prologix_instance,address)
-        idstring = self.respond('*IDN?') # Check ID command
+        idstring = self.respond('*IDN?',lines=2) # Check ID command
         print idstring[0]
         print idstring[1]
         if idstring[0][0:4] == 'GIGA':
