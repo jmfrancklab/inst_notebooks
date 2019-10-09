@@ -37,7 +37,7 @@ class prologix_connection (object):
         self.socket.send("++ver\r")
         versionstring = self.socket.recv(1000)
         if versionstring[0:8]=='Prologix':
-            pass #print 'connected to: ',versionstring
+            print 'connected to: ',versionstring
         else:
             print 'Error! can\'t find prologix on %s:%d'%(ip,port)
             raise
@@ -81,6 +81,7 @@ class gpib_eth (object):
     def setaddr(self):
         if(self.prologix_instance.current_address != self.address):
             self.socket.send('++addr '+str(self.address)+"\r")
+            print "I am setting the GPIB address to "+str(self.address)
             self.prologix_instance.current_address = self.address
     def readandchop(self): # unique to the ethernet one
         self.setaddr()
@@ -98,16 +99,14 @@ class gpib_eth (object):
         return self.readandchop()
     def write(self,gpibstr):
         self.setaddr()
+        print "about to send:",gpibstr,"to address",self.address
         self.socket.send(gpibstr+"\r")
-    def respond(self,gpibstr,printstr='%s',lines=1):
+    def respond(self,gpibstr,printstr='%s'):
         self.write(gpibstr)
         #print printstr % self.readline()
-        return self.readline()
-        if lines > 1:
-            retval = []
-            for j in range(lines):
-                retval.append(self.readline())
-            return tuple(retval)
+        idstring1 = self.readline()
+        idstring2 = self.readline()
+        return idstring1,idstring2
         
     #{{{ Functions for Newer Tek Scope
     def tek_query_var(self,varname):
