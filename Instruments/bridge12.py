@@ -191,6 +191,14 @@ class Bridge12 (Serial):
             h = i
             i = self.power_int_singletry()
         return h
+    def calib_set_power(self,dBm):
+        """This bypasses all safeties of the bridge12 and is to be used ONLY
+        for running a calibration curve -- this is because we are not actually
+        measuring any amplified output power, we are only looking at TX OUT. TX
+        IN should not lead to anything. Be sure these are the operational
+        conditions before proceeding."""
+        setting = int(10*round(dBm*2)/2.+0.5)
+        self.write('power %d\r'%setting)
     def set_power(self,dBm):
         """set *and check* power.  On successful completion, set `self.cur_pwr_int` to 10*(power in dBm).
 
@@ -283,6 +291,11 @@ class Bridge12 (Serial):
             h = self.txpowermv_int_singletry()
             i = self.txpowermv_int_singletry()
         return float(h)/10.
+    def calib_set_freq(self,Hz):
+        """Use only for setting frequency of the Bridge12 for calibration
+        curve. Based off original set_freq function."""
+        setting = int(Hz/1e3+0.5)
+        self.write('freq %d\r'%(setting))
     def set_freq(self,Hz):
         """set frequency
 
