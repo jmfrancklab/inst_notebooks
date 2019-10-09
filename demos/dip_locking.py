@@ -15,18 +15,32 @@ if run_bridge12:
         print "Finished lock on dip, about to zoom"
         dip_f = this_return[2] 
         print dip_f
-        for j in range(8):
-            b.zoom()
+        for j in range(3):
+            _,_,dip_f = b.zoom()
+        b.set_freq(dip_f)
+        b.set_power(19.0)
+        raw_input("Minimzie RX...")
+        b.set_power(22.0)
+        raw_input("Minimzie RX...")
+        b.set_power(25.0)
+        raw_input("Minimzie RX...")
+        b.set_power(26.0)
+        raw_input("Minimzie RX...")
+        b.set_power(27.0)
+        raw_input("Minimzie RX...")
+        b.set_power(28.0)
+        raw_input("Minimzie RX...")
+        b.set_power(29.0)
+        raw_input("Minimzie RX...")
+        b.set_power(30.0)
+        raw_input("Minimzie RX...")
+        b.set_power(31.0)
+        raw_input("Minimzie RX...")
+        b.set_power(32.0)
+        raw_input("Minimzie RX...")
         # Initial test stops here AB 08132019
         #b.set_freq(dip_f)
-        #b.set_power(16.0)
-        #raw_input("Minimzie RX...")
-        #b.set_power(19.0)
-        #raw_input("Minimzie RX...")
-        #b.set_power(22.0)
-        #raw_input("Minimzie RX...")
-        #b.set_power(25.0)
-        #raw_input("Minimzie RX...")
+
         #b.set_power(28.0)
         #raw_input("Minimzie RX...")
         #b.set_power(31.0)
@@ -46,71 +60,12 @@ if run_bridge12:
         #b.set_power(34.0)
         #raw_input("Minimzie RX...")
         
-        
-        
-        
-        
-        
-        
-        #raw_input("Record RX at 13 dBm")
-        #b.set_power(16.0)
-        #raw_input("Record RX at 16 dBm")
-        #b.set_power(19.0)
-        #raw_input("Record RX at 19 dBm")
-        #b.set_power(20.0)
-        #raw_input("Record RX at 20 dBm")
-        
-        #b.set_freq(9.851366*1e9)
-        #raw_input("enter")
-        #print "19"
-        #b.set_power(19.0)
-        #b.set_freq(9.851366*1e9)
-        #raw_input("enter")
-        #print "20"
-        #b.set_power(20.0)
-        #b.set_freq(9.851366*1e9)
-        #raw_input("Enter to stop")
-        #b.freq_sweep(r_[9.83:9.86:50j]*1e9)
-        #print "13 dBm"
-        #b.set_power(13.0)
-        #b.freq_sweep(r_[9.83:9.86:25j]*1e9)
-        #print "16 dBm"
-        #b.set_power(16.0)
-        #b.freq_sweep(r_[9.83:9.86:25j]*1e9)
-        #print "19 dBm"
-        #b.set_power(19.0)
-        #b.freq_sweep(r_[9.83:9.86:25j]*1e9)
-        #print "20 dBm"
-        #b.set_power(20.0)
-        #b.freq_sweep(r_[9.83:9.86:25j]*1e9)
-        #b.set_power(13.0)
-        #b.freq_sweep(r_[9.84:9.87:25j]*1e9)
-        #b.set_power(14.0)
-        #b.freq_sweep(r_[9.84:9.87:25j]*1e9)
-
-        #b.zoom(dBm_increment=3)
-        #b.zoom(dBm_increment=3)
-        #b.zoom(dBm_increment=3)
-        #b.zoom(dBm_increment=3)
-        #b.zoom(dBm_increment=3)
-        #b.zoom(dBm_increment=2)
-        #b.zoom(dBm_increment=2)
-        #manual_iris_adjust = False
-        #if not manual_iris_adjust:
-        #    b.zoom(dBm_increment=1) # Ends at 36 dBm
-        #if manual_iris_adjust:
-        #    zoom_return = b.zoom(dBm_increment=1)
-        #    dip_f = zoom_return[2]
-        #    b.set_freq(dip_f)
-        #    raw_input("Minimzie RX...")
-        #else:
-        #    b.zoom(dBm_increment=1)
         result = b.tuning_curve_data
         
         #fits = b.fit_data
-save_data = False
+save_data = True
 if save_data:
-    filename = '190805_dip_1'
+    filename = '191007_dip_2'
     np.savez(filename+'.npz', **result)
 def plot_all(show_log_scale=True):
     figure()

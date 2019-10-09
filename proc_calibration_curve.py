@@ -1,6 +1,6 @@
 from pyspecdata import *
 
-id_string = '191008_HP_calib_2'
+id_string = '191009_b12_calib_1'
 
 data = load(getDATADIR(exp_type='test_equip')+id_string+'.npz')
 

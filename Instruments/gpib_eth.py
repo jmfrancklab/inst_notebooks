@@ -102,12 +102,13 @@ class gpib_eth (object):
     def respond(self,gpibstr,printstr='%s',lines=1):
         self.write(gpibstr)
         #print printstr % self.readline()
-        return self.readline()
         if lines > 1:
             retval = []
             for j in range(lines):
                 retval.append(self.readline())
             return tuple(retval)
+        else:
+            return self.readline()
         
     #{{{ Functions for Newer Tek Scope
     def tek_query_var(self,varname):
