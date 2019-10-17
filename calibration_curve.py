@@ -2,11 +2,11 @@ from pyspecdata import *
 from Instruments import HP8672A, prologix_connection, gigatronics
 import time
 
-id_string = '191008_HP_calib_2'
+id_string = '191017_HP_calib_coupler_1'
 
-start_power = -70
+start_power = -40
 stop_power = 3
-power_points = 100
+power_points = 10
 HP_powers = linspace(start_power,stop_power,power_points)
 
 raw_points = 250
