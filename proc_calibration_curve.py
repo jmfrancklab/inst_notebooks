@@ -3,8 +3,8 @@ from pyspecdata import *
 
 fl = figlist_var()
 for id_string,label_string in [
-        ('191017_HP_calib_coupler_2','coupled to meter'),
-        ('191017_HP_calib_coupler_3_2','coupled to terminator')
+        ('191021_b12_calib_3','coupled to meter'),
+        ('191021_b12_calib_5','coupled to meter'),
         ]:
 
     data = load(getDATADIR(exp_type='test_equip')+id_string+'.npz')
