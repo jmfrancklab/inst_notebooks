@@ -2,11 +2,11 @@ from pyspecdata import *
 from Instruments import Bridge12, prologix_connection, gigatronics
 import time
 
-id_string = '191009_b12_calib_2'
+id_string = '191021_b12_calib_6'
 
 start_power = 0.0
-stop_power = 38.0
-power_points = 100
+stop_power = 30.0
+power_points = 25 
 b12_powers = linspace(start_power,stop_power,power_points)
 
 raw_points = 250
@@ -21,6 +21,7 @@ with prologix_connection() as p:
             print "Switched waveguide"
             b.set_rf(True)
             print "Turned microwaves on"
+            b.set_amp(True)
             b.calib_set_freq(9.85e9)
             print "Set frequency"
             for b12_setting in b12_powers:
