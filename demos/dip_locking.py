@@ -1,9 +1,11 @@
 from pylab import *
-from Instruments import Bridge12
+from Instruments import Bridge12, prologix_connection, gigatronics
 from Instruments.bridge12 import convert_to_power, convert_to_mv
 from serial import Serial
 import time
 from itertools import cycle
+
+meter_readings = []
 
 run_bridge12 = True
 if run_bridge12:
@@ -11,54 +13,34 @@ if run_bridge12:
         b.set_wg(True)
         b.set_rf(True)
         b.set_amp(True)
-        this_return = b.lock_on_dip(ini_range=(9.815e9,9.83e9))
+        time.sleep(5)
+
+        this_return = b.lock_on_dip(ini_range=(9.81e9,9.83e9))
+        with prologix_connection() as p:
+            with gigatronics(prologix_instance=p, address=7) as g:
+                meter_readings.append(g.read_power())
         print "Finished lock on dip, about to zoom"
         dip_f = this_return[2] 
-        print dip_f
-        for j in range(3):
-            _,_,dip_f = b.zoom()
+        print "Dip frequency",dip_f
+        print "Meter reading",meter_readings
+        #for j in range(3):
+        #    _,_,dip_f = b.zoom()
         b.set_freq(dip_f)
+        b.set_power(13.0)
+        raw_input("Minimzie RX...")
+        b.set_power(16.0)
+        raw_input("Minimzie RX...")
         b.set_power(19.0)
         raw_input("Minimzie RX...")
         b.set_power(22.0)
         raw_input("Minimzie RX...")
         b.set_power(25.0)
         raw_input("Minimzie RX...")
-        b.set_power(26.0)
-        raw_input("Minimzie RX...")
-        b.set_power(27.0)
-        raw_input("Minimzie RX...")
         b.set_power(28.0)
-        raw_input("Minimzie RX...")
-        b.set_power(29.0)
         raw_input("Minimzie RX...")
         b.set_power(30.0)
         raw_input("Minimzie RX...")
-        b.set_power(31.0)
-        raw_input("Minimzie RX...")
-        b.set_power(32.0)
-        raw_input("Minimzie RX...")
-        # Initial test stops here AB 08132019
-        #b.set_freq(dip_f)
 
-        #b.set_power(28.0)
-        #raw_input("Minimzie RX...")
-        #b.set_power(31.0)
-        #raw_input("Minimzie RX...")
-        #b.set_power(32.0)
-        #raw_input("Minimzie RX...")
-        #b.set_power(26.0)
-        #raw_input("Minimzie RX...")
-        #b.set_power(28.0)
-        #raw_input("Minimzie RX...")
-        #b.set_power(30.0)
-        #raw_input("Minimzie RX...")
-        #b.set_power(32.0)
-        #raw_input("Minimzie RX...")
-        #b.set_power(33.0)
-        #raw_input("Minimzie RX...")
-        #b.set_power(34.0)
-        #raw_input("Minimzie RX...")
         
         result = b.tuning_curve_data
         
