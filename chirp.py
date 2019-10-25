@@ -36,7 +36,7 @@ with SerialInstrument('AFG-2225') as s:
     print s.respond('*idn?')
 
 
-pulse_90 = True
+pulse_90 = False
 
 #{{{ no sys var = default (3 Vpp), 0 = define amplitudes, 1 = choose from amplitudes
 default = True
@@ -147,8 +147,8 @@ with GDS_scope() as g:
     for this_ch in range(2):
         g[this_ch].voltscal = volt_scale
     print "loaded GDS"
-    g.acquire_mode('average',32)
-    raw_input("Wait for averaging to relax...")
+    #g.acquire_mode('average',32)
+    #raw_input("Wait for averaging to relax...")
     for j in range(1,3):
         print "trying to grab data from channel",j
         datalist.append(g.waveform(ch=j))
@@ -159,7 +159,7 @@ while try_again:
     data_name = 'capture%d'%j
     data.name(data_name)
     try:
-        data.hdf5_write('190413_pulse_2.h5')
+        data.hdf5_write('191024_saddle_coil_4.h5')
         try_again = False
     except Exception as e:
         print e

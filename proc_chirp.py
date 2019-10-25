@@ -7,34 +7,7 @@ corrected_volt = True
 #}}}
 fl = figlist_var()
 for date, id_string,corrected_volt in [
-        #('190208','LCR1',True),
-        #('190208','LCR2',True),
-        #('190208','LCR3',True),
-        #('190208','LCR4',True),
-        #('190208','LCR5',True),
-        #('190208','LCR6',True),
-        #('190208','LCR7',True),
-        #('190212','LCR1',True),
-        #('190212','LCR2',True),
-        #('190215','LCR1',True),
-        #('190215','LCR2',True),
-        #('190215','probe',True),
-        ##('190218','LCR2',True),
-        ##('190218','LCR3',True),
-        ##('190218','LCR4',True),
-        ##('190218','LCR5',True),
-        ##('190218','LCR6',True),
-        ##('190218','LCR7',True),
-        ##('190218','LCR8',True),
-        #('190218','LCR9',True),
-        #('190218','LCR10',True),
-        #('190218','LCR11',True),
-        ('190218','LCR12',True),
-        ('190218','LCR13',True),
-        ('190219','LCR',True),
-        ('190219','LCR2',True),
-        ('190219','LCR3',True),
-        ('190219','LCR4',True),
+        ('191024','saddle_coil_4',True),
         ]:
     #{{{ finding file
     try:
