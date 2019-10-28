@@ -9,15 +9,31 @@ class HP8672A (gpib_eth):
     def set_frequency(self,frequency):
         self.write('P%08dZ0'%int(round(frequency*1e-3)))# just use the 10 GHz setting, and fill out all the other decimal places with zeros
         return
-    def set_power(self,dBm):
+    def set_power(self,dBm,coarse_setting=None):
+        r"""set the power
+        
+        Parameters
+        ----------
+        dBm: float
+            power to set
+        coarse_setting: float
+            force this coarse setting
+            (of None, just round)
+        """
         assert dBm <= 3 and dBm >= -120, "dBm value must be between -120 and 3 dBm"
         # {{{ all of the following is based off fig 15-6 from the programming manual
         ascii_set = list('013456789:;<=')
         coarse_values = r_[0:-120:-10]
         vernier = r_[3:-11:-1]
         # }}}
-        coarse_idx = argmin(abs(dBm - coarse_values))
+        if coarse_setting is None:
+            dBm_coarse = dBm
+        else:
+            dBm_coarse = coarse_setting
+        coarse_idx = argmin(abs(dBm_coarse - coarse_values))
         residual = dBm - coarse_values[coarse_idx]
+        if residual > vernier.max() or residual < vernier.min():
+            raise ValueError("I can't generate a power of %f using a coarse setting of %f"%(dBm,coarse_setting))
         vernier_idx = argmin(abs(residual - vernier))
         logger.debug("I'm going to set the coarse value to %f and the vernier to %f"%(coarse_values[coarse_idx],vernier[vernier_idx]))
         cmd = 'K' + ascii_set[coarse_idx] + ascii_set[vernier_idx]
