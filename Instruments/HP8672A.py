@@ -27,10 +27,9 @@ class HP8672A (gpib_eth):
         vernier = r_[3:-11:-1]
         # }}}
         if coarse_setting is None:
-            dBm_coarse = dBm
+            coarse_idx = argmin(abs(dBm - (coarse_values-3.5)))
         else:
-            dBm_coarse = coarse_setting
-        coarse_idx = argmin(abs(dBm_coarse - coarse_values))
+            coarse_idx = argmin(abs(coarse_setting - coarse_values))
         residual = dBm - coarse_values[coarse_idx]
         if residual > vernier.max() or residual < vernier.min():
             raise ValueError("I can't generate a power of %f using a coarse setting of %f"%(dBm,coarse_setting))
