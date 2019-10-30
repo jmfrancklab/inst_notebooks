@@ -19,8 +19,6 @@ with Bridge12() as b:
     b.set_wg(True)
     b.set_rf(True)
     b.set_amp(True)
-    b.calib_set_freq(9.85e9)
-    b.calib_set_power(10)
     time.sleep(5)
     with prologix_connection() as p:
         with HP8672A(prologix_instance=p, address=19) as h:
