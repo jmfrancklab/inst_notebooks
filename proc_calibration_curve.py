@@ -8,10 +8,9 @@ for id_string,label_string,col in [
         ('191017_HP_calib_coupler_3_2','HP source - directional coupler insertion loss','violet'),
         ('191017_HP_calib_coupler_4','amplified -10 dB, HP source','green'),
         ('191021_b12_calib_2','amplified -10 dB, B12 source','cyan'),
-        ('191021_b12_calib_5','new B12 test','magenta'),
-        ('191021_b12_calib_6','new B12 test, amplified','magenta'),
-        ('191030_HP_calib_coupler_1','new test','purple'),
-        ('191030_b12_calib_2','new test 2','black'),
+        #('191030_b12_calib_1','amplified -10 dB, B12 source (replaced double right angle SMA)','black'),
+        #('191030_HP_calib_coupler_2','amplified -10 dB, HP source with B12 source running','black'),
+        #('191030_b12_calib_2','B12 source, with HP and amplifier running','magenta'),
         ]:
 
     data = load(getDATADIR(exp_type='test_equip')+id_string+'.npz')
