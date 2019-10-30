@@ -10,6 +10,8 @@ for id_string,label_string,col in [
         ('191021_b12_calib_2','amplified -10 dB, B12 source','cyan'),
         ('191021_b12_calib_5','new B12 test','magenta'),
         ('191021_b12_calib_6','new B12 test, amplified','magenta'),
+        ('191030_HP_calib_coupler_1','new test','purple'),
+        ('191030_b12_calib_2','new test 2','black'),
         ]:
 
     data = load(getDATADIR(exp_type='test_equip')+id_string+'.npz')

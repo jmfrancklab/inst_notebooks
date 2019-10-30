@@ -2,10 +2,10 @@ from pyspecdata import *
 from Instruments import Bridge12, prologix_connection, gigatronics
 import time
 
-id_string = '191021_b12_calib_6'
+id_string = '191030_b12_calib_2'
 
 start_power = 0.0
-stop_power = 30.0
+stop_power = 30.0 # Actually -5
 power_points = 25 
 b12_powers = linspace(start_power,stop_power,power_points)
 
