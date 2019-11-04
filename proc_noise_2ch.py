@@ -335,13 +335,13 @@ for date,id_string,numchan,gain_factor in [
         #('190712','test_2',2,gain_factor_new), 
         #('190712','test_3',2,gain_factor_new), 
         ('190712','test_4',2,gain_factor_new), 
-        ('190712','test_5',2,gain_factor_new), 
+        #('190712','test_5',2,gain_factor_new), 
         #('190712','test_6',2,gain_factor_new), 
         #('190712','test_6_1',2,gain_factor_new), 
         #('190716','test_1',2,gain_factor_new), 
         #('190716','test_1_1',2,gain_factor_new), 
-        ('190716','test_2',2,gain_factor_new), 
-        ('190716','test_3',2,gain_factor_new), 
+        #('190716','test_2',2,gain_factor_new), 
+        #('190716','test_3',2,gain_factor_new), 
 
     ]:
     # }}}
@@ -519,8 +519,8 @@ for date,id_string,numchan,gain_factor in [
                 #axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
                 if filtering:
                     fl.next('Digitally-Filtered Network Noise Power Spectral Density,\n Input-referred ($\sigma$=%0.3f kHz)'%(width*1e-3))
-                    u_filt.name('${S_{xx}(\\nu)}/{k_{B}T}$')
-                    fl.plot(u_filt['ch',0],alpha=0.35,label='%s'%label,plottype='semilogy')
+                    u_filt.name('Noise$ /{k_{B}T}$')
+                    fl.plot(u_filt['ch',0]['t':(None,30e6)],alpha=0.35,plottype='semilogy')#,label='%s'%label,plottype='semilogy')
                     #axhline(y=k_B*T/1e-12, linestyle=':', alpha=0.5, color='purple') # 1e-12 b/c the axis is given in pW
                     #axvline(14.46, linestyle=':', alpha=0.5, c='k')
             if plot_params:
