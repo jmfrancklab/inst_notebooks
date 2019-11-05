@@ -15,10 +15,10 @@ if run_bridge12:
         b.set_amp(True)
         time.sleep(5)
 
-        this_return = b.lock_on_dip(ini_range=(9.81e9,9.83e9))
-        with prologix_connection() as p:
-            with gigatronics(prologix_instance=p, address=7) as g:
-                meter_readings.append(g.read_power())
+        this_return = b.lock_on_dip(ini_range=(9.81e9,9.835e9))
+        #with prologix_connection() as p:
+        #    with gigatronics(prologix_instance=p, address=7) as g:
+        #        meter_readings.append(g.read_power())
         print "Finished lock on dip, about to zoom"
         dip_f = this_return[2] 
         print "Dip frequency",dip_f
@@ -40,6 +40,13 @@ if run_bridge12:
         raw_input("Minimzie RX...")
         b.set_power(30.0)
         raw_input("Minimzie RX...")
+        b.set_power(32.0)
+        raw_input("Minimzie RX...")
+        b.set_power(34.0)
+        raw_input("Minimzie RX...")
+        b.set_power(36.0)
+        raw_input("Minimzie RX...")
+
 
         
         result = b.tuning_curve_data
