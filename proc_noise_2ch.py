@@ -4,6 +4,9 @@ import os
 import sys
 matplotlib.rcParams['legend.fontsize'] ='xx-small'
 matplotlib.rcParams['legend.labelspacing'] = 0.2 
+matplotlib.rc('xtick',labelsize=35)
+matplotlib.rc('ytick',labelsize=35)
+plt.rcParams.update({'font.size':35})
 #4096 points
 # {{{ constants measured elsewhere
 gain_factor_new = 73503.77279 
@@ -518,9 +521,13 @@ for date,id_string,numchan,gain_factor in [
                 fl.plot(u['ch',0],alpha=0.35,plottype='semilogy')
                 #axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
                 if filtering:
-                    fl.next('Digitally-Filtered Network Noise Power Spectral Density,\n Input-referred ($\sigma$=%0.3f kHz)'%(width*1e-3))
+                    fl.next('')
                     u_filt.name('Noise$ /{k_{B}T}$')
-                    fl.plot(u_filt['ch',0]['t':(None,30e6)],alpha=0.35,plottype='semilogy')#,label='%s'%label,plottype='semilogy')
+                    fl.plot(u_filt['ch',0]['t':(None,30e6)],plottype='semilogy')#,label='%s'%label,plottype='semilogy')
+                    savefig('noise.png',
+                            transparent=True,
+                            bbox_inches='tight',
+                            pad_inches=0)
                     #axhline(y=k_B*T/1e-12, linestyle=':', alpha=0.5, color='purple') # 1e-12 b/c the axis is given in pW
                     #axvline(14.46, linestyle=':', alpha=0.5, c='k')
             if plot_params:
