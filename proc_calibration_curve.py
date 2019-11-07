@@ -7,6 +7,8 @@ for id_string,label_string,col in [
         #('191105_HP_calib_20coupler_1','20dB coupler','purple'),
         ('191107_HP_calib_20coupler_wg_1','20dB coupler','yellow'),
         ('191107_HP_calib_20coupler_wg_2','20dB coupler I.L.','purple'),
+        ('191107_HP_calib_20coupler_1','20dB coupler','green'),
+        ('191107_HP_calib_20coupler_2','20dB coupler I.L.','red'),
         ]:
 
     data = load(getDATADIR(exp_type='test_equip')+id_string+'.npz')
