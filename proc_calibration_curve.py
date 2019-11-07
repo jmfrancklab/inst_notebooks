@@ -3,12 +3,11 @@ from scipy.optimize import leastsq,minimize
 fl = figlist_var()
 for id_string,label_string,col in [
         ('191017_HP_calib_coupler_1','10dB coupler','orange'),
-        ('191017_HP_calib_coupler_3','10dB coupler I.L.','blue'),
         #('191105_HP_calib_20coupler_1','20dB coupler','purple'),
-        ('191107_HP_calib_20coupler_wg_1','20dB coupler','yellow'),
-        ('191107_HP_calib_20coupler_wg_2','20dB coupler I.L.','purple'),
         ('191107_HP_calib_20coupler_1','20dB coupler','green'),
-        ('191107_HP_calib_20coupler_2','20dB coupler I.L.','red'),
+        ('191017_HP_calib_coupler_4','10dB coupler amp','purple'),
+        ('191107_HP_calib_20coupler_3','20dB coupler amp','black'),
+        ('191107_HP_calib_20coupler_4','20dB coupler amp','blue'),
         ]:
 
     data = load(getDATADIR(exp_type='test_equip')+id_string+'.npz')
