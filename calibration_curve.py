@@ -2,10 +2,10 @@ from pyspecdata import *
 from Instruments import Bridge12,HP8672A, prologix_connection, gigatronics
 import time
 
-id_string = '191107_HP_calib_20coupler_4'
+id_string = '191107_HP_calib_20coupler_4_2'
 
 start_power = -40
-stop_power = 3
+stop_power = 3 
 # If running through amplifier (Bridge12) do not exceed
 # -5 dBm (with 10 dB coupler) 
 # OR +3 dBm (with 20 dB couplers) or you will damage the meter!!
