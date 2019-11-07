@@ -2,12 +2,11 @@ from pyspecdata import *
 from scipy.optimize import leastsq,minimize
 fl = figlist_var()
 for id_string,label_string,col in [
-        ('191008_HP_calib_2','HP source','orange'),
-        ('191009_b12_calib_2','B12 source','blue'),
-        ('191017_HP_calib_coupler_2','HP source -10 dB (directional coupler)','red'),
-        ('191017_HP_calib_coupler_3_2','HP source - directional coupler insertion loss','violet'),
-        ('191017_HP_calib_coupler_4','amplified -10 dB, HP source','green'),
-        ('191021_b12_calib_2','amplified -10 dB, B12 source','cyan'),
+        ('191017_HP_calib_coupler_1','10dB coupler','orange'),
+        ('191017_HP_calib_coupler_3','10dB coupler I.L.','blue'),
+        #('191105_HP_calib_20coupler_1','20dB coupler','purple'),
+        ('191107_HP_calib_20coupler_wg_1','20dB coupler','yellow'),
+        ('191107_HP_calib_20coupler_wg_2','20dB coupler I.L.','purple'),
         ]:
 
     data = load(getDATADIR(exp_type='test_equip')+id_string+'.npz')
@@ -33,7 +32,10 @@ legend()
 xlabel('programmed power (dBm)')
 ylabel('output power (dBm)')
 gridandtick(gca())
-savefig('calib_curve_191021.png',
-        transparent=True,
-        bbox_inches='tight',
-        pad_inches=0)
+save_fig = False
+if save_fig:
+    savefig('calib_curve_191021.png',
+            transparent=True,
+            bbox_inches='tight',
+            pad_inches=0)
+fl.show();quit()

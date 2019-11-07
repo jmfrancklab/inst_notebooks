@@ -2,7 +2,7 @@ from pyspecdata import *
 from Instruments import Bridge12,HP8672A, prologix_connection, gigatronics
 import time
 
-id_string = '191105_HP_calib_20coupler_wg'
+id_string = '191107_HP_calib_20coupler_1'
 
 start_power = -40
 stop_power = 3 
