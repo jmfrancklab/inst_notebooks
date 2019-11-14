@@ -19,7 +19,7 @@ else:
 datalist = []
 print "about to load datasets",args
 for j,dataset in enumerate(args):
-    pring "acquiring/loading dataset",dataset
+    print "acquiring/loading dataset",dataset
     if force_acq and j==len(args)-1:
         print "Forcing acquisition of last dataset"
         _,thisnode = h5nodebypath('%s/%s'%(filename,dataset))
@@ -30,9 +30,9 @@ for j,dataset in enumerate(args):
         print "didn't find %s: about to load GDS"%dataset
         with GDS_scope() as g:
             print "loaded GDS"
-            for j in range(1,3):
+            for j in range(1,2):
                 print "trying to grab data from channel",j
-                datalist.appen(g/waveform(ch=j))
+                datalist.append(g.waveform(ch=j))
             data = concat(datalist,'ch').reorder('t')
         j = 1
         data.name(dataset)
