@@ -51,8 +51,8 @@ class Bridge12 (Serial):
         super(self.__class__, self).__init__(thisport, timeout=3, baudrate=115200)
         # this number represents the highest possible reasonable value for the
         # Rx power -- it is lowered as we observe the Tx values
-        self.safe_rx_level_int = int(convert_to_mv(12.)*10+0.5)# i.e. a setting of 12 dB for the absolute threshold
-        if self.safe_rx_level_int > 5000: self.safe_rx_level_int = 5000 # a 7 dBm setting shoudn't exceed this
+        self.safe_rx_level_int = int(convert_to_mv(13.)*10+0.5)# i.e. a setting of 13 dB for the absolute threshold
+        if self.safe_rx_level_int > 5000: self.safe_rx_level_int = 6000 # changing this from 5000 to 6000
         self.frq_sweep_10dBm_has_been_run = False
         self.tuning_curve_data = {}
         self._inside_with_block = False
