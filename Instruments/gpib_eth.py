@@ -84,6 +84,7 @@ class gpib_eth (object):
             self.prologix_instance.current_address = self.address
     def readandchop(self): # unique to the ethernet one
         self.setaddr()
+        self.socket.settimeout(5)
         retval = self.socket.recv(1024) # get rid of dos newline
         while (retval[-1] == '\r') or (retval[-1] == '\n'): # there should be a function for this (i.e. chop, etc)!
             retval = retval[:-1]
