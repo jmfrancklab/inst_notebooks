@@ -4,9 +4,6 @@ import os
 import sys
 matplotlib.rcParams['legend.fontsize'] ='xx-small'
 matplotlib.rcParams['legend.labelspacing'] = 0.2 
-matplotlib.rc('xtick',labelsize=35)
-matplotlib.rc('ytick',labelsize=35)
-plt.rcParams.update({'font.size':35})
 #4096 points
 # {{{ constants measured elsewhere
 gain_factor_new = 73503.77279 
@@ -199,7 +196,7 @@ for date,id_string,numchan,gain_factor in [
         #('190411','console_TX_RX_1',2,gain_factor_new),
         #('190411','console_TX_RX_2',2,gain_factor_new),
         #('190411','magnet_TX_RX_1',2,gain_factor_new),
-        #('190411','magnet_TX_RX_2',2,gain_factor_new),
+        ('190411','magnet_TX_RX_2',2,gain_factor_new),
         #('190411','Cu_1',2,gain_factor_new),
         #('190411','Cu_2',2,gain_factor_new),
         #('190415','probe',2,gain_factor_new),
@@ -273,6 +270,7 @@ for date,id_string,numchan,gain_factor in [
         #('190425','term_25_0_1',2,gain_factor_new),
         #('190425','term_25_0_2',2,gain_factor_new),
         #('190425','term_25_0_0_1',2,gain_factor_new),
+        #('190425','term_test_0_0',2,gain_factor_new),
         #('190425','term_test_0_1',2,gain_factor_new),
         #('190425','term_test_0_2',2,gain_factor_new),
         #('190425','term_test_1_0',2,gain_factor_new),
@@ -280,10 +278,9 @@ for date,id_string,numchan,gain_factor in [
         #('190425','term_test_1_2',2,gain_factor_new),
         #('190425','term_test_2_0',2,gain_factor_new),
         #('190425','term_test_2_1',2,gain_factor_new),
-        #('190425','term_test_2_2',2,gain_factor_new),
+        ('190425','term_test_2_2',2,gain_factor_new),
         #('190425','term_test_2_3',2,gain_factor_new),
         #('190425','term_test_1_0_0',2,gain_factor_new),
-        #('190425','term_test_1_0_0_0_0_0',2,gain_factor_new),
         #('190425','term_test_1_0_1',2,gain_factor_new),
         #('190425','term_test_1_0_2',2,gain_factor_new),
         #('190425','term_test_1_0_0_0',2,gain_factor_new),
@@ -291,60 +288,14 @@ for date,id_string,numchan,gain_factor in [
         #('190425','term_test_1_0_0_2',2,gain_factor_new),
         #('190425','term_test_1_0_0_0_0',2,gain_factor_new),
         #('190425','term_test_1_0_0_0_1',2,gain_factor_new),
+        #('190425','term_test_1_0_0_0_0_0',2,gain_factor_new),
         #('190425','term_test_1_0_0_0_0_1',2,gain_factor_new),
         #('190425','term_test_1_0_0_0_0_0_0',2,gain_factor_new),
         #('190425','term_test_1_0_0_0_0_0_1',2,gain_factor_new),
         #('190425','term_test_3_0',2,gain_factor_new),
         #('190425','term_test_3_1',2,gain_factor_new),
-        #('190531','term_test_0',2,gain_factor_new),
-        #('190531','term_test_0_12in',2,gain_factor_new),
-        #('190531','term_test_0_24in',2,gain_factor_new),
-        #('190531','term_test_0_36in',2,gain_factor_new),
-        #('190531','term_test_0_48in',2,gain_factor_new),
-        #('190531','term_test_0_60in',2,gain_factor_new),
-        #('190531','term_test_0_72in',2,gain_factor_new),
-        #('190531','term_test_0_triax',2,gain_factor_new),
-        #('190531','triax_1_0',2,gain_factor_new),
-        #('190531','triax_1_1',2,gain_factor_new),
-        #('190531','triax_1_2',2,gain_factor_new),
-        #('190531','triax_1_3',2,gain_factor_new),
-        #('190531','triax_1_4',2,gain_factor_new),
-        #('190531','triax_2_0',2,gain_factor_new),
-        #('190531','triax_2_0_1',2,gain_factor_new),
-        #('190531','triax_1_4_1',2,gain_factor_new),
-        #('190531','triax_3_2',2,gain_factor_new),
-        #('190531','triax_3_3',2,gain_factor_new),
-        #('190531','triax_4_0',2,gain_factor_new),
-        #('190602','test_1_1',2,gain_factor_new),
-        #('190602','test_1_2',2,gain_factor_new),
-        #('190602','test_2_1',2,gain_factor_new),
-        #('190602','test_2_2',2,gain_factor_new),
-        ##('190602','test_3',2,gain_factor_new), # Triax, Minicircuits
-        #('190602','test_4',2,gain_factor_new),
-        #('190602','test_5',2,gain_factor_new),
-        #('190602','test_6',2,gain_factor_new),
-        #('190602','test_7',2,gain_factor_new),
-        #('190602','test_8',2,gain_factor_new),
-        #('190603','test_1',2,gain_factor_new),
-        #('190603','test_2',2,gain_factor_new),
-        #('190603','test_3',2,gain_factor_new),
-        ##('190614','test_1_0',2,gain_factor_new), # Triax, Minicircuits
-        ##('190614','test_3',2,gain_factor_new), # Triax, DNP probe
-        ##('190614','test_4',2,gain_factor_new), # Triax, probe v2.0
-        ##('190614','test_5',2,gain_factor_new), # Coax, probe v2.0
-        ##('190614','test_6',2,gain_factor_new), # Coax, DNP probe 
-        ##('190614','test_7',2,gain_factor_new), # Coax, DNP probe 
-        #('190712','test_1',2,gain_factor_new), 
-        #('190712','test_2',2,gain_factor_new), 
-        #('190712','test_3',2,gain_factor_new), 
-        ('190712','test_4',2,gain_factor_new), 
-        #('190712','test_5',2,gain_factor_new), 
-        #('190712','test_6',2,gain_factor_new), 
-        #('190712','test_6_1',2,gain_factor_new), 
-        #('190716','test_1',2,gain_factor_new), 
-        #('190716','test_1_1',2,gain_factor_new), 
-        #('190716','test_2',2,gain_factor_new), 
-        #('190716','test_3',2,gain_factor_new), 
+        ('191216','test_1',2,gain_factor_new),
+        ('191216','test_2',2,gain_factor_new),
 
     ]:
     # }}}
@@ -366,20 +317,12 @@ for date,id_string,numchan,gain_factor in [
             label = 'full spectrometer, probe v2.0 detached from cavity'
     plot_labels = True
     if plot_labels:
-        if '190602' == date:
-            if 'test_3' == id_string:
-                label = 'Triax 36", Mini-Circuits terminator (6/2/2019)'
-        elif '190614' == date:
-            if 'test_1_0' == id_string:
-                label = 'Triax 36", Mini-Circuits terminator (6/14/2019)'
-            elif 'test_3' == id_string:
-                label = 'Triax 36", DNP probe (6/14/2019)'
-            elif 'test_4' == id_string:
-                label = 'Triax 36", probe v2.0 (6/14/2019)'
-            elif 'test_5' == id_string:
-                label = 'New coax 36", probe v2.0 (6/14/2019)'
-            elif 'test_6' == id_string:
-                label = 'New coax 36", DNP probe (6/14/2019)'
+        if 'magnet' in id_string:
+            label = 'Full spectrometer, probe 2.0'
+        elif 'probev1p5_solenoid_10' in id_string:
+            label = 'Full spectrometer, probe 1.5'
+        elif 'term_test_3_0' in id_string:
+            label = 'Full spectrometer, terminators for probe and amp'
         #{{{ plotting parameters -- for older files
         #{{{ plotting AFG waveform, attn, power splitter, with low pass filter
         elif id_string == 'control_SE':
@@ -521,13 +464,9 @@ for date,id_string,numchan,gain_factor in [
                 fl.plot(u['ch',0],alpha=0.35,plottype='semilogy')
                 #axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
                 if filtering:
-                    fl.next('')
-                    u_filt.name('Noise$ /{k_{B}T}$')
-                    fl.plot(u_filt['ch',0]['t':(None,30e6)],plottype='semilogy')#,label='%s'%label,plottype='semilogy')
-                    savefig('noise.png',
-                            transparent=True,
-                            bbox_inches='tight',
-                            pad_inches=0)
+                    fl.next('Digitally-Filtered Network Noise Power Spectral Density,\n Input-referred ($\sigma$=%0.3f kHz)'%(width*1e-3))
+                    u_filt.name('${S_{xx}(\\nu)}/{k_{B}T}$')
+                    fl.plot(u_filt['ch',0],alpha=0.35,label='%s'%label,plottype='semilogy')
                     #axhline(y=k_B*T/1e-12, linestyle=':', alpha=0.5, color='purple') # 1e-12 b/c the axis is given in pW
                     #axvline(14.46, linestyle=':', alpha=0.5, c='k')
             if plot_params:
