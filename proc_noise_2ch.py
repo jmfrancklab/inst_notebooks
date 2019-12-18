@@ -310,14 +310,18 @@ for date,id_string,numchan,gain_factor in [
         #('191217','test_5',2,gain_factor_new),
         #('191217','test_5_1',2,gain_factor_new),
         #('191217','test_5_2',2,gain_factor_new),
-        #('191217','test_6',2,gain_factor_new),
+        ('191217','test_6',2,gain_factor_new),
         #('191217','test_7',2,gain_factor_new),
         #('191217','test_7_1',2,gain_factor_new),
         #('191217','test_8',2,gain_factor_new),
-        ('191217','test_10',2,gain_factor_new),
-        ('191217','test_10_1',2,gain_factor_new),
-        ('191217','test_11',2,gain_factor_new),
-        ('191217','test_11_1',2,gain_factor_new),
+        #('191217','test_10',2,gain_factor_new),
+        #('191217','test_10_1',2,gain_factor_new),
+        #('191217','test_11',2,gain_factor_new),
+        #('191217','test_11_1',2,gain_factor_new),
+        ('191217','test_12',2,gain_factor_new),
+        ('191217','test_13',2,gain_factor_new),
+        ('191217','test_14',2,gain_factor_new),
+        ('191217','test_15',2,gain_factor_new),
 
     ]:
     # }}}
