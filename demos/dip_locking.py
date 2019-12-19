@@ -26,26 +26,26 @@ if run_bridge12:
         #for j in range(3):
         #    _,_,dip_f = b.zoom()
         b.set_freq(dip_f)
-        b.set_power(13.0)
-        raw_input("Minimzie RX...")
-        b.set_power(16.0)
-        raw_input("Minimzie RX...")
-        b.set_power(19.0)
-        raw_input("Minimzie RX...")
-        b.set_power(22.0)
-        raw_input("Minimzie RX...")
-        b.set_power(25.0)
-        raw_input("Minimzie RX...")
-        b.set_power(28.0)
-        raw_input("Minimzie RX...")
-        b.set_power(30.0)
-        raw_input("Minimzie RX...")
-        b.set_power(32.0)
-        raw_input("Minimzie RX...")
-        b.set_power(34.0)
-        raw_input("Minimzie RX...")
-        b.set_power(36.0)
-        raw_input("Minimzie RX...")
+        #b.set_power(13.0)
+        #raw_input("Minimzie RX...")
+        #b.set_power(16.0)
+        #raw_input("Minimzie RX...")
+        #b.set_power(19.0)
+        #raw_input("Minimzie RX...")
+        #b.set_power(22.0)
+        #raw_input("Minimzie RX...")
+        #b.set_power(25.0)
+        #raw_input("Minimzie RX...")
+        #b.set_power(28.0)
+        #raw_input("Minimzie RX...")
+        #b.set_power(30.0)
+        #raw_input("Minimzie RX...")
+        #b.set_power(32.0)
+        #raw_input("Minimzie RX...")
+        #b.set_power(34.0)
+        #raw_input("Minimzie RX...")
+        #b.set_power(36.0)
+        #raw_input("Minimzie RX...")
 
 
         
@@ -54,6 +54,7 @@ if run_bridge12:
         #fits = b.fit_data
 save_data = True
 if save_data:
+    
     filename = '191007_dip_2'
     np.savez(filename+'.npz', **result)
 def plot_all(show_log_scale=True):

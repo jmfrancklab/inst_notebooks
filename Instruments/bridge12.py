@@ -52,7 +52,8 @@ class Bridge12 (Serial):
         # this number represents the highest possible reasonable value for the
         # Rx power -- it is lowered as we observe the Tx values
         self.safe_rx_level_int = int(convert_to_mv(13.)*10+0.5)# i.e. a setting of 13 dB for the absolute threshold
-        if self.safe_rx_level_int > 5000: self.safe_rx_level_int = 6000 # changing this from 5000 to 6000
+        # this is where the safe threshold is!!
+        if self.safe_rx_level_int > 5000: self.safe_rx_level_int = 7000 # changing this from 5000 to 6000
         self.frq_sweep_10dBm_has_been_run = False
         self.tuning_curve_data = {}
         self._inside_with_block = False
@@ -445,7 +446,7 @@ class Bridge12 (Serial):
         logger.info("Predicted center frequency: "+str(center*1e-9))
         # }}}
         # {{{ use the parabola fit to determine the new "safe" bounds for the next sweep
-        safe_rx = 6.0 # dBm, setting based off of values seeing in tests
+        safe_rx = 7.0 # dBm, setting based off of values seeing in tests
         a_new = a - convert_to_mv(safe_rx-dBm_increment) # this allows us to find the x values where a_new+bx+cx^2=safe_rx-dBm_increment
         safe_crossing = (-b+r_[-sqrt(b**2-4*a_new*c),sqrt(b**2-4*a_new*c)])/2/c
         safe_crossing.sort()
