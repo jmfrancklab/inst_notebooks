@@ -24,11 +24,15 @@ for date, id_string,corrected_volt in [
         #('190219','pulse6',True),
         #('190412','pulse_max_match_1000',True),
         #('190412','pulse_min_match_1000',True),
-        ('190413','pulse_1',True),
-        ('190413','pulse_2',True),
+        #('190413','pulse_1',True),
+        #('190413','pulse_2',True),
+        ('200103','pulse_1',True),
         ]:
     d = nddata_hdf5(date+'_'+id_string+'.h5/capture1',
                 directory=getDATADIR(exp_type='test_equip'))
+    #print ndshape(d);quit()
+    fl.next('plot')
+    fl.plot(d)
     d.set_units('t','s')
     d.name('Amplitude $/$ $V$')
     fl.next('Raw signal')
@@ -52,7 +56,7 @@ for date, id_string,corrected_volt in [
     ranges = abs(d['ch',0]).contiguous(lambda x:
             x > 0.5*x.data.max()) # returns list of limits for which
                                   # the contiguous condition holds true
-    assert ranges.shape[0] == 1, "seems to be more than one pulse"
+    #assert ranges.shape[0] == 1, "seems to be more than one pulse"
     pulse_start,pulse_stop = ranges[0,:]
     # {{{ apply a linear phase to find the frequency
     frq_test = r_[-0.1e6:0.1e6:200j]+max_frq
@@ -140,12 +144,14 @@ for date, id_string,corrected_volt in [
     # {{{ not sure if needed -- I'm making sure the frequency axes
     # line up, since the default is to FT back to the same FT
     # startpoint
-    d.ft_clear_startpoints('t', t='current')
-    impulse.ft_clear_startpoints('t', t='current')
+    #d.ft_clear_startpoints('t', t='current')
+    #impulse.ft_clear_startpoints('t', t='current')
     # }}}
-    d.ft('t', shift=True)
+    #d.ft('t', shift=True)
+    d.ft('t')
     transf = d['ch',1]/d['ch',0]
-    impulse.ft('t', shift=True)
+    #impulse.ft('t', shift=True)
+    impulse.ft('t')
     response = impulse*transf
     response.ift('t')
     response = response['t':transf_range]
@@ -157,14 +163,14 @@ for date, id_string,corrected_volt in [
     decay = d['ch',1].C
     decay.ift('t')
     fl.next('Plotting the decay slice')
-    fl.plot(abs(decay),alpha=0.2,label='Phased analytic reflection')
+    fl.plot(abs(decay),alpha=0.2,label='Phased analytic reflection',human_units=False)
     max_time = decay.getaxis('t')[list(abs(decay).data).index(amax(abs(decay).data))]
     decay.ft('t')
     decay *= exp(1j*2*pi*max_time*decay.fromaxis('t'))
     decay.ift('t')
-    fl.plot(abs(decay),':',alpha=0.2,label='Shifted phased analytic reflection')
+    fl.plot(abs(decay),':',alpha=0.2,label='Shifted phased analytic reflection',human_units=False)
     decay = abs(decay)['t':(0,6e-6)]
-    fl.plot(decay,':',c='k',label='Decay slice')
+    fl.plot(decay,':',c='k',label='Decay slice',human_units=False)
     fl.next('Fitting decay')
     x = decay.getaxis('t')
     ydata = decay.data
