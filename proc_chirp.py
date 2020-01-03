@@ -20,7 +20,7 @@ with figlist_var(filename='chirp.pdf') as fl:
             #('180714','test_chirp',True),   # B_0 = 3396.25 G, sample   
             #('180714','test_chirp_2',True),   # B_0 = 3394.25 G, sample   
             #('180714','test_chirp_3',True),   # B_0 = 3395.75 G, sample   
-            ('191212','lg_chirp_9',True),   # B_0 = 3395.75 G, sample   
+            ('200102','pulse_1',True),   # B_0 = 3395.75 G, sample   
             ]:
 #{{{ finding file
         try:
