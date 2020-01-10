@@ -15,28 +15,16 @@ for date, id_string,corrected_volt in [
         #('181001','sprobe_t2',True),
         #('181001','sprobe_t4',True),
         #('181103','probe',True),
-        #('181107','probe',True),
-        #('190219','pulse1',True),
-        #('190219','pulse2',True),
-        #('190219','pulse3',True),
-        #('190219','pulse4',True),
-        #('190219','pulse5',True),
-        #('190219','pulse6',True),
-        #('190412','pulse_max_match_1000',True),
-        #('190412','pulse_min_match_1000',True),
-        #('190413','pulse_1',True),
-        #('190413','pulse_2',True),
-        ('200103','pulse_1',True),
+        #('200110','pulse_1',True),
+        ('200110','alex_probe',True),
         ]:
     d = nddata_hdf5(date+'_'+id_string+'.h5/capture1',
                 directory=getDATADIR(exp_type='test_equip'))
-    #print ndshape(d);quit()
-    fl.next('plot')
-    fl.plot(d)
     d.set_units('t','s')
     d.name('Amplitude $/$ $V$')
     fl.next('Raw signal')
-    #fl.plot(d['ch',0],alpha=0.5,label='control')
+    #d['ch',0] *= 0.5
+    fl.plot(d['ch',0],alpha=0.5,label='control')
     fl.plot(d['ch',1],alpha=0.5,label='reflection')
     # {{{ find the analytic signal
     d.ft('t',shift=True)
@@ -50,7 +38,7 @@ for date, id_string,corrected_volt in [
     # see PEP-8 https://www.python.org/dev/peps/pep-0008/#other-recommendations
     decay = abs(d['ch',1]).C
     fl.next('Analytic signal')
-    #fl.plot(abs(d['ch',0]), alpha=0.5, label='control')
+    fl.plot(abs(d['ch',0]), alpha=0.5, label='control')
     fl.plot(abs(d['ch',1]), alpha=0.5, label='reflection')
     # guess the start of the pulse
     ranges = abs(d['ch',0]).contiguous(lambda x:
@@ -101,7 +89,7 @@ for date, id_string,corrected_volt in [
     #       of the real
     def apply_ph1(ph1,d_orig):
         retval = d_orig.C
-        retval *= exp(-1j*2*pi*ph1*retval.fromaxis('t')) # ph1 is cycles per SW
+        retval *= eixp(-1j*2*pi*ph1*retval.fromaxis('t')) # ph1 is cycles per SW
         d_ph = retval.C.sum('t')
         d_ph /= abs(d_ph)
         retval /= d_ph
@@ -147,10 +135,8 @@ for date, id_string,corrected_volt in [
     #d.ft_clear_startpoints('t', t='current')
     #impulse.ft_clear_startpoints('t', t='current')
     # }}}
-    #d.ft('t', shift=True)
     d.ft('t')
     transf = d['ch',1]/d['ch',0]
-    #impulse.ft('t', shift=True)
     impulse.ft('t')
     response = impulse*transf
     response.ift('t')
@@ -163,24 +149,25 @@ for date, id_string,corrected_volt in [
     decay = d['ch',1].C
     decay.ift('t')
     fl.next('Plotting the decay slice')
-    fl.plot(abs(decay),alpha=0.2,label='Phased analytic reflection',human_units=False)
+    fl.plot(abs(decay),alpha=0.2,label='Phased analytic reflection')
     max_time = decay.getaxis('t')[list(abs(decay).data).index(amax(abs(decay).data))]
     decay.ft('t')
     decay *= exp(1j*2*pi*max_time*decay.fromaxis('t'))
     decay.ift('t')
-    fl.plot(abs(decay),':',alpha=0.2,label='Shifted phased analytic reflection',human_units=False)
+    fl.plot(abs(decay),':',alpha=0.2,label='Shifted phased analytic reflection')
     decay = abs(decay)['t':(0,6e-6)]
-    fl.plot(decay,':',c='k',label='Decay slice',human_units=False)
+    fl.plot(decay,':',c='k',label='Decay slice')
     fl.next('Fitting decay')
     x = decay.getaxis('t')
     ydata = decay.data
     fl.plot(x,ydata, alpha=0.2, human_units=False)
-    fitfunc = lambda p, x: p[0]*exp(-x*2*pi*center_frq/(2*p[1]))
-    fl.plot(x, fitfunc(r_[0.5,30.],x), ':', label='initial fit, Q=30', human_units=False)
+    fitfunc = lambda p, x: p[0]*exp(-x*2*pi*center_frq*(2*p[1]))
+    fl.plot(x, fitfunc(r_[0.5,1.0],x), ':', label='initial fit, Q=30', human_units=False)
     errfunc = lambda p_arg, x_arg, y_arg: fitfunc(p_arg, x_arg) - y_arg
-    p0 = [0.5,30.]
+    p0 = [0.5,1.0]
     p1, success = leastsq(errfunc, p0[:], args=(x, ydata))
-    Q = p1[1]
+    print success
+    Q = 1./p1[1]
     x_fit = linspace(x.min(), x.max(), 5000)
     fl.plot(x_fit, fitfunc(p1, x_fit),':',c='k', label='final fit, Q=%d'%Q)
     xlabel(r't / $s$')
