@@ -20,6 +20,7 @@ class HP8672A (gpib_eth):
             force this coarse setting
             (of None, just round)
         """
+        logger.debug("You asked for a power of %f dBm"%dBm)
         assert dBm <= 3 and dBm >= -120, "dBm value must be between -120 and 3 dBm"
         # {{{ all of the following is based off fig 15-6 from the programming manual
         ascii_set = list('013456789:;<=')
