@@ -12,57 +12,77 @@ for date, id_string,corrected_volt in [
         #('200110','pulse_2',True),
         ('200110','alex_probe',True),
         ]:
+    # {{{ load data, set units, show raw data
     d = nddata_hdf5(date+'_'+id_string+'.h5/capture1',
                 directory=getDATADIR(exp_type='test_equip'))
     print(d.get_units('t'))
     d.set_units('t','s')
     d.name('Amplitude').set_units('V')
     fl.next('Raw signal %s'%id_string)
-    fl.plot(d['ch',0],alpha=0.5,label='control')
-    fl.plot(d['ch',1],alpha=0.5,label='reflection')
+    fl.plot(d['ch',0], alpha=0.5, label='control') # turning off human
+            #           units forces plot in just V
+    fl.plot(d['ch',1], alpha=0.5, label='reflection')
+    # }}}
+    # {{{ determining center frequency and convert to
+    # analytic signal, show analytic signal
     d.ft('t',shift=True)
     d = d['t':(0,None)] # throw out negative frequencies and low-pass
-    max_frq = abs(d['ch',0]).argmax('t').item() # to get the max frequency
-    print(max_frq)
-    d.reorder('ch', first=False) # move ch dimension last
+    center_frq = abs(d['ch',0]).argmax('t').item() # to get the max frequency
+    print("initial guess at center frequency at %0.5f MHz"%(center_frq/1e6))
+    print(center_frq)
     d.ift('t')
     d *= 2
-    # }}}
-    # see PEP-8 https://www.python.org/dev/peps/pep-0008/#other-recommendations
-    decay = abs(d['ch',1]).C
-    fl.next('Analytic signal %s'%id_string)
+    fl.next('Absolute value of analytic signal, %s'%id_string)
     fl.plot(abs(d['ch',0]), alpha=0.5, label='control')
-    fl.plot(abs(d['ch',1]), alpha=0.5, label='reflection')
-    # guess the start of the pulse
-    ranges = abs(d['ch',0]).contiguous(lambda x:
+    # here there was actually a figure list error,
+    # where the y scaling wasn't done correctly!
+    fl.plot(abs(d['ch',1]), alpha=0.5,
+            label='reflection')
+    # }}}
+    # {{{ determine the start and stop points for both
+    # the pulse, as well as the two tuning blips
+    pulse_range = abs(d['ch',0]).contiguous(lambda x:
             x > 0.5*x.data.max()) # returns list of limits for which
                                   # the contiguous condition holds true
-    #assert ranges.shape[0] == 1, "seems to be more than one pulse"
-    pulse_start,pulse_stop = ranges[0,:]
-    # {{{ apply a linear phase to find the frequency
-    frq_test = r_[-0.1e6:0.1e6:200j]+max_frq
-    f_shift = nddata(frq_test,'f_test')
-    # perform and store 200 frequency modulations of signal
-    test_array = d['ch',0].C * exp(-1j*2*pi*f_shift*d.fromaxis('t'))
-    test_array.sum('t').run(abs)
-    fl.next('test frequency axis')
-    fl.plot(test_array,'.')
+    #pulse_range = array(j for j in pulse_range if
+    #        diff(j).item() > 0.1e-6)
+    # RATHER -- use numpy
+    def filter_range(thisrange):
+        mask = diff(thisrange, axis=1) > 0.1e-6 * ones((1,2))
+        thisrange = thisrange[mask].reshape((-1,2))
+        return thisrange
+    pulse_range = filter_range(pulse_range)
+    if not pulse_range.shape[0] == 1:
+        print("seems to be more than one pulse -- on starting at "
+                + ','.join(('start '+str(j[0])+' length '+str(diff(j)) for j in pulse_range)))
+        fl.show();exit()
+    pulse_range = pulse_range[0,:]
+    fl.plot(abs(d['ch',0]['t':tuple(pulse_range)]), alpha=0.1, color='k',
+            linewidth=10)
+    refl_blip_ranges = abs(d['ch',1]).contiguous(lambda x:
+            x > 0.05*x.data.max()) # returns list of limits for which
+                                  # the contiguous condition holds true
+    refl_blip_ranges = filter_range(refl_blip_ranges)
+    assert refl_blip_ranges.shape[0] == 2, "seems to be more than two tuning blips "
+    for thisrange in refl_blip_ranges:
+        fl.plot(abs(d['ch',1]['t':tuple(thisrange)]), alpha=0.1, color='k',
+                linewidth=10)
+    # }}}
+    # {{{ apply a linear phase to find the frequency of
+    # the pulse (control)
+    f_shift = nddata(r_[-0.1e6:0.1e6:200j]+center_frq,'f_test')
+    # perform and store 200 frequency de-modulations of signal
+    test_array = d['ch',0] * exp(-1j*2*pi*f_shift*d.fromaxis('t'))
     # when modulating by same frequency of the waveform,
     # abs(sum(waveform)) will be a maximum
-    center_frq = test_array.argmax('f_test').data 
+    center_frq = test_array.sum('t').run(abs).argmax('f_test').item()
     print("found center frequency at %0.5f MHz"%(center_frq/1e6))
-
+    # }}}
+    # JF review stopped here
     d.ft('t')
     d.setaxis('t', lambda x: x - center_frq)
-    def apply_ph1(ph1,d_orig):
-        retval = d_orig.C
-        retval *= eixp(-1j*2*pi*ph1*retval.fromaxis('t')) # ph1 is cycles per SW
-        d_ph = retval.C.sum('t')
-        d_ph /= abs(d_ph)
-        retval /= d_ph
-        return retval
     fl.next('test time axis')
-    t_shift_testvals = r_[-1e-6:1e-6:1000j]+pulse_start
+    t_shift_testvals = r_[-1e-6:1e-6:1000j]+pulse_range[0]
     t_shift = nddata(t_shift_testvals,'t_shift')
     # perform and store 1000 time shifts 
     test_data = d['ch',0].C * exp(-1j*2*pi*t_shift*d.fromaxis('t'))
@@ -73,7 +93,16 @@ for date, id_string,corrected_volt in [
     fl.plot(test_data,'.')
     pulse_start = test_data.argmin('t_shift').data
     d.ift('t')
+    fl.next('demodulated data')
+    # Alex -- modify this so it slices out just the
+    # first blip, as well as a little bit more to
+    # either side
+    ph0 = d['ch',1].data.sum()
+    ph0 /= abs(ph0)
+    d['ch',1] /= ph0
+    fl.plot(d)
     d.setaxis('t',lambda x: x-pulse_start)
+    print("NOTE!!! the demodulated reflection looks bad -- fix it")
     # to use the phase of the reference to set both, we could do:
     # pulse_phase = d['ch',0].C.sum('t')
     # but I don't know if that's reasonable -- rather I just phase both independently:
@@ -107,31 +136,27 @@ for date, id_string,corrected_volt in [
     decay = d['ch',1].C
     decay.ift('t')
     fl.next('Plotting the decay slice')
-    fl.plot(abs(decay),alpha=0.2,label='Phased analytic reflection')
-    max_time = decay.getaxis('t')[list(abs(decay).data).index(amax(abs(decay).data))]
-    decay.ft('t')
-    decay *= exp(1j*2*pi*max_time*decay.fromaxis('t'))
-    decay.ift('t')
-    fl.plot(abs(decay),':',alpha=0.2,label='Shifted phased analytic reflection')
-    decay = abs(decay)['t':(0,6e-6)]
-    fl.plot(decay,':',c='k',label='Decay slice')
-    fl.next('Fitting decay %s'%id_string)
-    x = decay.getaxis('t')
-    ydata = decay.data
-    fl.plot(x,ydata, alpha=0.2, human_units=False)
-    fitfunc = lambda p, x: p[0]*exp(-x*2*pi*center_frq*(2*p[1]))
-    fl.plot(x, fitfunc(r_[0.1,1.0],x), ':', label='initial fit, Q=30', human_units=False)
-    errfunc = lambda p_arg, x_arg, y_arg: fitfunc(p_arg, x_arg) - y_arg
-    if date == '181103':
-        p0 = [0.5,100.0]
-    elif date == '200110':
-        p0 = [0.1,40.0]
-    p1, success = leastsq(errfunc, p0[:], args=(x, ydata))
-    print(success)
-    Q = 1./p1[1]
-    x_fit = linspace(x.min(), x.max(), 5000)
-    fl.plot(x_fit, fitfunc(p1, x_fit),':',c='k', label='final fit, Q=%d'%Q)
-    xlabel(r't / $s$')
-    ylabel(r'Amplitude / $V$')
+    # slice out a range from the start of the first
+    # blip up to halfway between the END of the first
+    # blip and the start of the second
+    decay = decay['t':(refl_blip_ranges[0,0],
+        0.5*(refl_blip_ranges[0,1]+refl_blip_ranges[1,0]))]
+    t_start = abs(decay).argmax('t').item()
+    decay = decay['t':(t_start,None)]
+    decay = decay.setaxis('t',lambda x: x-decay.getaxis('t')[0])
+    # }}}
+    fitfunc = lambda p: p[0]*exp(-decay.fromaxis('t')*p[1])+p[2]
+    p_ini = r_[decay['t',0].data.real.max(),1/0.5e-6,0]
+    fl.plot(fitfunc(p_ini), ':', label='initial guess')
+    residual = lambda p: fitfunc(p).data.real - decay.data.real
+    p_opt, success = leastsq(residual, p_ini[:])
+    assert success > 0 & success < 5, "fit not successful"
+    Q = 1./p_opt[1]*2*pi*center_frq
+    fl.plot(fitfunc(p_opt), label='fit')
+    fl.plot(decay, label='data')
+    #x_fit = linspace(x.min(), x.max(), 5000)
+    #fl.plot(x_fit, fitfunc(p1, x_fit),':',c='k', label='final fit, Q=%d'%Q)
+    #xlabel(r't / $s$')
+    #ylabel(r'Amplitude / $V$')
     print("Q:",Q)
 fl.show();quit()
