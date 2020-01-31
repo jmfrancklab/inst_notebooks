@@ -1,5 +1,6 @@
 from pyspecdata import *
 from scipy.optimize import leastsq
+# 2to3 JF 1/31
 
 fl = figlist_var()
 
@@ -13,17 +14,16 @@ for date, id_string,corrected_volt in [
         ]:
     d = nddata_hdf5(date+'_'+id_string+'.h5/capture1',
                 directory=getDATADIR(exp_type='test_equip'))
+    print(d.get_units('t'))
     d.set_units('t','s')
-    d.name('Amplitude $/$ $V$')
+    d.name('Amplitude').set_units('V')
     fl.next('Raw signal %s'%id_string)
-    if date == '200110':
-        d['ch',0] *= 0.5
     fl.plot(d['ch',0],alpha=0.5,label='control')
     fl.plot(d['ch',1],alpha=0.5,label='reflection')
     d.ft('t',shift=True)
     d = d['t':(0,None)] # throw out negative frequencies and low-pass
-    max_frq = abs(d['ch',0]).argmax('t').data # to get the max frequency
-    print max_frq
+    max_frq = abs(d['ch',0]).argmax('t').item() # to get the max frequency
+    print(max_frq)
     d.reorder('ch', first=False) # move ch dimension last
     d.ift('t')
     d *= 2
@@ -50,7 +50,7 @@ for date, id_string,corrected_volt in [
     # when modulating by same frequency of the waveform,
     # abs(sum(waveform)) will be a maximum
     center_frq = test_array.argmax('f_test').data 
-    print "found center frequency at %0.5f MHz"%(center_frq/1e6)
+    print("found center frequency at %0.5f MHz"%(center_frq/1e6))
 
     d.ft('t')
     d.setaxis('t', lambda x: x - center_frq)
@@ -127,11 +127,11 @@ for date, id_string,corrected_volt in [
     elif date == '200110':
         p0 = [0.1,40.0]
     p1, success = leastsq(errfunc, p0[:], args=(x, ydata))
-    print success
+    print(success)
     Q = 1./p1[1]
     x_fit = linspace(x.min(), x.max(), 5000)
     fl.plot(x_fit, fitfunc(p1, x_fit),':',c='k', label='final fit, Q=%d'%Q)
     xlabel(r't / $s$')
     ylabel(r'Amplitude / $V$')
-    print "Q:",Q
+    print("Q:",Q)
 fl.show();quit()
