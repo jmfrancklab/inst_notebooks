@@ -33,7 +33,6 @@ for date, id_string,corrected_volt in [
     fl.next('Analytic signal %s'%id_string)
     fl.plot(abs(d['ch',0]), alpha=0.5, label='control')
     fl.plot(abs(d['ch',1]), alpha=0.5, label='reflection')
-    #fl.show();quit()
     # guess the start of the pulse
     ranges = abs(d['ch',0]).contiguous(lambda x:
             x > 0.5*x.data.max()) # returns list of limits for which
