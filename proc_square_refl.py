@@ -55,7 +55,7 @@ for date, id_string,corrected_volt in [
     if not pulse_range.shape[0] == 1:
         print("seems to be more than one pulse -- on starting at "
                 + ','.join(('start '+str(j[0])+' length '+str(diff(j)) for j in pulse_range)))
-        fl.show();exit()
+        #fl.show();exit()
     pulse_range = pulse_range[0,:]
     fl.plot(abs(d['ch',0]['t':tuple(pulse_range)]), alpha=0.1, color='k',
             linewidth=10)
@@ -79,6 +79,7 @@ for date, id_string,corrected_volt in [
     print("found center frequency at %0.5f MHz"%(center_frq/1e6))
     # }}}
     # JF review stopped here
+    # {{{ creates demodulated reflection 
     d.ft('t')
     d.setaxis('t', lambda x: x - center_frq)
     fl.next('test time axis')
@@ -96,13 +97,17 @@ for date, id_string,corrected_volt in [
     fl.next('demodulated data')
     # Alex -- modify this so it slices out just the
     # first blip, as well as a little bit more to
-    # either side
+    # either side. 
+    #AG--I believe this is done in line 146
     ph0 = d['ch',1].data.sum()
     ph0 /= abs(ph0)
     d['ch',1] /= ph0
+    #d = d['t':(2e-06,4e-06)]
     fl.plot(d)
+    #fl.show();quit()
     d.setaxis('t',lambda x: x-pulse_start)
     print("NOTE!!! the demodulated reflection looks bad -- fix it")
+    #fl.show();quit()
     # to use the phase of the reference to set both, we could do:
     # pulse_phase = d['ch',0].C.sum('t')
     # but I don't know if that's reasonable -- rather I just phase both independently:
@@ -115,6 +120,8 @@ for date, id_string,corrected_volt in [
         fl.plot(d['ch',j].imag, alpha=0.3, label='imag')
         fl.plot(abs(d['ch',j]), alpha=0.3, color='k', linewidth=2,
                 label='abs')
+    #fl.show();quit()
+    # }}}
     # {{{ to plot the transfer function, we need to pick an impulse
     # of finite width, or else we get a bunch of noise
     transf_range = (-0.5e-6,3e-6)
@@ -133,7 +140,8 @@ for date, id_string,corrected_volt in [
     fl.plot(response.real, alpha=0.5, label='response, real')
     fl.plot(response.imag, alpha=0.5, label='response, imag')
     fl.plot(abs(response), alpha=0.3, linewidth=3, label='response, abs')
-    decay = d['ch',1].C
+    #fl.show();quit()
+    decay = abs(d['ch',1]).C
     decay.ift('t')
     fl.next('Plotting the decay slice')
     # slice out a range from the start of the first
@@ -152,11 +160,7 @@ for date, id_string,corrected_volt in [
     p_opt, success = leastsq(residual, p_ini[:])
     assert success > 0 & success < 5, "fit not successful"
     Q = 1./p_opt[1]*2*pi*center_frq
-    fl.plot(fitfunc(p_opt), label='fit')
-    fl.plot(decay, label='data')
-    #x_fit = linspace(x.min(), x.max(), 5000)
-    #fl.plot(x_fit, fitfunc(p1, x_fit),':',c='k', label='final fit, Q=%d'%Q)
-    #xlabel(r't / $s$')
-    #ylabel(r'Amplitude / $V$')
-    print("Q:",Q)
-fl.show();quit()
+    fl.plot(-fitfunc(p_opt), label='fit')
+    fl.plot(-decay, label='data')
+    print(Q)
+    fl.show();quit()
