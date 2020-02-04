@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from Instruments import *
 from pyspecdata import *
 import time

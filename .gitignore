@@ -2,6 +2,7 @@
 *.egg-info
 *.ipynb
 *.png
+<<<<<<< HEAD
 *.swp
 *.pyc
 *.swo
@@ -9,3 +10,16 @@
 ipynb/auto_figures/
 ipynb/auto_figures/noiseexample_noise_1.pdf
 ipynb/auto_figures/noiseexample_noise_1.svg
+||||||| merged common ancestors
+ipynb/find_50percent_crossings.ipynb
+Bridge12_Class_181126.ipynb
+=======
+*.swp
+*.pyc
+*.swo
+*.npz
+ipynb/auto_figures/
+ipynb/auto_figures/noiseexample_noise_1.pdf
+ipynb/auto_figures/noiseexample_noise_1.svg
+docsource/_build
+>>>>>>> 00ed98f14afd27bd38a5c25bfd86b730fc1a6367
