@@ -30,7 +30,7 @@ for j,dataset in enumerate(args):
         print "didn't find %s: about to load GDS"%dataset
         with GDS_scope() as g:
             print "loaded GDS"
-            for j in range(1,2):
+            for j in range(1,3):
                 print "trying to grab data from channel",j
                 datalist.append(g.waveform(ch=j))
             data = concat(datalist,'ch').reorder('t')
