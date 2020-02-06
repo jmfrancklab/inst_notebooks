@@ -278,7 +278,7 @@ for date,id_string,numchan,gain_factor in [
         #('190425','term_test_1_2',2,gain_factor_new),
         #('190425','term_test_2_0',2,gain_factor_new),
         #('190425','term_test_2_1',2,gain_factor_new),
-        ('190425','term_test_2_2',2,gain_factor_new),
+        #('190425','term_test_2_2',2,gain_factor_new),
         #('190425','term_test_2_3',2,gain_factor_new),
         #('190425','term_test_1_0_0',2,gain_factor_new),
         #('190425','term_test_1_0_1',2,gain_factor_new),
@@ -310,7 +310,7 @@ for date,id_string,numchan,gain_factor in [
         #('191217','test_5',2,gain_factor_new),
         #('191217','test_5_1',2,gain_factor_new),
         #('191217','test_5_2',2,gain_factor_new),
-        ('191217','test_6',2,gain_factor_new),
+        #('191217','test_6',2,gain_factor_new),
         #('191217','test_7',2,gain_factor_new),
         #('191217','test_7_1',2,gain_factor_new),
         #('191217','test_8',2,gain_factor_new),
@@ -318,10 +318,10 @@ for date,id_string,numchan,gain_factor in [
         #('191217','test_10_1',2,gain_factor_new),
         #('191217','test_11',2,gain_factor_new),
         #('191217','test_11_1',2,gain_factor_new),
-        ('191217','test_12',2,gain_factor_new),
-        ('191217','test_13',2,gain_factor_new),
-        ('191217','test_14',2,gain_factor_new),
-        ('191217','test_15',2,gain_factor_new),
+        #('191217','test_12',2,gain_factor_new),
+        #('191217','test_13',2,gain_factor_new),
+        #('191217','test_14',2,gain_factor_new),
+        #('191217','test_15',2,gain_factor_new),
 
     ]:
     # }}}
@@ -434,7 +434,8 @@ for date,id_string,numchan,gain_factor in [
     #{{{ calculate PSD for s
     s.ft('t',shift=True)
     s = abs(s)['t':(0,None)]**2   #mod square and throw out negative frequencies
-    s.mean('capture', return_error=False)
+    #s.mean('capture', return_error=False)
+    s.mean('capture')#, return_error=False)
     width = 0.04e6
     #s.convolve('t',width) # we do this before chopping things up, since it uses
     #                      fft and assumes that the signal is periodic (at this
@@ -454,7 +455,8 @@ for date,id_string,numchan,gain_factor in [
     ##fl.plot(u['capture',1])
     u.ft('t',shift=True)
     u = abs(u)['t':(0,None)]**2
-    u.mean('capture', return_error = False)
+    #u.mean('capture', return_error = False)
+    u.mean('capture')#, return_error = False)
     #u.convolve('t',width)
     u /= 50.
     u /= u_acq_time
@@ -469,7 +471,8 @@ for date,id_string,numchan,gain_factor in [
         ##fl.show()
         ##quit()
         u_filt = abs(u_filt)['t':(0,None)]**2
-        u_filt.mean('capture', return_error = False)
+        #u_filt.mean('capture', return_error = False)
+        u_filt.mean('capture')#, return_error = False)
         u_filt.convolve('t',width)
         u_filt /= 50.
         u_filt /= u_acq_time
