@@ -8,7 +8,7 @@ if len(sys.argv) > 1:
     IP = sys.argv[1]
 PORT = 6001
 
-MESSAGE = '3403.00'
+MESSAGE = '3496.5'
 print "target IP:", IP
 print "target port:", PORT
 print "message:", MESSAGE
