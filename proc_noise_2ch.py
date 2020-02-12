@@ -196,7 +196,7 @@ for date,id_string,numchan,gain_factor in [
         #('190411','console_TX_RX_1',2,gain_factor_new),
         #('190411','console_TX_RX_2',2,gain_factor_new),
         #('190411','magnet_TX_RX_1',2,gain_factor_new),
-        ('190411','magnet_TX_RX_2',2,gain_factor_new),
+        #('190411','magnet_TX_RX_2',2,gain_factor_new),
         #('190411','Cu_1',2,gain_factor_new),
         #('190411','Cu_2',2,gain_factor_new),
         #('190415','probe',2,gain_factor_new),
@@ -322,6 +322,18 @@ for date,id_string,numchan,gain_factor in [
         #('191217','test_13',2,gain_factor_new),
         #('191217','test_14',2,gain_factor_new),
         #('191217','test_15',2,gain_factor_new),
+        ('200211','test_0_0',2,gain_factor_new),
+        ('200211','test_1_0',2,gain_factor_new),
+        ('200211','test_2_0',2,gain_factor_new),
+        ('200212','test_2_0',2,gain_factor_new),
+        ('200212','test_3_0',2,gain_factor_new),
+        #('200212','test_3_1',2,gain_factor_new),
+        ('200212','test_4_0',2,gain_factor_new),
+        ('200212','test_5_0',2,gain_factor_new),
+        ('200212','test_5_1',2,gain_factor_new),
+        ('200212','test_4_1',2,gain_factor_new),
+        ('200212','test_5_2',2,gain_factor_new),
+        ('200212','test_6_1',2,gain_factor_new),
 
     ]:
     # }}}
