@@ -9,21 +9,19 @@ for date, id_string,corrected_volt in [
         #('181001','sprobe_t4',True),
         #('181103','probe',True),
         #('200110','pulse_2',True),
-        ('200110','alex_probe',True),
+        ('200213','alex_coil2',True),
         ]:
     d = nddata_hdf5(date+'_'+id_string+'.h5/capture1',
                 directory=getDATADIR(exp_type='test_equip'))
     d.set_units('t','s')
     d.name('Amplitude $/$ $V$')
     fl.next('Raw signal %s'%id_string)
-    if date == '200110':
-        d['ch',0] *= 0.5
-    fl.plot(d['ch',0],alpha=0.5,label='control')
-    fl.plot(d['ch',1],alpha=0.5,label='reflection')
+    #fl.plot(d['ch',0],alpha=0.5,label='control')
+    #fl.plot(d['ch',1],alpha=0.5,label='reflection')
     d.ft('t',shift=True)
     d = d['t':(0,None)] # throw out negative frequencies and low-pass
     max_frq = abs(d['ch',0]).argmax('t').data # to get the max frequency
-    print max_frq
+    print(max_frq)
     d.reorder('ch', first=False) # move ch dimension last
     d.ift('t')
     d *= 2
@@ -33,7 +31,7 @@ for date, id_string,corrected_volt in [
     fl.next('Analytic signal %s'%id_string)
     fl.plot(abs(d['ch',0]), alpha=0.5, label='control')
     fl.plot(abs(d['ch',1]), alpha=0.5, label='reflection')
-    #fl.show();quit()
+    fl.show();quit()
     # guess the start of the pulse
     ranges = abs(d['ch',0]).contiguous(lambda x:
             x > 0.5*x.data.max()) # returns list of limits for which
@@ -51,7 +49,7 @@ for date, id_string,corrected_volt in [
     # when modulating by same frequency of the waveform,
     # abs(sum(waveform)) will be a maximum
     center_frq = test_array.argmax('f_test').data 
-    print "found center frequency at %0.5f MHz"%(center_frq/1e6)
+    print("found center frequency at %0.5f MHz"%(center_frq/1e6))
 
     d.ft('t')
     d.setaxis('t', lambda x: x - center_frq)
@@ -78,7 +76,7 @@ for date, id_string,corrected_volt in [
     # to use the phase of the reference to set both, we could do:
     # pulse_phase = d['ch',0].C.sum('t')
     # but I don't know if that's reasonable -- rather I just phase both independently:
-    pulse_phase = d.C.sum('t')
+    pulse_phase = d['ch',0].C.sum('t')
     pulse_phase /= abs(pulse_phase)
     d /= pulse_phase
     for j,l in enumerate(['control','reflection']):
@@ -128,11 +126,11 @@ for date, id_string,corrected_volt in [
     elif date == '200110':
         p0 = [0.1,40.0]
     p1, success = leastsq(errfunc, p0[:], args=(x, ydata))
-    print success
+    print(success)
     Q = 1./p1[1]
     x_fit = linspace(x.min(), x.max(), 5000)
     fl.plot(x_fit, fitfunc(p1, x_fit),':',c='k', label='final fit, Q=%d'%Q)
     xlabel(r't / $s$')
     ylabel(r'Amplitude / $V$')
-    print "Q:",Q
+    print("Q:",Q)
 fl.show();quit()

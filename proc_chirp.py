@@ -20,7 +20,7 @@ with figlist_var(filename='chirp.pdf') as fl:
             #('180714','test_chirp',True),   # B_0 = 3396.25 G, sample   
             #('180714','test_chirp_2',True),   # B_0 = 3394.25 G, sample   
             #('180714','test_chirp_3',True),   # B_0 = 3395.75 G, sample   
-            ('200102','pulse_1',True),   # B_0 = 3395.75 G, sample   
+            ('200213','alex_coil2',True),   # B_0 = 3395.75 G, sample   
             ]:
 #{{{ finding file
         try:
@@ -62,7 +62,7 @@ with figlist_var(filename='chirp.pdf') as fl:
         if pulse_90:
             ranges = abs(d)['ch',0].contiguous(lambda x: x > 0.03*x.data.max())
         ranges = ranges[0,:].tolist()
-        print 'Slicing chirp for',id_string,'from',ranges[0]*1e6,'to',ranges[1]*1e6,'us...'
+        print('Slicing chirp for',id_string,'from',ranges[0]*1e6,'to',ranges[1]*1e6,'us...')
         d = d['t':tuple(ranges)]
         #fl.next('plot ch 0 %s'%id_string)
         #fl.next('Control channel pulse')
