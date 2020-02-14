@@ -94,16 +94,65 @@ for date, id_string,corrected_volt in [
     fl.plot(test_data,'.')
     pulse_start = test_data.argmin('t_shift').data
     d.ift('t')
-    fl.next('demodulated data')
     # Alex -- modify this so it slices out just the
     # first blip, as well as a little bit more to
     # either side. 
     #AG--I believe this is done in line 146
-    ph0 = d['ch',1].data.sum()
-    ph0 /= abs(ph0)
-    d['ch',1] /= ph0
+    # {{{ I have modified the zeroth order phasing --
+    # just ignore for now -- JF (though I explain for
+    # myself)
+    def zeroth_order_ph(d, plot_name=None):
+        r'''determine the covariance of the datapoints
+        in complex plane, and use to phase the
+        zeroth-order even if the data is both negative
+        and positive'''
+        eigenValues, eigenVectors = eig(cov(c_[
+            d.data.real,
+            d.data.imag].T
+            ))
+        # next 3 lines from stackexchange -- sort by
+        # eigenvalue
+        idx = eigenValues.argsort()[::-1]   
+        eigenValues = eigenValues[idx]
+        eigenVectors = eigenVectors[:,idx]
+        # determine the phase angle from direction of the
+        # largest principle axis
+        ph0 = arctan2(eigenVectors[1,0],eigenVectors[0,0])
+        if plot_name:
+            eigenVectors *= (eigenValues.reshape(-1,2)*ones((2,1)))/eigenValues.max()*abs(d.data).max()
+            d_forplot = d.C
+            fl.next(plot_name)
+            fl.plot(
+                    d_forplot.data.real,
+                    d_forplot.data.imag,
+                    '.',
+                    alpha=0.25,
+                    label='before'
+                    )
+            d_forplot /= exp(1j*ph0)
+            fl.plot(
+                    d_forplot.data.real,
+                    d_forplot.data.imag,
+                    '.',
+                    alpha=0.25,
+                    label='after'
+                    )
+            fl.plot(0,0,'ko')
+            fl.plot(eigenVectors[0,0],eigenVectors[1,0],'o',
+                    label='first evec')
+            fl.plot(eigenVectors[0,1],eigenVectors[1,1],'o')
+        return exp(1j*ph0)
+    # }}}
+    for j in range(2):
+        ph0 = zeroth_order_ph(d['ch',j], plot_name='phasing')
+        d['ch',j] /= ph0
+    fl.next('demodulated and phased data')
     #d = d['t':(2e-06,4e-06)]
-    fl.plot(d)
+    for j in range(2):
+        fl.plot(d['ch',j], label='channel %d real'%j,
+                alpha=0.5)
+        fl.plot(d['ch',j].imag, label='channel %d imag'%j,
+                alpha=0.5)
     #fl.show();quit()
     d.setaxis('t',lambda x: x-pulse_start)
     print("NOTE!!! the demodulated reflection looks bad -- fix it")
@@ -141,16 +190,13 @@ for date, id_string,corrected_volt in [
     fl.plot(response.imag, alpha=0.5, label='response, imag')
     fl.plot(abs(response), alpha=0.3, linewidth=3, label='response, abs')
     #fl.show();quit()
-    decay = abs(d['ch',1]).C
-    decay.ift('t')
     fl.next('Plotting the decay slice')
     # slice out a range from the start of the first
     # blip up to halfway between the END of the first
     # blip and the start of the second
-    decay = decay['t':(refl_blip_ranges[0,0],
+    d.ift('t')
+    decay = d['ch',1]['t':(refl_blip_ranges[0,0],
         0.5*(refl_blip_ranges[0,1]+refl_blip_ranges[1,0]))]
-    t_start = abs(decay).argmax('t').item()
-    decay = decay['t':(t_start,None)]
     decay = decay.setaxis('t',lambda x: x-decay.getaxis('t')[0])
     # }}}
     fitfunc = lambda p: p[0]*exp(-decay.fromaxis('t')*p[1])+p[2]
@@ -160,7 +206,8 @@ for date, id_string,corrected_volt in [
     p_opt, success = leastsq(residual, p_ini[:])
     assert success > 0 & success < 5, "fit not successful"
     Q = 1./p_opt[1]*2*pi*center_frq
-    fl.plot(-fitfunc(p_opt), label='fit')
-    fl.plot(-decay, label='data')
+    fl.plot(fitfunc(p_opt), label='fit')
+    fl.plot(decay, label='data')
+    fl.plot(decay.imag, label='data (imag, not fit)')
     print(Q)
     fl.show();quit()
