@@ -1,15 +1,13 @@
 from pyspecdata import *
 from scipy.optimize import minimize
 fl = figlist_var()
-date = '200206'
-for id_string in [
-    'nutation_lg_coil2_1',
+for date, id_string in [
+    ('200214','nutation_coil2_90'),
     ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'nutation'
     s = nddata_hdf5(filename + '/' + nodename,
-            directory = getDATADIR
-            (exp_type = 'test_equip'))
+            directory = getDATADIR(exp_type = 'test_equip'))
     orig_t = s.getaxis('t')
     s.set_units('p_90','s')
     nPoints = 1024
