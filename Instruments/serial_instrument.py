@@ -29,7 +29,9 @@ class SerialInstrument (object):
             with a string that includes ``textidn``.
             If textidn is set to None, just show the available instruments.
         """
+        print "received textidn",textidn
         self._textidn = textidn
+        self._id_attempts_left = 3 
         if textidn is None:
             self.show_instruments()
         else:
@@ -91,6 +93,7 @@ class SerialInstrument (object):
         """For testing.  Same as :func:`id_instrument`, except that it just prints the idn result from all com ports.
         """
         for j in comports():
+            print "inside show_instruments, looking at",j
             port_id = j[0] # based on the previous, this is the port number
             try:
                 with serial.Serial(port_id) as s:
@@ -202,7 +205,8 @@ class SerialInstrument (object):
         if len(port_dict) == 0:
             print "port dict has no results, so searching for instruments"
             for j in comports():
-                port_id = j[0] # based on the previous, this is the port number
+                print "testing port",j
+                port_id = j.device # based on the previous, this is the port number
                 try:
                     with serial.Serial(port_id) as s:
                         s.timeout = 0.1
@@ -218,4 +222,8 @@ class SerialInstrument (object):
         print "I looped through all the com ports and didn't find ",textidn,"resetting port_dict, and trying again"
         for j in port_dict.keys():
             port_dict.pop(j)
-        return self.id_instrument(textidn)
+        self._id_attempts_left -= 1
+        if self._id_attempts_left > 0:
+            return self.id_instrument(textidn)
+        else:
+            raise RuntimeError("maxed out attempts to id instrument")

@@ -15,7 +15,7 @@ if run_bridge12:
         b.set_amp(True)
         time.sleep(5)
 
-        this_return = b.lock_on_dip(ini_range=(9.73e9,9.757e9))
+        this_return = b.lock_on_dip(ini_range=(9.80e9,9.84e9))
         #with prologix_connection() as p:
         #    with gigatronics(prologix_instance=p, address=7) as g:
         #        meter_readings.append(g.read_power())
@@ -26,14 +26,14 @@ if run_bridge12:
         #for j in range(3):
         #    _,_,dip_f = b.zoom()
         b.set_freq(dip_f)
-        b.set_power(13.0)
-        raw_input("Minimzie RX...")
-        b.set_power(16.0)
-        raw_input("Minimzie RX...")
-        b.set_power(19.0)
-        raw_input("Minimzie RX...")
-        b.set_power(22.0)
-        raw_input("Minimzie RX...")
+        #b.set_power(13.0)
+        #raw_input("Minimzie RX...")
+        #b.set_power(16.0)
+        #raw_input("Minimzie RX...")
+        #b.set_power(19.0)
+        #raw_input("Minimzie RX...")
+        #b.set_power(22.0)
+        #raw_input("Minimzie RX...")
         #b.set_power(25.0)
         #raw_input("Minimzie RX...")
         #b.set_power(28.0)
@@ -42,7 +42,7 @@ if run_bridge12:
         #raw_input("Minimzie RX...")
         #b.set_power(32.0)
         #raw_input("Minimzie RX...")
-        #b.set_power(34.0)
+        #b.set_power(33.0)
         #raw_input("Minimzie RX...")
         #b.set_power(36.0)
         #raw_input("Minimzie RX...")
@@ -54,7 +54,7 @@ if run_bridge12:
 save_data = True
 if save_data:
     
-    filename = '191007_dip_2'
+    filename = '200225_terminator_1'
     np.savez(filename+'.npz', **result)
 def plot_all(show_log_scale=True):
     figure()

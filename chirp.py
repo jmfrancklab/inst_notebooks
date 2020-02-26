@@ -159,7 +159,7 @@ while try_again:
     data_name = 'capture%d'%j
     data.name(data_name)
     try:
-        data.hdf5_write('200110_alex_probe.h5')
+        data.hdf5_write('200213_alex_coil2.h5')
         try_again = False
     except Exception as e:
         print e

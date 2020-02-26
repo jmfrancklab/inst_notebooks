@@ -10,7 +10,7 @@ for date, id_string,corrected_volt in [
         #('181001','sprobe_t4',True),
         #('181103','probe',True),
         #('200110','pulse_2',True),
-        ('200110','alex_probe',True),
+        ('200213','alex_coil2',True),
         ]:
    
     d = nddata_hdf5(date+'_'+id_string+'.h5/capture1',
@@ -19,10 +19,16 @@ for date, id_string,corrected_volt in [
     d.set_units('t','s')
     d.name('Amplitude').set_units('V')
     fl.next('Raw signal %s'%id_string)
-    fl.plot(d['ch',0], alpha=0.5, label='control') # turning off human
+    if date == '200213':
+        d['ch',0] *= 0.5
+    fl.plot(d['ch',0],alpha=0.5,label='control') # turning off human
             #           units forces plot in just V
+<<<<<<< HEAD
     fl.plot(d['ch',1], alpha=0.5, label='reflection')
     #fl.show();quit()
+=======
+    fl.plot(d['ch',1],alpha=0.5,label='reflection')
+>>>>>>> 2e77ea9831de8d522b91357d626920f9e5e16ddb
     # }}}
     # {{{ determining center frequency and convert to analytic signal, show analytic signal
     d.ft('t',shift=True) #Fourier Transform into freq domain

@@ -94,12 +94,15 @@ class GDS_scope (SerialInstrument):
         else:
             raise ValueError("There is no channel "+str(arg))
 
-    def timscal(self,ts):
+    def timscal(self,ts,pos=None):
         print "Query time scale in sec/div"
         print self.respond(':TIM:SCAL?')
         ts_str = ' %0.6e'%ts
         self.write(':TIM:SCAL ',ts)
         self.demand(':TIM:SCAL?',ts)
+        if pos is not None:
+            self.write(':TIM:POS ',pos)
+            self.demand(':TIM:POS?',pos)
         #Running into matching error here, but command does work
         print "Time scale (sec/div) is set to",self.respond(':TIM:SCAL?')
         return

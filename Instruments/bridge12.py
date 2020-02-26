@@ -228,25 +228,19 @@ class Bridge12 (Serial):
                 raise RuntimeError("Before you try to set the power above 10 dBm, you must first set a lower power!!!")
             if setting > 30+self.cur_pwr_int: 
                 raise RuntimeError("Once you are above 10 dBm, you must raise the power in MAX 3 dB increments.  The power is currently %g, and you tried to set it to %g -- this is not allowed!"%(self.cur_pwr_int/10.,setting/10.))
-        logger.info("Setting HP power to %f dBm, which is %f dBm after amplifier"%((setting/10.)-35.0,setting/10.))
-        with prologix_connection() as p:
-            with HP8672A(prologix_instance=p, address=19) as h:
-                h.set_power((setting/10.)-35.0)
-        #self.write('power %d\r'%setting)
-        if setting > 0:
-            self.rxpowermv_int_singletry() # doing this just for safety interlock
-            self.cur_pwr_int = setting
-        #for j in range(10):
-        #    result = self.power_int()
-        #    if setting > 0: self.rxpowermv_int_singletry() # doing this just for safety interlock
-        #    if result == setting:
-        #        self.cur_pwr_int = result
-        #        return
-        #    time.sleep(10e-3)
-        #raise RuntimeError(("After checking status 10 times, I can't get the"
-        #    "power to change: I'm trying to set to %d/10 dBm, but the Bridge12"
-        #    "keeps replying saying that it's set to %d/10"
-        #    "dBm")%(setting,result))
+        self.write('power %d\r'%setting)
+        if setting > 0: self.rxpowermv_int_singletry() # doing this just for safety interlock
+        for j in range(10):
+            result = self.power_int()
+            if setting > 0: self.rxpowermv_int_singletry() # doing this just for safety interlock
+            if result == setting:
+                self.cur_pwr_int = result
+                return
+            time.sleep(10e-3)
+        raise RuntimeError(("After checking status 10 times, I can't get the"
+            "power to change: I'm trying to set to %d/10 dBm, but the Bridge12"
+            "keeps replying saying that it's set to %d/10"
+            "dBm")%(setting,result))
     def rxpowermv_int_singletry(self):
         """read the integer value for the Rx power (which is 10* the value in mV).  Also has a software interlock so that if the Rx power ever exceeds self.safe_rx_level_int, then the amp shuts down."""
         self.write('rxpowermv?\r')
@@ -311,18 +305,14 @@ class Bridge12 (Serial):
             assert Hz >= self.freq_bounds[0], "You are trying to set the frequency outside the frequency bounds, which are: "+str(self.freq_bounds)
             assert Hz <= self.freq_bounds[1], "You are trying to set the frequency outside the frequency bounds, which are: "+str(self.freq_bounds)
         setting = int(Hz/1e3+0.5)
-        #print "Setting frequency to",setting*1e3*1e-9,"GHz"
-        with prologix_connection() as p:
-            with HP8672A(prologix_instance=p, address=19) as h:
-                h.set_frequency(setting*1e3)
-        #self.write('freq %d\r'%(setting))
-        #if self.freq_int() != setting:
-        #    for j in range(10):
-        #        result = self.freq_int()
-        #        if result == setting:
-        #            return
-        #    raise RuntimeError("After checking status 10 times, I can't get the "
-        #                   "frequency to change -- result is %d setting is %d"%(result,setting))
+        self.write('freq %d\r'%(setting))
+        if self.freq_int() != setting:
+            for j in range(10):
+                result = self.freq_int()
+                if result == setting:
+                    return
+            raise RuntimeError("After checking status 10 times, I can't get the "
+                           "frequency to change -- result is %d setting is %d"%(result,setting))
     def freq_int(self):
         "return the frequency, in kHz (since it's set as an integer kHz)"
         self.write('freq?\r')
@@ -478,18 +468,14 @@ class Bridge12 (Serial):
     def safe_shutdown(self):
         print "Entering safe shut down..."
         try:
-            with prologix_connection() as p:
-                with HP8672A(prologix_instance=p, address=19) as h:
-                    h.set_power(-111)
+            self.set_power(0)
         except Exception as e:
             print "error on standard shutdown during set_power -- running fallback shutdown"
             print "original error:"
             print e
+            self.write('power %d\r'%0)
             self.write('rfstatus %d\r'%0)
             self.write('wgstatus %d\r'%0)
-            with prologix_connection() as p:
-                with HP8672A(prologix_instance=p, address=19) as h:
-                    h.set_power(-111)
             self.close()
             return
         try:
@@ -498,11 +484,9 @@ class Bridge12 (Serial):
             print "error on standard shutdown during set_rf -- running fallback shutdown"
             print "original error:"
             print e
+            self.write('power %d\r'%0)
             self.write('rfstatus %d\r'%0)
             self.write('wgstatus %d\r'%0)
-            with prologix_connection() as p:
-                with HP8672A(prologix_instance=p, address=19) as h:
-                    h.set_power(-111)
             self.close()
             return
         try:
@@ -511,11 +495,9 @@ class Bridge12 (Serial):
             print "error on standard shutdown during set_wg -- running fallback shutdown"
             print "original error:"
             print e
+            self.write('power %d\r'%0)
             self.write('rfstatus %d\r'%0)
             self.write('wgstatus %d\r'%0)
-            with prologix_connection() as p:
-                with HP8672A(prologix_instance=p, address=19) as h:
-                    h.set_power(-111)
             self.close()
             return
         self.close()
