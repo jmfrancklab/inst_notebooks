@@ -1,16 +1,18 @@
 from pyspecdata import *
 from scipy.optimize import minimize
 fl = figlist_var()
-for date, id_string in [
-    ('200214','nutation_coil2_90'),
+date = '200219'
+for id_string in [
+    'nutation_alex_probe',
     ]:
     filename = date+'_'+id_string+'.h5'
-    nodename = 'signal'
+    nodename = 'nutation'
     s = nddata_hdf5(filename + '/' + nodename,
-            directory = getDATADIR(exp_type = 'test_equip'))
+            directory = getDATADIR
+            (exp_type = 'test_equip'))
     orig_t = s.getaxis('t')
-    s.set_units('t','s')
-    nPoints = 256
+    s.set_units('p_90','s')
+    nPoints = 1024
     acq_time_s = orig_t[nPoints]
     t2_axis = linspace(0,acq_time_s,nPoints)
     s.setaxis('t',None)
@@ -27,14 +29,13 @@ for date, id_string in [
     s.ft(['ph2','ph1'])
     fl.next('image, all coherence channels')
     fl.image(s)
-    fl.show();quit()
     #fl.next('image, $\Delta c_{1}$ = 1,$\Delta c_{2}$ = 0')
-    #fl.image(s['t2':(None,-3000)]['ph2',0]['ph1',1])
+    #fl.image(s['t2':(None,-30000)]['ph2',0]['ph1',1])
     #fl.next('image, $\Delta c_{1}$ = 0,$\Delta c_{2}$ = -1')
     #fl.image(s['ph2',1]['ph1',0])
     #fl.next('image, $\Delta c_{1}$ = -1,$\Delta c_{2}$ = 0')
     #fl.image(s['t2':(None,-30e-3)]['ph2',0]['ph1',-1])
-    s = s['ph2',1]['ph1',1].C
+    s = s['ph2',0]['ph1',1].C
     fl.next(id_string+'image')
     fl.image(s)
     fl.next(id_string+'image -- $B_1$ distribution')
