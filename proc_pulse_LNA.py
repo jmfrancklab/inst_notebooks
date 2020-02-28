@@ -5,7 +5,7 @@ import sys
 #{{{ Functions for plotting different captures of one data set
 def gen_plotdict(capture_list,plot_str):
     plotdict = {}
-    for n in xrange(len(capture_list)):
+    for n in range(len(capture_list)):
         cap_no = capture_list[n]
         dict_n = dict([(cap_no,'CAPTURE %d %s'%(cap_no,plot_str))])
         plotdict.update(dict_n)
@@ -24,8 +24,8 @@ def plot_captures(capture_list,plot_str,current_j,data,how_many_ch):
 #{{{ Choose parameter input (script=0 or user=1) 
 params_choice = int(sys.argv[1])
 if params_choice == 0:
-    print "Choosing script-defined parameters..."
-    print "(make sure parameters are what you want)\n"
+    print("Choosing script-defined parameters...")
+    print("(make sure parameters are what you want)\n")
     V_start = 0.01
     V_stop = 0.86
     V_step = 40 
@@ -33,41 +33,41 @@ if params_choice == 0:
     V_stop_log = log10(V_stop)
     V_step_log = V_step
     V_AFG = logspace(V_start_log,V_stop_log,V_step)
-    print "V_AFG(log10(%f),log10(%f),%f)"%(V_start,V_stop,V_step)
-    print "V_AFG(%f,%f,%f)"%(log10(V_start),log10(V_stop),V_step)
+    print("V_AFG(log10(%f),log10(%f),%f)"%(V_start,V_stop,V_step))
+    print("V_AFG(%f,%f,%f)"%(log10(V_start),log10(V_stop),V_step))
 
     rms_method=True
     if rms_method:
         method = 'RMS'
     if not rms_method:
         method = 'PP'
-    print "*** Processing method:",method,"***\n"
+    print("*** Processing method:",method,"***\n")
 elif params_choice == 1:
-    print "Requesting user input..."
-    V_start = raw_input("Input start of sweep in Vpp: ")
+    print("Requesting user input...")
+    V_start = input("Input start of sweep in Vpp: ")
     V_start = float(V_start)
-    print V_start
-    V_stop = raw_input("Input stop of sweep in Vpp: ")
+    print(V_start)
+    V_stop = input("Input stop of sweep in Vpp: ")
     V_stop = float(V_stop)
-    print V_stop
-    V_step = raw_input("Input number of steps: ")
+    print(V_stop)
+    V_step = input("Input number of steps: ")
     V_step = float(V_step)
-    print V_step
+    print(V_step)
 
-    axis_spacing = raw_input("1 for log scale, 0 for linear scale: ")
+    axis_spacing = input("1 for log scale, 0 for linear scale: ")
     if axis_spacing == '1':
         V_start_log = log10(V_start)
         V_stop_log = log10(V_stop)
         V_AFG = logspace(V_start_log,V_stop_log,V_step)
-        print "V_AFG(log10(%f),log10(%f),%f)"%(V_start,V_stop,V_step)
-        print "V_AFG(%f,%f,%f)"%(log10(V_start),log10(V_stop),V_step)
-        print V_AFG
+        print("V_AFG(log10(%f),log10(%f),%f)"%(V_start,V_stop,V_step))
+        print("V_AFG(%f,%f,%f)"%(log10(V_start),log10(V_stop),V_step))
+        print(V_AFG)
     elif axis_spacing == '0':
         V_AFG = linspace(V_start,V_stop,V_step)
-        print "V_AFG(%f,%f,%f)"%(V_start,V_stop,V_step)
-        print V_AFG
+        print("V_AFG(%f,%f,%f)"%(V_start,V_stop,V_step))
+        print(V_AFG)
     
-    method_choice = raw_input("1 for PP method, 0 for RMS method: ")
+    method_choice = input("1 for PP method, 0 for RMS method: ")
     if method_choice == '1':
         rms_method = False
     elif method_choice == '0':
@@ -76,7 +76,7 @@ elif params_choice == 1:
         method = 'RMS'
     if not rms_method:
         method = 'PP'
-    print "*** Processing method:",method,"***\n"
+    print("*** Processing method:",method,"***\n")
         # }}}
 # {{{ Signal processing function
 def gen_power_data(date, id_string, V_AFG, rms_method,
@@ -130,8 +130,8 @@ def gen_power_data(date, id_string, V_AFG, rms_method,
         V_rms0 = sqrt((abs(data['t':tuple(pulse0_slice)]
             )**2).mean('t',return_error=False))
         V_rms0 -= Vn_rms0
-        print 'CH',ch,'Noise limits in microsec: %f, %f'%(n0_lim1/1e-6,n0_lim2/1e-6)
-        print 'CH',ch,'Pulse limits in microsec: %f, %f'%(p0_lim1/1e-6,p0_lim2/1e-6)
+        print('CH',ch,'Noise limits in microsec: %f, %f'%(n0_lim1/1e-6,n0_lim2/1e-6))
+        print('CH',ch,'Pulse limits in microsec: %f, %f'%(p0_lim1/1e-6,p0_lim2/1e-6))
         return (V_rms0)**2./50.
     #}}}
     #{{{ PP method: calculates power by subtract min from max analytic signal within pulse slice
@@ -142,7 +142,7 @@ def gen_power_data(date, id_string, V_AFG, rms_method,
         pulse_slice += r_[0.6e-6,-0.6e-6]
         pulse_limits = tuple(pulse_slice)
         p_lim1,p_lim2 = pulse_limits
-        print 'CH',ch,'Pulse limits in microsec: %f, %f'%(p_lim1/1e-6,p_lim2/1e-6)
+        print('CH',ch,'Pulse limits in microsec: %f, %f'%(p_lim1/1e-6,p_lim2/1e-6))
         #Important point: Should this be modified to make it so that we are calculate V_pp from the
         #   raw data and not the analytic signal, as we had this method originally? 
         V_pp = data['t':tuple(pulse_slice)].run(max,'t')
@@ -157,9 +157,9 @@ def gen_power_data(date, id_string, V_AFG, rms_method,
                 directory=getDATADIR(exp_type='test_equip'))
         analytic_signal.set_units('t','s')
     except:
-        print "accumulated data was not found, pulling individual captures"
-        for j in xrange(1,p_len+1):
-            print "loading signal",j
+        print("accumulated data was not found, pulling individual captures")
+        for j in range(1,p_len+1):
+            print("loading signal",j)
             j_str = str(j)
             d = nddata_hdf5(filename+'/capture'+j_str+'_'+date,
                     directory=getDATADIR(exp_type='test_equip'))
@@ -189,7 +189,7 @@ def gen_power_data(date, id_string, V_AFG, rms_method,
     fl.plot(abs(analytic_signal['ch',0]['power',0]),label=id_string)
     fl.plot(abs(analytic_signal['ch',1]['power',0]),label=id_string)
     lowest_power = abs(analytic_signal['power',0])
-    for ch in xrange(0,2):
+    for ch in range(0,2):
         this_data = lowest_power['ch',ch]
         pulse0_slice = this_data.contiguous(lambda x: x>pulse_threshold*x.data.max())
         pulse0_slice = tuple(pulse0_slice[0,:])
@@ -198,13 +198,13 @@ def gen_power_data(date, id_string, V_AFG, rms_method,
     fl.plot(abs(analytic_signal['ch',0]['power',-1]),label=id_string)
     fl.plot(abs(analytic_signal['ch',1]['power',-1]),label=id_string)
     highest_power = abs(analytic_signal['power',-1])
-    for ch in xrange(0,2):
+    for ch in range(0,2):
         this_data = highest_power['ch',ch]
         pulse0_slice = this_data.contiguous(lambda x: x>pulse_threshold*x.data.max())
         pulse0_slice = tuple(pulse0_slice[0,:])
         fl.plot(this_data['t':pulse0_slice]['t',r_[0,-1]],'o',label='CH%s'%str(ch))
         #}}}
-    print "DATA: %s"%id_string 
+    print("DATA: %s"%id_string) 
     #{{{ NOTE: ASSUMES CH1=REFERENCE AND CH2=DUT
     if rms_method:
         power0 = rms_signal_to_power(analytic_signal['ch',0],ch=1)
@@ -257,8 +257,8 @@ for date,id_string in [
     fl.plot(power_plot,'.',label='%s'%label,plottype='loglog',)
     c,result = power_plot.polyfit('$P_{in}  (W)$',force_y_intercept=0)
     fl.plot(result,label='gain = %0.2f'%(c[0][1]),alpha=0.6,plottype='loglog')
-    print "Fit parameters for",id_string
-    print c,'\n'
+    print("Fit parameters for",id_string)
+    print(c,'\n')
 fl.show()
 
 

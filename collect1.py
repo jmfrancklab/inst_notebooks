@@ -27,13 +27,13 @@ start = time.time()
 fl = figlist_var()
 
 datalist = []
-print "about to load GDS"
+print("about to load GDS")
 with GDS_scope() as g:
-    print "loaded GDS"
+    print("loaded GDS")
     #g.acquire_mode('average',32)
-    raw_input("Wait for averaging to relax...")
+    input("Wait for averaging to relax...")
     for j in range(1,3):
-        print "trying to grab data from channel",j
+        print("trying to grab data from channel",j)
         datalist.append(g.waveform(ch=j))
 data = concat(datalist,'ch').reorder('t')
 j = 1
@@ -45,13 +45,13 @@ while try_again:
         data.hdf5_write('181212_JFAB_pulse_ph0.h5')
         try_again = False
     except Exception as e:
-        print e
-        print "name taken, trying again..."
+        print(e)
+        print("name taken, trying again...")
         j += 1
         try_again = True
-print "name of data",data.name()
-print "units should be",data.get_units('t')
-print "shape of data",ndshape(data)
+print("name of data",data.name())
+print("units should be",data.get_units('t'))
+print("shape of data",ndshape(data))
 end = time.time()
 fl.next('Dual-channel data')
 fl.plot(data)

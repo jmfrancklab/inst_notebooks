@@ -14,7 +14,7 @@ title('Calibration curve')
 power_data = nddata(y_axis,[-1],['set_power']).setaxis('set_power',x_axis)
 if 'b12' in id_string:
     power_data.setaxis('set_power',lambda x: x - 35.0)
-print ndshape(power_data)
+print(ndshape(power_data))
 fl.next('calib curve')
 low_power = power_data['set_power':(None,-15)]
 high_power = power_data['set_power':(-15,None)]
@@ -37,14 +37,14 @@ for label_string, power_data,lowest,highest in [
     fl.plot(fitdata,'-',c=thiscolor)
     what_to_set = fitdata.invinterp('set_power',test_settings,
             fill_value='extrapolate')
-    print what_to_set
+    print(what_to_set)
     for j in range(what_to_set.data.size):
         set_this = what_to_set.getaxis('set_power')[j].real
         get_this = what_to_set['set_power',j].item()
         if set_this < lowest or set_this > highest:
-            print "you can't get",get_this,"with",label_string
+            print("you can't get",get_this,"with",label_string)
         else:
-            print "for",label_string,"operation, set a power of", set_this, "to get", get_this
+            print("for",label_string,"operation, set a power of", set_this, "to get", get_this)
 legend()
 xlabel('programmed power (dBm)')
 ylabel('output power (dBm)')

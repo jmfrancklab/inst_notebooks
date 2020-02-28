@@ -46,7 +46,7 @@ for date,id_string,numchan,field_axis,cycle_time, in [
                 directory = getDATADIR(exp_type='test_equip'))
         big_delay = False
         time_diff_list = []
-        for x in xrange(ndshape(q)['t']):
+        for x in range(ndshape(q)['t']):
             try :
                 time_diff = q['t',x+1].data - q['t',x].data
             except :
@@ -54,15 +54,15 @@ for date,id_string,numchan,field_axis,cycle_time, in [
             time_diff_list.append(time_diff)
             if time_diff > 25:
                 big_delay = True
-                print "\n\t*** *** ***"
-                print "AFG error"
-                print "\t*** *** ***\n"
+                print("\n\t*** *** ***")
+                print("AFG error")
+                print("\t*** *** ***\n")
             #print time_diff
         if not big_delay:
             time_diff_nddata = nddata(time_diff_list,[-1],['t']).labels('t',r_[0:len(time_diff_list)])
             avg_delay = time_diff_nddata.mean('t',return_error=False).data
-            print "Did not find AFG error"
-            print "Average delay between phase cycling steps:",avg_delay,"s"
+            print("Did not find AFG error")
+            print("Average delay between phase cycling steps:",avg_delay,"s")
         quit()
     #}}}
     if not check_time :
@@ -79,7 +79,7 @@ for date,id_string,numchan,field_axis,cycle_time, in [
         s.setaxis('t',lambda f: f-carrier_f)
         s.ift('t')
 
-        print ndshape(s)
+        print(ndshape(s))
         fl.next('raw data') 
         fl.plot(s_raw['ch',1]['full_cyc',0]['ph2',0].reorder('t').real)
         #{{{ applying time-shift (i.e., defining new, more convenient x-axis below)
@@ -98,7 +98,7 @@ for date,id_string,numchan,field_axis,cycle_time, in [
         pulse_slice = s_raw['t':(-0.72e-6,0.72e-6)]['ch',1].real
         # re-determine nddata of the time averages for the newly centered data
         average_time = (pulse_slice**2 * pulse_slice.fromaxis('t')).integrate('t')/normalization
-        print average_time
+        print(average_time)
         average_time.reorder('full_cyc',first=False)
         # take analytic, and apply phase correction based on the time averages 
         analytic = s_raw.C.ft('t',shift=True)['t':(0,None)]
@@ -126,8 +126,8 @@ for date,id_string,numchan,field_axis,cycle_time, in [
         analytic = raw_corr['ch',1].C.ft('t')['t':(0,16e6)].setaxis('t', lambda f: f-carrier_f).ift('t').reorder(['full_cyc','t'],first=False)
         measured_phase = analytic['t':(-0.72e-6,0.72e-6)].mean('t',return_error=False).mean('ph2',return_error=True).mean('full_cyc',return_error=True)
         measured_phase /= abs(measured_phase)
-        print "measured phase"
-        print measured_phase
+        print("measured phase")
+        print(measured_phase)
         # expected phase is how we expect the phases to cycle, and how it is programmed in the pulse sequence
         expected_phase = nddata(exp(r_[0,1,2,3]*pi/2*1j),[4],['ph1'])
         # phase correcting analytic signal by difference between expected and measured phases
@@ -150,21 +150,21 @@ for date,id_string,numchan,field_axis,cycle_time, in [
         s_analytic.rename('full_cyc','magnetic_field')
         # slice out region containing spin echo to get clear frequency domain plots
         s_analytic = s_analytic['t':(90e-6,None)]
-        for x in xrange(ndshape(s_analytic)['magnetic_field']):
+        for x in range(ndshape(s_analytic)['magnetic_field']):
             if timeraxis:
             # NOTE: The time length of each capture (here 168 s) can be determined by looking at
             # the distance between the values in the 'full_cyc' axis OR determined beforehand --
             # either way, I am sure there is a way to program the number but for now it must be
             # calculated and entered manually
                 s_analytic.getaxis('magnetic_field')[x] = field_axis[x*cycle_time]
-                print field_axis[x*cycle_time]
+                print(field_axis[x*cycle_time])
                 #{{{ this is specifically because field sweep stopped before program finished for '180718_SE_sweep'
                 #s_analytic = s_analytic['magnetic_field':(field_axis[0],field_axis[24*cycle_time])]
                 #}}}
             if not timeraxis:
                 s_analytic.getaxis('magnetic_field')[x] = field_axis[x]
             s_analytic.set_units('magnetic_field','G')
-        print ndshape(s_analytic)
+        print(ndshape(s_analytic))
         s_analytic.ift(['ph1','ph2'])
         #{{{ here I am making a copy of this dataset to plot with frequency axis converted to Gauss
         s_analytic_f = s_analytic.C.ft('t')
@@ -182,7 +182,7 @@ for date,id_string,numchan,field_axis,cycle_time, in [
         #s_analytic.ift('t')
         #{{{ the if statements in the following for loops
             # are specific for the file '180718_SE_sweep_3'
-        for x in xrange(ndshape(s_analytic)['magnetic_field']):
+        for x in range(ndshape(s_analytic)['magnetic_field']):
             field_val = s_analytic.getaxis('magnetic_field')[x]
             #if (field_val > 3406.98) and (field_val < 3407.5) :
             this_s = s_analytic['magnetic_field',x]['ph1',1]['ph2',0]

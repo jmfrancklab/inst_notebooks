@@ -5,34 +5,34 @@ from serial.tools.list_ports import comports
 import serial
 from scipy import signal
 
-raw_input("Warning --> Detach from amplifier before proceeding further (set AFG before hooking up, since it generates cw)")
+input("Warning --> Detach from amplifier before proceeding further (set AFG before hooking up, since it generates cw)")
 
 acquire = False
 
 fl = figlist_var()
 
-print "These are the instruments available:"
+print("These are the instruments available:")
 SerialInstrument(None)
-print "done printing available instruments"
+print("done printing available instruments")
 
 with SerialInstrument('GDS-3254') as s:
-    print s.respond('*idn?')
+    print(s.respond('*idn?'))
     
 with SerialInstrument('AFG-2225') as s:
-    print s.respond('*idn?')
+    print(s.respond('*idn?'))
 
 def acquire():
     datalist = []
-    print "about to load GDS"
+    print("about to load GDS")
     num_averages = 16
     with GDS_scope() as g:
     #    g.timscal(5e-6)  #setting time scale to 500 ns/div
     #    g.voltscal(1,500e-3) #setting volt scale on channel 1 to 500 mV/div
-        print "loaded GDS"
+        print("loaded GDS")
         ch1_waveform = g.waveform(ch=1)
         ch2_waveform = g.waveform(ch=1)
         for j in range(num_averages-1):
-            print "average #",j
+            print("average #",j)
             ch1_waveform += g.waveform(ch=1)
             ch2_waveform += g.waveform(ch=1)
     data = concat([ch1_waveform,ch2_waveform],'ch').reorder('t')
@@ -54,14 +54,14 @@ def acquire():
         try:
             data.hdf5_write('180320_test.h5')
             try_again = False
-            print "capture number",j
+            print("capture number",j)
         except:
-            print "name taken, trying again..."
+            print("name taken, trying again...")
             j += 1
             try_again = True
-    print "name of data",data.name()
-    print "units should be",data.get_units('t')
-    print "shape of data",ndshape(data)
+    print("name of data",data.name())
+    print("units should be",data.get_units('t'))
+    print("shape of data",ndshape(data))
     fl.next('Dual-channel data')
     fl.plot(data)
     
@@ -85,14 +85,14 @@ def gen_pulse(freq=14.5e6, width=4e-6, ch1_only=True):
             ch_list = [0,1]
         for this_ch in ch_list:
             a[this_ch].digital_ndarray(y, rate=rate)
-            print "now, output on"
+            print("now, output on")
             a[this_ch].output = True
         for this_ch in range(1):
             a[this_ch].burst = True
             a.set_burst(per=500e-6)
             for set_amp in linspace(25e-3,2.5,50):
                 a[this_ch].ampl=set_amp
-                raw_input("Stopping at 25mVpp.")
+                input("Stopping at 25mVpp.")
                 acquire()
 gen_pulse()
 

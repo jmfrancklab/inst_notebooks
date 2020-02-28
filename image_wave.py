@@ -17,9 +17,9 @@ if '-f' in args:
 else:
     force_acq = False
 datalist = []
-print("about to load datasets",args)
+print(("about to load datasets",args))
 for j,dataset in enumerate(args):
-    print("acquiring/loading dataset",dataset)
+    print(("acquiring/loading dataset",dataset))
     if force_acq and j==len(args)-1:
         print("Forcing acquisition of last dataset")
         _,thisnode = h5nodebypath('%s/%s'%(filename,dataset))
@@ -27,19 +27,19 @@ for j,dataset in enumerate(args):
     try:
         data = nddata_hdf5('%s/%s'%(filename,dataset))
     except:
-        print("didn't find %s: about to load GDS"%dataset)
+        print(("didn't find %s: about to load GDS"%dataset))
         with GDS_scope() as g:
             print("loaded GDS")
             for j in range(1,2):
-                print("trying to grab data from channel",j)
+                print(("trying to grab data from channel",j))
                 datalist.append(g.waveform(ch=j))
             data = concat(datalist,'ch').reorder('t')
         j = 1
         data.name(dataset)
         data.hdf5_write(filename)
-        print("name of data", data.name())
-        print("units should be",data.get_units('t'))
-        print("shape of data",ndshape(data))
+        print(("name of data", data.name()))
+        print(("units should be",data.get_units('t')))
+        print(("shape of data",ndshape(data)))
     fl.next('raw signal')
     fl.plot(data,alpha=0.5)
 fl.show()    

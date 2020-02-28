@@ -26,8 +26,8 @@ for date,id_string,numchan in [
 
     s = nddata_hdf5(filename+'/'+nodename,
             directory = getDATADIR(exp_type='test_equip'))
-    print "*** Current version based on 'fix_phase_cycling_180712.py' ***"
-    print "WARNING: Need to define time slices for pulses on a by-dataset basis ***"
+    print("*** Current version based on 'fix_phase_cycling_180712.py' ***")
+    print("WARNING: Need to define time slices for pulses on a by-dataset basis ***")
     s.set_units('t','s')
     s_raw = s.C.reorder('t',first=False)
 
@@ -36,8 +36,8 @@ for date,id_string,numchan in [
     fl.plot(s_raw['ch',1]['average',0]['ph2',0].reorder('t').real)
     #fl.show()
     #quit()
-    print ndshape(s)
-    print ndshape(s_raw)
+    print(ndshape(s))
+    print(ndshape(s_raw))
 
     s.ft('t',shift=True)
     s = s['t':(0,None)]
@@ -49,13 +49,13 @@ for date,id_string,numchan in [
     subset = s['ch',1]['t':(1e-6,100e-6)]
     fl.image(subset,black=True)
     onephase = subset.C.smoosh(['ph2','average'], noaxis = True, dimname='repeat').reorder('t')
-    print "dimensions of data subset of interest",ndshape(onephase)
+    print("dimensions of data subset of interest",ndshape(onephase))
     # perform same analysis used on subset for raw data, to compare
     onephase_raw = s_raw['ch',1].C.smoosh(['ph2','average'], noaxis=True, dimname='repeat').reorder('t')
-    print "dimensions of re-grouped raw data",ndshape(onephase_raw)
+    print("dimensions of re-grouped raw data",ndshape(onephase_raw))
     colors = ['r','g','b','c']
-    for k in xrange(ndshape(onephase)['ph1']):
-        for j in xrange(ndshape(onephase)['repeat']):
+    for k in range(ndshape(onephase)['ph1']):
+        for j in range(ndshape(onephase)['repeat']):
             fl.next('compare rising edge')
             # need to define time slice for rising edge
             fl.plot(abs(onephase['repeat',j]['t':(6.47267e-6,6.7e-6)]['ph1',k].C.reorder('t',first=True)),color=colors[k],alpha=0.3)
@@ -66,7 +66,7 @@ for date,id_string,numchan in [
             fl.plot((onephase_raw['repeat',j]['t':(6.47267e-6,6.7e-6)]['ph1',k].C.reorder('t',first=True)),color=colors[k],alpha=0.3)
             fl.next('compare falling edge, raw')
             fl.plot((onephase_raw['repeat',j]['t':(9e-6,9.24785e-6)]['ph1',k].C.reorder('t',first=True)),color=colors[k],alpha=0.3)
-    print ndshape(onephase)
+    print(ndshape(onephase))
     # the above should confirm that pulses are triggered differently due to their different rising edges
     #}}}
     #{{{ applying time-shift (i.e., defining new, more convenient x-axis below)
@@ -79,7 +79,7 @@ for date,id_string,numchan in [
     # shift the time axis down by the average time, so that 90 is centered around t=0
     s_raw.setaxis('t', lambda t: t-average_time.data.mean())
     # check that this centers 90 around 0 on time axis
-    print "*** Check that time-shifted data plots 90 pulse around 0 ***"
+    print("*** Check that time-shifted data plots 90 pulse around 0 ***")
     fl.next('time-shifted data')
     fl.image(s_raw)
     #}}}
@@ -103,8 +103,8 @@ for date,id_string,numchan in [
     # beginning phase correction now
     # note, this may be the same as the raw signal plotted in beginning of program
     onephase_raw_shift = s_raw['ch',1].C.smoosh(['ph2','average'],noaxis=True,dimname='repeat').reorder('t')
-    for k in xrange(ndshape(onephase_raw)['ph1']):
-        for j in xrange(ndshape(onephase_raw)['repeat']):
+    for k in range(ndshape(onephase_raw)['ph1']):
+        for j in range(ndshape(onephase_raw)['repeat']):
             fl.next('compare rising edge: uncorrected')
             fl.plot((onephase_raw_shift['repeat',j]['ph1',k]['t':(-1.4e-6,-1.1e-6)].C.reorder('t',first=True)+2*k),color=colors[k],alpha=0.3)
             fl.next('compare falling edge: uncorrected')
@@ -118,10 +118,10 @@ for date,id_string,numchan in [
     # here zero filling or else signal amplitude will vary due to changes made in the f dimension 
     raw_corr.ift('t',pad=30*1024)
     onephase_rawc = raw_corr['ch',1].C.smoosh(['ph2','average'],noaxis=True, dimname='repeat').reorder('t')
-    print "*** shape of raw, corrected re-grouped data on reference channel ***"
-    print ndshape(onephase_rawc)
-    for k in xrange(ndshape(onephase_rawc)['ph1']):
-        for j in xrange(ndshape(onephase_rawc)['repeat']):
+    print("*** shape of raw, corrected re-grouped data on reference channel ***")
+    print(ndshape(onephase_rawc))
+    for k in range(ndshape(onephase_rawc)['ph1']):
+        for j in range(ndshape(onephase_rawc)['repeat']):
             fl.next('compare rising edge: corrected')
             fl.plot(onephase_rawc['repeat',j]['ph1',k]['t':(-1.4e-6,-1.1e-6)].C.reorder('t',first=True),color=colors[k],alpha=0.3)
             fl.next('compare falling edge: corrected')

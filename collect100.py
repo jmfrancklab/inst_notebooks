@@ -36,11 +36,11 @@ def collect(date,id_string,captures):
     capture_length = len(captures)
     start = timer()
     datalist = []
-    print "about to load GDS"
+    print("about to load GDS")
     with GDS_scope() as g:
-        print "loaded GDS"
-        for x in xrange(1,capture_length+1):
-            print "entering capture",x
+        print("loaded GDS")
+        for x in range(1,capture_length+1):
+            print("entering capture",x)
             ch1_waveform = g.waveform(ch=1)
             data = concat([ch1_waveform],'ch').reorder('t')
             if x == 1:
@@ -62,17 +62,17 @@ def collect(date,id_string,captures):
     s.labels('capture',captures)
     s.name('accumulated_'+date)
     s.hdf5_write(date+'_'+id_string+'.h5')
-    print "name of data",s.name()
-    print "units should be",s.get_units('t')
-    print "shape of data",ndshape(s)
+    print("name of data",s.name())
+    print("units should be",s.get_units('t'))
+    print("shape of data",ndshape(s))
     return start
 
 date = '200212'
 id_string = 'test_long50_on_2'
 captures = linspace(1,100,100)
 
-print "Starting collection..."
+print("Starting collection...")
 start = collect(date,id_string,captures)
 end = timer()
 
-print "Collection time:",(end-start),"s"
+print("Collection time:",(end-start),"s")

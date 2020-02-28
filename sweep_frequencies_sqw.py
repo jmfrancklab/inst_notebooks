@@ -8,15 +8,15 @@ from scipy import signal
 
 fl = figlist_var()
 
-print "These are the instruments available:"
+print("These are the instruments available:")
 SerialInstrument(None)
-print "done printing available instruments"
+print("done printing available instruments")
 
 with SerialInstrument('GDS-3254') as s:
-    print s.respond('*idn?')
+    print(s.respond('*idn?'))
     
 with SerialInstrument('AFG-2225') as s:
-    print s.respond('*idn?')
+    print(s.respond('*idn?'))
 
 with AFG() as a:
     a.reset()
@@ -28,11 +28,11 @@ with AFG() as a:
     y[3::4]=-1
     y[-1]=0
     for this_ch in range(2):
-        print "Sending CH%d arbitrary waveform to AFG"%(this_ch+1)
+        print("Sending CH%d arbitrary waveform to AFG"%(this_ch+1))
         a[this_ch].digital_ndarray(y)
     for set_f in linspace(100e3,500e3,100):
         for this_ch in range(2):
-            print "Now setting frequency to ",(set_f)
+            print("Now setting frequency to ",(set_f))
             a[this_ch].freq=set_f
             #print "Thus CH",(this_ch+1),"array freq is",set_f,"Hz"
             #print "CH%d burst set to"%(this_ch+1),a[this_ch].burst
@@ -42,7 +42,7 @@ with AFG() as a:
             a[this_ch].burst = True
             #if we run a.check_idn() here, it pops out of burst mode
             datalist = []
-        print "Now loading GDS..."
+        print("Now loading GDS...")
         with GDS_scope() as g:
             g.timscal(2e-6)  
             if set_f < 350e3:
@@ -55,9 +55,9 @@ with AFG() as a:
                 ch2vs = 500E-3
             g.CH1.voltscal=ch1vs
             g.CH2.voltscal=ch2vs
-            print "loaded GDS"
+            print("loaded GDS")
             for j in range(1,3):
-                print "trying to grab data from channel",j
+                print("trying to grab data from channel",j)
                 datalist.append(g.waveform(ch=j))
         data = concat(datalist,'ch').reorder('t')
         # {{{ use integer j to make a unique dataset name
@@ -71,13 +71,13 @@ with AFG() as a:
                         directory=getDATADIR(exp_type='test_equip'))
                 try_again = False
             except:
-                print "name taken, trying again..."
+                print("name taken, trying again...")
                 j += 1
                 try_again = True
         # }}}
-        print "name of data",data.name()
-        print "units should be",data.get_units('t')
-        print "shape of data",ndshape(data)
+        print("name of data",data.name())
+        print("units should be",data.get_units('t'))
+        print("shape of data",ndshape(data))
         fl.next('Dual-channel data %4.3fMHz'%((set_f*50)/1e6))
         fl.plot(data, alpha=0.5)
     fl.show()

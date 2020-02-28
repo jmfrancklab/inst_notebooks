@@ -14,13 +14,13 @@ nuclear_spin = 0.5 #angular momentum
 length = 22.89e-3
 outer_diameter = 8.25e-3
 volume_coil = pi*length*(outer_diameter/2)**2 #[m**3]
-print "Volume of solenoid in probe",volume_coil,"m^3"
+print("Volume of solenoid in probe",volume_coil,"m^3")
 ## Quality factor
 f_resonant = 14.4495e6 #[Hz]
 omega_resonant = f_resonant*2*pi
 df = (14.9353e6 - 14.0719e6) #[Hz]
 Q = f_resonant/df
-print Q
+print(Q)
 quit()
 ## Other parameters
 pulse_power = 51.87 #[W]
@@ -33,7 +33,7 @@ M = N*gH*omega_resonant*hbar**2*(nuclear_spin*(nuclear_spin+1))/2/kB/temperature
 B1 = sqrt(pulse_power*Q*mu/volume_coil/2/omega_resonant)
 omega1 = B1*gH
 time90 = pi/2/omega1
-print time90
+print(time90)
 volume_sample = pi*length*((4.93e-3-2*0.53e-3)/2)**2
 V_signal = omega_resonant*M*(B1/sqrt(pulse_power))*volume_sample*sqrt(resistance)
 #}}}
@@ -45,7 +45,7 @@ f_len = 100                             #want 500 frequency points
 f_spacer = 10.e3                        #axis spacing of 10[kHz]
 f_start = f_center - (f_len/2)*f_spacer #determine starting freq
 f_space = []
-for x in xrange(f_len):
+for x in range(f_len):
     f_x = f_start + (x*f_spacer)
     f_space.append(f_x)
 #}}}
@@ -75,27 +75,27 @@ for f in this_f:
     b_rot = sqrt(delta_b0**2 + b1**2) 
     argument = b1/b_rot
     angle = math.asin(argument)
-    print angle
+    print(angle)
     column = []
     for t in this_t:
         this_b1 = b_rot*math.sin(b_rot*gH*t)
         signal = (f_resonant*2*pi)*M*(this_b1/sqrt(pulse_power))*volume_sample*sqrt(resistance)
         column.append(signal)
-        print shape(column)
-        print shape(signal_array)
+        print(shape(column))
+        print(shape(signal_array))
     signal_array.append(column)
-    print shape(signal_array)
-print signal_array
+    print(shape(signal_array))
+print(signal_array)
 nd_signal = nddata(array(signal_array),['offset','90 time'])
 nd_signal.setaxis('90 time',nd_time90.getaxis('90 time'))
 nd_signal.setaxis('offset',nd_offset.getaxis('offset'))
-print nd_signal
-raw_input('proceed')
+print(nd_signal)
+input('proceed')
 nd_signal.set_units('90 time','s')
 nd_signal.set_units('offset','Hz')
 nd_signal.name('signal')
-print nd_signal
-print "finished"
+print(nd_signal)
+print("finished")
 nd_signal.reorder('90 time')
 fl.next('image')
 fl.image(nd_signal)

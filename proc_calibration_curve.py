@@ -24,7 +24,7 @@ for id_string,label_string,col in [
         x_axis -= 35.0
     power_data.setaxis('set_power',x_axis)
     power_data['set_power',:] = y_axis[:]
-    print ndshape(power_data)
+    print(ndshape(power_data))
     fl.next('calib curve')
     fl.plot(power_data,'.-',label=label_string,c=col)
     #c,result = power_data.polyfit('set_power')

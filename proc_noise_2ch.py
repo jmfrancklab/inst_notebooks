@@ -62,7 +62,7 @@ if not default:
         integration_center = 55.e6 
         integration_width = 10.e6
     else:
-        print "Unrecognized width choice"
+        print("Unrecognized width choice")
         integration_center = 14.5e6 
         integration_width = 2.e6
     # }}}
@@ -75,8 +75,8 @@ def load_noise(date,id_string,captures):
                 directory=getDATADIR(exp_type='test_equip'))
         s.set_units('t','s')
     except:
-        print "accumulated data was not found, pulling individual captures"
-        for j in xrange(1,cap_len+1):
+        print("accumulated data was not found, pulling individual captures")
+        for j in range(1,cap_len+1):
             j_str = str(j)
             d = nddata_hdf5(filename+'/capture'+j_str+'_'+date,
                 directory=getDATADIR(exp_type='test_equip'))
@@ -85,7 +85,7 @@ def load_noise(date,id_string,captures):
                 channels = ((ndshape(d)) + ('capture',cap_len)).alloc()
                 channels.setaxis('t',d.getaxis('t')).set_units('t','s')
                 channels.setaxis('ch',d.getaxis('ch'))
-            print "loading signal %s into capture %s "%(j_str,j_str)
+            print("loading signal %s into capture %s "%(j_str,j_str))
             channels['capture',j-1]=d        
         s = channels
         s.labels('capture',captures)
@@ -375,7 +375,7 @@ for date,id_string,numchan,gain_factor in [
         #}}}
     #label += ' (g=%0.2f)'%gain_factor
    # }}}
-    print "\n*** LOADING:",id_string,"***"
+    print("\n*** LOADING:",id_string,"***")
     s = load_noise(date,id_string,captures)
     #{{{ slicing
     if 'spectrometer_noise' in id_string:
@@ -399,11 +399,11 @@ for date,id_string,numchan,gain_factor in [
         #}}}
     acq_time = diff(s.getaxis('t')[r_[0,-1]])[0]
     u_acq_time = diff(u.getaxis('t')[r_[0,-1]])[0]
-    print acq_time
-    print "\t"
-    print u_acq_time
-    print "\t"
-    print "ACQUISITION TIME IS:\t",acq_time
+    print(acq_time)
+    print("\t")
+    print(u_acq_time)
+    print("\t")
+    print("ACQUISITION TIME IS:\t",acq_time)
     #{{{ calculate PSD for s
     s.ft('t',shift=True)
     s = abs(s)['t':(0,None)]**2   #mod square and throw out negative frequencies
@@ -490,7 +490,7 @@ for date,id_string,numchan,gain_factor in [
     if integration:
         interval = tuple(integration_center+r_[-1,1]*integration_width)
         startf,stopf = tuple(interval)
-        print "INTEGRATION INTERVAL:",startf/1e6,"to",stopf/1e6,"MHz"
+        print("INTEGRATION INTERVAL:",startf/1e6,"to",stopf/1e6,"MHz")
         if 'ch' not in s.dimlabels:
             # {{{ a hack to create a fake ch axis
             t_label = s.getaxis('t')

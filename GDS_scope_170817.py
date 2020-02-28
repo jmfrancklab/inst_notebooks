@@ -3,8 +3,8 @@
 
 # In[1]:
 
-get_ipython().magic(u'pylab inline')
-get_ipython().magic(u'load_ext pyspecdata.ipy')
+get_ipython().magic('pylab inline')
+get_ipython().magic('load_ext pyspecdata.ipy')
 from pyspecdata import *
 from Instruments import *
 from serial.tools.list_ports import comports
@@ -27,9 +27,9 @@ logger.setLevel(logging.DEBUG)
 
 # first, print out the available instruments
 
-print "These are the instruments available:"
+print("These are the instruments available:")
 SerialInstrument(None)
-print "done printing available instruments"
+print("done printing available instruments")
 
 
 # Note that I can now use ``SerialInstrument`` in place of ``serial.Serial``, except that ``SerialInstrument`` accepts a string identifying the instrument, and adds and changes various functions inside the class to make them more convenient.
@@ -39,7 +39,7 @@ print "done printing available instruments"
 # In[5]:
 
 with SerialInstrument('GDS-3254') as s:
-    print s.respond('*idn?')
+    print(s.respond('*idn?'))
 
 
 # try to connect to AFG and print idn
@@ -47,7 +47,7 @@ with SerialInstrument('GDS-3254') as s:
 # In[6]:
 
 with SerialInstrument('AFG-2225') as s:
-    print s.respond('*idn?')
+    print(s.respond('*idn?'))
 
 
 
@@ -67,10 +67,10 @@ with GDS_scope() as g:
 
 data.other_info
 
-print data.get_prop('Memory Length')
-print type(data.get_prop('Memory Length'))
-print data.get_prop('Horizontal Scale')
-print type(data.get_prop('Horizontal Scale'))
+print(data.get_prop('Memory Length'))
+print(type(data.get_prop('Memory Length')))
+print(data.get_prop('Horizontal Scale'))
+print(type(data.get_prop('Horizontal Scale')))
 
 
 # Now, we can look at the data quick and dirty
@@ -93,7 +93,7 @@ data['t':(0,5e-4)]
 
 # In[ ]:
 
-get_ipython().run_cell_magic(u'time')
+get_ipython().run_cell_magic('time')
 n_shots = 20
 with GDS_scope() as g:
     for j in range(n_shots):

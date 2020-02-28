@@ -7,9 +7,9 @@ from scipy import signal
 
 fl = figlist_var()
 
-print "These are the instruments available:"
+print("These are the instruments available:")
 SerialInstrument(None)
-print "done printing available instruments"
+print("done printing available instruments")
 
 #with SerialInstrument('GDS-3254') as s:
 #    print s.respond('*idn?')

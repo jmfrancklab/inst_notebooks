@@ -37,7 +37,7 @@ with figlist_var(filename='chirp.pdf') as fl:
             # }}}
             myhist.diff('val') # to get the PDF
             num_values = len(myhist[lambda x: x>1e-8].data)
-            print "number of values along dynamic range",num_values,"log_2 ->",log(num_values)/log(2),"bits"
+            print("number of values along dynamic range",num_values,"log_2 ->",log(num_values)/log(2),"bits")
             fl.plot(myhist, label='Diversity of data matches %0.3f bits'%(log(num_values)/log(2)))
             # }}}
         fl.next('chirp')

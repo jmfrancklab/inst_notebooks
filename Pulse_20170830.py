@@ -3,7 +3,7 @@
 
 # In[ ]:
 
-get_ipython().magic(u'pylab inline')
+get_ipython().magic('pylab inline')
 from serial.tools.list_ports import comports
 import serial
 
@@ -61,7 +61,7 @@ def id_instrument(textidn):
 # In[ ]:
 
 idn = id_instrument('GDS-3254')
-print idn
+print(idn)
 
 
 # In[ ]:
@@ -71,7 +71,7 @@ def instrument_instance(textidn):
 
 with instrument_instance('GDS-3254') as s:
     s.write('*idn?\n')
-    print s.readline()
+    print(s.readline())
     
 def retrieve_waveform(instname='GDS-3254'):
     """Retrieve waveform and associated parameters form the scope.
