@@ -30,12 +30,12 @@ class prologix_connection (object):
         except:
             raise ValueError("Can't connect to port "+str(port)+" on "+ip)
         # here I don't set a timeout, since that seems to demand that we receive everything in the buffer
-        self.socket.send('++mode 1'+"\r")
-        self.socket.send('++ifc'+"\r")
-        self.socket.send('++auto 0'+"\r")
-        self.socket.send('++eoi 0'+"\r")
-        self.socket.send("++ver\r")
-        versionstring = self.socket.recv(1000)
+        self.socket.send(('++mode 1'+"\r").encode('utf-8'))
+        self.socket.send(('++ifc'+"\r").encode('utf-8'))
+        self.socket.send(('++auto 0'+"\r").encode('utf-8'))
+        self.socket.send(('++eoi 0'+"\r").encode('utf-8'))
+        self.socket.send(("++ver\r").encode('utf-8'))
+        versionstring = self.socket.recv(1000).decode('utf-8')
         if versionstring[0:8]=='Prologix':
             pass #print 'connected to: ',versionstring
         else:
@@ -80,26 +80,26 @@ class gpib_eth (object):
         self.prologix_instance.current_address = None
     def setaddr(self):
         if(self.prologix_instance.current_address != self.address):
-            self.socket.send('++addr '+str(self.address)+"\r")
+            self.socket.send(('++addr '+str(self.address)+"\r").encode('utf-8'))
             self.prologix_instance.current_address = self.address
     def readandchop(self): # unique to the ethernet one
         self.setaddr()
         self.socket.settimeout(5)
-        retval = self.socket.recv(1024) # get rid of dos newline
+        retval = self.socket.recv(1024).decode('utf-8') # get rid of dos newline
         while (retval[-1] == '\r') or (retval[-1] == '\n'): # there should be a function for this (i.e. chop, etc)!
             retval = retval[:-1]
         return retval
     def readline(self):    
         self.setaddr()
-        self.socket.send('++read 10'+"\r")
+        self.socket.send(('++read 10'+"\r").encode('utf-8'))
         return self.readandchop()
     def read(self):
         self.setaddr()
-        self.socket.send('++read eoi'+"\r")
+        self.socket.send(('++read eoi'+"\r").encode('utf-8'))
         return self.readandchop()
     def write(self,gpibstr):
         self.setaddr()
-        self.socket.send(gpibstr+"\r")
+        self.socket.send((gpibstr+"\r").encode('utf-8'))
     def respond(self,gpibstr,printstr='%s',lines=1):
         self.write(gpibstr)
         #print printstr % self.readline()
