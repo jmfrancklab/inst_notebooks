@@ -32,17 +32,17 @@ class GDS_Channel_Properties (object):
         """The display, whether or not the channel is on or off
         """
         cmd = ':CHAN%d:DISP?'%self.ch
-        return str(self.gds.respond(cmd))
+        return str(self.gds.respond(cmd.encode('utf-8')))
     @disp.setter
     def disp(self,onoff):
         if onoff:
-            self.gds.write(':CHAN%d:DISP ON'%self.ch)
-            self.gds.demand(":CHAN%d:DISP?"%self.ch,'ON')
+            self.gds.write((':CHAN%d:DISP ON'%self.ch).encode('utf-8'))
+            self.gds.demand((":CHAN%d:DISP?"%self.ch).encode('utf-8'),'ON'.encode('utf-8'))
             cmd = ':CHAN%d:DISP?'%self.ch
-            print("CH",self.ch," display is",bool(str(self.gds.respond(cmd))))
+            print("CH",self.ch," display is",bool(str(self.gds.respond(cmd.encode('utf-8')))))
         else:
-            self.gds.write(':CHAN%d:DISP OFF'%self.ch)
-            self.gds.demand("CHAN%d:DISP?"%self.ch,'OFF')
+            self.gds.write((':CHAN%d:DISP OFF'%self.ch).encode('utf-8'))
+            self.gds.demand(("CHAN%d:DISP?"%self.ch).encode('utf-8'),'OFF'.encode('utf-8'))
         return    
     @property
     def voltscal(self):
@@ -165,13 +165,15 @@ class GDS_scope (SerialInstrument):
             The scope data, as a pyspecdata nddata, with the
             extra information stored as nddata properties
         """
-        self.write(':ACQ%d:MEM?'%ch)
+        self.write((':ACQ%d:MEM?'%ch).encode('utf-8'))
         def upto_hashtag():
+            print("IN UP TO HASH TAG")
             this_char = self.read(1)
+            print("IN UP TO HASH TAG 2")
             this_line = ''
             while this_char != '#':          
                 this_line += this_char
-                this_char = self.read(1)
+                this_char = (self.read(1)).decode('utf-8')
             return this_line
 
         #Further divides settings
@@ -185,8 +187,8 @@ class GDS_scope (SerialInstrument):
         param = dict([tuple(x.split(',')) for x in preamble if len(x.split(',')) == 2])
         
         #Reads waveform data of 50,000 bytes
-        self.read(6)# length of 550000
-        data = self.read(50001)
+        self.read(6).decode('utf-8')# length of 550000
+        data = self.read(50001).decode('utf-8')
         assert data[-1] == '\n', "data is not followed by newline!"
         data = data[:-1]
 

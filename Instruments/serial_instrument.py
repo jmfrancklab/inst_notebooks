@@ -50,9 +50,12 @@ class SerialInstrument (object):
         (Similar to a print command, but directed at the instrument)"""
         text = ' '.join([str(j) for j in args])
         logger.debug(strm("when trying to write, port looks like this:",self.connection))
-        self.connection.write(text+'\n')
+        self.connection.write((text+'\n').encode('utf-8'))
         return
     def read(self, *args, **kwargs):
+        print("ENTERING READ")
+        print(self.connection.read(1))
+        print("ENTERING READ")
         return self.connection.read(*args, **kwargs)
     def flush(self, timeout=1):
         """Flush the input (say we didn't read all of it, *etc.*)
@@ -64,7 +67,7 @@ class SerialInstrument (object):
         self.connection.timeout = timeout
         result = 'blah'
         while len(result)>0:
-            result = self.connection.read(2000)
+            result = self.connection.read(2000).decode('utf-8')
         self.connection.timeout = old_timeout
         return
     def respond(self,*args, **kwargs):
@@ -84,9 +87,9 @@ class SerialInstrument (object):
         old_timeout = self.connection.timeout
         if message_len is None:
             self.connection.timeout = 5
-            retval = self.connection.readline()
+            retval = (self.connection.readline()).decode('utf-8')
         else:
-            retval = self.connection.read(message_len)
+            retval = (self.connection.read(message_len)).decode('utf-8')
         self.connection.timeout = old_timeout
         return retval
     def show_instruments(self):
@@ -99,8 +102,8 @@ class SerialInstrument (object):
                 with serial.Serial(port_id) as s:
                     s.timeout = 0.1
                     assert s.isOpen(), "For some reason, I couldn't open the connection for %s!"%str(port_id)
-                    s.write('*idn?\n')
-                    result = s.readline()
+                    s.write(('*idn?\n').encode('utf-8'))
+                    result = s.readline().decode('utf-8')
                     print(result)
             except SerialException:
                 pass
@@ -129,8 +132,8 @@ class SerialInstrument (object):
         j = 0
         while response is None or len(response) == 0 and j<tries:
             j += 1
-            self.write(cmd) # to make sure it's done resetting
-            response = self.connection.readline()
+            self.write((cmd).encode('utf-8')) # to make sure it's done resetting
+            response = (self.connection.readline()).decode('utf-8')
         if type(value) is str:
             m = re.match(value,response)
             if not m:
@@ -163,14 +166,14 @@ class SerialInstrument (object):
         j = 0
         while response is None or len(response) == 0 and j<tries:
             j += 1
-            self.write('*IDN?') # to make sure it's done resetting
-            response = self.connection.readline()
+            self.write(('*IDN?').encode('utf-8')) # to make sure it's done resetting
+            response = self.connection.readline().decode('utf-8')
         assert self._textidn in response
         self.flush(timeout=0.1)
         self.connection.timeout = old_timeout
         return response
     def reset(self):
-        self.write('*RST')
+        self.write(('*RST').encode('utf-8'))
         self.check_idn() # wait until it's done
         return
     def save(self,fileno=1):
@@ -183,17 +186,17 @@ class SerialInstrument (object):
 
             A number of the file -- typically between 1 and 20.
         """
-        self.write('*SAV %d'%fileno)
+        self.write(('*SAV %d'%fileno).encode('utf-8'))
     def recall(self,fileno=1):
         """Recall a set of panel settings that were previously saved:
             
         see :func:`save`
         """
-        self.write('*RCL %d'%fileno)
+        self.write(('*RCL %d'%fileno).encode('utf-8'))
         return
     def learn(self):
         "Returns the settings as a data string."
-        return self.respond('*LRN?')
+        return self.respond('*LRN?'.encode('utf-8'))
     # }}}
     def id_instrument(self,textidn):
         """A helper function for :func:`init` Identify the instrument that returns an ID string containing ``textidn``
@@ -211,8 +214,8 @@ class SerialInstrument (object):
                     with serial.Serial(port_id) as s:
                         s.timeout = 0.1
                         assert s.isOpen(), "For some reason, I couldn't open the connection for %s!"%str(port_id)
-                        s.write('*idn?\n')
-                        result = s.readline()
+                        s.write(('*idn?\n').encode('utf-8'))
+                        result = (s.readline()).decode('utf-8')
                         port_dict[port_id] = result
                 except SerialException:
                     pass # on windows this is triggered if the port is already open

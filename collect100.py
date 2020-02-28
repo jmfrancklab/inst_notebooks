@@ -42,6 +42,7 @@ def collect(date,id_string,captures):
         for x in range(1,capture_length+1):
             print("entering capture",x)
             ch1_waveform = g.waveform(ch=1)
+            print("GOT WAVEFORM")
             data = concat([ch1_waveform],'ch').reorder('t')
             if x == 1:
                 channels = ((ndshape(data)) + ('capture',capture_length)).alloc(dtype=float64)
@@ -67,8 +68,8 @@ def collect(date,id_string,captures):
     print("shape of data",ndshape(s))
     return start
 
-date = '200212'
-id_string = 'test_long50_on_2'
+date = '200228'
+id_string = 'test_1'
 captures = linspace(1,100,100)
 
 print("Starting collection...")
