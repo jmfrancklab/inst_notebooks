@@ -62,19 +62,16 @@ class Bridge12 (Serial):
         #time.sleep(5)
         def look_for(this_str):
             for j in range(1000):
-                a = self.read_until(this_str+'\r\n')
-                a = str(a)
-                print(type(this_str))
-                print(type(a))
+                a = self.read_until(this_str+'\r\n'.encode('utf-8'))
                 time.sleep(0.1)
                 #print "a is",repr(a)
-                logger.debug("look for "+str(this_str)+" try"+str(j+1))
+                logger.debug("look for "+(this_str).decode('utf-8')+" try"+str(j+1))
                 if this_str in a:
-                    logger.debug("found: "+this_str)
+                    logger.debug("found: "+this_str.decode('utf-8'))
                     break
-        look_for('MPS Started')
-        #look_for('System Ready')
-        #look_for('Synthesizer detected')
+        look_for('MPS Started'.encode('utf-8'))
+        look_for('System Ready'.encode('utf-8'))
+        look_for('Synthesizer detected'.encode('utf-8'))
         return
     def help(self):
         self.write(b"help\r") #command for "help"
@@ -93,8 +90,7 @@ class Bridge12 (Serial):
         logger.info(repr(entire_response))
     def wgstatus_int_singletry(self):
         self.write(b'wgstatus?\r')
-        return int(self.readline())
-        #return int((self.readline()).decode("utf-8"))
+        return int((self.readline()).decode('utf-8'))
     def wgstatus_int(self):
         "need two consecutive responses that match"
         c = self.wgstatus_int_singletry()
@@ -115,7 +111,9 @@ class Bridge12 (Serial):
             True: DNP
             False: ESR
         """
+        print("SETTING WG...")
         self.write(b'wgstatus %d\r'%setting)
+        print("SET WG...")
         for j in range(10):
             result = self.wgstatus_int()
             if result == setting:
@@ -151,11 +149,11 @@ class Bridge12 (Serial):
                 return
         raise RuntimeError("After checking status 10 times, I can't get the amplifier to turn on/off")
     def rfstatus_int_singletry(self):
-        self.write('rfstatus?\r')
+        self.write(b'rfstatus?\r')
         retval = self.readline()
         if retval.strip() == 'ERROR':
             logger.info("got an error from rfstatus, trying again")
-            self.write('rfstatus?\r')
+            self.write(b'rfstatus?\r')
             retval = self.readline()
             if retval.strip() == 'ERROR':
                 raise RuntimeError("Tried to read rfstatus twice, and got 'ERROR' both times!!")
