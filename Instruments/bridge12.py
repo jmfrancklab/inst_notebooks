@@ -40,10 +40,10 @@ class Bridge12 (Serial):
         # Grab the port labeled as Arduino (since the Bridge12 microcontroller is an Arduino)
         cport = comports()
         if type(cport) is list and hasattr(cport[0],'device'):
-            portlist = [j.device for j in comports() if u'Arduino Due' in j.description]
-        elif type(cport.next()) is tuple:
+            portlist = [j.device for j in comports() if 'Arduino Due' in j.description]
+        elif type(next(cport)) is tuple:
             logger.debug("using fallback comport method")
-            portlist = [j[0] for j in comports() if u'Arduino Due' in j[1]]
+            portlist = [j[0] for j in comports() if 'Arduino Due' in j[1]]
         else:
             raise RuntimeError("Not sure how how to grab the USB ports!!!")
         assert len(portlist)==1, "I need to see exactly one Arduino Due hooked up to the Raspberry Pi"
@@ -466,13 +466,13 @@ class Bridge12 (Serial):
         self._inside_with_block = True
         return self
     def safe_shutdown(self):
-        print "Entering safe shut down..."
+        print("Entering safe shut down...")
         try:
             self.set_power(0)
         except Exception as e:
-            print "error on standard shutdown during set_power -- running fallback shutdown"
-            print "original error:"
-            print e
+            print("error on standard shutdown during set_power -- running fallback shutdown")
+            print("original error:")
+            print(e)
             self.write('power %d\r'%0)
             self.write('rfstatus %d\r'%0)
             self.write('wgstatus %d\r'%0)
@@ -481,9 +481,9 @@ class Bridge12 (Serial):
         try:
             self.set_rf(False)
         except Exception as e:
-            print "error on standard shutdown during set_rf -- running fallback shutdown"
-            print "original error:"
-            print e
+            print("error on standard shutdown during set_rf -- running fallback shutdown")
+            print("original error:")
+            print(e)
             self.write('power %d\r'%0)
             self.write('rfstatus %d\r'%0)
             self.write('wgstatus %d\r'%0)
@@ -492,9 +492,9 @@ class Bridge12 (Serial):
         try:
             self.set_wg(False)
         except Exception as e:
-            print "error on standard shutdown during set_wg -- running fallback shutdown"
-            print "original error:"
-            print e
+            print("error on standard shutdown during set_wg -- running fallback shutdown")
+            print("original error:")
+            print(e)
             self.write('power %d\r'%0)
             self.write('rfstatus %d\r'%0)
             self.write('wgstatus %d\r'%0)

@@ -6,10 +6,10 @@ class gigatronics (gpib_eth):
     def __init__(self,prologix_instance=None,address=13):
         super(self.__class__,self).__init__(prologix_instance,address)
         idstring = self.respond('*IDN?',lines=2) # Check ID command
-        print idstring[0]
-        print idstring[1]
+        print(idstring[0])
+        print(idstring[1])
         if idstring[0][0:4] == 'GIGA':
-            print 'idstring is',idstring
+            print('idstring is',idstring)
             self.write('TR3')        # Set Free Run Trigger Mode
             self.write('LG')         # Set Log units in dBm
             #self.write(self.gpibaddress,'DD')         # Display Disable
@@ -22,7 +22,7 @@ class gigatronics (gpib_eth):
             retval = -999.9
         counter = 0
         while (counter < 4) & (retval == -999.9):
-            print 'reading...'
+            print('reading...')
             #self.write(self.gpibaddress,'RS')# "reset" which apparently takes a reading
             tempstr = self.readline()
             if len(tempstr)>0:
@@ -30,10 +30,10 @@ class gigatronics (gpib_eth):
             else:
                 retval = -999.9
             counter += 1
-            print '/',
+            print('/', end=' ')
             time.sleep(1e-4)
         if retval == -999.9:
-            print 'failed to read a power!'
+            print('failed to read a power!')
         return retval
     def close(self):
         #self.write(self.gpibaddress,'DE')         # Display Enable

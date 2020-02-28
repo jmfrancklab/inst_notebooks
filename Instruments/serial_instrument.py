@@ -29,7 +29,7 @@ class SerialInstrument (object):
             with a string that includes ``textidn``.
             If textidn is set to None, just show the available instruments.
         """
-        print "received textidn",textidn
+        print("received textidn",textidn)
         self._textidn = textidn
         self._id_attempts_left = 3 
         if textidn is None:
@@ -93,7 +93,7 @@ class SerialInstrument (object):
         """For testing.  Same as :func:`id_instrument`, except that it just prints the idn result from all com ports.
         """
         for j in comports():
-            print "inside show_instruments, looking at",j
+            print("inside show_instruments, looking at",j)
             port_id = j[0] # based on the previous, this is the port number
             try:
                 with serial.Serial(port_id) as s:
@@ -101,7 +101,7 @@ class SerialInstrument (object):
                     assert s.isOpen(), "For some reason, I couldn't open the connection for %s!"%str(port_id)
                     s.write('*idn?\n')
                     result = s.readline()
-                    print result
+                    print(result)
             except SerialException:
                 pass
     # {{{ common commands
@@ -203,9 +203,9 @@ class SerialInstrument (object):
             should work on either Windows or Mac/Linux.
         """
         if len(port_dict) == 0:
-            print "port dict has no results, so searching for instruments"
+            print("port dict has no results, so searching for instruments")
             for j in comports():
-                print "testing port",j
+                print("testing port",j)
                 port_id = j.device # based on the previous, this is the port number
                 try:
                     with serial.Serial(port_id) as s:
@@ -216,11 +216,11 @@ class SerialInstrument (object):
                         port_dict[port_id] = result
                 except SerialException:
                     pass # on windows this is triggered if the port is already open
-        for port_id, result in port_dict.iteritems():
+        for port_id, result in port_dict.items():
             if textidn in result:
                 return port_id
-        print "I looped through all the com ports and didn't find ",textidn,"resetting port_dict, and trying again"
-        for j in port_dict.keys():
+        print("I looped through all the com ports and didn't find ",textidn,"resetting port_dict, and trying again")
+        for j in list(port_dict.keys()):
             port_dict.pop(j)
         self._id_attempts_left -= 1
         if self._id_attempts_left > 0:

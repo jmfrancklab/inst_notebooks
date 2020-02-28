@@ -39,7 +39,7 @@ class prologix_connection (object):
         if versionstring[0:8]=='Prologix':
             pass #print 'connected to: ',versionstring
         else:
-            print 'Error! can\'t find prologix on %s:%d'%(ip,port)
+            print('Error! can\'t find prologix on %s:%d'%(ip,port))
             raise
         self.opened_port = port
         self.opened_ip = ip
@@ -133,10 +133,10 @@ class gpib_eth (object):
         time.sleep(0.1)
         self.serial.write('++read eoi'+"\r")
         header_string = self.serial.read(8)
-        print "'"+header_string+"'\n"
-        print "reading length of length: "+header_string[-1]
+        print("'"+header_string+"'\n")
+        print("reading length of length: "+header_string[-1])
         curve_length = self.serial.read(int(header_string[-1]))
-        print "reading curve of length: "+curve_length
+        print("reading curve of length: "+curve_length)
         x = header_string[0:int(curve_length)]*dx
         return (x_unit,
                 y_unit,
@@ -165,7 +165,7 @@ class gpib_eth (object):
         self.write(":waveform:preamble?")
         self.write("++read eoi");
         pra = self.serial.readline().split(",")
-        print 'pra=\'',pra,'\''
+        print('pra=\'',pra,'\'')
         try:
             format = int(pra[0])
             type = int(pra[1])
@@ -181,11 +181,11 @@ class gpib_eth (object):
             yref = int(pra[9])
         
         except IndexError:
-            print "Bad preamble recieved"
+            print("Bad preamble recieved")
             exit(1)
         
         if points != len(wfrm):
-            print "WARNING: Received less points than specified in the preamble"
+            print("WARNING: Received less points than specified in the preamble")
         
         x = ((r_[0:len(wfrm)]-xref)*xinc)+xorig
         y = ((array(wfrm)-yref)*yinc)+yorig
