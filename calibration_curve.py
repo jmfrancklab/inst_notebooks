@@ -28,7 +28,7 @@ with Bridge12() as b:
                         print("*** *** ***")
                         print("SETTING POWER",hp_setting)
                         print("*** *** ***")
-                        b.set_frequency(9.85e9)
+                        b.set_freq(9.85e9)
                         b.set_power(hp_setting)
                         for x in range(raw_points):
                             raw_powers[count] = g.read_power()
