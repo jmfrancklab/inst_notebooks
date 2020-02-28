@@ -3,7 +3,7 @@ from scipy.optimize import leastsq,minimize
 fl = figlist_var()
 for id_string,label_string,col in [
         ('200228_B12_TXOUT_1','measure TX out','blue'),
-        ('200228_B12_MWOUT_1','measure MX out through 20dB coupler','cyan'),
+        ('200228_B12_MWOUT_1','measure MW out through 20dB coupler','cyan'),
         ]:
 
     data = load(getDATADIR(exp_type='test_equip')+id_string+'.npz')
