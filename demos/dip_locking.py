@@ -19,10 +19,9 @@ if run_bridge12:
         #with prologix_connection() as p:
         #    with gigatronics(prologix_instance=p, address=7) as g:
         #        meter_readings.append(g.read_power())
-        print "Finished lock on dip, about to zoom"
         dip_f = this_return[2] 
-        print "Dip frequency",dip_f
-        print "Meter reading",meter_readings
+        print("Dip frequency"),dip_f
+        print("Meter reading"),meter_readings
         #for j in range(3):
         #    _,_,dip_f = b.zoom()
         b.set_freq(dip_f)
@@ -62,7 +61,7 @@ def plot_all(show_log_scale=True):
     thesecolors = cycle(list('bgrcmyk'))
     powerlist = list(set((float(k.split('dBm')[0 ]) for k in result.keys())))
     powerlist.sort()
-    print "powerlist is",powerlist
+    #print "powerlist is",powerlist
     for power in powerlist:
         if show_log_scale:
             fmt = convert_to_power
@@ -79,7 +78,7 @@ def plot_all(show_log_scale=True):
              label='%s'%power)
         if show_fits:
             if '%ddBm_range'%power in fits.keys():
-                print "plotting fit for",power
+     #           print "plotting fit for",power
                 f_range = fits['%ddBm_range'%power]
                 f_axis = r_[f_range[0]:f_range[1]:100j]
                 plot(f_axis,

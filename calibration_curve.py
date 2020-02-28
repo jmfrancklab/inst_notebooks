@@ -4,8 +4,8 @@ import time
 
 id_string = '200227_B12_TXOUT'
 
-start_power = -40
-stop_power = 3 
+start_power = 0
+stop_power = 10 
 # If running through amplifier (Bridge12) do not exceed
 # -5 dBm (with 10 dB coupler) 
 # OR +3 dBm (with 20 dB couplers) or you will damage the meter!!
@@ -17,19 +17,19 @@ raw_powers = zeros(raw_points*power_points)
 
 count = 0
 with Bridge12() as b:
+    print("ENTERED WITH")
     b.set_wg(True)
     b.set_rf(True)
     b.set_amp(True)
     time.sleep(5)
     with prologix_connection() as p:
-        with HP8672A(prologix_instance=p, address=19) as h:
             with gigatronics(prologix_instance=p, address=7) as g:
                 for hp_setting in HP_powers:
                         print("*** *** ***")
                         print("SETTING POWER",hp_setting)
                         print("*** *** ***")
-                        h.set_frequency(9.85e9)
-                        h.set_power(hp_setting)
+                        b.set_frequency(9.85e9)
+                        b.set_power(hp_setting)
                         for x in range(raw_points):
                             raw_powers[count] = g.read_power()
                             count += 1
