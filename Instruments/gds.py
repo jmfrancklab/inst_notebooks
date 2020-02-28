@@ -36,13 +36,13 @@ class GDS_Channel_Properties (object):
     @disp.setter
     def disp(self,onoff):
         if onoff:
-            self.gds.write((':CHAN%d:DISP ON'%self.ch).encode('utf-8'))
-            self.gds.demand((":CHAN%d:DISP?"%self.ch).encode('utf-8'),'ON'.encode('utf-8'))
+            self.gds.write(':CHAN%d:DISP ON'%self.ch)
+            self.gds.demand(":CHAN%d:DISP?"%self.ch,'ON')
             cmd = ':CHAN%d:DISP?'%self.ch
-            print("CH",self.ch," display is",bool(str(self.gds.respond(cmd.encode('utf-8')))))
+            print("CH",self.ch," display is",bool(str(self.gds.respond(cmd))))
         else:
             self.gds.write((':CHAN%d:DISP OFF'%self.ch).encode('utf-8'))
-            self.gds.demand(("CHAN%d:DISP?"%self.ch).encode('utf-8'),'OFF'.encode('utf-8'))
+            self.gds.demand("CHAN%d:DISP?"%self.ch,'OFF')
         return    
     @property
     def voltscal(self):
@@ -170,11 +170,11 @@ class GDS_scope (SerialInstrument):
             print("IN UP TO HASH TAG")
             this_char = self.read(1)
             print("IN UP TO HASH TAG 2")
-            this_line = ''
-            while this_char != '#':          
+            this_line = b''
+            while this_char != b'#':          
                 this_line += this_char
-                this_char = (self.read(1)).decode('utf-8')
-            return this_line
+                this_char = self.read(1)
+            return this_line.decode('utf-8')
 
         #Further divides settings
         preamble = upto_hashtag().split(';')
@@ -187,7 +187,7 @@ class GDS_scope (SerialInstrument):
         param = dict([tuple(x.split(',')) for x in preamble if len(x.split(',')) == 2])
         
         #Reads waveform data of 50,000 bytes
-        self.read(6).decode('utf-8')# length of 550000
+        self.read(6) # length of 550000
         data = self.read(50001).decode('utf-8')
         assert data[-1] == '\n', "data is not followed by newline!"
         data = data[:-1]

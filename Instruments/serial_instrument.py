@@ -53,10 +53,8 @@ class SerialInstrument (object):
         self.connection.write((text+'\n').encode('utf-8'))
         return
     def read(self, *args, **kwargs):
-        print("ENTERING READ")
-        print(self.connection.read(1))
-        print("ENTERING READ")
-        return self.connection.read(*args, **kwargs)
+        retval = self.connection.read(*args, **kwargs)
+        return retval.decode('utf-8')
     def flush(self, timeout=1):
         """Flush the input (say we didn't read all of it, *etc.*)
         
@@ -132,8 +130,8 @@ class SerialInstrument (object):
         j = 0
         while response is None or len(response) == 0 and j<tries:
             j += 1
-            self.write((cmd).encode('utf-8')) # to make sure it's done resetting
-            response = (self.connection.readline()).decode('utf-8')
+            self.write(cmd) # to make sure it's done resetting
+            response = self.connection.readline().decode('utf-8')
         if type(value) is str:
             m = re.match(value,response)
             if not m:
