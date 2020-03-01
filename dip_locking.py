@@ -25,14 +25,14 @@ if run_bridge12:
         #for j in range(3):
         #    _,_,dip_f = b.zoom()
         b.set_freq(dip_f)
-        b.set_power(13.0)
-        #raw_input("Minimzie RX...")
+        #b.set_power(13.0)
+        #input("Minimzie RX...")
         #b.set_power(16.0)
-        #raw_input("Minimzie RX...")
+        #input("Minimzie RX...")
         #b.set_power(19.0)
-        #raw_input("Minimzie RX...")
+        #input("Minimzie RX...")
         #b.set_power(22.0)
-        #raw_input("Minimzie RX...")
+        #input("Minimzie RX...")
         #b.set_power(25.0)
         #raw_input("Minimzie RX...")
         #b.set_power(28.0)
@@ -57,7 +57,7 @@ if save_data:
     np.savez(filename+'.npz', **result)
 def plot_all(show_log_scale=True):
     figure()
-    thesecolors = cycle(list(['bgrcmyk']))
+    #thesecolors = cycle('bgrcmyk')
     powerlist = []
     powerlist = list(set((float(k.split('dBm')[0 ]) for k in list(result.keys()))))
     powerlist.sort()
@@ -67,14 +67,14 @@ def plot_all(show_log_scale=True):
             fmt = convert_to_power
         else:
             fmt = lambda x: x
-        thiscolor = next(thesecolors())
+        #thiscolor = next(thesecolors())
         show_fits = False
         plotstyle = 'o-'
         if show_fits: plotstyle = 'o'
         plot(result['%ddBm_freq'%power],
              fmt(result['%ddBm_rx'%power]),
              plotstyle,
-             color=thiscolor,
+             
              label='%s'%power)
         if show_fits:
             if '%ddBm_range'%power in list(fits.keys()):
@@ -83,6 +83,6 @@ def plot_all(show_log_scale=True):
                 f_axis = r_[f_range[0]:f_range[1]:100j]
                 plot(f_axis,
                         fmt(fits['%ddBm_func'%power](f_axis)),
-                        '-',
-                        color=thiscolor)
+                        '-')
+                        #color=thiscolor)
 plot_all();legend()
