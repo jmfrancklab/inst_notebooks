@@ -11,7 +11,6 @@ import time
 from .HP8672A import HP8672A
 from .gpib_eth import prologix_connection
 from .log_inst import logger
-print("IN BRIDGE12")
 def generate_beep(f,dur):
     # do nothing -- can be used to generate a beep, but platform-dependent
     return
@@ -48,7 +47,7 @@ class Bridge12 (Serial):
             raise RuntimeError("Not sure how how to grab the USB ports!!!")
         assert len(portlist)==1, "I need to see exactly one Arduino Due hooked up to the Raspberry Pi"
         thisport = portlist[0]
-        super(self.__class__, self).__init__(thisport, timeout=3, baudrate=115200)
+        super().__init__(thisport, timeout=3, baudrate=115200)
         # this number represents the highest possible reasonable value for the
         # Rx power -- it is lowered as we observe the Tx values
         self.safe_rx_level_int = int(convert_to_mv(13.)*10+0.5)# i.e. a setting of 13 dB for the absolute threshold

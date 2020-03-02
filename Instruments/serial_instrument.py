@@ -29,7 +29,6 @@ class SerialInstrument (object):
             with a string that includes ``textidn``.
             If textidn is set to None, just show the available instruments.
         """
-        print("received textidn",textidn)
         self._textidn = textidn
         self._id_attempts_left = 3 
         if textidn is None:
@@ -55,6 +54,9 @@ class SerialInstrument (object):
     def read(self, *args, **kwargs):
         retval = self.connection.read(*args, **kwargs)
         return retval.decode('utf-8')
+    def read_binary(self, *args, **kwargs):
+        retval = self.connection.read(*args, **kwargs)
+        return retval
     def flush(self, timeout=1):
         """Flush the input (say we didn't read all of it, *etc.*)
         
@@ -85,9 +87,9 @@ class SerialInstrument (object):
         old_timeout = self.connection.timeout
         if message_len is None:
             self.connection.timeout = 5
-            retval = (self.connection.readline()).decode('utf-8')
+            retval = self.connection.readline().decode('utf-8')
         else:
-            retval = (self.connection.read(message_len)).decode('utf-8')
+            retval = self.connection.read(message_len).decode('utf-8')
         self.connection.timeout = old_timeout
         return retval
     def show_instruments(self):
@@ -159,19 +161,20 @@ class SerialInstrument (object):
         of any commands that take a while to execute.  It also executes a flush
         at the end, to make sure that there's nothing stuck in the buffer."""
         old_timeout = self.connection.timeout
-        self.connection.timeout = 0.1
+        self.connection.timeout = 5
         response = None
         j = 0
         while response is None or len(response) == 0 and j<tries:
             j += 1
-            self.write(('*IDN?').encode('utf-8')) # to make sure it's done resetting
-            response = self.connection.readline().decode('utf-8')
-        assert self._textidn in response
+            response = self.respond('*IDN?') # to make sure it's done resetting
+        if response is None or len(response)==0:
+            raise ValueError("I tried %d times to contact the %s, to no avail!!!"%(tries,self._textidn))
+        assert self._textidn in response, repr(response)+' does not match '+repr(self._textidn)
         self.flush(timeout=0.1)
         self.connection.timeout = old_timeout
         return response
     def reset(self):
-        self.write(('*RST').encode('utf-8'))
+        self.write('*RST')
         self.check_idn() # wait until it's done
         return
     def save(self,fileno=1):
@@ -184,13 +187,13 @@ class SerialInstrument (object):
 
             A number of the file -- typically between 1 and 20.
         """
-        self.write(('*SAV %d'%fileno).encode('utf-8'))
+        self.write('*SAV %d'%fileno)
     def recall(self,fileno=1):
         """Recall a set of panel settings that were previously saved:
             
         see :func:`save`
         """
-        self.write(('*RCL %d'%fileno).encode('utf-8'))
+        self.write('*RCL %d'%fileno)
         return
     def learn(self):
         "Returns the settings as a data string."
@@ -212,11 +215,13 @@ class SerialInstrument (object):
                     with serial.Serial(port_id) as s:
                         s.timeout = 0.1
                         assert s.isOpen(), "For some reason, I couldn't open the connection for %s!"%str(port_id)
-                        s.write(('*idn?\n').encode('utf-8'))
-                        result = (s.readline()).decode('utf-8')
+                        s.write('*idn?\n'.encode('utf-8'))
+                        result = s.readline().decode('utf-8')
                         port_dict[port_id] = result
                 except SerialException:
+                    print("port appears to be open already?")
                     pass # on windows this is triggered if the port is already open
+        print("this is the port dictionary that I generate:",port_dict)
         for port_id, result in port_dict.items():
             if textidn in result:
                 return port_id

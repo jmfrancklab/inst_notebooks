@@ -32,7 +32,7 @@ class GDS_Channel_Properties (object):
         """The display, whether or not the channel is on or off
         """
         cmd = ':CHAN%d:DISP?'%self.ch
-        return str(self.gds.respond(cmd.encode('utf-8')))
+        return str(self.gds.respond(cmd))
     @disp.setter
     def disp(self,onoff):
         if onoff:
@@ -41,7 +41,7 @@ class GDS_Channel_Properties (object):
             cmd = ':CHAN%d:DISP?'%self.ch
             print("CH",self.ch," display is",bool(str(self.gds.respond(cmd))))
         else:
-            self.gds.write((':CHAN%d:DISP OFF'%self.ch).encode('utf-8'))
+            self.gds.write(':CHAN%d:DISP OFF'%self.ch)
             self.gds.demand("CHAN%d:DISP?"%self.ch,'OFF')
         return    
     @property
@@ -80,11 +80,12 @@ class GDS_Channel_Properties (object):
 class GDS_scope (SerialInstrument):
     """Next, we can define a class for the scope, based on `pyspecdata`"""
     def __init__(self,model='3254'):
-        super(self.__class__,self).__init__('GDS-'+model)
-        logger.debug(strm("identify from within GDS",super(self.__class__,self).respond('*idn?')))
+        super().__init__('GDS-'+model)
+        print(strm("debugging -- identify from within GDS",super().respond('*idn?')))
+        logger.debug(strm("identify from within GDS",super().respond('*idn?')))
         logger.debug("I should have just opened the serial connection")
-        self.CH1 = GDS_Channel_Properties (1,self)
-        self.CH2 = GDS_Channel_Properties (2,self)
+        self.CH1 = GDS_Channel_Properties(1,self)
+        self.CH2 = GDS_Channel_Properties(2,self)
         return
     def __getitem__(self,arg):
         if arg == 0:
@@ -165,17 +166,14 @@ class GDS_scope (SerialInstrument):
             The scope data, as a pyspecdata nddata, with the
             extra information stored as nddata properties
         """
-        self.write((':ACQ%d:MEM?'%ch).encode('utf-8'))
+        self.write(':ACQ%d:MEM?'%ch)
         def upto_hashtag():
-            print("IN UP TO HASH TAG")
             this_char = self.read(1)
-            print("IN UP TO HASH TAG 2")
-            this_line = b''
-            while this_char != b'#':          
+            this_line = ''
+            while this_char != '#':          
                 this_line += this_char
                 this_char = self.read(1)
-            return this_line.decode('utf-8')
-
+            return this_line
         #Further divides settings
         preamble = upto_hashtag().split(';')
         
@@ -187,9 +185,9 @@ class GDS_scope (SerialInstrument):
         param = dict([tuple(x.split(',')) for x in preamble if len(x.split(',')) == 2])
         
         #Reads waveform data of 50,000 bytes
-        self.read(6) # length of 550000
-        data = self.read(50001).decode('utf-8')
-        assert data[-1] == '\n', "data is not followed by newline!"
+        self.read_binary(6) # length of 550000
+        data = self.read_binary(50001)
+        assert data[-1] == 10, "data is not followed by newline!, rather it's %d"%data[-1]
         data = data[:-1]
 
         # convert the binary string

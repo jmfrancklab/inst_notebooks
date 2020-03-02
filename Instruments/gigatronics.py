@@ -4,7 +4,7 @@ import time
 
 class gigatronics (gpib_eth):
     def __init__(self,prologix_instance=None,address=13):
-        super(self.__class__,self).__init__(prologix_instance,address)
+        super().__init__(prologix_instance,address)
         idstring = self.respond('*IDN?',lines=2) # Check ID command
         print(idstring[0])
         print(idstring[1])
@@ -43,4 +43,4 @@ class gigatronics (gpib_eth):
 ##        self.write(self.gpibaddress,'RP')# no longer output only mode
 ##        self.write(self.gpibaddress,'FP')# turn off "fast mode"??
 ##        self.write(self.gpibaddress,'R0')# switch back to high res
-        super(self.__class__,self).close()
+        super().close()

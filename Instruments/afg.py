@@ -123,7 +123,7 @@ class AFG (SerialInstrument):
     `self[0]` will return self.CH1 and `self[1]` will return self.CH2
     """
     def __init__(self,model='2225'):
-        super(self.__class__,self).__init__('AFG-'+model)
+        super().__init__('AFG-'+model)
         logger.debug(strm("identify from within AFG",super(self.__class__,self).respond('*idn?')))
         logger.debug("I should have just opened the serial connection")
         return
