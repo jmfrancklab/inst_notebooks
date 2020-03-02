@@ -4,7 +4,7 @@ import os
 import sys
 import matplotlib.style
 import matplotlib as mpl
-
+rcParams["savefig.transparent"] = True
 mpl.rcParams['image.cmap'] = 'jet'
 fl = figlist_var()
 
@@ -15,11 +15,9 @@ for date,id_string,numchan in [
         #('180712','SE_exp_2',2)
         #('180712','SE_exp_3',2)
         #('180713','SE_exp',2)
-        ('180714','SE_exp',2) # 25 cycle measurement, B0 = 3395.75 G
+        #('180714','SE_exp',2) # 25 cycle measurement, B0 = 3395.75 G
         #('180714','SE_exp_offres_small',2) # 5 cycle measurement, B0 = 3583.85 G 
-        #('180714','SE_exp_offres',2) # 25 cycle measurement, B0 = 3585.85 G 
-        #('180714','SE_exp_2',2) # 5 cycle measurement, B0 = 3585.85 G 
-        #('180714','SE_exp_2_nosample',2) # 5 cycle measurement, B0 = 3585.85 G no sample 
+        ('180714','SE_exp_2',2) # 25 cycle measurement, B0 = 3585.85 G 
         ]:
     filename = date+'_'+id_string+'.h5'
     nodename = 'this_capture'
@@ -28,6 +26,7 @@ for date,id_string,numchan in [
             directory = getDATADIR(exp_type='test_equip'))
     print("*** Current version based on 'fix_phase_cycling_180712.py' ***")
     print("WARNING: Need to define time slices for pulses on a by-dataset basis ***")
+    input("Enter to proceed")
     s.set_units('t','s')
     s_raw = s.C.reorder('t',first=False)
 
@@ -129,7 +128,7 @@ for date,id_string,numchan in [
     # with time-shifted, phase corrected raw data, now take analytic
     analytic = raw_corr['ch',1].C.ft('t')['t':(0,15.5e6)].setaxis('t', lambda f: f-carrier_f).ift('t').reorder(['average','t'],first=False)
     # measured phase is the result obtained from data after time-shifting and phase correcting
-    measured_phase = analytic['t':(-1.5e6,1.5e6)].mean('t',return_error=False).mean('ph2',return_error=True).mean('average',return_error=True)
+    measured_phase = analytic['t':(-1.5e6,1.5e6)].mean('t').mean('ph2').mean('average')
     measured_phase /= abs(measured_phase)
     # expected phase is how we expect the phases to cycle, and how it is programmed in the pulse sequence
     expected_phase = nddata(exp(r_[0,1,2,3]*pi/2*1j),[4],['ph1'])
@@ -146,18 +145,13 @@ for date,id_string,numchan in [
     s_analytic *= expected_phase/measured_phase
     fl.next('analytic signal, test ch')
     fl.image(s_analytic.cropped_log())
-    fl.next('coherence domain, test ch, on resonance (without sample)')
+    fl.next('spin echo, coherence pathways')
     s_coherence_domain = s_analytic.C.ift(['ph1','ph2'])
-    s_coherence_domain *= exp(1j*2*pi*0.61)
-    s_coherence_domain.rename('average','scans')
+    s_coherence_domain = s_coherence_domain['average',0].C
+    s_coherence_domain.rename('t','t2')
+    print(ndshape(s_coherence_domain))
+    s_coherence_domain.reorder('ph2',first=True)
     fl.image(s_coherence_domain)
-    s_coherence_domain.mean('scans')
-    s_coherence_domain = s_coherence_domain['t':(107.5e-6,None)].C
-    s_coherence_domain.name(r'amplitude / $\mu$V')
-    fl.next('signal')
-    fl.plot(s_coherence_domain['ph1',1]['ph2',0].real,c='blue')
-    fl.plot(s_coherence_domain['ph1',0]['ph2',1].real,c='red')
-    fl.show();quit()
     #{{{ below are efforts to process for V(t) data 
     #print ndshape(s_analytic)
     #s_avg = s['ch',0]['ph1',3]['ph2',1].C
