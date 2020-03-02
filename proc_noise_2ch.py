@@ -4,6 +4,7 @@ import os
 import sys
 matplotlib.rcParams['legend.fontsize'] ='xx-small'
 matplotlib.rcParams['legend.labelspacing'] = 0.2 
+rcParams['savefig.transparent'] = True
 #4096 points
 # {{{ constants measured elsewhere
 gain_factor_new = 73503.77279 
