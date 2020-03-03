@@ -271,6 +271,7 @@ for date,id_string,numchan,gain_factor in [
         #('190425','term_25_0_1',2,gain_factor_new),
         #('190425','term_25_0_2',2,gain_factor_new),
         #('190425','term_25_0_0_1',2,gain_factor_new),
+        #('190425','term_test_0_0',2,gain_factor_new),
         #('190425','term_test_0_1',2,gain_factor_new),
         #('190425','term_test_0_2',2,gain_factor_new),
         #('190425','term_test_1_0',2,gain_factor_new),
@@ -290,7 +291,7 @@ for date,id_string,numchan,gain_factor in [
         #('190425','term_test_1_0_0_0_0',2,gain_factor_new),
         #('190425','term_test_1_0_0_0_1',2,gain_factor_new),
         #('190425','term_test_1_0_0_0_0_1',2,gain_factor_new),
-        ('190425','term_test_1_0_0_0_0_0_0',2,gain_factor_new),
+        #('190425','term_test_1_0_0_0_0_0_0',2,gain_factor_new),
         #('190425','term_test_1_0_0_0_0_0_1',2,gain_factor_new),
         #('190425','term_test_3_0',2,gain_factor_new),
         #('190425','term_test_3_1',2,gain_factor_new),
@@ -300,7 +301,13 @@ for date,id_string,numchan,gain_factor in [
         #('190531','term_test_0_36in',2,gain_factor_new),
         #('190531','term_test_0_48in',2,gain_factor_new),
         #('190531','term_test_0_60in',2,gain_factor_new),
-        ('190531','term_test_0_72in',2,gain_factor_new),
+        #('190531','term_test_0_72in',2,gain_factor_new),
+        #('200212','test_50_off_0',2,gain_factor_new),
+        #('200212','test_50_off_1',2,gain_factor_new),
+        ('200212','test_50_off_2',2,gain_factor_new),
+        ('200212','test_50_on_0',2,gain_factor_new),
+        #('200212','test_short50_on_0',2,gain_factor_new),
+        #('200212','test_long50_on_0',2,gain_factor_new),
 
     ]:
     # }}}
@@ -336,6 +343,10 @@ for date,id_string,numchan,gain_factor in [
             label = 'Terminator at 72" BNC at LNA input'
         elif 'term_test_3_0' in id_string:
             label = 'Full spectrometer, terminators for probe and amp'
+        elif 'test_50_off_2' in id_string:
+            label = 'Magnet off'
+        elif 'test_50_on_0' in id_string:
+            label = 'Magnet on'
         #{{{ plotting parameters -- for older files
         #{{{ plotting AFG waveform, attn, power splitter, with low pass filter
         elif id_string == 'control_SE':
@@ -469,31 +480,33 @@ for date,id_string,numchan,gain_factor in [
                 u /= k_B*T
                 u_filt /= k_B*T
                 fl.next('Network Noise Power Spectral Density (Input-referred) (convolution = %0.1e Hz)'%width)
-                s.name('${S_{xx}(\\nu)}/{k_{B}T}$')
+                s.name('${S(\\nu)}/{k_{B}T}$')
                 fl.plot(s['ch',0],alpha=0.35,label='%s'%label,plottype='semilogy')
                 #axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
                 fl.next('Network Noise Power Spectral Density, Input-referred')
-                u.name('${S_{xx}(\\nu)}/{k_{B}T}$')
+                u.name('${S(\\nu)}/{k_{B}T}$')
                 fl.plot(u['ch',0],alpha=0.35,plottype='semilogy')
                 #axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
+                u_filt = u_filt['t':(None,45e6)]
                 if filtering:
                     fl.next('Digitally-Filtered Network Noise Power Spectral Density,\n Input-referred ($\sigma$=%0.3f kHz)'%(width*1e-3))
-                    u_filt.name('${S_{xx}(\\nu)}/{k_{B}T}$')
-                    fl.plot(u_filt['ch',0],alpha=0.35,label='%s'%label,plottype='semilogy')
+                    u_filt.name('${S(\\nu)}/{k_{B}T}$')
+                    fl.plot(u_filt['ch',0],alpha=0.8,label='%s'%label,plottype='semilogy')
+                    ylim(None,10**1.75)
                     #axhline(y=k_B*T/1e-12, linestyle=':', alpha=0.5, color='purple') # 1e-12 b/c the axis is given in pW
                     #axvline(14.46, linestyle=':', alpha=0.5, c='k')
             if plot_params:
                 fl.next('Network Noise Power Spectral Density (Input-referred) (convolution = %0.1e Hz)'%width)
-                s.name('${S_{xx}(\\nu)}/{k_{B}T}$')
+                s.name('${S(\\nu)}/{k_{B}T}$')
                 fl.plot(s['ch',0],**plot_params)
                 #axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
                 fl.next('Network Noise Power Spectral Density, Input-referred')
-                u.name('${S_{xx}(\\nu)}/{k_{B}T}$')
+                u.name('${S(\\nu)}/{k_{B}T}$')
                 fl.plot(u['ch',0],**plot_params)
                 #axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
                 if filtering:
                     fl.next('Digitally-Filtered Network Noise Power Spectral Density, Input-referred')
-                    u_filt.name('${S_{xx}(\\nu)}/{k_{B}T}$')
+                    u_filt.name('${S(\\nu)}/{k_{B}T}$')
                     fl.plot(u_filt['ch',0]**plot_params)
                     #axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
             #}}}
@@ -522,7 +535,7 @@ for date,id_string,numchan,gain_factor in [
 #            #}}}
 #        else:
         fl.next('FULL Power Spectral Density (Input-referred) (convolution = %0.1e Hz)'%width)
-        s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
+        s.name('$S(\\nu)$').set_units('W/Hz')
 #        s_slice.name('$S_{xx}(\\nu)$').set_units('W/Hz')
         fl.plot(s['ch',0], alpha=0.35, label="%s"%label, plottype='semilogy')
         axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
