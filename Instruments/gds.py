@@ -39,7 +39,7 @@ class GDS_Channel_Properties (object):
             self.gds.write(':CHAN%d:DISP ON'%self.ch)
             self.gds.demand(":CHAN%d:DISP?"%self.ch,'ON')
             cmd = ':CHAN%d:DISP?'%self.ch
-            print "CH",self.ch," display is",bool(str(self.gds.respond(cmd)))
+            print("CH",self.ch," display is",bool(str(self.gds.respond(cmd))))
         else:
             self.gds.write(':CHAN%d:DISP OFF'%self.ch)
             self.gds.demand("CHAN%d:DISP?"%self.ch,'OFF')
@@ -59,7 +59,7 @@ class GDS_Channel_Properties (object):
         vs_str = '%0.3E'%vs
         cmd = ':CHAN%d:SCAL %f'%(self.ch,vs)
         #self.demand(':CHAN1:SCAL 100e-9',vs_str)
-        print "Setting CH",self.ch," volt scale to %s volt/div"%vs_str
+        print("Setting CH",self.ch," volt scale to %s volt/div"%vs_str)
         self.gds.write(cmd)
         return
 #        @property
@@ -80,11 +80,12 @@ class GDS_Channel_Properties (object):
 class GDS_scope (SerialInstrument):
     """Next, we can define a class for the scope, based on `pyspecdata`"""
     def __init__(self,model='3254'):
-        super(self.__class__,self).__init__('GDS-'+model)
-        logger.debug(strm("identify from within GDS",super(self.__class__,self).respond('*idn?')))
+        super().__init__('GDS-'+model)
+        print(strm("debugging -- identify from within GDS",super().respond('*idn?')))
+        logger.debug(strm("identify from within GDS",super().respond('*idn?')))
         logger.debug("I should have just opened the serial connection")
-        self.CH1 = GDS_Channel_Properties (1,self)
-        self.CH2 = GDS_Channel_Properties (2,self)
+        self.CH1 = GDS_Channel_Properties(1,self)
+        self.CH2 = GDS_Channel_Properties(2,self)
         return
     def __getitem__(self,arg):
         if arg == 0:
@@ -95,8 +96,8 @@ class GDS_scope (SerialInstrument):
             raise ValueError("There is no channel "+str(arg))
 
     def timscal(self,ts,pos=None):
-        print "Query time scale in sec/div"
-        print self.respond(':TIM:SCAL?')
+        print("Query time scale in sec/div")
+        print(self.respond(':TIM:SCAL?'))
         ts_str = ' %0.6e'%ts
         self.write(':TIM:SCAL ',ts)
         self.demand(':TIM:SCAL?',ts)
@@ -104,7 +105,7 @@ class GDS_scope (SerialInstrument):
             self.write(':TIM:POS ',pos)
             self.demand(':TIM:POS?',pos)
         #Running into matching error here, but command does work
-        print "Time scale (sec/div) is set to",self.respond(':TIM:SCAL?')
+        print("Time scale (sec/div) is set to",self.respond(':TIM:SCAL?'))
         return
     
     def acquire_mode(self,mode,num_avg=1):
@@ -134,10 +135,10 @@ class GDS_scope (SerialInstrument):
         """
         possible_avg = [2**1, 2**2, 2**3, 2**4, 2**5, 2**6, 2**7, 2**8]
         self.write(':ACQ:MOD %s'%mode)
-        print "Acquire mode is:",self.respond(':ACQ:MOD?')
+        print("Acquire mode is:",self.respond(':ACQ:MOD?'))
         if num_avg in possible_avg:
             self.write(':ACQ:AVER %d'%num_avg)
-            print "Number of averages set to:",self.respond(':ACQ:AVER?')
+            print("Number of averages set to:",self.respond(':ACQ:AVER?'))
     
     def autoset(self):
         self.write(':AUTOS')
@@ -173,7 +174,6 @@ class GDS_scope (SerialInstrument):
                 this_line += this_char
                 this_char = self.read(1)
             return this_line
-
         #Further divides settings
         preamble = upto_hashtag().split(';')
         
@@ -185,9 +185,9 @@ class GDS_scope (SerialInstrument):
         param = dict([tuple(x.split(',')) for x in preamble if len(x.split(',')) == 2])
         
         #Reads waveform data of 50,000 bytes
-        self.read(6)# length of 550000
-        data = self.read(50001)
-        assert data[-1] == '\n', "data is not followed by newline!"
+        self.read_binary(6) # length of 550000
+        data = self.read_binary(50001)
+        assert data[-1] == 10, "data is not followed by newline!, rather it's %d"%data[-1]
         data = data[:-1]
 
         # convert the binary string
@@ -224,7 +224,7 @@ class GDS_scope (SerialInstrument):
                 except:
                     pass
             return retval
-        for j in param.keys():
+        for j in list(param.keys()):
             param[j] = autoconvert_number(param[j])
         data.other_info.update(param)
         data.name(name)

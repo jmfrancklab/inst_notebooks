@@ -38,9 +38,9 @@ class gpib_usb():
         self.serial.write("++ver\r")
         versionstring = self.serial.readline()
         if versionstring[0:8]=='Prologix':
-            print 'connected to: ',versionstring
+            print('connected to: ',versionstring)
         else:
-            print 'Error! can\'t find prologix on COM%d'%(usbnumber+1)
+            print('Error! can\'t find prologix on COM%d'%(usbnumber+1))
             raise
     def close(self):
         self.serial.write('++clr'+"\r")
@@ -95,10 +95,10 @@ class gpib_usb():
         time.sleep(0.1)
         self.serial.write('++read eoi'+"\r")
         header_string = self.serial.read(8)
-        print "'"+header_string+"'\n"
-        print "reading length of length: "+header_string[-1]
+        print("'"+header_string+"'\n")
+        print("reading length of length: "+header_string[-1])
         curve_length = self.serial.read(int(header_string[-1]))
-        print "reading curve of length: "+curve_length
+        print("reading curve of length: "+curve_length)
         x = header_string[0:int(curve_length)]*dx
         return (x_unit,
                 y_unit,
@@ -127,7 +127,7 @@ class gpib_usb():
         self.write(addr,":waveform:preamble?")
         self.write(addr,"++read eoi");
         pra = self.serial.readline().split(",")
-        print 'pra=\'',pra,'\''
+        print('pra=\'',pra,'\'')
         try:
             format = int(pra[0])
             type = int(pra[1])
@@ -143,11 +143,11 @@ class gpib_usb():
             yref = int(pra[9])
         
         except IndexError:
-            print "Bad preamble recieved"
+            print("Bad preamble recieved")
             exit(1)
         
         if points != len(wfrm):
-            print "WARNING: Received less points than specified in the preamble"
+            print("WARNING: Received less points than specified in the preamble")
         
         x = ((r_[0:len(wfrm)]-xref)*xinc)+xorig
         y = ((array(wfrm)-yref)*yinc)+yorig
@@ -186,10 +186,10 @@ class eip_powermeter ():
             else:
                 retval = -999.9
             counter += 1
-            print '/',
+            print('/', end=' ')
             time.sleep(1e-4)
         if retval == -999.9:
-            print 'failed to read a power!'
+            print('failed to read a power!')
         return retval
     def close(self):
         self.g.write(self.gpibaddress,'DA')# turn on the display
@@ -201,9 +201,9 @@ class eip_powermeter ():
 #}}}
 
 #{{{ here define wrapper function that automatically identify different types of instruments
-def powermeter(comport = DEFAULTCOM,gpibaddressrange = range(1,21)):
+def powermeter(comport = DEFAULTCOM,gpibaddressrange = list(range(1,21))):
     for gpibaddress in gpibaddressrange:
-        print "trying address",gpibaddress
+        print("trying address",gpibaddress)
         g = gpib(comport - 1,timeout = 0.1) # use a timeout of half a second, otherwise this is painfully slow
         idstring = g.respond(gpibaddress,'ID')
         g.close()
@@ -223,7 +223,7 @@ class gigatronics_powermeter ():
 
         idstring = self.g.respond(self.gpibaddress,'ID') # Check ID command
         if idstring[0:4] == 'GIGA':
-            print 'idstring is',idstring
+            print('idstring is',idstring)
             self.g.write(self.gpibaddress,'TR3')        # Set Free Run Trigger Mode
             self.g.write(self.gpibaddress,'LG')         # Set Log units in dBm
             #self.g.write(self.gpibaddress,'DD')         # Display Disable
@@ -245,10 +245,10 @@ class gigatronics_powermeter ():
             else:
                 retval = -999.9
             counter += 1
-            print '/',
+            print('/', end=' ')
             time.sleep(1e-4)
         if retval == -999.9:
-            print 'failed to read a power!'
+            print('failed to read a power!')
         return retval
     
     def close(self):

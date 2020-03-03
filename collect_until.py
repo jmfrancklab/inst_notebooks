@@ -11,12 +11,12 @@ fl = figlist_var()
 def collect(date,id_string,captures):
     cap_len = len(captures)
     datalist = []
-    print "about to load GDS"
+    print("about to load GDS")
     with GDS_scope() as g:
-        print "loaded GDS"
+        print("loaded GDS")
         start = time.time()
-        for x in xrange(1,cap_len+1):
-            print "entering capture",x
+        for x in range(1,cap_len+1):
+            print("entering capture",x)
             ch1_waveform = g.waveform(ch=1)
             ch2_waveform = g.waveform(ch=2)
             data = concat([ch1_waveform,ch2_waveform],'ch').reorder('t')
@@ -39,10 +39,10 @@ def collect(date,id_string,captures):
     s.labels('capture',captures)
     s.name('accumulated_'+date)
     s.hdf5_write(date+'_'+id_string+'.h5')
-    print "name of data",s.name()
-    print "units should be",s.get_units('t')
-    print "shape of data",ndshape(s)
-    print "TIME:",end-start
+    print("name of data",s.name())
+    print("units should be",s.get_units('t'))
+    print("shape of data",ndshape(s))
+    print("TIME:",end-start)
     return
 
 date = '190201'

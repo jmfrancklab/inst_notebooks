@@ -30,7 +30,7 @@ def process_series(date,id_string,capture):
         After using the analytic signal to determine the extent of the pulse, find the min and max.
     """
     j = capture 
-    print "loading signal",j
+    print("loading signal",j)
     j_str = str(j)
     d = nddata_hdf5(date+'_'+id_string+'.h5/capture'+j_str+'_'+date,
             directory=getDATADIR(exp_type='test_equip'))
@@ -67,13 +67,13 @@ def process_series(date,id_string,capture):
     d_fundamental = d_modsq.C['t':(-20e6,20e6)]
     d_harmonics = d_modsq.C
     d_harmonics['t':(-20e6,20e6)]=0
-    print 'integrating '+id_string+' fundamental'
+    print('integrating '+id_string+' fundamental')
     fundamental_sum = d_fundamental['ch',0].integrate('t')
-    print fundamental_sum
-    print 'integrating '+id_string+' harmonics'
+    print(fundamental_sum)
+    print('integrating '+id_string+' harmonics')
     harmonics_sum = d_harmonics['ch',0].integrate('t')
-    print harmonics_sum
-    print "done loading all signals for %s"%id_string
+    print(harmonics_sum)
+    print("done loading all signals for %s"%id_string)
     fl.next('Fundamental FT')
     fl.plot(d_fundamental['ch',0], alpha=0.3,
             label='%s'%id_string)

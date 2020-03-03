@@ -4,7 +4,7 @@ from numpy.distutils.core import Extension,setup
 from distutils.spawn import find_executable
 
 ext_modules = []
-execfile('Instruments/version.py')
+exec(compile(open('Instruments/version.py', "rb").read(), 'Instruments/version.py', 'exec'))
 
 setup(
     name='francklab_instruments',

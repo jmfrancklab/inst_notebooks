@@ -2,14 +2,8 @@ from pyspecdata import *
 from scipy.optimize import leastsq,minimize
 fl = figlist_var()
 for id_string,label_string,col in [
-        ('191017_HP_calib_coupler_1','10dB coupler','orange'),
-        #('191105_HP_calib_20coupler_1','20dB coupler','purple'),
-        ('191107_HP_calib_20coupler_1','20dB coupler','green'),
-        ('191017_HP_calib_coupler_4','10dB coupler amp','purple'),
-        ('191107_HP_calib_20coupler_3','20dB coupler amp','black'),
-        ('191107_HP_calib_20coupler_3_2','20dB coupler amp','magenta'),
-        ('191107_HP_calib_20coupler_4','20dB coupler amp','blue'),
-        ('191107_HP_calib_20coupler_4_2','20dB coupler amp','cyan'),
+        ('200228_B12_TXOUT_1','measure TX out','blue'),
+        ('200228_B12_MWOUT_1','measure MW out through 20dB coupler','cyan'),
         ]:
 
     data = load(getDATADIR(exp_type='test_equip')+id_string+'.npz')
@@ -24,7 +18,7 @@ for id_string,label_string,col in [
         x_axis -= 35.0
     power_data.setaxis('set_power',x_axis)
     power_data['set_power',:] = y_axis[:]
-    print ndshape(power_data)
+    print(ndshape(power_data))
     fl.next('calib curve')
     fl.plot(power_data,'.-',label=label_string,c=col)
     #c,result = power_data.polyfit('set_power')

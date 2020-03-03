@@ -17,11 +17,11 @@ while True:
     data = conn.recv(1024)
     conn.close()
     if len(data) > 0:
-        print data.strip()
+        print(data.strip())
         field = float(data.strip())
-        print "Setting field to %f..."%field
+        print("Setting field to %f..."%field)
         exp["CenterField"].value = field
-        print "Field set to %f"%field
-        print "Waiting for next instruction"
+        print("Field set to %f"%field)
+        print("Waiting for next instruction")
     else:
-        print "None"
+        print("None")

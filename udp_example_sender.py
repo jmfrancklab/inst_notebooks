@@ -11,10 +11,10 @@ MESSAGE = "Hello, World!"
 
 use_udp = False
 
-print "target IP:", IP
-print "target port:", PORT
-print "Using UDP (vs. TCP)",use_udp
-print "message:", MESSAGE
+print("target IP:", IP)
+print("target port:", PORT)
+print("Using UDP (vs. TCP)",use_udp)
+print("message:", MESSAGE)
 
 if use_udp:
     sock = socket.socket(socket.AF_INET, # Internet

@@ -30,7 +30,7 @@ for this_num in r_[1,2]:
     fl.plot(data,alpha=0.5)
     data.ft('t')
     data['t':(None,0)] = 0
-    print "type is",data.data.dtype
+    print("type is",data.data.dtype)
     fl.next('analytic signal -- abs')
     data.ift('t')
     data *= exp(-1j*2*pi*data.fromaxis('t')*5e6)

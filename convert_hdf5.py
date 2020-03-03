@@ -38,11 +38,11 @@ if 'average' in s.dimlabels:
     s.rename('average','indirect')
 
     
-print ndshape(s)
+print(ndshape(s))
 s = s.mean('indirect',return_error=False)
 signal = s['ph1',1]['ph2',0]['ch',0]
 #signal = signal['t']
-print ndshape(signal)
+print(ndshape(signal))
 plot(signal);show()
 
 
@@ -51,7 +51,7 @@ plot(signal);show()
 
 q = open('spin_echo_180725.txt', 'wb')
 increment = 1700
-for i in xrange(2**11):
+for i in range(2**11):
     data = signal.data[i+increment]
     time = signal.getaxis('t')[i+increment]
     q.write("%f %f\n" % (time, data))
@@ -65,7 +65,7 @@ q.close()
 data = []
 time = []
 increment = 1700
-for i in xrange(2**11):
+for i in range(2**11):
     data_val = signal.data[i+increment]
     time_val = signal.getaxis('t')[i+increment]
     data.append(data_val)

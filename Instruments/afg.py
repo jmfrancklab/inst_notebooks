@@ -31,11 +31,11 @@ class AFG_Channel_Properties (object):
         """Take a numpy ndarray `data`, and set it up for AWG output
         Default rate set to 50 MHz
         """
-        print "About to output the ndarray..."
+        print("About to output the ndarray...")
         cmd = 'SOUR%d:DATA:DAC VOLATILE, '%self.ch
         cmd += self.afg.binary_block(data)
         self.afg.write(cmd)
-        print "Initial ndArray frequency set to",rate/len(data)
+        print("Initial ndArray frequency set to",rate/len(data))
         self.afg.write('SOUR%d:APPL:USER %+0.7E'%(self.ch, rate/len(data)))
         self.afg.check_idn()
         self.afg.write('SOUR%d:ARB:OUTP'%self.ch)
@@ -57,7 +57,7 @@ class AFG_Channel_Properties (object):
     @freq.setter
     def freq(self,f):
         cmd = 'SOUR%d:FREQ %+0.7E'%(self.ch, f)
-        print "About to call:",cmd
+        print("About to call:",cmd)
         self.afg.write(cmd)
         self.afg.demand('SOUR%d:FREQ?'%(self.ch), f)
         return
@@ -70,7 +70,7 @@ class AFG_Channel_Properties (object):
     @ampl.setter
     def ampl(self,amp):
         cmd = 'SOUR%d:AMP %+0.7E'%(self.ch, amp)
-        print "About to call:",cmd
+        print("About to call:",cmd)
         self.afg.write(cmd)
         self.afg.demand('SOUR%d:AMP?'%(self.ch), amp)
         return
@@ -123,7 +123,7 @@ class AFG (SerialInstrument):
     `self[0]` will return self.CH1 and `self[1]` will return self.CH2
     """
     def __init__(self,model='2225'):
-        super(self.__class__,self).__init__('AFG-'+model)
+        super().__init__('AFG-'+model)
         logger.debug(strm("identify from within AFG",super(self.__class__,self).respond('*idn?')))
         logger.debug("I should have just opened the serial connection")
         return
@@ -160,7 +160,7 @@ class AFG (SerialInstrument):
             f_chosen = thisf
         # }}}
         cmd = 'SOUR%d:APPL:SIN %0.3f%s,1,0'%(ch,f/f_chosen,unit_chosen)
-        print cmd
+        print(cmd)
         self.write(cmd)
         
         ###ALEC 2017-10-06

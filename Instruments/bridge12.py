@@ -11,7 +11,6 @@ import time
 from .HP8672A import HP8672A
 from .gpib_eth import prologix_connection
 from .log_inst import logger
-
 def generate_beep(f,dur):
     # do nothing -- can be used to generate a beep, but platform-dependent
     return
@@ -40,15 +39,15 @@ class Bridge12 (Serial):
         # Grab the port labeled as Arduino (since the Bridge12 microcontroller is an Arduino)
         cport = comports()
         if type(cport) is list and hasattr(cport[0],'device'):
-            portlist = [j.device for j in comports() if u'Arduino Due' in j.description]
-        elif type(cport.next()) is tuple:
+            portlist = [j.device for j in comports() if 'Arduino Due' in j.description]
+        elif type(next(cport)) is tuple:
             logger.debug("using fallback comport method")
-            portlist = [j[0] for j in comports() if u'Arduino Due' in j[1]]
+            portlist = [j[0] for j in comports() if 'Arduino Due' in j[1]]
         else:
             raise RuntimeError("Not sure how how to grab the USB ports!!!")
         assert len(portlist)==1, "I need to see exactly one Arduino Due hooked up to the Raspberry Pi"
         thisport = portlist[0]
-        super(self.__class__, self).__init__(thisport, timeout=3, baudrate=115200)
+        super().__init__(thisport, timeout=3, baudrate=115200)
         # this number represents the highest possible reasonable value for the
         # Rx power -- it is lowered as we observe the Tx values
         self.safe_rx_level_int = int(convert_to_mv(13.)*10+0.5)# i.e. a setting of 13 dB for the absolute threshold
@@ -62,19 +61,19 @@ class Bridge12 (Serial):
         #time.sleep(5)
         def look_for(this_str):
             for j in range(1000):
-                a = self.read_until(this_str+'\r\n')
+                a = self.read_until(this_str+'\r\n'.encode('utf-8'))
                 time.sleep(0.1)
                 #print "a is",repr(a)
-                logger.debug("look for "+str(this_str)+" try"+str(j+1))
+                logger.debug("look for "+(this_str).decode('utf-8')+" try"+str(j+1))
                 if this_str in a:
-                    logger.debug("found: "+this_str)
+                    logger.debug("found: "+this_str.decode('utf-8'))
                     break
-        look_for('MPS Started')
-        look_for('System Ready')
-        look_for('Synthesizer detected')
+        look_for('MPS Started'.encode('utf-8'))
+        look_for('System Ready'.encode('utf-8'))
+        look_for('Synthesizer detected'.encode('utf-8'))
         return
     def help(self):
-        self.write("help\r") #command for "help"
+        self.write(b"help\r") #command for "help"
         logger.info("after help:")
         entire_response = ''
         start = time.time()
@@ -89,8 +88,8 @@ class Bridge12 (Serial):
                 grab_more_lines = False
         logger.info(repr(entire_response))
     def wgstatus_int_singletry(self):
-        self.write('wgstatus?\r')
-        return int(self.readline())
+        self.write(b'wgstatus?\r')
+        return int((self.readline()).decode('utf-8'))
     def wgstatus_int(self):
         "need two consecutive responses that match"
         c = self.wgstatus_int_singletry()
@@ -111,14 +110,16 @@ class Bridge12 (Serial):
             True: DNP
             False: ESR
         """
-        self.write('wgstatus %d\r'%setting)
+        print("SETTING WG...")
+        self.write(b'wgstatus %d\r'%setting)
+        print("SET WG...")
         for j in range(10):
             result = self.wgstatus_int()
             if result == setting:
                 return
         raise RuntimeError("After checking status 10 times, I can't get the waveguide to change")
     def ampstatus_int_singletry(self):
-        self.write('ampstatus?\r')
+        self.write(b'ampstatus?\r')
         return int(self.readline())
     def ampstatus_int(self):
         "need two consecutive responses that match"
@@ -140,18 +141,18 @@ class Bridge12 (Serial):
             True: On
             False: Off
         """
-        self.write('ampstatus %d\r'%setting)
+        self.write(b'ampstatus %d\r'%setting)
         for j in range(10):
             result = self.ampstatus_int()
             if result == setting:
                 return
         raise RuntimeError("After checking status 10 times, I can't get the amplifier to turn on/off")
     def rfstatus_int_singletry(self):
-        self.write('rfstatus?\r')
+        self.write(b'rfstatus?\r')
         retval = self.readline()
         if retval.strip() == 'ERROR':
             logger.info("got an error from rfstatus, trying again")
-            self.write('rfstatus?\r')
+            self.write(b'rfstatus?\r')
             retval = self.readline()
             if retval.strip() == 'ERROR':
                 raise RuntimeError("Tried to read rfstatus twice, and got 'ERROR' both times!!")
@@ -175,14 +176,14 @@ class Bridge12 (Serial):
             True: On
             False: Off
         """
-        self.write('rfstatus %d\r'%setting)
+        self.write(b'rfstatus %d\r'%setting)
         for j in range(10):
             result = self.rfstatus_int()
             if result == setting:
                 return
         raise RuntimeError("After checking status 10 times, I can't get the mw power to turn on/off")
     def power_int_singletry(self):
-        self.write('power?\r')
+        self.write(b'power?\r')
         return int(self.readline())
     def power_int(self):
         "need two consecutive responses that match"
@@ -199,7 +200,7 @@ class Bridge12 (Serial):
         IN should not lead to anything. Be sure these are the operational
         conditions before proceeding."""
         setting = int(10*round(dBm*2)/2.+0.5)
-        self.write('power %d\r'%setting)
+        self.write(b'power %d\r'%setting)
     def set_power(self,dBm):
         """set *and check* power.  On successful completion, set `self.cur_pwr_int` to 10*(power in dBm).
 
@@ -228,7 +229,7 @@ class Bridge12 (Serial):
                 raise RuntimeError("Before you try to set the power above 10 dBm, you must first set a lower power!!!")
             if setting > 30+self.cur_pwr_int: 
                 raise RuntimeError("Once you are above 10 dBm, you must raise the power in MAX 3 dB increments.  The power is currently %g, and you tried to set it to %g -- this is not allowed!"%(self.cur_pwr_int/10.,setting/10.))
-        self.write('power %d\r'%setting)
+        self.write(b'power %d\r'%setting)
         if setting > 0: self.rxpowermv_int_singletry() # doing this just for safety interlock
         for j in range(10):
             result = self.power_int()
@@ -243,7 +244,7 @@ class Bridge12 (Serial):
             "dBm")%(setting,result))
     def rxpowermv_int_singletry(self):
         """read the integer value for the Rx power (which is 10* the value in mV).  Also has a software interlock so that if the Rx power ever exceeds self.safe_rx_level_int, then the amp shuts down."""
-        self.write('rxpowermv?\r')
+        self.write(b'rxpowermv?\r')
         retval = self.readline()
         retval = retval.strip()
         if retval == 'ERROR':
@@ -251,7 +252,7 @@ class Bridge12 (Serial):
             j = 0
             while j < 10:
                 time.sleep(10e-3)
-                self.write('rxpowermv?\r')
+                self.write(b'rxpowermv?\r')
                 retval = self.readline()
                 retval = retval.strip()
                 if retval != 'ERROR':
@@ -273,7 +274,7 @@ class Bridge12 (Serial):
             i = self.rxpowermv_int_singletry()
         return float(h)/10.
     def txpowermv_int_singletry(self):
-        self.write('txpowermv?\r')
+        self.write(b'txpowermv?\r')
         return int(self.readline())
     def txpowermv_float(self):
         "need two consecutive responses that match"
@@ -290,7 +291,7 @@ class Bridge12 (Serial):
         """Use only for setting frequency of the Bridge12 for calibration
         curve. Based off original set_freq function."""
         setting = int(Hz/1e3+0.5)
-        self.write('freq %d\r'%(setting))
+        self.write(b'freq %d\r'%(setting))
     def set_freq(self,Hz):
         """set frequency
 
@@ -305,7 +306,7 @@ class Bridge12 (Serial):
             assert Hz >= self.freq_bounds[0], "You are trying to set the frequency outside the frequency bounds, which are: "+str(self.freq_bounds)
             assert Hz <= self.freq_bounds[1], "You are trying to set the frequency outside the frequency bounds, which are: "+str(self.freq_bounds)
         setting = int(Hz/1e3+0.5)
-        self.write('freq %d\r'%(setting))
+        self.write(b'freq %d\r'%(setting))
         if self.freq_int() != setting:
             for j in range(10):
                 result = self.freq_int()
@@ -315,7 +316,7 @@ class Bridge12 (Serial):
                            "frequency to change -- result is %d setting is %d"%(result,setting))
     def freq_int(self):
         "return the frequency, in kHz (since it's set as an integer kHz)"
-        self.write('freq?\r')
+        self.write(b'freq?\r')
         return int(self.readline())
     def freq_sweep(self,freq,dummy_readings=1,fast_run=True):
         """Sweep over an array of frequencies.
@@ -466,38 +467,38 @@ class Bridge12 (Serial):
         self._inside_with_block = True
         return self
     def safe_shutdown(self):
-        print "Entering safe shut down..."
+        print("Entering safe shut down...")
         try:
             self.set_power(0)
         except Exception as e:
-            print "error on standard shutdown during set_power -- running fallback shutdown"
-            print "original error:"
-            print e
-            self.write('power %d\r'%0)
-            self.write('rfstatus %d\r'%0)
-            self.write('wgstatus %d\r'%0)
+            print("error on standard shutdown during set_power -- running fallback shutdown")
+            print("original error:")
+            print(e)
+            self.write(b'power %d\r'%0)
+            self.write(b'rfstatus %d\r'%0)
+            self.write(b'wgstatus %d\r'%0)
             self.close()
             return
         try:
             self.set_rf(False)
         except Exception as e:
-            print "error on standard shutdown during set_rf -- running fallback shutdown"
-            print "original error:"
-            print e
-            self.write('power %d\r'%0)
-            self.write('rfstatus %d\r'%0)
-            self.write('wgstatus %d\r'%0)
+            print("error on standard shutdown during set_rf -- running fallback shutdown")
+            print("original error:")
+            print(e)
+            self.write(b'power %d\r'%0)
+            self.write(b'rfstatus %d\r'%0)
+            self.write(b'wgstatus %d\r'%0)
             self.close()
             return
         try:
             self.set_wg(False)
         except Exception as e:
-            print "error on standard shutdown during set_wg -- running fallback shutdown"
-            print "original error:"
-            print e
-            self.write('power %d\r'%0)
-            self.write('rfstatus %d\r'%0)
-            self.write('wgstatus %d\r'%0)
+            print("error on standard shutdown during set_wg -- running fallback shutdown")
+            print("original error:")
+            print(e)
+            self.write(b'power %d\r'%0)
+            self.write(b'rfstatus %d\r'%0)
+            self.write(b'wgstatus %d\r'%0)
             self.close()
             return
         self.close()

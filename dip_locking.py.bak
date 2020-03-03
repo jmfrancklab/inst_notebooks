@@ -15,18 +15,17 @@ if run_bridge12:
         b.set_amp(True)
         time.sleep(5)
 
-        this_return = b.lock_on_dip(ini_range=(9.80e9,9.84e9))
+        this_return = b.lock_on_dip(ini_range=(9.72e9,9.76e9))
         #with prologix_connection() as p:
         #    with gigatronics(prologix_instance=p, address=7) as g:
         #        meter_readings.append(g.read_power())
-        print "Finished lock on dip, about to zoom"
         dip_f = this_return[2] 
-        print "Dip frequency",dip_f
-        print "Meter reading",meter_readings
+        print("Dip frequency"),dip_f
+        print("Meter reading"),meter_readings
         #for j in range(3):
         #    _,_,dip_f = b.zoom()
         b.set_freq(dip_f)
-        #b.set_power(13.0)
+        b.set_power(13.0)
         #raw_input("Minimzie RX...")
         #b.set_power(16.0)
         #raw_input("Minimzie RX...")
@@ -54,21 +53,21 @@ if run_bridge12:
 save_data = True
 if save_data:
     
-    filename = '200225_terminator_1'
+    filename = '200301_terminator_1'
     np.savez(filename+'.npz', **result)
 def plot_all(show_log_scale=True):
     figure()
+    thesecolors = cycle(list(['bgrcmyk']))
     powerlist = []
-    thesecolors = cycle(list('bgrcmyk'))
     powerlist = list(set((float(k.split('dBm')[0 ]) for k in result.keys())))
     powerlist.sort()
-    print "powerlist is",powerlist
+    #print "powerlist is",powerlist
     for power in powerlist:
         if show_log_scale:
             fmt = convert_to_power
         else:
             fmt = lambda x: x
-        thiscolor = thesecolors.next()
+        thiscolor = next(thesecolors())
         show_fits = False
         plotstyle = 'o-'
         if show_fits: plotstyle = 'o'
@@ -79,7 +78,7 @@ def plot_all(show_log_scale=True):
              label='%s'%power)
         if show_fits:
             if '%ddBm_range'%power in fits.keys():
-                print "plotting fit for",power
+     #           print "plotting fit for",power
                 f_range = fits['%ddBm_range'%power]
                 f_axis = r_[f_range[0]:f_range[1]:100j]
                 plot(f_axis,

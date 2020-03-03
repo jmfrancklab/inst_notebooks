@@ -11,15 +11,15 @@ from scipy import signal
 Beep(7000,3000)
 fl = figlist_var()
 #{{{ Initialize instruments
-print "These are the instruments available:"
+print("These are the instruments available:")
 SerialInstrument(None)
-print "done printing available instruments"
+print("done printing available instruments")
 
 with SerialInstrument('GDS-3254') as s:
-    print s.respond('*idn?')
+    print(s.respond('*idn?'))
     
 with SerialInstrument('AFG-2225') as s:
-    print s.respond('*idn?')
+    print(s.respond('*idn?'))
     #}}}
 #{{{ spin echo function with phase cycling capability
 def spin_echo(num_cycles, freq=14.46e6, p90=0.9e-6, d1=27.0e-6, T1=200e-3, max_delay=True, complex_exp=True, ph_cyc=True, field_sweep=False):
@@ -142,12 +142,12 @@ def spin_echo(num_cycles, freq=14.46e6, p90=0.9e-6, d1=27.0e-6, T1=200e-3, max_d
                 num_ph2_steps = 2
                 start_ph = time.time()
                 timer_index = 0
-                for x in xrange(num_cycles):
+                for x in range(num_cycles):
                     if field_sweep:
                         Beep(7000,1000)
-                        raw_input('Update field, then continue')
-                    for ph2 in xrange(0,4,num_ph2_steps):
-                        for ph1 in xrange(num_ph1_steps):
+                        input('Update field, then continue')
+                    for ph2 in range(0,4,num_ph2_steps):
+                        for ph1 in range(num_ph1_steps):
                             y_ph = y.copy()
                             y_ph[1:int(points_90)] *= exp(1j*ph1*pi/2)
                             y_ph[int(points_90+points_d1):-1] *= exp(1j*ph2*pi/2)
@@ -155,7 +155,7 @@ def spin_echo(num_cycles, freq=14.46e6, p90=0.9e-6, d1=27.0e-6, T1=200e-3, max_d
                             try :
                                 a[this_ch].digital_ndarray(y_ph.real, rate=rate)
                             except :
-                                print "Entering except statement..."
+                                print("Entering except statement...")
                                 time.sleep(25)
                                 a[this_ch].digital_ndarray(y_ph.real, rate=rate)
                             a[this_ch].burst = True
@@ -163,7 +163,7 @@ def spin_echo(num_cycles, freq=14.46e6, p90=0.9e-6, d1=27.0e-6, T1=200e-3, max_d
                             with GDS_scope() as g:
                                 g.acquire_mode('average',2)
                                 time.sleep(4*d_interseq)
-                                print "Acquiring..."
+                                print("Acquiring...")
                                 ch1_wf = g.waveform(ch=1)
                                 ch2_wf = g.waveform(ch=2)
                                 time_acq = time.time()
@@ -188,18 +188,18 @@ def spin_echo(num_cycles, freq=14.46e6, p90=0.9e-6, d1=27.0e-6, T1=200e-3, max_d
                             data['full_cyc',x]['ph1':ph1]['ph2':ph2]['ch',1] = ch2_wf
                             # stores time of the entire cycle (overwrites until the last cyc step)
                             data.getaxis('full_cyc')[x] = timer_axis[timer_index]
-                            print "**********"
-                            print "CYCLE NO. INDEX",x
-                            print "ph1",ph1
-                            print "ph2",ph2
-                            print "**********"
-                            print "Done acquiring"
-                            print "*** PRINTING TIMER AXIS ***"
-                            print timer_axis
+                            print("**********")
+                            print("CYCLE NO. INDEX",x)
+                            print("ph1",ph1)
+                            print("ph2",ph2)
+                            print("**********")
+                            print("Done acquiring")
+                            print("*** PRINTING TIMER AXIS ***")
+                            print(timer_axis)
                             timer_index += 1
             #}}}
-    print "*** *** *** PRINTING FINAL TIMER AXIS *** *** ***"
-    print timer_axis
+    print("*** *** *** PRINTING FINAL TIMER AXIS *** *** ***")
+    print(timer_axis)
     data.name("this_capture")
     data.hdf5_write(date+"_"+id_string+".h5")
     time_data = nddata(timer_axis,[-1],['t']).labels('t',r_[0:len(timer_axis)])
@@ -262,34 +262,34 @@ def nutation(t_90_range, spin_echo = False, freq = 14.46e6, T1 = 200e-3):
         t_tau = time_total - t_90 - t_180    # this must be held constant
         t_correction = (2*t_90/pi) + (t_180/2)
         t_interpulse = t_tau - t_correction    # decrease this until tau = constant
-        print t_tau
-        print t_correction
-        print t_interpulse
-        print "DETERMINING TAU..."
+        print(t_tau)
+        print(t_correction)
+        print(t_interpulse)
+        print("DETERMINING TAU...")
         points_180 = t_180/time_spacing 
         points_tau = t_tau/time_spacing
         points_correction = t_correction/time_spacing
         points_interpulse = t_interpulse/time_spacing
-        print points_tau
-        print points_correction
-        print points_interpulse
+        print(points_tau)
+        print(points_correction)
+        print(points_interpulse)
         time_sequence = t_90 + t_interpulse + t_180
         points_sequence = points_90 + points_interpulse + points_180
-        print time_sequence
-        print points_sequence # needs to be less than 4097
+        print(time_sequence)
+        print(points_sequence) # needs to be less than 4097
         assert (points_sequence < 4097)
         #}}}
     for i,t_90 in enumerate(t_90_range):
-        print "*** *** ENTERING INDEX %d *** ***"%i
+        print("*** *** ENTERING INDEX %d *** ***"%i)
         t_90 = t_90
         points_90 = t_90/time_spacing
-        print "LENGTH OF 90 PULSE:",t_90
+        print("LENGTH OF 90 PULSE:",t_90)
         #{{{ if single 90 pulse sequence
         if not spin_echo:
             points_seq = points_90
-            print "LENGTH OF PULSE SEQUENCE:",t_90
-            print "POINTS IN 90 PULSE:",points_90
-            print "POINTS IN PULSE SEQUENCE:",points_90
+            print("LENGTH OF PULSE SEQUENCE:",t_90)
+            print("POINTS IN 90 PULSE:",points_90)
+            print("POINTS IN PULSE SEQUENCE:",points_90)
             #}}}
         #{{{ if spin echo pulse sequence
         if spin_echo:
@@ -297,20 +297,20 @@ def nutation(t_90_range, spin_echo = False, freq = 14.46e6, T1 = 200e-3):
             t_correction = ((2/pi)*t_90) + 0.5*t_180
             t_interpulse = t_tau - t_correction
             t_total = t_90 + t_interpulse + t_180
-            print "LENGTH OF 180 PULSE:",t_180
-            print "LEGNTH OF DELAY:",t_interpulse
-            print "LENGTH OF TAU:",t_tau
-            print "LENGTH OF PULSE SEQUENCE:",t_total
+            print("LENGTH OF 180 PULSE:",t_180)
+            print("LEGNTH OF DELAY:",t_interpulse)
+            print("LENGTH OF TAU:",t_tau)
+            print("LENGTH OF PULSE SEQUENCE:",t_total)
             points_interpulse = t_interpulse/time_spacing
             points_180 = t_180/time_spacing
             points_seq = points_90 + points_interpulse + points_180
-            print "POINTS IN 90 PULSE",points_90
-            print "POINTS IN 180 PULSE",points_180
-            print "POINTS IN DELAY",points_interpulse
-            print "POINTS IN TAU",points_interpulse+t_correction/time_spacing
-            print "POINTS IN SEQUENCE:",points_seq
+            print("POINTS IN 90 PULSE",points_90)
+            print("POINTS IN 180 PULSE",points_180)
+            print("POINTS IN DELAY",points_interpulse)
+            print("POINTS IN TAU",points_interpulse+t_correction/time_spacing)
+            print("POINTS IN SEQUENCE:",points_seq)
             #}}}
-        print "*** *** GENERATING ARB WAVEFORM *** ***"
+        print("*** *** GENERATING ARB WAVEFORM *** ***")
        #generating the arbitrary waveform
         t = r_[0 : int(points_seq)]
         freq_sampling = 0.25
@@ -333,7 +333,7 @@ def nutation(t_90_range, spin_echo = False, freq = 14.46e6, T1 = 200e-3):
                 num_ph2_steps = 2
                 #{{{ if single 90 pulse sequence
                 if not spin_echo:
-                    for ph1 in xrange(num_ph1_steps):
+                    for ph1 in range(num_ph1_steps):
                         y_ph = y.copy()
                         y_ph[1:int(points_90)] *= exp(1j*ph1*pi/2)
                         a[this_ch].ampl = 20e-3
@@ -343,9 +343,9 @@ def nutation(t_90_range, spin_echo = False, freq = 14.46e6, T1 = 200e-3):
                         with GDS_scope() as g:
                             #g.acquire_mode('average',2)
                             time.sleep(4*d_interseq)
-                            print "**********"
-                            print "ACQUIRING PH1",ph1
-                            print "**********"
+                            print("**********")
+                            print("ACQUIRING PH1",ph1)
+                            print("**********")
                             ch1_wf = g.waveform(ch=1)
                             ch2_wf = g.waveform(ch=2)
                             #g.acquire_mode('sample')
@@ -359,12 +359,12 @@ def nutation(t_90_range, spin_echo = False, freq = 14.46e6, T1 = 200e-3):
                             data['t_90',i]['ph1':ph1]['ch',0] = ch1_wf
                             data['t_90',i]['ph1':ph1]['ch',1] = ch2_wf
                             data.getaxis('t_90')[i] = t_90
-                            print "DONE ACQUIRING"
+                            print("DONE ACQUIRING")
                             #}}}
                 #{{{ if spin echo pulse sequence
                 if spin_echo:
-                    for ph2 in xrange(0,4,num_ph2_steps):
-                        for ph1 in xrange(num_ph1_steps):
+                    for ph2 in range(0,4,num_ph2_steps):
+                        for ph1 in range(num_ph1_steps):
                             y_ph = y.copy()
                             y_ph[1:int(points_90)] *= exp(1j*ph1*pi/2)
                             y_ph[int(points_90+points_interpulse):-1] *= exp(1j*ph2*pi/2)
@@ -377,9 +377,9 @@ def nutation(t_90_range, spin_echo = False, freq = 14.46e6, T1 = 200e-3):
                                     Beep(9200,2000)
                                 g.acquire_mode('average',2)
                                 time.sleep(4*d_interseq)
-                                print "**********"
-                                print "ACQUIRING PH1",ph1,"PH2",ph2
-                                print "**********"
+                                print("**********")
+                                print("ACQUIRING PH1",ph1,"PH2",ph2)
+                                print("**********")
                                 ch1_wf = g.waveform(ch=1)
                                 ch2_wf = g.waveform(ch=2)
                                 g.acquire_mode('sample')
@@ -394,10 +394,10 @@ def nutation(t_90_range, spin_echo = False, freq = 14.46e6, T1 = 200e-3):
                                 data['t_90',i]['ph1':ph1]['ph2':ph2]['ch',0] = ch1_wf
                                 data['t_90',i]['ph1':ph1]['ph2':ph2]['ch',1] = ch2_wf
                                 data.getaxis('t_90')[i] = t_90
-                                print "DONE ACQUIRING"
+                                print("DONE ACQUIRING")
                                 #}}}
                     Beep(11000,2000)
-    print "*** DATA COLLECTION FINISHED ***"
+    print("*** DATA COLLECTION FINISHED ***")
     data.name("this_capture")
     data.hdf5_write(date+"_"+id_string+".h5")
     return

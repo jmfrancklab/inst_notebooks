@@ -23,29 +23,29 @@ for date, id_string,corrected_volt in [
         d['ch',0] *= 0.5
     fl.plot(d['ch',0],alpha=0.5,label='control') # turning off human
             #           units forces plot in just V
-<<<<<<< HEAD
     fl.plot(d['ch',1], alpha=0.5, label='reflection')
-    #fl.show();quit()
-=======
-    fl.plot(d['ch',1],alpha=0.5,label='reflection')
->>>>>>> 2e77ea9831de8d522b91357d626920f9e5e16ddb
     # }}}
-    # {{{ determining center frequency and convert to analytic signal, show analytic signal
+    # {{{ determining center frequency and convert to
+    # analytic signal, show analytic signal
     d.ft('t',shift=True) #Fourier Transform into freq domain
-    d = d['t':(0,None)] # throw out negative frequencies and low-pass
+    d = 2*d['t':(0,None)] # throw out negative frequencies and low-pass (analytic signal -- 2 to preserve magnitude)
+    #to negated the "1/2" in "(1/2)(aexp[iwt]+a*exp[-iwt])
     center_frq = abs(d['ch',0]).argmax('t').item() # the center frequency is now the max of the freq peak    
     print("initial guess at center frequency at %0.5f MHz"%(center_frq/1e6))
     print(center_frq)
     d.ift('t') #Inverse Fourier Transform back to time domain to display the decaying exponential
-    d *= 2 #to negated the "1/2" in "(1/2)(aexp[iwt]+a*exp[-iwt])
     fl.next('Absolute value of analytic signal, %s'%id_string)
     fl.plot(abs(d['ch',0]), alpha=0.5, label='control') #plot the 'envelope' of the control 
     fl.plot(abs(d['ch',1]), alpha=0.5, label='reflection') #plot the 'envelope' of the reflection so no more oscillating signal
     # }}}
-    # {{{ determine the start and stop points for both the pulse, as well as the two tuning blip
+    # {{{ determine the start and stop points for both
+    # the pulse, as well as the two tuning blips
     pulse_range = abs(d['ch',0]).contiguous(lambda x:  # returns list of limits for which the lambda function holds true
             x > 0.5*x.data.max())                      # So will define pulse_range as all x values where the signal goes 
                                                        # above half the max of the signal
+    #pulse_range = array(j for j in pulse_range if
+    #        diff(j).item() > 0.1e-6)
+    # RATHER -- use numpy
     def filter_range(thisrange):                      
         mask = diff(thisrange, axis=1) > 0.1e-6 * ones((1,2))  #filters out when the signal only goes 0.1-0.2 us above half max
         thisrange = thisrange[mask].reshape((-1,2))
@@ -85,7 +85,7 @@ for date, id_string,corrected_volt in [
     # perform and store 1000 frequency de-modulations of signal
     t_shift = nddata(t_shift_testvals,'t_shift')
     # perform and store 1000 time shifts 
-    test_data = d['ch',0].C * exp(-1j*2*pi*t_shift*d.fromaxis('t'))
+    test_data = d['ch',0] * exp(-1j*2*pi*t_shift*d.fromaxis('t'))
     #apply t shift to control data
     test_data_ph = test_data.C.sum('t')
     test_data_ph /= abs(test_data_ph)
