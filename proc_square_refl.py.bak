@@ -15,7 +15,7 @@ for date, id_string,corrected_volt in [
    
     d = nddata_hdf5(date+'_'+id_string+'.h5/capture1',
                 directory=getDATADIR(exp_type='test_equip'))
-    print((d.get_units('t')))
+    print(d.get_units('t'))
     d.set_units('t','s')
     d.name('Amplitude').set_units('V')
     fl.next('Raw signal %s'%id_string)
@@ -31,7 +31,7 @@ for date, id_string,corrected_volt in [
     d = 2*d['t':(0,None)] # throw out negative frequencies and low-pass (analytic signal -- 2 to preserve magnitude)
     #to negated the "1/2" in "(1/2)(aexp[iwt]+a*exp[-iwt])
     center_frq = abs(d['ch',0]).argmax('t').item() # the center frequency is now the max of the freq peak    
-    print(("initial guess at center frequency at %0.5f MHz"%(center_frq/1e6)))
+    print("initial guess at center frequency at %0.5f MHz"%(center_frq/1e6))
     print(center_frq)
     d.ift('t') #Inverse Fourier Transform back to time domain to display the decaying exponential
     fl.next('Absolute value of analytic signal, %s'%id_string)
@@ -52,8 +52,8 @@ for date, id_string,corrected_volt in [
         return thisrange
     pulse_range = filter_range(pulse_range)
     if not pulse_range.shape[0] == 1:
-        print(("seems to be more than one pulse -- on starting at " 
-                + ','.join(('start '+str(j[0])+' length '+str(diff(j)) for j in pulse_range))))   # If there is more than one section that goes above half max
+        print("seems to be more than one pulse -- on starting at " 
+                + ','.join(('start '+str(j[0])+' length '+str(diff(j)) for j in pulse_range)))   # If there is more than one section that goes above half max
                                                                                                  # it assumes theres more than one pulse 
       
     pulse_range = pulse_range[0,:]
@@ -75,7 +75,7 @@ for date, id_string,corrected_volt in [
     center_frq = test_array.sum('t').run(abs).argmax('f_test').item()
     # when modulating by same frequency of the waveform,
     # abs(sum(waveform)) will be a maximum
-    print(("found center frequency at %0.5f MHz"%(center_frq/1e6)))
+    print("found center frequency at %0.5f MHz"%(center_frq/1e6))
     # }}}
     # {{{ creates demodulated reflection 
     d.ft('t') #Fourier Transform into freq domain
