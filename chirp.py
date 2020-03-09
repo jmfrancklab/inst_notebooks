@@ -1,4 +1,4 @@
-#{{{ Program doc
+#f{ Program doc
 r'''Use this program to capture a single S11 (reflection) measurement
     Must use the appropriate set up of the power splitter (PS) and
     reference channel (CH1). Set up as follows (also see AAB-2, 7/12/2018
@@ -159,7 +159,7 @@ while try_again:
     data_name = 'capture%d'%j
     data.name(data_name)
     try:
-        data.hdf5_write('200213_alex_coil2.h5')
+        data.hdf5_write('200309_chirp_coilb.h5')
         try_again = False
     except Exception as e:
         print(e)
