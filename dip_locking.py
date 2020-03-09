@@ -15,7 +15,7 @@ if run_bridge12:
         b.set_amp(True)
         time.sleep(5)
 
-        this_return = b.lock_on_dip(ini_range=(9.72e9,9.76e9))
+        this_return = b.lock_on_dip(ini_range=(9.71e9,9.74e9))
         #with prologix_connection() as p:
         #    with gigatronics(prologix_instance=p, address=7) as g:
         #        meter_readings.append(g.read_power())
@@ -45,10 +45,10 @@ if run_bridge12:
         input("Minimzie RX...")
         b.set_power(36.0)
         input("Minimzie RX...")
-        b.set_power(39.0)
-        input("Minimzie RX...")
-        b.set_power(40.0)
-        input("Minimzie RX...")
+        #b.set_power(39.0)
+        #input("Minimzie RX...")
+        #b.set_power(40.0)
+        #input("Minimzie RX...")
         result = b.tuning_curve_data
         
         
