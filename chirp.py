@@ -96,7 +96,7 @@ print(("Will set amplitude to:",ref_amp,"V"))
 #{{{ Generating arbitrary waveform
 if pulse_90:
     freq = 14.86e6 #[Hz]
-    t_90 = 3*1.24e-6 #[micro sec]
+    t_90 = 10e-6 #[micro sec]
     freq_carrier = freq     #[Hz] rf pulse frequency
     points_total = 4096     #[pts] total points, property of AFG
     rate = freq_carrier*4   #[pts/sec] AFG requires for arb waveform
@@ -113,9 +113,9 @@ if pulse_90:
     y = exp(1j*2*pi*t[1 : -1]*freq_sampling)
     y[0] = 0
     y[-1] = 0
-if not pulse_90: # standard chirp
-    t = r_[0:4096]
-    y = imag(exp(1j*2*pi*0.25*(1-0.5/4096.*t)*t))
+#if not pulse_90: # standard chirp
+    #t = r_[0:4096]
+    #y = imag(exp(1j*2*pi*0.25*(1-0.5/4096.*t)*t))
     #}}}
 with AFG() as a:
     a.reset()

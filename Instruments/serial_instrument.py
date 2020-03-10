@@ -51,6 +51,17 @@ class SerialInstrument (object):
         logger.debug(strm("when trying to write, port looks like this:",self.connection))
         self.connection.write((text+'\n').encode('utf-8'))
         return
+    def write(self,*args):
+        """Send info to the instrument.  Take a comma-separated list of
+        arguments, which are converted to strings and separated by a space,
+        and then converted to a byte string.
+        (Similar to a print command, but directed at the instrument)"""
+        text = b' '.join(j if type(j) is bytes else j.encode('utf-8')
+                for j in
+                (str(k) if type(k) is not bytes else k for k in args))
+        logger.debug(strm("when trying to write, port looks like this:",self.connection))
+        self.connection.write(text+b'\n')
+        return
     def read(self, *args, **kwargs):
         retval = self.connection.read(*args, **kwargs)
         return retval.decode('utf-8')

@@ -52,7 +52,7 @@ class Bridge12 (Serial):
         # Rx power -- it is lowered as we observe the Tx values
         self.safe_rx_level_int = int(convert_to_mv(13.)*10+0.5)# i.e. a setting of 13 dB for the absolute threshold
         # this is where the safe threshold is!!
-        if self.safe_rx_level_int > 5000: self.safe_rx_level_int = 7000 # changing this from 5000 to 6000
+        if self.safe_rx_level_int > 5000: self.safe_rx_level_int = 9000 # changing this from 5000 to 6000
         self.frq_sweep_10dBm_has_been_run = False
         self.tuning_curve_data = {}
         self._inside_with_block = False
