@@ -148,7 +148,7 @@ with GDS_scope() as g:
     #    g[this_ch].voltscal = volt_scale
     print("loaded GDS")
     g.acquire_mode('average',32)
-    eval(input("Wait for averaging to relax..."))
+    input("Wait for averaging to relax...")
     for j in range(1,3):
         print(("trying to grab data from channel",j))
         datalist.append(g.waveform(ch=j))

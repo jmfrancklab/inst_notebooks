@@ -30,7 +30,7 @@ class SerialInstrument (object):
             If textidn is set to None, just show the available instruments.
         """
         self._textidn = textidn
-        self._id_attempts_left = 3 
+        self._id_attempts_left = 12
         if textidn is None:
             self.show_instruments()
         else:
