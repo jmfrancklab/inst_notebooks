@@ -1,5 +1,6 @@
 from pyspecdata import *
 from scipy.optimize import leastsq
+init_logging(level='debug')
 # 2to3 JF 1/31
 
 fl = figlist_var()
