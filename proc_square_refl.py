@@ -21,9 +21,9 @@ for date, id_string,corrected_volt in [
     fl.next('Raw signal %s'%id_string)
     if date == '200213':
         d['ch',0] *= 0.5
-    #fl.plot(d['ch',0],alpha=0.5,label='control') # turning off human
-            #           units forces plot in just V
-    #fl.plot(d['ch',1], alpha=0.5, label='reflection')
+    fl.plot(d['ch',0],alpha=0.5,label='control') # turning off human
+                                                 #units forces plot in just V
+    fl.plot(d['ch',1], alpha=0.5, label='reflection')
     # }}}
     # {{{ determining center frequency and convert to
     # analytic signal, show analytic signal
