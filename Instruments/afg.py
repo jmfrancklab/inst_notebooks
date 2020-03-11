@@ -32,9 +32,9 @@ class AFG_Channel_Properties (object):
         Default rate set to 50 MHz
         """
         print("About to output the ndarray...")
-        cmd = 'SOUR%d:DATA:DAC VOLATILE, '%self.ch
-        cmd += self.afg.binary_block(data)
-        self.afg.write(cmd)
+        cmd = ['SOUR%d:DATA:DAC VOLATILE,'%self.ch]
+        cmd += [self.afg.binary_block(data)]
+        self.afg.write(*cmd)
         print("Initial ndArray frequency set to",rate/len(data))
         self.afg.write('SOUR%d:APPL:USER %+0.7E'%(self.ch, rate/len(data)))
         self.afg.check_idn()
@@ -218,7 +218,7 @@ class AFG (SerialInstrument):
         data_len = len(data)
         data_len = str(data_len)
         assert (len(data_len) < 10), "the number describing the data length must be less than ten digits long, but your data length is "+data_len
-        initialization = '#'+str(len(data_len))+data_len
+        initialization = b'#'+str(len(data_len)).encode('ascii')+data_len.encode('ascii')
         return initialization+data
     def set_sweep(self, start=3e3, stop=5e3, time=1, ch=1):
         assert time>=1e-3, "It seems like the AFG will only allow time values set to 1ms or higher"
