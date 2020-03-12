@@ -95,8 +95,8 @@ print "Will set amplitude to:",ref_amp,"V"
     #}}}
 #{{{ Generating arbitrary waveform
 if pulse_90:
-    freq = 14.86e6 #[Hz]
-    t_90 = 10e-6 #[micro sec]
+    freq = 14.89e6 #[Hz]
+    t_90 = 6.15e-6 #[micro sec]
     freq_carrier = freq     #[Hz] rf pulse frequency
     points_total = 4096     #[pts] total points, property of AFG
     rate = freq_carrier*4   #[pts/sec] AFG requires for arb waveform
@@ -160,7 +160,7 @@ while try_again:
     data_name = 'capture%d'%j
     data.name(data_name)
     try:
-        data.hdf5_write('200309_chirp_coilb.h5')
+        data.hdf5_write('200312_chirp_coile.h5')
         try_again = False
     except Exception as e:
         print e
