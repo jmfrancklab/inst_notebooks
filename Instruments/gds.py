@@ -183,7 +183,7 @@ class GDS_scope (SerialInstrument):
         
         #Generates list of parameters in the preamble
         param = dict([tuple(x.split(',')) for x in preamble if len(x.split(',')) == 2])
-        
+
         #Reads waveform data of 50,000 bytes
         self.read_binary(6) # length of 550000
         data = self.read_binary(50001)
@@ -193,12 +193,12 @@ class GDS_scope (SerialInstrument):
         # convert the binary string
         data_array = fromstring(data,dtype='i2')
         data_array =  double(data_array)/double(2**(2*8-1))
-
         # I could do the following
         #x_axis = r_[0:len(data_array)] * float(param['Sampling Period'])
         # but since I'm "using up" the sampling period, do this:
         x_axis = r_[0:len(data_array)] * float(param.pop('Sampling Period'))
         # r_[... is used by numpy to construct arrays on the fly
+
 
         # Similarly, use V/div scale to scale the y values of the data
         data_array *= float(param.pop('Vertical Scale'))/0.2 # we saw
