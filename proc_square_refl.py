@@ -11,7 +11,7 @@ for date, id_string,corrected_volt in [
         #('181001','sprobe_t4',True),
         #('181103','probe',True),
         #('200110','pulse_2',True),
-        ('200213','alex_coil2',True),
+        ('200312','chirp_coile',True),
         ]:
     d = nddata_hdf5(date+'_'+id_string+'.h5/capture1',
                 directory=getDATADIR(exp_type='test_equip'))
@@ -19,12 +19,13 @@ for date, id_string,corrected_volt in [
     d.set_units('t','s')
     d.name('Amplitude').set_units('V')
     fl.next('Raw signal %s'%id_string)
-    if date == '200213':
+    if date == '200312':
         d['ch',0] *= 0.5
     print("the t axis looks like this:",d.getaxis('t'))
     fl.plot(d['ch',0],alpha=0.5,label='control') # turning off human
                                                  #units forces plot in just V
     fl.plot(d['ch',1], alpha=0.5, label='reflection')
+    fl.show();quit()
     # }}}
     # {{{ determining center frequency and convert to
     # analytic signal, show analytic signal
