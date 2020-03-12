@@ -1,5 +1,6 @@
 from pyspecdata import *
 from scipy.optimize import leastsq
+init_logging(level='debug')
 # 2to3 JF 1/31
 
 fl = figlist_var()
@@ -12,7 +13,6 @@ for date, id_string,corrected_volt in [
         #('200110','pulse_2',True),
         ('200213','alex_coil2',True),
         ]:
-   
     d = nddata_hdf5(date+'_'+id_string+'.h5/capture1',
                 directory=getDATADIR(exp_type='test_equip'))
     print((d.get_units('t')))
@@ -21,6 +21,7 @@ for date, id_string,corrected_volt in [
     fl.next('Raw signal %s'%id_string)
     if date == '200213':
         d['ch',0] *= 0.5
+    print("the t axis looks like this:",d.getaxis('t'))
     fl.plot(d['ch',0],alpha=0.5,label='control') # turning off human
                                                  #units forces plot in just V
     fl.plot(d['ch',1], alpha=0.5, label='reflection')
