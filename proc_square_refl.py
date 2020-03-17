@@ -11,7 +11,8 @@ for date, id_string,corrected_volt in [
         #('181001','sprobe_t4',True),
         #('181103','probe',True),
         #('200110','pulse_2',True),
-        ('200312','chirp_coile',True),
+        #('200312','chirp_coile_4',True),
+        ('200103','pulse_1',True),
         ]:
     d = nddata_hdf5(date+'_'+id_string+'.h5/capture1',
                 directory=getDATADIR(exp_type='test_equip'))
@@ -19,13 +20,13 @@ for date, id_string,corrected_volt in [
     d.set_units('t','s')
     d.name('Amplitude').set_units('V')
     fl.next('Raw signal %s'%id_string)
-    if date == '200312':
+    if date == '191212':
         d['ch',0] *= 0.5
     print("the t axis looks like this:",d.getaxis('t'))
     fl.plot(d['ch',0],alpha=0.5,label='control') # turning off human
                                                  #units forces plot in just V
     fl.plot(d['ch',1], alpha=0.5, label='reflection')
-    fl.show();quit()
+    #fl.show();quit()
     # }}}
     # {{{ determining center frequency and convert to
     # analytic signal, show analytic signal
@@ -39,6 +40,7 @@ for date, id_string,corrected_volt in [
     fl.next('Absolute value of analytic signal, %s'%id_string)
     fl.plot(abs(d['ch',0]), alpha=0.5, label='control') #plot the 'envelope' of the control 
     fl.plot(abs(d['ch',1]), alpha=0.5, label='reflection') #plot the 'envelope' of the reflection so no more oscillating signal
+    #fl.show();quit()
     # }}}
     # {{{ determine the start and stop points for both
     # the pulse, as well as the two tuning blips
@@ -56,7 +58,7 @@ for date, id_string,corrected_volt in [
     if not pulse_range.shape[0] == 1:
         print(("seems to be more than one pulse -- on starting at " 
                 + ','.join(('start '+str(j[0])+' length '+str(diff(j)) for j in pulse_range))))   # If there is more than one section that goes above half max
-                                                                                                 # it assumes theres more than one pulse 
+# it assumes theres more than one pulse 
       
     pulse_range = pulse_range[0,:]
     fl.plot(abs(d['ch',0]['t':tuple(pulse_range)]), alpha=0.1, color='k',  #shades in the section of pulse range (above half max) for 
@@ -68,6 +70,7 @@ for date, id_string,corrected_volt in [
     for thisrange in refl_blip_ranges:
         fl.plot(abs(d['ch',1]['t':tuple(thisrange)]), alpha=0.1, color='k',
                 linewidth=10)
+        #fl.show();quit()
     # }}}
     # {{{ apply a linear phase to find the frequency of the pulse (control)
     f_shift = nddata(r_[-0.1e6:0.1e6:200j]+center_frq,'f_test')
@@ -94,6 +97,7 @@ for date, id_string,corrected_volt in [
     test_data /= test_data_ph
     test_data.run(real).run(abs).sum('t')
     fl.plot(test_data,'.')
+    #fl.show();quit()
     #Cost function to correct zeroth order phasing
     pulse_start = test_data.argmin('t_shift').data
     #all data is now starting at min of t
@@ -146,6 +150,7 @@ for date, id_string,corrected_volt in [
     #for j in range(2):
         #ph0 = zeroth_order_ph(d['ch',j], plot_name='phasing')
         #d['ch',j] /= ph0
+        # }}}
     fl.next('demodulated and phased data')
     #d = d['t':(2e-06,4e-06)]
     for j in range(2):
@@ -153,6 +158,7 @@ for date, id_string,corrected_volt in [
                 alpha=0.5)
         fl.plot(d['ch',j].imag, label='channel %d imag'%j,
                 alpha=0.5)
+        #fl.show();quit()
     d.setaxis('t',lambda x: x-pulse_start)
     print("NOTE!!! the demodulated reflection looks bad -- fix it")
     # to use the phase of the reference to set both, we could do:
@@ -189,9 +195,14 @@ for date, id_string,corrected_volt in [
     fl.plot(response.imag, alpha=0.5, label='response, imag')
     fl.plot(abs(response), alpha=0.3, linewidth=3, label='response, abs')
     fl.next('Plotting the decay slice')
-    d.ift('t') # Inverse Fourier Transform into t domain
-    decay = d['ch',1]['t':(refl_blip_ranges[0,0],
+    d.ift('t')
+    #print(nddata(refl_blip_ranges))
+    
+    #quit()# Inverse Fourier Transform into t domain
+    decay = d['ch',1]['t':(3.8234e-6,
         0.5*(refl_blip_ranges[0,1]+refl_blip_ranges[1,0]))]
+    #fl.plot(decay)
+    #fl.show();quit()
     # slice out a range from the start of the first
     # blip up to halfway between the END of the first
     # blip and the start of the second
