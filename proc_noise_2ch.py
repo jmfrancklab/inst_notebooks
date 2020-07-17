@@ -472,6 +472,8 @@ for date,id_string,numchan,gain_factor in [
                 if filtering:
                     fl.next('Digitally-Filtered Network Noise Power Spectral Density,\n Input-referred ($\sigma$=%0.3f kHz)'%(width*1e-3))
                     u_filt.name('${S_{xx}(\\nu)}/{k_{B}T}$')
+                    u_filt=u_filt['t':(None,45e6)]
+                    
                     fl.plot(u_filt['ch',0],alpha=0.35,label='%s'%label,plottype='semilogy')
                     #axhline(y=k_B*T/1e-12, linestyle=':', alpha=0.5, color='purple') # 1e-12 b/c the axis is given in pW
                     #axvline(14.46, linestyle=':', alpha=0.5, c='k')
@@ -540,5 +542,7 @@ for date,id_string,numchan,gain_factor in [
         #    print "*** EXITING:",id_string,"***"
         #print "error is %0.12f"%(((power_dens_CH1_dict['sine_pomona_dpx_cascade12_2CH'] - power_dens_CH1_dict['noise_pomona_dpx_cascade12_2CH'] - power_dens_CH2_dict['sine_pomona_dpx_cascade12_2CH'])/power_dens_CH2_dict['sine_pomona_dpx_cascade12_2CH'])*100)
         #}}}
+legend()
+savefig('noise_PSDs_200717.pdf',transparent=True,bbox_inches='tight',pad_inches=0)
 fl.show()
 
