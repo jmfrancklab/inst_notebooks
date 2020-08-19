@@ -95,11 +95,12 @@ def gen_pulse(freq=14.46e6, width=4e-6, ch1_only=True):
         for this_ch in range(1):
             a[this_ch].burst = True
             a.set_burst(per=100e-3) #effectively sets duty cycle (100msec b/w bursts)
-#            set_amp = 1
-            for acq_no,set_amp in list(acq_amp_dict.items()):
-               a[this_ch].ampl=set_amp
-               input("Adjust scope settings, continue")
-               acquire(acq_no)
+            #set_amp = 1
+            #for acq_no,set_amp in list(acq_amp_dict.items()):
+            #   a[this_ch].ampl=set_amp
+            #   input("Adjust scope settings, continue")
+            #   acquire(acq_no)
+print("Generating pulse...")
 gen_pulse()
 end = timer()
 print("time:",(end-start),"s")
