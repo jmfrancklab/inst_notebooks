@@ -71,7 +71,7 @@ def acquire(x):
     fl.plot(data)
     return
 
-def gen_pulse(freq=14.46e6, width=4e-6, ch1_only=True):
+def gen_pulse(freq=14.8e6, width=4e-6, ch1_only=True):
     with AFG() as a:
         a.reset()
         rate = freq*4
