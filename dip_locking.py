@@ -14,7 +14,7 @@ if run_bridge12:
         b.set_rf(True)
         b.set_amp(True)
         time.sleep(5)
-        this_return = b.lock_on_dip(ini_range=(9.83e9,9.86e9))
+        this_return = b.lock_on_dip(ini_range=(9.846e9,9.855e9))
         #with prologix_connection() as p
         #    with gigatronics(prologix_instance=p, address=7) as g:
         #        meter_readings.append(g.read_power())
@@ -76,9 +76,9 @@ def plot_all(show_log_scale=True):
         if show_fits: plotstyle = 'o'
         plot(result['%ddBm_freq'%power],
              fmt(result['%ddBm_rx'%power]),
-             plotstyle,
-             
-             label='%s'%power)
+             plotstyle,label='%s'%power)
+        ylabel('Power (dBm)')
+        xlabel('Frequency (Hz)')
         if show_fits:
             if '%ddBm_range'%power in list(fits.keys()):
      #           print "plotting fit for",power
@@ -87,5 +87,6 @@ def plot_all(show_log_scale=True):
                 plot(f_axis,
                         fmt(fits['%ddBm_func'%power](f_axis)),
                         '-')
+
                         #color=thiscolor)
 plot_all();legend()

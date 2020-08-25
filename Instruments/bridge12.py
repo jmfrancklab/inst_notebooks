@@ -193,7 +193,7 @@ class Bridge12 (Serial):
             h = i
             i = self.power_int_singletry()
         return h
-    def calib_set_power(self,dBm):
+    def calit_power(self,dBm):
         """This bypasses all safeties of the bridge12 and is to be used ONLY
         for running a calibration curve -- this is because we are not actually
         measuring any amplified output power, we are only looking at TX OUT. TX
@@ -346,6 +346,10 @@ class Bridge12 (Serial):
                 raise ValueError("You must run the frequency sweep for the first time at 10 dBm")
         #FREQUENCY AND RXPOWER SWEEP
         for j in range(dummy_readings):
+            print("*** *** ***")
+            print(freq)
+            print(freq[0])
+            print("*** *** ***")
             self.set_freq(freq[0])  #is this what I would put here (the 'f')?
             time.sleep(10e-3) # allow synthesizer to settle
             _ = self.txpowermv_float()
@@ -418,6 +422,9 @@ class Bridge12 (Serial):
         self.set_power(11.0) # move to 11 dBm, just to distinguish the trace name
         self.freq_bounds = freq[r_[start_dip[largest_dip_idx],stop_dip[largest_dip_idx]]]
         freq_axis = r_[self.freq_bounds[0]:self.freq_bounds[1]:15j]
+        print("*** *** *** *** ***")
+        print(freq_axis)
+        print("*** *** *** *** ***")
         rx, tx = self.freq_sweep(freq_axis, fast_run=True)
         return self.zoom(dBm_increment=2,n_freq_steps=n_freq_steps)
     def zoom(self, dBm_increment=2, n_freq_steps=15):
