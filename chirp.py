@@ -36,7 +36,7 @@ with SerialInstrument('AFG-2225') as s:
     print((s.respond('*idn?')))
 
 
-pulse_90 = True
+pulse_90 = False
 
 #{{{ no sys var = default (3 Vpp), 0 = define amplitudes, 1 = choose from amplitudes
 default = True
@@ -113,9 +113,9 @@ if pulse_90:
     y = exp(1j*2*pi*t[1 : -1]*freq_sampling)
     y[0] = 0
     y[-1] = 0
-#if not pulse_90: # standard chirp
-    #t = r_[0:4096]
-    #y = imag(exp(1j*2*pi*0.25*(1-0.5/4096.*t)*t))
+if not pulse_90: # standard chirp
+    t = r_[0:4096]
+    y = imag(exp(1j*2*pi*0.25*(1-0.5/4096.*t)*t))
     #}}}
 with AFG() as a:
     a.reset()
@@ -159,7 +159,7 @@ while try_again:
     data_name = 'capture%d'%j
     data.name(data_name)
     try:
-        data.hdf5_write('200312_chirp_coile_4.h5')
+        data.hdf5_write('201021_chirp_coile_1.h5')
         try_again = False
     except Exception as e:
         print(e)
