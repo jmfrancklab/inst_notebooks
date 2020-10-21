@@ -96,7 +96,7 @@ print(("Will set amplitude to:",ref_amp,"V"))
 #{{{ Generating arbitrary waveform
 if pulse_90:
     freq = 14.86e6 #[Hz]
-    t_90 = 6e-6 #[micro sec]
+    t_90 = 7e-6 #[micro sec]
     freq_carrier = freq     #[Hz] rf pulse frequency
     points_total = 4096     #[pts] total points, property of AFG
     rate = freq_carrier*4   #[pts/sec] AFG requires for arb waveform
@@ -143,9 +143,9 @@ print("about to load GDS")
 #raw_input("Turn on RF amp") 
 
 with GDS_scope() as g:
-    #g.timscal(5e-6)  #set to 5 microsec/div
-    #for this_ch in range(2):
-    #    g[this_ch].voltscal = volt_scale
+    g.timscal(5e-6)  #set to 5 microsec/div
+    for this_ch in range(2):
+        g[this_ch].voltscal = volt_scale
     print("loaded GDS")
     g.acquire_mode('average',32)
     input("Wait for averaging to relax...")
