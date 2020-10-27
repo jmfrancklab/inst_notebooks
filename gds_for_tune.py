@@ -1,9 +1,9 @@
 # note -- this was the original copy -- please see the spincore repo for the up to date version that calls tune, as well
-from Instruments import *
+#from Instruments import *
 from pyspecdata import *
 import time
-from serial.tools.list_ports import comports
-import serial
+#from serial.tools.list_ports import comports
+#import serial
 from scipy import signal
 
 fl = figlist_var()
