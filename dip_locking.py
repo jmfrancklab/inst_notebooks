@@ -15,7 +15,7 @@ if run_bridge12:
         b.set_amp(True)
     
         time.sleep(5)
-        this_return = b.lock_on_dip(ini_range=(9.81e9,9.84e9))
+        this_return = b.lock_on_dip(ini_range=(9.815e9,9.83e9))
         #with prologix_connection() as p
         #    with gigatronics(prologix_instance=p, address=7) as g:
         #        meter_readings.append(g.read_power())
@@ -27,12 +27,12 @@ if run_bridge12:
         b.set_freq(dip_f)
         b.set_power(13.0)
         input("Minimzie RX...") 
-        b.set_power(16.0)
-        input("Minimzie RX...")
-        b.set_power(19.0)
-        input("Minimzie RX...")
-        b.set_power(22.0)
-        input("Minimzie RX...")
+        #b.set_power(16.0)
+        #input("Minimzie RX...")
+        #b.set_power(19.0)
+        #input("Minimzie RX...")
+        #b.set_power(22.0)
+        #input("Minimzie RX...")
         #b.set_power(25.0)
         #input("Minimzie RX...")
         #b.set_power(28.0)
@@ -55,11 +55,11 @@ if run_bridge12:
         
         
         #fits = b.fit_data
-save_data = True
+save_data = False
 if save_data:
-    
     filename = '200301_terminator_1'
     np.savez(filename+'.npz', **result)
+
 def plot_all(show_log_scale=True):
     figure()
     #thesecolors = cycle('bgrcmyk')
@@ -92,3 +92,4 @@ def plot_all(show_log_scale=True):
 
                         #color=thiscolor)
 plot_all();legend()
+show()
