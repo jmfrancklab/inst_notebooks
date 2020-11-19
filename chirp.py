@@ -36,7 +36,7 @@ with SerialInstrument('AFG-2225') as s:
     print((s.respond('*idn?')))
 
 
-pulse_90 = True
+pulse_90 = False
 
 #{{{ no sys var = default (3 Vpp), 0 = define amplitudes, 1 = choose from amplitudes
 default = True
@@ -95,8 +95,8 @@ print(("Will set amplitude to:",ref_amp,"V"))
     #}}}
 #{{{ Generating arbitrary waveform
 if pulse_90:
-    freq = 14.86e6 #[Hz]
-    t_90 = 6e-6 #[micro sec]
+    freq = 14.82e6 #[Hz]
+    t_90 = 10e-6 #[micro sec]
     freq_carrier = freq     #[Hz] rf pulse frequency
     points_total = 4096     #[pts] total points, property of AFG
     rate = freq_carrier*4   #[pts/sec] AFG requires for arb waveform
@@ -113,9 +113,9 @@ if pulse_90:
     y = exp(1j*2*pi*t[1 : -1]*freq_sampling)
     y[0] = 0
     y[-1] = 0
-#if not pulse_90: # standard chirp
-    #t = r_[0:4096]
-    #y = imag(exp(1j*2*pi*0.25*(1-0.5/4096.*t)*t))
+if not pulse_90: # standard chirp
+    t = r_[0:4096]
+    y = imag(exp(1j*2*pi*0.25*(1-0.5/4096.*t)*t))
     #}}}
 with AFG() as a:
     a.reset()
@@ -143,9 +143,9 @@ print("about to load GDS")
 #raw_input("Turn on RF amp") 
 
 with GDS_scope() as g:
-    #g.timscal(5e-6)  #set to 5 microsec/div
-    #for this_ch in range(2):
-    #    g[this_ch].voltscal = volt_scale
+    g.timscal(5e-6)  #set to 5 microsec/div
+    for this_ch in range(2):
+        g[this_ch].voltscal = volt_scale
     print("loaded GDS")
     g.acquire_mode('average',32)
     input("Wait for averaging to relax...")
@@ -159,7 +159,7 @@ while try_again:
     data_name = 'capture%d'%j
     data.name(data_name)
     try:
-        data.hdf5_write('200312_chirp_coile_4.h5')
+        data.hdf5_write('201026_chirp_cap_probe_3.h5')
         try_again = False
     except Exception as e:
         print(e)

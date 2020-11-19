@@ -13,9 +13,9 @@ if run_bridge12:
         b.set_wg(True)
         b.set_rf(True)
         b.set_amp(True)
+    
         time.sleep(5)
-
-        this_return = b.lock_on_dip(ini_range=(9.81e9,9.835e9))
+        this_return = b.lock_on_dip(ini_range=(9.815e9,9.83e9))
         #with prologix_connection() as p
         #    with gigatronics(prologix_instance=p, address=7) as g:
         #        meter_readings.append(g.read_power())
@@ -26,26 +26,27 @@ if run_bridge12:
         #    _,_,dip_f = b.zoom()
         b.set_freq(dip_f)
         b.set_power(13.0)
-        input("Minimzie RX...")
-        b.set_power(16.0)
-        input("Minimzie RX...")
-        b.set_power(19.0)
-        input("Minimzie RX...")
-        b.set_power(22.0)
-        input("Minimzie RX...")
+        input("Minimzie RX...") 
+        #b.set_power(16.0)
+        #input("Minimzie RX...")
+        #b.set_power(19.0)
+        #input("Minimzie RX...")
+        #b.set_power(22.0)
+        #input("Minimzie RX...")
         #b.set_power(25.0)
         #input("Minimzie RX...")
         #b.set_power(28.0)
         #input("Minimzie RX...")
-        #b.set_power(30.0)
-        #input("Minimzie RX...")
-        #b.set_power(32.0)
+        #b.set_power(31.0)
         #input("Minimzie RX...")
         #b.set_power(33.0)
         #input("Minimzie RX...")
-        #b.set_power(36.0)
+        #b.set_power(34.0)
         #input("Minimzie RX...")
-        #b.set_power(39.0)
+        #b.set_power(35.0)
+        #input("Minimzie RX...")
+        #b.set_power(36.0)
+        #
         #input("Minimzie RX...")
         #b.set_power(40.0)
         #input("Minimzie RX...")
@@ -54,11 +55,11 @@ if run_bridge12:
         
         
         #fits = b.fit_data
-save_data = True
+save_data = False
 if save_data:
-    
     filename = '200301_terminator_1'
     np.savez(filename+'.npz', **result)
+
 def plot_all(show_log_scale=True):
     figure()
     #thesecolors = cycle('bgrcmyk')
@@ -77,9 +78,9 @@ def plot_all(show_log_scale=True):
         if show_fits: plotstyle = 'o'
         plot(result['%ddBm_freq'%power],
              fmt(result['%ddBm_rx'%power]),
-             plotstyle,
-             
-             label='%s'%power)
+             plotstyle,label='%s'%power)
+        ylabel('Power (dBm)')
+        xlabel('Frequency (Hz)')
         if show_fits:
             if '%ddBm_range'%power in list(fits.keys()):
      #           print "plotting fit for",power
@@ -88,5 +89,7 @@ def plot_all(show_log_scale=True):
                 plot(f_axis,
                         fmt(fits['%ddBm_func'%power](f_axis)),
                         '-')
+
                         #color=thiscolor)
 plot_all();legend()
+show()
