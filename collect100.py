@@ -68,8 +68,8 @@ def collect(date,id_string,captures):
     print("shape of data",ndshape(s))
     return start
 
-date = '201118'
-id_string = 'noise_4_3'
+date = '201124'
+id_string = 'noise_3_3'
 captures = linspace(1,100,100)
 
 print("Starting collection...")
