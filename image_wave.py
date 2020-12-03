@@ -10,7 +10,7 @@ start = time.time()
 fl = figlist_var()
 
 args = sys.argv[1:]
-filename = 'DCsq125kHz_200227.h5'
+filename = '201103_coile_triwave_1.h5'
 if '-f' in args: 
     force_acq = True
     args.pop(args.index('-f'))

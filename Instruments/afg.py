@@ -62,6 +62,28 @@ class AFG_Channel_Properties (object):
         self.afg.demand('SOUR%d:FREQ?'%(self.ch), f)
         return
     @property
+    def FM_freq(self):
+        cmd = 'SOUR%d:FM:INT:FREQ?'%self.ch
+        return float(self.afg.respond(cmd))
+    @FM_freq.setter
+    def FM_freq(self,f):
+        cmd = 'SOUR%d:FM:INT:FREQ %+0.7E'%(self.ch,f)
+        print("about to call:",cmd)
+        self.afg.write(cmd)
+        self.afg.demand('SOUR%d:FM:INT:FREQ?'%(self.ch,f), f)
+        return
+    @property
+    def FM_dev(self,dev):
+        cmd = 'SOUR%d:FM:DEV?'%self.ch
+        return float(self.afg.respond(cmd))
+    @FM_dev.setter
+    def FM_dev(self,dev):
+        cmd = 'SOUR%d:FM:DEV %+0.7E'%(self.ch,dev)
+        print("about to call:",cmd)
+        self.afg.write(cmd)
+        self.afg.demand('SOUR%d:FM:DEV?'%(self.ch,dev), dev)
+        return
+    @property
     def ampl(self):
         """The amplitude setting in VPP by default. 
         """
@@ -74,6 +96,30 @@ class AFG_Channel_Properties (object):
         self.afg.write(cmd)
         self.afg.demand('SOUR%d:AMP?'%(self.ch), amp)
         return
+    @property
+    def FM_mod(self):
+        cmd = 'SOUR%d:FM:STAT?'%self.ch
+        return bool(int(self.afg.respond(cmd)))
+    @FM_mod.setter
+    def FM_mod(self,onoff):
+        if onoff:
+            self.afg.write('SOUR%d:FM:STAT on'%self.ch)
+            self.afg.demand("SOUR%d:FM:STAT?"%self.ch,1)
+            cmd = 'SOUR%d:FM:STAT?'%self.ch
+        else:
+            self.afg.write('SOUR%d:FM:STAT OFF'%self.ch)
+            self.afg.demand("SOUR%d:FM:STAT?"%self.ch,0)
+        return
+    @property
+    def tri_shape(self):
+        cmd = 'SOUR%d:FM:INT:FUNC?'%self.ch
+        return bool(int(self.afg.respond(cmd)))
+    @tri_shape.setter
+    def tri_shape(self,TRI):
+        self.afg.write('SOUR%d:FM:INT:FUNC TRI'%self.ch)
+        self.afg.demand("SOUR%d:FM:INT:FUNC?"%self.ch,1)
+        cmd = 'SOUR%d:fm:int:func?'%self.ch
+        return       
     @property
     def burst(self):
         cmd = 'SOUR%d:BURS:STAT?'%self.ch
