@@ -7,15 +7,15 @@ from scipy import signal
 
 fl = figlist_var()
 
-print "These are the instruments available:"
+print("These are the instruments available:")
 SerialInstrument(None)
-print "done printing available instruments"
+print("done printing available instruments")
 
 with SerialInstrument('GDS-3254') as s:
-    print s.respond('*idn?')
+    print(s.respond('*idn?'))
     
 with SerialInstrument('AFG-2225') as s:
-    print s.respond('*idn?')
+    print(s.respond('*idn?'))
 
 default = True
 try:
@@ -30,14 +30,14 @@ if not default:
     setup = int(sys.argv[1])
     if setup == 0:
     #{{{ Allows for user defined amplitude/voltage parameters
-        print "User defined amplitude"
-        print "250 mVpp displays best on 20 mV/div"
-        print "750 mVpp displays best on 50 mV/div"
-        print "1.5 Vpp displays best on 100 mV/div"
-        print "3 Vpp displays best on 200 mV/div"
-        print "7.5 Vpp displays best on 500 mV/div"
-        print "e.g., input 750 mVpp as 750e-3"
-        print "e.g., input 500 mV/div as 500e-3"
+        print("User defined amplitude")
+        print("250 mVpp displays best on 20 mV/div")
+        print("750 mVpp displays best on 50 mV/div")
+        print("1.5 Vpp displays best on 100 mV/div")
+        print("3 Vpp displays best on 200 mV/div")
+        print("7.5 Vpp displays best on 500 mV/div")
+        print("e.g., input 750 mVpp as 750e-3")
+        print("e.g., input 500 mV/div as 500e-3")
         amp_choice = raw_input("Enter amplitude: ")
         amp_choice = float(amp_choice)
         ref_amp = amp_choice
@@ -46,7 +46,7 @@ if not default:
 #}}}
     if setup == 1:
 #{{{ The following amplitudes maximize display on scope, may facilitate processing
-        print "Choose amplitude by entering corresponding number..."
+        print("Choose amplitude by entering corresponding number...")
         print "1 = 250 mVpp \n2 = 750 mVpp \n3 = 1.5 Vpp \n4 = 3.0 Vpp \n5 = 7.6 Vpp"
         amp_choice = raw_input("Enter number: ")
         if amp_choice == '1':
@@ -72,7 +72,7 @@ if not default:
 print "Will set amplitude to:",ref_amp,"V"
 #}}}
 freq = 14.89e6 #[Hz]
-t_90 = 6.15e-6 #[micro sec]
+t_90 = 3.8e-6 #[micro sec]
 freq_carrier = freq     #[Hz] rf pulse frequency
 points_total = 4096     #[pts] total points, property of AFG
 rate = freq_carrier*4   #[pts/sec] AFG requires for arb waveform
@@ -122,7 +122,7 @@ while try_again:
     data_name = 'capture%d'%j
     data.name(data_name)
     try:
-        data.hdf5_write('200312_sqwv_coile_2.h5')
+        data.hdf5_write('201207_sqwv_cap_probe_1.h5')
         try_again = False
     except Exception as e:
         print e
