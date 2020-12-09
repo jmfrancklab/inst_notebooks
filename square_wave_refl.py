@@ -13,13 +13,10 @@ SerialInstrument(None)
 print("done printing available instruments")
 
 with SerialInstrument('GDS-3254') as s:
-    print((s.respond('*idn?')))
+    print(s.respond('*idn?'))
     
 with SerialInstrument('AFG-2225') as s:
-    print((s.respond('*idn?')))
-
-
-
+    print(s.respond('*idn?'))
 #{{{ no sys var = default (3 Vpp), 0 = define amplitudes, 1 = choose from amplitudes
 default = True
 try:
@@ -42,7 +39,7 @@ if not default:
         print("7.5 Vpp displays best on 500 mV/div")
         print("e.g., input 750 mVpp as 750e-3")
         print("e.g., input 500 mV/div as 500e-3")
-        amp_choice = eval(input("Enter amplitude: "))
+        amp_choice = raw_input("Enter amplitude: ")
         amp_choice = float(amp_choice)
         ref_amp = amp_choice
         volt_scale = eval(input("Enter volt/div: "))
@@ -51,8 +48,8 @@ if not default:
     if setup == 1:
 #{{{ The following amplitudes maximize display on scope, may facilitate processing
         print("Choose amplitude by entering corresponding number...")
-        print("1 = 250 mVpp \n2 = 750 mVpp \n3 = 1.5 Vpp \n4 = 3.0 Vpp \n5 = 7.6 Vpp")
-        amp_choice = eval(input("Enter number: "))
+        print "1 = 250 mVpp \n2 = 750 mVpp \n3 = 1.5 Vpp \n4 = 3.0 Vpp \n5 = 7.6 Vpp"
+        amp_choice = raw_input("Enter number: ")
         if amp_choice == '1':
             ref_amp = 0.25
             volt_scale = 20e-3
@@ -133,7 +130,7 @@ while try_again:
     data_name = 'capture%d'%j
     data.name(data_name)
     try:
-        data.hdf5_write('201106_sqwv_B12_3.h5')
+        data.hdf5_write('201207_sqwv_cap_probe_1.h5')
         try_again = False
     except Exception as e:
         print(e)
