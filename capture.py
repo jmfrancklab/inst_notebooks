@@ -21,16 +21,16 @@ print("about to load GDS")
 #raw_input("Turn on RF amp") 
 
 with GDS_scope() as g:
+    raise ValueError("Don't forget to change the acquire_mode and timscal to what you want!!!")
     g.timscal(50e-6)  #set to 5 microsec/div
     for this_ch in range(2):
         g[this_ch].voltscal = volt_scale
     print("loaded GDS")
     g.acquire_mode('average',32)
     input("Wait for averaging to relax...")
-    for j in range(1,3):
-        print(("trying to grab data from channel",j))
-        datalist.append(g.waveform(ch=j))
-data = concat(datalist,'ch').reorder('t')
+    for j in range(n_captures):
+        datalist.append(g.waveform(ch=0))
+data = concat(datalist,'repeats').reorder('t')
 j = 1
 try_again = True
 while try_again:
