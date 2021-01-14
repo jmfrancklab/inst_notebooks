@@ -36,7 +36,7 @@ with SerialInstrument('AFG-2225') as s:
     print((s.respond('*idn?')))
 
 
-pulse_90 = False
+pulse_90 = True
 
 #{{{ no sys var = default (3 Vpp), 0 = define amplitudes, 1 = choose from amplitudes
 default = True
@@ -96,7 +96,7 @@ print(("Will set amplitude to:",ref_amp,"V"))
 #{{{ Generating arbitrary waveform
 if pulse_90:
     freq = 14.82e6 #[Hz]
-    t_90 = 10e-6 #[micro sec]
+    t_90 = 3.8e-6 #[micro sec]
     freq_carrier = freq     #[Hz] rf pulse frequency
     points_total = 4096     #[pts] total points, property of AFG
     rate = freq_carrier*4   #[pts/sec] AFG requires for arb waveform
@@ -159,7 +159,7 @@ while try_again:
     data_name = 'capture%d'%j
     data.name(data_name)
     try:
-        data.hdf5_write('201104_B12_resonator_empty.h5')
+        data.hdf5_write('210111_sqwv_cap_probe_2.h5')
         try_again = False
     except Exception as e:
         print(e)
