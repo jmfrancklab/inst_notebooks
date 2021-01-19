@@ -15,6 +15,8 @@ r'''Use this program to collect 100 snapshots of noise in
     Note: Set Trigger (Menu) --> Mode --> Auto
 '''
 #}}}
+from pylab import *
+from datetime import datetime
 from Instruments import *
 from pyspecdata import *
 import time
@@ -62,14 +64,16 @@ def collect(date,id_string,captures):
     s = channels
     s.labels('capture',captures)
     s.name('accumulated_'+date)
-    s.hdf5_write(date+'_'+id_string+'.h5')
+    s.hdf5_write(date+'_'+id_string+'.h5',
+            directory=getDATADIR(exp_type='ODNP_NMR_comp/noise_tests'))
     print("name of data",s.name())
     print("units should be",s.get_units('t'))
     print("shape of data",ndshape(s))
     return start
 
-date = '210118'
-id_string = 'noise_open_term_atLNA_Re3'
+date = datetime.now().strftime('%y%m%d')
+if len(sys.argv) < 2: raise ValueError("give an experiment name on the command line!")
+id_string = sys.argv[1]
 captures = linspace(1,100,100)
 
 print("Starting collection...")
