@@ -8,11 +8,17 @@ r'''Use this program to collect 100 snapshots of noise in
     to the DUT.
     DUT (Tee-port) --> DPX --> LNA1 --> LNA2 --> LP --> CH1 (GDS)
     Important settings on GDS are:
-    (1) Set to vertical scale to 50 mV/div
+    (1) Set to vertical scale to 50 mV/div (note for BNC cable length tests, we
+    have started using 10 mV/div)
     (2) Set horizontal scale to 20 us/div (100 MSPS)
     These parameters were determined to be ideal for capturing
     noise on earliest version of spectrometer (using Probe v1.0)
     Note: Set Trigger (Menu) --> Mode --> Auto
+    
+    TO RUN: Type 'py collec100.py file_name' where file_name will be the string
+    identifier which is associated with the output file. The file will be saved
+    as YYMMDD_file_name.h5 following today's date.
+
 '''
 #}}}
 from pylab import *
