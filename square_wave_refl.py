@@ -5,6 +5,7 @@ import time
 from serial.tools.list_ports import comports
 import serial
 from scipy import signal
+import numpy as np
 
 fl = figlist_var()
 
@@ -87,7 +88,7 @@ print("POINTS IN 90 PULSE:",points_90)
 print("POINTS IN PULSE SEQUENCE:",points_90)
 t = r_[0 : int(points_seq)]
 freq_sampling = 0.25
-y = exp(1j*2*pi*t[1 : -1]*freq_sampling)
+y = np.exp(1j*2*pi*t[1 : -1]*freq_sampling)
 y[0] = 0
 y[-1] = 0
 with AFG() as a:
@@ -130,7 +131,7 @@ while try_again:
     data_name = 'capture%d'%j
     data.name(data_name)
     try:
-        data.hdf5_write('210111_sqwv_sol_probe_1.h5')
+        data.hdf5_write('210125_sqwv_cap_probe_1.h5')
         try_again = False
     except Exception as e:
         print(e)
