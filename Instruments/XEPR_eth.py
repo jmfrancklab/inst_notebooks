@@ -13,8 +13,6 @@ class xepr(object):
     def __init__(self, ip=IP, port=PORT):
         print("target IP:", IP)
         print("target port:", PORT)
-        print("message:", MESSAGE)
-        print("SETTING FIELD TO...", MESSAGE)
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((IP, PORT))
     def __enter__(self):
