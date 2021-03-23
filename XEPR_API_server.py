@@ -43,20 +43,20 @@ def wait_for_field(exp, field):
             print("after stopping, the field is",exp['FieldPosition'].value)
             return exp['FieldPosition'].value
     raise ValueError("timed out")
-def set_field(field):
+def set_field(desired_field):
     """run a sweep to set the field with high resolution
 
     requires the existence of experiment `set_field` in
     the Acquisition folder"""
     cmd.aqExpLoad(os.path.expanduser('~xuser/xeprFiles/Acquisition/set_field'))
     exp = x.XeprExperiment()
-    desired_field = 3489.11
     exp["CenterField"].value = int(desired_field*10)/10.0 # nearest 0.1 beneath where I want to be
     exp["SweepWidth"].value = 0.2
-    exp["SweepTime"].value = 60
+    exp["SweepTime"].value = 20
     exp.aqExpRun()
     wait_for_run(exp)
     field_result = wait_for_field(exp,desired_field)
+    return field_result
 # }}}
 
 IP = "0.0.0.0"
@@ -75,7 +75,7 @@ while True:
         if data.startswith('SET_FIELD'):
             args = data.split(' ')
             assert len(args)==2
-            field = double(args[1])
+            field = float(args[1])
             field_result = set_field(field)
             conn.send('%f'%field_result)
     else:
