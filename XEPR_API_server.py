@@ -48,6 +48,7 @@ def set_coarse_field(desired_field):
     cmd.aqExpLoad(os.path.expanduser('~xuser/xeprFiles/Acquisition/set_field'))
     exp = x.XeprExperiment()
     exp["CenterField"].value = round(desired_field*10)/10.0 # nearest 0.1 beneath where I want to be
+    print("about to set the field (coarse) to",exp["CenterField"].value)
     exp["SweepWidth"].value = 0.0
     exp["SweepTime"].value = 20
     exp.aqExpRun()
@@ -83,6 +84,7 @@ while True:
     if len(data) > 0:
         print("I received a command '",data,"'")
         args = data.split(' ')
+        print("I split it to ",args)
         if len(args) == 2:
             if args[0] == 'SET_FIELD':
                 print("they want to get the field")
@@ -94,7 +96,7 @@ while True:
                 conn.send('%f'%field_result)
             else:
                 raise ValueError("I don't understand this 2 component command")
-        if len(args) == 1:
+        elif len(args) == 1:
             if args[0] == 'GET_FIELD':
                 print("they want to get the field")
                 result = '%0.5f'%exp['FieldPosition'].value

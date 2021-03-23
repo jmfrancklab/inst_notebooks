@@ -34,11 +34,15 @@ class xepr(object):
         return float(self.get())
     def set_coarse_field(self,field):
         "Sets the field to the nearest 0.1G"
-        self.send('SET_FIELD %0.2f'%field)
+        self.send('SET_COARSE_FIELD %0.2f'%field)
         self.exp_has_been_run = True
         return float(self.get())
     def get_field(self):
         "Gets the current Hall probe reading"
         self.send('GET_FIELD')
         if not self.exp_has_been_run: raise ValueError("You can't run this because you haven't run an experiment yet!")
-        return float(self.get())
+        retval = self.get()
+        try:
+            retval = float(retval)
+        except:
+            raise ValueError("can't convert",repr(retval),"to a float!")
