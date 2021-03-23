@@ -1,5 +1,5 @@
 # To be run from the computer connected to the EPR spectrometer
-import sys, os, time
+import sys, os, time, socket
 sys.path.append('/opt/Bruker/xepr/sharedProDeL/Standard/XeprAPI/')
 import XeprAPI
 x = XeprAPI.Xepr()
