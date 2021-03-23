@@ -22,7 +22,7 @@ class xepr(object):
         self.sock.close()
         return 
     def get(self):
-        data = self.sock.recv(1024).decode('ASCII')
+        data = self.sock.recv(1024).decode('ASCII').strip()
         return data
     def send(self,msg):
         self.sock.send(msg.encode('ASCII'))
