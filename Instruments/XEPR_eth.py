@@ -15,6 +15,7 @@ class xepr(object):
         print("target port:", PORT)
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((IP, PORT))
+        self.exp_has_been_run = False
     def __enter__(self):
         return self
     def __exit__(self, exception_type, exception_value, traceback):
@@ -29,8 +30,10 @@ class xepr(object):
     def set_field(self,field):
         "Sets the current field with high accuracy"
         self.send('SET_FIELD %0.2f'%field)
+        self.exp_has_been_run = True
         return float(self.get())
     def get_field(self):
         "Gets the current Hall probe reading"
         self.send('GET_FIELD')
+        if not self.exp_has_been_run: raise ValueError("You can't run this because you haven't run an experiment yet!")
         return float(self.get())
