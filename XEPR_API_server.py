@@ -104,8 +104,10 @@ while True:
                 result = '%0.5f'%exp['FieldPosition'].value
                 print("about to reply",result)
                 conn.send(result)
+            elif args[0] == 'CLOSE':
+                print("closing connection")
+                conn.close()
             else:
                 raise ValueError("I don't understand this 1 component command")
     else:
         print("no data received")
-    conn.close()

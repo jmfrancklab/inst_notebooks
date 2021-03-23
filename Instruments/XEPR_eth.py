@@ -20,6 +20,7 @@ class xepr(object):
     def __enter__(self):
         return self
     def __exit__(self, exception_type, exception_value, traceback):
+        self.send('CLOSE')
         self.sock.close()
         return 
     def get(self):
