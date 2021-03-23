@@ -27,6 +27,7 @@ class xepr(object):
         for j in range(30):
             if len(data) == 0:
                 data = self.sock.recv(1024).decode('ASCII').strip()
+                time.sleep(0.01)
             else:
                 success = True
                 break
