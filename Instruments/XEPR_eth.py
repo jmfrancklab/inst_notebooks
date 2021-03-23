@@ -27,5 +27,5 @@ class xepr(object):
         self.sock.send(msg.encode('ASCII'))
         return
     def set_field(self,field):
-        self.send('SET_FIELD %f0.2'%field)
+        self.send('SET_FIELD %0.2f'%field)
         return float(self.get())
