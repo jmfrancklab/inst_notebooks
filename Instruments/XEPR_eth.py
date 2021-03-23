@@ -27,5 +27,10 @@ class xepr(object):
         self.sock.send(msg.encode('ASCII'))
         return
     def set_field(self,field):
+        "Sets the current field with high accuracy"
         self.send('SET_FIELD %0.2f'%field)
+        return float(self.get())
+    def get_field(self):
+        "Gets the current Hall probe reading"
+        self.send('GET_FIELD')
         return float(self.get())

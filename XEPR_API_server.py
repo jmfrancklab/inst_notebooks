@@ -78,6 +78,9 @@ while True:
             field = float(args[1])
             field_result = set_field(field)
             conn.send('%f'%field_result)
+        if data.startswith('GET_FIELD'):
+            assert data.strip() == 'GET_FIELD'
+            return '%0.5f'%exp['FieldPosition'].value
     else:
         print("no data received")
     conn.close()
