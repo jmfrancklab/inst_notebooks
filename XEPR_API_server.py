@@ -66,9 +66,12 @@ sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 sock.bind((IP,PORT))
 while True:
     sock.listen(1)
+    print("I am listening")
     conn, addr = sock.accept()
+    print("I have accepted from",addr)
     data = conn.recv(1024)
     if len(data) > 0:
+        print("I received a command '",data,"'")
         if data.startswith('SET_FIELD'):
             args = data.split(' ')
             assert len(args)==2

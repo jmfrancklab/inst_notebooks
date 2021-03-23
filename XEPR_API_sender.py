@@ -14,9 +14,8 @@ print("target port:", PORT)
 print("message:", MESSAGE)
 print("SETTING FIELD TO...", MESSAGE)
 
-sock = socket.socket(socket.AF_INET, # Internet
-        socket.SOCK_STREAM) # TCP
-sock.connect((IP, PORT))
-sock.send(MESSAGE)
-sock.close()
-print("FIELD SET TO...", MESSAGE)
+with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+    sock.connect((IP, PORT))
+    sock.send(MESSAGE.encode('ASCII'))
+    data = sock.recv(1024).decode('ASCII')
+    print("FIELD SET TO...", data)
