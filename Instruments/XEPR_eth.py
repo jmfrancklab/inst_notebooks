@@ -23,6 +23,14 @@ class xepr(object):
         return 
     def get(self):
         data = self.sock.recv(1024).decode('ASCII').strip()
+        success = False
+        for j in range(30):
+            if len(data) == 0:
+                data = self.sock.recv(1024).decode('ASCII').strip()
+            else:
+                success = True
+                break
+        if not success: raise ValueError("no response after 30 tries!!")
         return data
     def send(self,msg):
         self.sock.send(msg.encode('ASCII'))

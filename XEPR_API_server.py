@@ -47,6 +47,7 @@ def set_coarse_field(desired_field):
     """just set the field to the nearest 0.1 G"""
     cmd.aqExpLoad(os.path.expanduser('~xuser/xeprFiles/Acquisition/set_field'))
     exp = x.XeprExperiment()
+    print("trying to coarse set the field to",desired_field)
     exp["CenterField"].value = round(desired_field*10)/10.0 # nearest 0.1 beneath where I want to be
     print("about to set the field (coarse) to",exp["CenterField"].value)
     exp["SweepWidth"].value = 0.0
@@ -92,6 +93,7 @@ while True:
                 field_result = set_field(field)
                 conn.send('%f'%field_result)
             elif args[0] == 'SET_COARSE_FIELD':
+                field = float(args[1])
                 field_result = set_coarse_field(field)
                 conn.send('%f'%field_result)
             else:
