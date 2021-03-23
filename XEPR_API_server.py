@@ -81,33 +81,37 @@ while True:
     print("I am listening")
     conn, addr = sock.accept()
     print("I have accepted from",addr)
-    data = conn.recv(1024)
-    if len(data) > 0:
-        print("I received a command '",data,"'")
-        args = data.split(' ')
-        print("I split it to ",args)
-        if len(args) == 2:
-            if args[0] == 'SET_FIELD':
-                print("they want to get the field")
-                field = float(args[1])
-                field_result = set_field(field)
-                conn.send('%f'%field_result)
-            elif args[0] == 'SET_COARSE_FIELD':
-                field = float(args[1])
-                field_result = set_coarse_field(field)
-                conn.send('%f'%field_result)
-            else:
-                raise ValueError("I don't understand this 2 component command")
-        elif len(args) == 1:
-            if args[0] == 'GET_FIELD':
-                print("they want to get the field")
-                result = '%0.5f'%exp['FieldPosition'].value
-                print("about to reply",result)
-                conn.send(result)
-            elif args[0] == 'CLOSE':
-                print("closing connection")
-                conn.close()
-            else:
-                raise ValueError("I don't understand this 1 component command")
-    else:
-        print("no data received")
+    leave_open = True
+    while leave_open:
+        data = conn.recv(1024)
+        if len(data) > 0:
+            print("I received a command '",data,"'")
+            args = data.split(' ')
+            print("I split it to ",args)
+            if len(args) == 2:
+                if args[0] == 'SET_FIELD':
+                    print("they want to get the field")
+                    field = float(args[1])
+                    field_result = set_field(field)
+                    conn.send('%f'%field_result)
+                elif args[0] == 'SET_COARSE_FIELD':
+                    field = float(args[1])
+                    field_result = set_coarse_field(field)
+                    conn.send('%f'%field_result)
+                else:
+                    raise ValueError("I don't understand this 2 component command")
+            elif len(args) == 1:
+                if args[0] == 'GET_FIELD':
+                    print("they want to get the field")
+                    exp = x.XeprExperiment()
+                    result = '%0.5f'%exp['FieldPosition'].value
+                    print("about to reply",result)
+                    conn.send(result)
+                elif args[0] == 'CLOSE':
+                    print("closing connection")
+                    conn.close()
+                    leave_open = False
+                else:
+                    raise ValueError("I don't understand this 1 component command")
+        else:
+            print("no data received")

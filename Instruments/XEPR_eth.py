@@ -47,7 +47,10 @@ class xepr(object):
         "Sets the field to the nearest 0.1G"
         self.send('SET_COARSE_FIELD %0.2f'%field)
         self.exp_has_been_run = True
-        return float(self.get())
+        print("about to ask for a response")
+        retval = float(self.get())
+        print("about to return from set coarse field")
+        return retval
     def get_field(self):
         "Gets the current Hall probe reading"
         self.send('GET_FIELD')
