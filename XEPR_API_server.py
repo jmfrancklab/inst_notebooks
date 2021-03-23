@@ -62,19 +62,19 @@ def set_field(field):
 IP = "0.0.0.0"
 PORT = 6001
 
-with socket.socket(socket.AF_INET,socket.SOCK_STREAM) as sock:
-    sock.bind((IP,PORT))
-    while True:
-        sock.listen(1)
-        conn, addr = sock.accept()
-        with conn:
-            data = conn.recv(1024)
-            if len(data) > 0:
-                if data.startswith('SET_FIELD'):
-                    args = data.split(' ')
-                    assert len(args)==2
-                    field = double(args[1])
-                    field_result = set_field(field)
-                    conn.send('%f'%field_result)
-            else:
-                print("no data received")
+sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+sock.bind((IP,PORT))
+while True:
+    sock.listen(1)
+    conn, addr = sock.accept()
+    data = conn.recv(1024)
+    if len(data) > 0:
+        if data.startswith('SET_FIELD'):
+            args = data.split(' ')
+            assert len(args)==2
+            field = double(args[1])
+            field_result = set_field(field)
+            conn.send('%f'%field_result)
+    else:
+        print("no data received")
+    conn.close()
