@@ -43,6 +43,16 @@ def wait_for_field(exp, field):
             print("after stopping, the field is",exp['FieldPosition'].value)
             return exp['FieldPosition'].value
     raise ValueError("timed out")
+def set_coarse_field(desired_field):
+    """just set the field to the nearest 0.1 G"""
+    cmd.aqExpLoad(os.path.expanduser('~xuser/xeprFiles/Acquisition/set_field'))
+    exp = x.XeprExperiment()
+    exp["CenterField"].value = int(desired_field*10)/10.0 # nearest 0.1 beneath where I want to be
+    exp["SweepWidth"].value = 0.0
+    exp["SweepTime"].value = 20
+    exp.aqExpRun()
+    wait_for_run(exp)
+    return exp['FieldPosition'].value
 def set_field(desired_field):
     """run a sweep to set the field with high resolution
 
