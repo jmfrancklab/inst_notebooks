@@ -60,3 +60,4 @@ class xepr(object):
             retval = float(retval)
         except:
             raise ValueError("can't convert",repr(retval),"to a float!")
+        return retval
