@@ -1,7 +1,7 @@
 # To be run from the computer connected to the EPR spectrometer
 import sys, os, time, socket
-from Instruments import Bridge12,prologix_connection,gigatronics
 from numpy import dtype, empty, concatenate
+from numpy.random import rand
 
 
 IP = "0.0.0.0"
@@ -17,9 +17,9 @@ log_cmds = {} # use hash to convert commands to a number, and this to look up th
 currently_logging = False
 log_pos = 0
 
-with prologix_connection() as p:
-    with gigatronics(prologix_instance=p, address=7) as g:
-        with Bridge12() as b:
+if True:
+    if True:
+        if True:
             sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
             sock.bind((IP,PORT))
             while True:
@@ -39,8 +39,8 @@ with prologix_connection() as p:
                             data = data.strip()
                             if currently_logging:
                                 log_array[log_pos]['time'] = time.time()
-                                log_array[log_pos]['Rx'] = b.get_rxmv()
-                                log_array[log_pos]['power'] = g.get_power()
+                                log_array[log_pos]['Rx'] = rand()
+                                log_array[log_pos]['power'] = rand()
                                 thehash = hash(data)
                                 log_cmds[thehash] = data
                                 log_array[log_pos]['cmd'] = thehash
@@ -55,13 +55,11 @@ with prologix_connection() as p:
                                 if args[0] == 'DIP_LOCK':
                                     freq1 = float(args[1])
                                     freq2 = float(args[2])
-                                    b.lock_on_dip(ini_range=(freq1,freq2))
                                 else:
                                     raise ValueError("I don't understand this 3 component command")
                             if len(args) == 2:
                                 if args[0] == 'SET_POWER':
                                     dBm = float(args[1])
-                                    b.set_power(dBm)
                                 else:
                                     raise ValueError("I don't understand this 2 component command")
                             elif len(args) == 1:
@@ -87,8 +85,8 @@ with prologix_connection() as p:
                     except TimeoutError:
                         if currently_logging:
                             log_array[log_pos]['time'] = time.time()
-                            log_array[log_pos]['Rx'] = b.get_rxmv()
-                            log_array[log_pos]['power'] = g.get_power()
+                            log_array[log_pos]['Rx'] = rand()
+                            log_array[log_pos]['power'] = rand()
                             thehash = hash(data)
                             log_cmds[thehash] = data
                             log_array[log_pos]['cmd'] = thehash
