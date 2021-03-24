@@ -10,7 +10,7 @@ PORT = 6002
 log_list = []
 # {{{ this is a structured array
 log_dtype = dtype([('time','f8'),('Rx','f8'),('power','f8'),('cmd','i8')])
-array_len = 8 # just the size of the buffer
+array_len = 1000 # just the size of the buffer
 log_array = empty(array_len, dtype=log_dtype)
 log_dict = {0:""} # use hash to convert commands to a number, and this to look up the meaning of the hashes
 # }}}
