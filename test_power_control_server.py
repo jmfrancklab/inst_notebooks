@@ -1,5 +1,7 @@
 """test the power control server
 
+run this while running power_control_server.py on the same computer
+
 generates hdf output to be read by test_power_control_server_read.py"""
 from Instruments.power_control import power_control
 import os, time, h5py
