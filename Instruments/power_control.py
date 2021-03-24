@@ -67,5 +67,6 @@ class power_control(object):
         dict_idx = retval.find(b'ENDDICT')
         array_idx = retval.find(b'ENDARRAY')
         thedict = pickle.loads(retval[:dict_idx])
+        print('verify:',retval[dict_idx:dict_idx+len('ENDDICT')+1])
         thearray = pickle.loads(retval[dict_idx+len('ENDDICT'):array_idx])
         return thearray, thedict
