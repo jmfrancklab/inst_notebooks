@@ -1,6 +1,7 @@
 import socket
 import sys
 import time
+import pickle
 
 IP = "127.0.0.1"
 #IP = "jmfrancklab-bruker.syr.edu"
@@ -34,6 +35,21 @@ class power_control(object):
                 break
         if not success: raise ValueError("no response after 30 tries!!")
         return data
+    def get_bytes(self,ending):
+        data = self.sock.recv(1024)
+        success = False
+        for j in range(300):
+            if len(data) == 0:
+                time.sleep(0.01)
+                data += self.sock.recv(1024)
+            else:
+                if data.endswith(ending):
+                    success = True
+                    break
+                else:
+                    data += self.sock.recv(1024)
+        if not success: raise ValueError("no success after 300 tries!!")
+        return data
     def send(self,msg):
         self.sock.send(msg.encode('ASCII'))
         return
@@ -41,3 +57,14 @@ class power_control(object):
         "Sets the current field with high accuracy"
         self.send('SET_POWER %0.2f'%dBm)
         return float(self.get())
+    def start_log(self):
+        self.send('START_LOG')
+        return
+    def stop_log(self):
+        self.send('STOP_LOG')
+        retval = self.get_bytes(b'ENDARRAY')
+        dict_idx = reval.find('ENDDICT')
+        array_idx = reval.find('ENDARRAY')
+        thedict = pickle.loads(retval[:dict_idx])
+        thearray = pickle.loads(retval[dict_idx+6:array_idx])
+        return thearray, thedict

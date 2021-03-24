@@ -1,12 +1,21 @@
 # To be run from the computer connected to the EPR spectrometer
 import sys, os, time, socket
 from Instruments import Bridge12,prologix_connection,gigatronics
+from numpy import dtype, empty, concatenate
 
 
 IP = "0.0.0.0"
 PORT = 6002
 
-power_log = []
+log_list = []
+# {{{ this is a structured array
+log_dtype = dtype([('time','f8'),('Rx','f8'),('power','f8'),('cmd','i4')])
+array_len = 10 # just the size of the buffer
+log_array = empty(array_len, dtype=log_dtype)
+log_cmds = {} # use hash to convert commands to a number, and this to look up the meaning of the hashes
+# }}}
+currently_logging = False
+log_pos = 0
 
 with prologix_connection() as p:
     with gigatronics(prologix_instance=p, address=7) as g:
@@ -27,6 +36,19 @@ with prologix_connection() as p:
                         sock.settimeout(oldtimeout)
                         if len(data) > 0:
                             print("I received a command '",data,"'")
+                            data = data.strip()
+                            if currently_logging:
+                                log_array[log_pos]['time'] = time.time()
+                                log_array[log_pos]['Rx'] = b.get_rxmv()
+                                log_array[log_pos]['power'] = g.get_power()
+                                thehash = hash(data)
+                                log_cmds[thehash] = data
+                                log_array[log_pos]['cmd'] = thehash
+                                log_pos += 1
+                                if log_pos == array_len:
+                                    log_pos = 0
+                                    log_list.append(log_array)
+                                    log_array = empty(array_len, dtype=log_dtype)
                             args = data.split(' ')
                             print("I split it to ",args)
                             if len(args) == 3:
@@ -47,9 +69,31 @@ with prologix_connection() as p:
                                     print("closing connection")
                                     conn.close()
                                     leave_open = False
+                                elif args[0] == 'START_LOG':
+                                    currently_logging = True
+                                elif args[0] == 'STOP_LOG':
+                                    currently_logging = False
+                                    retval = b''
+                                    retval += pickle.dumps(log_dict)
+                                    retval += b'ENDDICT'
+                                    retval += pickle.dumps(concatenate(
+                                        log_list+[log_array[:log_pos]]))
+                                    retval += b'ENDARRAY'
+                                    conn.send(retval)
                                 else:
                                     raise ValueError("I don't understand this 1 component command")
                         else:
                             print("no data received")
                     except TimeoutError:
-                        power_log.append(g.get_power())
+                        if currently_logging:
+                            log_array[log_pos]['time'] = time.time()
+                            log_array[log_pos]['Rx'] = b.get_rxmv()
+                            log_array[log_pos]['power'] = g.get_power()
+                            thehash = hash(data)
+                            log_cmds[thehash] = data
+                            log_array[log_pos]['cmd'] = thehash
+                            log_pos += 1
+                            if log_pos == array_len:
+                                log_pos = 0
+                                log_list.append(log_array)
+                                log_array = empty(array_len, dtype=log_dtype)
