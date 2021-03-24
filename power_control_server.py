@@ -12,7 +12,7 @@ log_list = []
 log_dtype = dtype([('time','f8'),('Rx','f8'),('power','f8'),('cmd','i8')])
 array_len = 8 # just the size of the buffer
 log_array = empty(array_len, dtype=log_dtype)
-log_dict = {0:None} # use hash to convert commands to a number, and this to look up the meaning of the hashes
+log_dict = {0:""} # use hash to convert commands to a number, and this to look up the meaning of the hashes
 # }}}
 currently_logging = False
 log_pos = 0
@@ -74,16 +74,18 @@ if True:
                                     retval = b''
                                     retval += pickle.dumps(log_dict)
                                     retval += b'ENDDICT'
-                                    retval += pickle.dumps(concatenate(
-                                        log_list+[log_array[:log_pos]]))
+                                    total_log = concatenate(log_list+[log_array[:log_pos]])
+                                    print("shape of total log",total_log.shape)
+                                    retval += pickle.dumps(total_log)
                                     retval += b'ENDARRAY'
                                     conn.send(retval)
+                                    log_list = []
+                                    log_array = empty(array_len, dtype=log_dtype)
                                 else:
                                     raise ValueError("I don't understand this 1 component command")
                         else:
                             print("no data received")
                     except socket.timeout as e:
-                        print("got a timeout",type(e))
                         if currently_logging:
                             log_array[log_pos]['time'] = time.time()
                             log_array[log_pos]['Rx'] = rand()
