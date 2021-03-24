@@ -39,6 +39,7 @@ class power_control(object):
         data = self.sock.recv(1024)
         success = False
         for j in range(300):
+            print("I've got %d bytes"%len(data))
             if len(data) == 0:
                 time.sleep(0.01)
                 data += self.sock.recv(1024)
@@ -56,15 +57,15 @@ class power_control(object):
     def set_power(self,dBm):
         "Sets the current field with high accuracy"
         self.send('SET_POWER %0.2f'%dBm)
-        return float(self.get())
+        return
     def start_log(self):
         self.send('START_LOG')
         return
     def stop_log(self):
         self.send('STOP_LOG')
         retval = self.get_bytes(b'ENDARRAY')
-        dict_idx = reval.find('ENDDICT')
-        array_idx = reval.find('ENDARRAY')
+        dict_idx = retval.find(b'ENDDICT')
+        array_idx = retval.find(b'ENDARRAY')
         thedict = pickle.loads(retval[:dict_idx])
-        thearray = pickle.loads(retval[dict_idx+6:array_idx])
+        thearray = pickle.loads(retval[dict_idx+len('ENDDICT'):array_idx])
         return thearray, thedict
