@@ -4,9 +4,7 @@ import time
 
 #IP = "127.0.0.1"
 IP = "jmfrancklab-bruker.syr.edu"
-#IP = "128.230.29.95"
-if len(sys.argv) > 1:
-    IP = sys.argv[1]
+#IP = "128.230.29.42"
 PORT = 6001
 
 class xepr(object):
