@@ -42,7 +42,7 @@ with prologix_connection() as p:
                             if currently_logging:
                                 log_array[log_pos]['time'] = time.time()
                                 log_array[log_pos]['Rx'] = b.get_rxmv()
-                                log_array[log_pos]['power'] = g.get_power()
+                                log_array[log_pos]['power'] = g.read_power()
                                 thehash = hash(data)
                                 log_dict[thehash] = data
                                 log_array[log_pos]['cmd'] = thehash
@@ -98,7 +98,7 @@ with prologix_connection() as p:
                         if currently_logging:
                             log_array[log_pos]['time'] = time.time()
                             log_array[log_pos]['Rx'] = b.get_rxmv()
-                            log_array[log_pos]['power'] = g.get_power()
+                            log_array[log_pos]['power'] = g.read_power()
                             log_array[log_pos]['cmd'] = 0
                             log_pos += 1
                             if log_pos == array_len:
