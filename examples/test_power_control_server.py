@@ -6,6 +6,8 @@ generates hdf output to be read by test_power_control_server_read.py"""
 from Instruments.power_control import power_control
 import os, time, h5py
 from numpy import empty
+from matplotlib.ticker import FuncFormatter
+
 time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
 assert not os.path.exists('output.h5'), "later we can just check that the node doesn't exist, but in this example, we're writing a fresh h5 file"
 with power_control() as p:
