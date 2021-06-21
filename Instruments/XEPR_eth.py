@@ -1,3 +1,4 @@
+"""Provides xepr class that acts as a client to the XEpr server"""
 import socket
 import sys
 import time

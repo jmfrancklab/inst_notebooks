@@ -1,3 +1,14 @@
+"""This class provides a class that acts as a client for the
+power_control_server.
+
+It should handle:
+
+-   B12 communications
+-   GPIB communications
+
+and it provides the capability to start and stop the log.
+
+"""
 import socket
 import sys
 import time
