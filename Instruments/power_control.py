@@ -41,9 +41,16 @@ class power_control(object):
     def arrange_quit(self):
         "quit once we leave the block"
         self.do_quit = True
-    def get(self):
+    def get(self, n_slow_tries = 0, slow_wait = 0.5):
         data = self.sock.recv(1024).decode('ASCII').strip()
         success = False
+        for j in range(n_slow_tries):
+            if len(data) == 0:
+                data = self.sock.recv(1024).decode('ASCII').strip()
+                time.sleep(slow_wait)
+            else:
+                success = True
+                break
         for j in range(30):
             if len(data) == 0:
                 data = self.sock.recv(1024).decode('ASCII').strip()
@@ -73,9 +80,15 @@ class power_control(object):
         self.sock.send(msg.encode('ASCII'))
         return
     def set_power(self,dBm):
-        "Sets the current field with high accuracy"
+        "Sets the power of the Bridge12"
         self.send('SET_POWER %0.2f'%dBm)
         return
+    def dip_lock(self,start_f,stop_f):
+        "Runs dip lock using start_f and stop_f as freq range, leaves Bridge12 at resonance frequency"
+        self.send('DIP_LOCK %0.3f %0.3f'%(start_f,stop_f))
+        retval = self.get(n_slow_tries = 10)
+        retval = float(retval)
+        return retval
     def start_log(self):
         self.send('START_LOG')
         return

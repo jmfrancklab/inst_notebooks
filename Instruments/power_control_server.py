@@ -41,7 +41,7 @@ with prologix_connection() as p:
                             data = data.strip()
                             if currently_logging:
                                 log_array[log_pos]['time'] = time.time()
-                                log_array[log_pos]['Rx'] = b.get_rxmv()
+                                log_array[log_pos]['Rx'] = b.rxpowermv_float()
                                 log_array[log_pos]['power'] = g.read_power()
                                 thehash = hash(data)
                                 log_dict[thehash] = data
@@ -57,7 +57,8 @@ with prologix_connection() as p:
                                 if args[0] == b'DIP_LOCK':
                                     freq1 = float(args[1])
                                     freq2 = float(args[2])
-                                    b.lock_on_dip(ini_range=(freq1,freq2))
+                                    _,_,min_f = b.lock_on_dip(ini_range=(freq1*1e9,freq2*1e9))
+                                    conn.send(('%0.6f'%min_f).encode('ASCII'))
                                 else:
                                     raise ValueError("I don't understand this 3 component command")
                             if len(args) == 2:
@@ -97,7 +98,7 @@ with prologix_connection() as p:
                     except socket.timeout as e:
                         if currently_logging:
                             log_array[log_pos]['time'] = time.time()
-                            log_array[log_pos]['Rx'] = b.get_rxmv()
+                            log_array[log_pos]['Rx'] = b.rxpowermv_float()
                             log_array[log_pos]['power'] = g.read_power()
                             log_array[log_pos]['cmd'] = 0
                             log_pos += 1

@@ -317,7 +317,15 @@ class Bridge12 (Serial):
     def freq_int(self):
         "return the frequency, in kHz (since it's set as an integer kHz)"
         self.write(b'freq?\r')
-        return int(self.readline())
+        for j in range(10):
+            retval = self.readline()
+            if retval.startswith(b'E001'):
+                print("Got error E001, trying again")
+            elif len(retval) == 0:
+                print("Got an empty string")
+            else:
+                return int(retval)
+        raise ValueError("I tried running 10 times and couldn't get a frequency!!!")
     def freq_sweep(self,freq,dummy_readings=1,fast_run=True):
         """Sweep over an array of frequencies.
         **Must** be run at 10 dBm the first time around; will fail otherwise.

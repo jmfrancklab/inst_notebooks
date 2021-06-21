@@ -9,6 +9,8 @@ from numpy import empty
 time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
 assert not os.path.exists('output.h5'), "later we can just check that the node doesn't exist, but in this example, we're writing a fresh h5 file"
 with power_control() as p:
+    retval = p.dip_lock(9.81,9.83)
+    print(retval)
     for j in range(100):
         print(j)
         if j == 0:
