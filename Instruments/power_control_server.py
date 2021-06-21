@@ -58,6 +58,8 @@ with prologix_connection() as p:
                                     freq1 = float(args[1])
                                     freq2 = float(args[2])
                                     _,_,min_f = b.lock_on_dip(ini_range=(freq1*1e9,freq2*1e9))
+                                    b.set_freq(min_f)
+                                    min_f = float(b.freq_int())*1e3
                                     conn.send(('%0.6f'%min_f).encode('ASCII'))
                                 else:
                                     raise ValueError("I don't understand this 3 component command")
