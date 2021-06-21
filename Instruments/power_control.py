@@ -12,6 +12,7 @@ PORT = 6002
 
 class power_control(object):
     """wraps the ethernet connection to the XEPR server and allows you to send commands (provides a with block)"""
+    do_quit = False
     def __init__(self, ip=IP, port=PORT):
         print("target IP:", IP)
         print("target port:", PORT)
@@ -20,9 +21,15 @@ class power_control(object):
     def __enter__(self):
         return self
     def __exit__(self, exception_type, exception_value, traceback):
-        self.send('CLOSE')
+        if self.do_quit:
+            self.send('QUIT')
+        else:
+            self.send('CLOSE')
         self.sock.close()
         return 
+    def arrange_quit(self):
+        "quit once we leave the block"
+        self.do_quit = True
     def get(self):
         data = self.sock.recv(1024).decode('ASCII').strip()
         success = False
