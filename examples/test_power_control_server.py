@@ -20,6 +20,7 @@ with power_control() as p:
             p.set_power(12)
         elif j == 99:
             log_array, log_dict = p.stop_log()
+    p.arrange_quit()
 print("log array shape",log_array.shape)
 with h5py.File('output.h5', 'a') as f:
     log_grp = f.create_group('log') # normally, I would actually put this under the node with the data

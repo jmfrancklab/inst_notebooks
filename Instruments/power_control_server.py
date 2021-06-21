@@ -16,6 +16,8 @@ log_dict = {0:""} # use hash to convert commands to a number, and this to look u
 # }}}
 currently_logging = False
 log_pos = 0
+def main():
+    print("once script works, move code into here")
 
 with prologix_connection() as p:
     with gigatronics(prologix_instance=p, address=7) as g:
@@ -69,6 +71,11 @@ with prologix_connection() as p:
                                     print("closing connection")
                                     conn.close()
                                     leave_open = False
+                                elif args[0] == b'QUIT':
+                                    print("closing connection")
+                                    conn.close()
+                                    leave_open = False
+                                    quit()
                                 elif args[0] == b'START_LOG':
                                     currently_logging = True
                                 elif args[0] == b'STOP_LOG':
