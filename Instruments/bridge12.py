@@ -185,6 +185,8 @@ class Bridge12 (Serial):
     def power_int_singletry(self):
         self.write(b'power?\r')
         return int(self.readline())
+    def power_float(self):
+        return self.power_int()/10
     def power_int(self):
         "need two consecutive responses that match"
         h = self.power_int_singletry()
@@ -481,6 +483,13 @@ class Bridge12 (Serial):
         self.bridge12_wait()
         self._inside_with_block = True
         return self
+    def soft_shutdown(self):
+        """do everything to shut the B12 down, but don't break out of the
+        with block or close the USB connection"""
+        self.set_power(0)
+        self.set_rf(False)
+        self.set_wg(False)
+        return
     def safe_shutdown(self):
         print("Entering safe shut down...")
         try:
