@@ -89,6 +89,11 @@ class power_control(object):
         retval = self.get(n_slow_tries = 10)
         retval = float(retval)
         return retval
+    def get_power_setting(self):
+        self.send('GET_POWER')
+        retval = self.get()
+        retval = float(retval)
+        return retval
     def start_log(self):
         self.send('START_LOG')
         return

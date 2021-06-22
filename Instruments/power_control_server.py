@@ -65,8 +65,20 @@ with prologix_connection() as p:
                                     raise ValueError("I don't understand this 3 component command")
                             if len(args) == 2:
                                 if args[0] == b'SET_POWER':
-                                    dBm = float(args[1])
-                                    b.set_power(dBm)
+                                    dBm_setting = float(args[1])
+                                    last_power = b.power_float()
+                                    if dBm_setting > last_power + 3:
+                                        last_power += 3
+                                        print("SETTING TO...",last_power)
+                                        b.set_power(last_power)
+                                        time.sleep(0.1)
+                                        while dBm_setting > last_power+3:
+                                            last_power += 3
+                                            print("SETTING TO...",last_power)
+                                            b.set_power(last_power)
+                                            time.sleep(0.1)
+                                        print("FINALLY - SETTING TO DESIRED POWER")
+                                    b.set_power(dBm_setting)
                                 else:
                                     raise ValueError("I don't understand this 2 component command")
                             elif len(args) == 1:
@@ -74,6 +86,10 @@ with prologix_connection() as p:
                                     print("closing connection")
                                     conn.close()
                                     leave_open = False
+                                    b.soft_shutdown()
+                                elif args[0] == b'GET_POWER':
+                                    result = b.power_float()
+                                    conn.send(('%0.1f'%result).encode('ASCII'))
                                 elif args[0] == b'QUIT':
                                     print("closing connection")
                                     conn.close()
