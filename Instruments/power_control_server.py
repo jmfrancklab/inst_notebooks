@@ -71,16 +71,23 @@ with prologix_connection() as p:
                                         last_power += 3
                                         print("SETTING TO...",last_power)
                                         b.set_power(last_power)
-                                        time.sleep(0.1)
+                                        for j in range(30):
+                                            if b.power_float() < last_power:
+                                                time.sleep(0.1)
                                         while dBm_setting > last_power+3:
                                             last_power += 3
                                             print("SETTING TO...",last_power)
                                             b.set_power(last_power)
-                                            time.sleep(0.1)
+                                            for j in range(30):
+                                                if b.power_float() < last_power:
+                                                    time.sleep(0.1)
                                         print("FINALLY - SETTING TO DESIRED POWER")
                                     b.set_power(dBm_setting)
+                                    for j in range(30):
+                                        if b.power_float() < last_power:
+                                            time.sleep(0.1)
                                 else:
-                                    raise ValueError("I don't understand this 2 component command")
+                                    raise ValueError("I don't understand this 2 component command:"+str(args))
                             elif len(args) == 1:
                                 if args[0] == b'CLOSE':
                                     print("closing connection")

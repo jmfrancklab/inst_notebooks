@@ -489,6 +489,7 @@ class Bridge12 (Serial):
         self.set_power(0)
         self.set_rf(False)
         self.set_wg(False)
+        self.frq_sweep_10dBm_has_been_run = False
         return
     def safe_shutdown(self):
         print("Entering safe shut down...")
