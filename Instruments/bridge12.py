@@ -150,12 +150,15 @@ class Bridge12 (Serial):
     def rfstatus_int_singletry(self):
         self.write(b'rfstatus?\r')
         retval = self.readline()
-        if retval.strip() == 'ERROR':
+        if retval.strip().startswith(b'E'):
             logger.info("got an error from rfstatus, trying again")
             self.write(b'rfstatus?\r')
             retval = self.readline()
-            if retval.strip() == 'ERROR':
-                raise RuntimeError("Tried to read rfstatus twice, and got 'ERROR' both times!!")
+            if retval.strip().startswith(b'E'):
+                logger.info("got another error from rfstatus, trying again")
+                retval = self.readline()
+                if retval.strip().startswith(b'E'):
+                    raise RuntimeError("Tried to read rfstatus twice, and got 'ERROR' both times!!")
         return int(retval)
     def rfstatus_int(self):
         "need two consecutive responses that match"
@@ -490,6 +493,7 @@ class Bridge12 (Serial):
         self.set_rf(False)
         self.set_wg(False)
         self.frq_sweep_10dBm_has_been_run = False
+        del self.freq_bounds
         return
     def safe_shutdown(self):
         print("Entering safe shut down...")

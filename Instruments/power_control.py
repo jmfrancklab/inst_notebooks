@@ -77,7 +77,7 @@ class power_control(object):
         if not success: raise ValueError("no success after 300 tries!!")
         return data
     def send(self,msg):
-        self.sock.send(msg.encode('ASCII'))
+        self.sock.send(msg.encode('ASCII')+b'\n')
         return
     def set_power(self,dBm):
         "Sets the power of the Bridge12"
