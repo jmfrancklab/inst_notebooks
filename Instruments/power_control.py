@@ -67,12 +67,12 @@ class power_control(object):
             new_data = ""
             while not len(new_data) > 0:
                 new_data = self.sock.recv(1024)
-                print("new data is %d bytes"%len(new_data))
+                logger.debug(strm("new data is %d bytes"%len(new_data)))
                 counter += 1
                 if counter > 300:
                     raise ValueError("No data acquired after 300 tries!!")
                 time.sleep(0.01)
-                data += new_data
+        data += new_data
         return data        
     def send(self,msg):
         self.sock.send(msg.encode('ASCII')+b'\n')
