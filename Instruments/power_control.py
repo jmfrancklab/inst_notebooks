@@ -72,7 +72,7 @@ class power_control(object):
                 if counter > 300:
                     raise ValueError("No data acquired after 300 tries!!")
                 time.sleep(0.01)
-        data += new_data
+            data += new_data
         return data        
     def send(self,msg):
         self.sock.send(msg.encode('ASCII')+b'\n')
