@@ -62,34 +62,20 @@ class power_control(object):
         return data
     def get_bytes(self,ending):
         """Transfers data from socket to buffer for storage. Will continue to acquire/transfer until either 300 tries have been attempted to grab data with more than 0 bytes or until the data acquired ends in the byte string "ending"."""
-        counter = 0
-        new_data = ""
-        while not len(new_data) > 0 :
-            new_data = self.sock.recv(1024)
-            print("new data is %d bytes"%len(new_data))
-            counter += 1
-            if counter > 300:
-                raise ValueError("No data acquired after 300 tires!")
-            time.sleep(0.01)
-            data += new_data
-            if data.endwith(ending):
-                success = True
-                break
-        return data
-        #data = ""
-        #while not data.endswith(ending.decode()):
-        #    counter = 0
-        #    new_data = ""
-        #    while not len(new_data) > 0:
-        #        new_data = self.sock.recv(1024)
-        #        print("new data is %d bytes"%len(new_data))
-        #        counter += 1
-        #        if counter > 300:
-        #            raise ValueError("No data acquired after 300 tries!!")
-        #        time.sleep(0.01)
-        #    data += str(new_data)
-        #    print("new data added")
-        #    return data
+        data = ""
+        while not data.endswith(ending.decode()):
+            counter = 0
+            new_data = ""
+            while not len(new_data) > 0:
+                new_data = self.sock.recv(1024)
+                print("new data is %d bytes"%len(new_data))
+                counter += 1
+                if counter > 300:
+                    raise ValueError("No data acquired after 300 tries!!")
+                time.sleep(0.01)
+            data += str(new_data)
+            print("new data added")
+            return data
     def send(self,msg):
         self.sock.send(msg.encode('ASCII')+b'\n')
         return
