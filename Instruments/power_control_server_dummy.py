@@ -87,6 +87,7 @@ if True:
                         print("shape of total log",total_log.shape)
                         retval += pickle.dumps(total_log)
                         retval += b'ENDARRAY'
+                        print("total size of the log I'm trying to send is",len(retval))
                         conn.send(retval)
                         log_list = []
                         log_array = empty(array_len, dtype=log_dtype)
@@ -102,7 +103,7 @@ if True:
                 leave_open = True
                 oldtimeout = conn.gettimeout()
                 while leave_open:
-                    conn.settimeout(0.1)
+                    conn.settimeout(0.001)
                     try:
                         data = conn.recv(1024)
                         conn.settimeout(oldtimeout)
