@@ -61,24 +61,6 @@ class power_control(object):
         if not success: raise ValueError("no response after 30 tries!!")
         return data
     def get_bytes(self,ending):
-        """Transfers data from socket to buffer for storage. Will continue to acquire/transfer until either 300 tries have been attempted to grab data with more than 0 bytes or until the data acquired ends in the byte string "ending"."""
-        #{{{Newest method
-        #data = b''
-        #while not data.endswith(ending):
-        #    counter = 0
-        #    new_data = ""
-        #    while not len(new_data) > 0:
-        #        new_data = self.sock.recv(1024)
-        #        print("new data is %d bytes"%len(new_data))
-        #        counter += 1
-        #        if counter > 300:
-        #            raise ValueError("No data acquired after 300 tries!!")
-        #        time.sleep(0.01)
-        #    data += new_data
-        #return data
-    #}}}
-    #{{{Old method that caused error
-    def get_bytes(self,ending):
         data = self.sock.recv(1024)
         success = False
         for j in range(300):

@@ -3,6 +3,8 @@ test of logging
 ===============
 
 This test of the logging mimics an ODNP field sweep experiment.
+
+# you need to say exactly which pulse program in the spincore repo it's derived from
 """
 from numpy import *
 from numpy.random import rand
@@ -12,7 +14,7 @@ import os
 import sys
 import time
 import random
-long_delay = 1e-3
+long_delay = 0.18 # 0.1 gives 205k, we need 300k for failure, 0.18 gives failure with total log len of 16446, total size 527349
 short_delay = 1e-4
 def gen_powerlist(max_power, steps, min_dBm_step=0.5):
     "generate a list of (roughly) evenly spaced powers up to max_power"
@@ -84,7 +86,7 @@ with power_control() as p:
         if True:
             # the following seems unrealistic for a field sweep -- what's
             # up with that?
-            for B0_index,desired_B0 in enumerate(r_[3501:3530:0.1]):
+            for B0_index,desired_B0 in enumerate(r_[3501:3530:1]):
                 #carrierFreq_MHz = rand()
                 carrierFreqs_MHz[B0_index] = rand()
                 fields_Set[B0_index] = rand()
