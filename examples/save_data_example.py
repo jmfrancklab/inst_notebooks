@@ -69,6 +69,7 @@ def run_scans(nScans, power_idx, field_idx, DNP_data=None):
 #{{{where error occurs
 meter_powers = zeros_like(dB_settings)
 carrierFreqs_MHz = zeros_like(r_[3501:3530:0.1], dtype=float)
+# define the array of fields once, at the beginning of the file!
 fields_Set = zeros_like(r_[3501:3530:0.1],dtype=float)
 
 with power_control() as p:
@@ -98,3 +99,6 @@ with power_control() as p:
 print("EXITING...")    
 #}}}
 
+# save the log, like in the other examples (copy/paste) -- actually call it the
+# same thing, so that we can just use the example that reads + displays the
+# logfile directly
