@@ -13,6 +13,7 @@ import socket
 import sys
 import time
 import pickle
+from .logobj import logobj
 
 IP = "127.0.0.1"
 #IP = "jmfrancklab-bruker.syr.edu"
@@ -102,11 +103,11 @@ class power_control(object):
         self.send('START_LOG')
         return
     def stop_log(self):
+        """stop the log and return a
+        `logobj`
+        type object directly, which has
+        `log_dict` and `total_log`
+        attributes"""
         self.send('STOP_LOG')
-        retval = self.get_bytes(b'ENDARRAY')
-        dict_idx = retval.find(b'ENDDICT')
-        array_idx = retval.find(b'ENDARRAY')
-        thedict = pickle.loads(retval[:dict_idx])
-        print('verify:',retval[dict_idx:dict_idx+len('ENDDICT')+1])
-        thearray = pickle.loads(retval[dict_idx+len('ENDDICT'):array_idx])
-        return thearray, thedict
+        retval = self.get_bytes(b'ENDTCPIPBLOCK')
+        return pickle.loads(retval[:len("ENDTCPIPBLOCK")])

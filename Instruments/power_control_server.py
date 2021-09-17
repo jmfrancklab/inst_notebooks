@@ -1,20 +1,12 @@
 # To be run from the computer connected to the EPR spectrometer
 import sys, os, time, socket, pickle
-from Instruments import Bridge12,prologix_connection,gigatronics
+from Instruments import Bridge12,prologix_connection,gigatronics,logobj
 from numpy import dtype, empty, concatenate
 
 
 IP = "0.0.0.0"
 PORT = 6002
 
-log_list = []
-# {{{ this is a structured array
-log_dtype = dtype([('time','f8'),('Rx','f8'),('power','f8'),('cmd','i8')])
-array_len = 1000 # just the size of the buffer
-log_array = empty(array_len, dtype=log_dtype)
-log_dict = {0:""} # use hash to convert commands to a number, and this to look up the meaning of the hashes
-# }}}
-currently_logging = False
 def main():
     print("once script works, move code into here")
 
@@ -23,23 +15,14 @@ with prologix_connection() as p:
         with Bridge12() as b:
             sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
             sock.bind((IP,PORT))
-            log_pos = 0
-            def process_cmd(cmd,currently_logging,log_list,log_array,log_pos):
+            this_logobj = logobj()
+            def process_cmd(cmd,this_logobj):
                 leave_open = True
                 cmd = cmd.strip()
                 print("I am processing",cmd)
                 if currently_logging:
-                    log_array[log_pos]['time'] = time.time()
-                    log_array[log_pos]['Rx'] = b.rxpowermv_float()
-                    log_array[log_pos]['power'] = g.read_power()
-                    thehash = hash(cmd)
-                    log_dict[thehash] = cmd
-                    log_array[log_pos]['cmd'] = thehash
-                    log_pos += 1
-                    if log_pos == array_len:
-                        log_pos = 0
-                        log_list.append(log_array)
-                        log_array = empty(array_len, dtype=log_dtype)
+                    this_logobj.add(Rx = b.rxpowermv_float(),
+                            power = g.read_power(),
                 args = cmd.split(b' ')
                 print("I split it to ",args)
                 if len(args) == 3:
@@ -95,20 +78,13 @@ with prologix_connection() as p:
                         currently_logging = True
                     elif args[0] == b'STOP_LOG':
                         currently_logging = False
-                        retval = b''
-                        retval += pickle.dumps(log_dict)
-                        retval += b'ENDDICT'
-                        total_log = concatenate(log_list+[log_array[:log_pos]])
-                        print("shape of total log",total_log.shape)
-                        retval += pickle.dumps(total_log)
-                        retval += b'ENDARRAY'
-                        conn.send(retval)
-                        log_list = []
-                        log_array = empty(array_len, dtype=log_dtype)
-                        log_pos = 0
+                        conn.send(pickle.dumps(this_log)
+                                +b'ENDTCPIPBLOCK')
+                        del this_log
+                        this_log = logobj()
                     else:
                         raise ValueError("I don't understand this 1 component command"+str(args))
-                return log_pos,leave_open,currently_logging
+                return leave_open,currently_logging
             while True:
                 sock.listen(1)
                 print("I am listening")
@@ -124,17 +100,10 @@ with prologix_connection() as p:
                         if len(data) > 0:
                             print("I received a command '",data,"'")
                             for cmd in data.strip().split(b'\n'):
-                                log_pos,leave_open,currently_logging = process_cmd(cmd,currently_logging,log_list,log_array,log_pos)
+                                leave_open,currently_logging = process_cmd(cmd,this_logobj)
                         else:
                             print("no data received")
                     except socket.timeout as e:
                         if currently_logging:
-                            log_array[log_pos]['time'] = time.time()
-                            log_array[log_pos]['Rx'] = b.rxpowermv_float()
-                            log_array[log_pos]['power'] = g.read_power()
-                            log_array[log_pos]['cmd'] = 0
-                            log_pos += 1
-                            if log_pos == array_len:
-                                log_pos = 0
-                                log_list.append(log_array)
-                                log_array = empty(array_len, dtype=log_dtype)
+                            this_log.add(Rx=b.rxpowermv_float(),
+                                    power=g.read_power())
