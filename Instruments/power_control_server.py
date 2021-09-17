@@ -20,7 +20,7 @@ with prologix_connection() as p:
                 leave_open = True
                 cmd = cmd.strip()
                 print("I am processing",cmd)
-                if currently_logging:
+                if self.currently_logging:
                     this_logobj.add(Rx = b.rxpowermv_float(),
                             power = g.read_power(),
                 args = cmd.split(b' ')
@@ -75,16 +75,16 @@ with prologix_connection() as p:
                         leave_open = False
                         quit()
                     elif args[0] == b'START_LOG':
-                        currently_logging = True
+                        self.currently_logging = True
                     elif args[0] == b'STOP_LOG':
-                        currently_logging = False
+                        self.currently_logging = False
                         conn.send(pickle.dumps(this_log)
                                 +b'ENDTCPIPBLOCK')
                         del this_log
                         this_log = logobj()
                     else:
                         raise ValueError("I don't understand this 1 component command"+str(args))
-                return leave_open,currently_logging
+                return leave_open
             while True:
                 sock.listen(1)
                 print("I am listening")
@@ -100,10 +100,10 @@ with prologix_connection() as p:
                         if len(data) > 0:
                             print("I received a command '",data,"'")
                             for cmd in data.strip().split(b'\n'):
-                                leave_open,currently_logging = process_cmd(cmd,this_logobj)
+                                leave_open = process_cmd(cmd,this_logobj)
                         else:
                             print("no data received")
                     except socket.timeout as e:
-                        if currently_logging:
+                        if self.currently_logging:
                             this_log.add(Rx=b.rxpowermv_float(),
                                     power=g.read_power())
