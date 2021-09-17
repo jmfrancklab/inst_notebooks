@@ -20,6 +20,9 @@ IP = "127.0.0.1"
 if len(sys.argv) > 1:
     IP = sys.argv[1]
 PORT = 6002
+short_sleep = 0.01
+slow_sleep = 0.5
+buffer_size = 1024
 
 class power_control(object):
     """wraps the ethernet connection to the XEPR server and allows you to send commands (provides a with block)"""
@@ -41,43 +44,43 @@ class power_control(object):
     def arrange_quit(self):
         "quit once we leave the block"
         self.do_quit = True
-    def get(self, n_slow_tries = 0, slow_wait = 0.5):
-        data = self.sock.recv(1024).decode('ASCII').strip()
+    def get(self, n_slow_tries = 0, slow_wait = slow_sleep):
+        data = self.sock.recv(buffer_size).decode('ASCII').strip()
         success = False
         for j in range(n_slow_tries):
             if len(data) == 0:
-                data = self.sock.recv(1024).decode('ASCII').strip()
+                data = self.sock.recv(buffer_size).decode('ASCII').strip()
                 time.sleep(slow_wait)
             else:
                 success = True
                 break
         for j in range(30):
             if len(data) == 0:
-                data = self.sock.recv(1024).decode('ASCII').strip()
-                time.sleep(0.01)
+                data = self.sock.recv(buffer_size).decode('ASCII').strip()
+                time.sleep(short_sleep)
             else:
                 success = True
                 break
         if not success: raise ValueError("no response after 30 tries!!")
         return data
     def get_bytes(self,ending):
-        data = self.sock.recv(1024)
-        success = False
-        for j in range(300):
-            print("I've got %d bytes"%len(data))
-            if len(data) == 0:
-                time.sleep(0.01)
-                data += self.sock.recv(1024)
-            else:
-                if data.endswith(ending):
-                    success = True
-                    break
-                else:
-                    data += self.sock.recv(1024)
-        if not success: raise ValueError("no success after 300 tries!!")
+        """Transfers data from socket to buffer for storage. Will
+        continue to acquire/transfer until either 300 tries have been
+        attempted to grab data with more than 0 bytes or until the data
+        acquired ends in the byte string "ending"."""
+        data = b''
+        while not data.endswith(ending):
+            counter = 0
+            new_data = ""
+            while not len(new_data) > 0:
+                new_data = self.sock.recv(buffer_size)
+                print("new data is %d bytes"%len(new_data))
+                counter += 1
+                if counter > 300:
+                    raise ValueError("No data acquired after 300 tries!!")
+                time.sleep(short_sleep)
+            data += new_data
         return data
-    #}}}
-
     def send(self,msg):
         self.sock.send(msg.encode('ASCII')+b'\n')
         return

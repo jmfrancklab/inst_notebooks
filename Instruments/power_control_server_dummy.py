@@ -124,4 +124,3 @@ if True:
                                 log_pos = 0
                                 log_list.append(log_array)
                                 log_array = empty(array_len, dtype=log_dtype)
-                            print("log_list len",len(log_list),"log_pos",log_pos,"total",len(log_array)*len(log_list)+log_pos)
