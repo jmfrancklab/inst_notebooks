@@ -14,6 +14,7 @@ import os
 import sys
 import time
 import random
+import h5py
 long_delay = 0.18 # 0.1 gives 205k, we need 300k for failure, 0.18 gives failure with total log len of 16446, total size 527349
 short_delay = 1e-4
 def gen_powerlist(max_power, steps, min_dBm_step=0.5):
@@ -35,9 +36,13 @@ def gen_powerlist(max_power, steps, min_dBm_step=0.5):
                     "can't request %d steps between 0 and %f W without going"
                     "below %f a step?")%(steps,max_power,min_dBm_step)
     return dB_settings
+max_power = 4
+power_steps = 25
 #{{{ params for Bridge 12/power
 dB_settings = gen_powerlist(4,25.0)
 powers =1e-3*10**(dB_settings/10.)
+nPoints = 2048
+nEchoes = 1
 #}}}
 #{{{ time of pulse prog
 DNP_data = None
@@ -46,9 +51,9 @@ def run_scans(nScans, power_idx, field_idx, DNP_data=None):
     ph1_cyc = r_[0,1,2,3]
     ph2_cyc = r_[0]
     nPhaseSteps = len(ph1_cyc)*len(ph2_cyc)
-    data_length = 2*2048*1*nPhaseSteps
+    data_length = 2*nPoints*nEchoes*nPhaseSteps
     for x in range(nScans):
-        raw_data = np.random.random(2048) + np.random.random(2048) * 1j#SpinCore_pp.getData(data_length, nPoints, nEchoes, nPhaseSteps, output_name)
+        raw_data = np.random.random(data_length) + np.random.random(data_length) * 1j
         data_array = complex128(raw_data[0::2]+1j*raw_data[1::2])
         dataPoints = int(shape(data_array)[0])
         if DNP_data is None and power_idx ==0 and field_idx == 0:
