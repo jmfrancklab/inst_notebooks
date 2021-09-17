@@ -74,7 +74,6 @@ class power_control(object):
             new_data = ""
             while not len(new_data) > 0:
                 new_data = self.sock.recv(buffer_size)
-                print("new data is %d bytes"%len(new_data))
                 counter += 1
                 if counter > 300:
                     raise ValueError("No data acquired after 300 tries!!")
