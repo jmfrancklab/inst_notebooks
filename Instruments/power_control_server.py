@@ -1,7 +1,6 @@
 # To be run from the computer connected to the EPR spectrometer
 import sys, os, time, socket, pickle
 from Instruments import Bridge12,prologix_connection,gigatronics,logobj
-from numpy import dtype, empty, concatenate
 
 
 IP = "0.0.0.0"
@@ -20,9 +19,10 @@ with prologix_connection() as p:
                 leave_open = True
                 cmd = cmd.strip()
                 print("I am processing",cmd)
-                if self.currently_logging:
+                if this_logobj.currently_logging:
                     this_logobj.add(Rx = b.rxpowermv_float(),
                             power = g.read_power(),
+                            cmd=cmd)
                 args = cmd.split(b' ')
                 print("I split it to ",args)
                 if len(args) == 3:
@@ -75,13 +75,12 @@ with prologix_connection() as p:
                         leave_open = False
                         quit()
                     elif args[0] == b'START_LOG':
-                        self.currently_logging = True
+                        this_logobj.currently_logging = True
                     elif args[0] == b'STOP_LOG':
-                        self.currently_logging = False
-                        conn.send(pickle.dumps(this_log)
-                                +b'ENDTCPIPBLOCK')
-                        del this_log
-                        this_log = logobj()
+                        this_logobj.currently_logging = False
+                        retval = pickle.dumps(this_logobj) +b'ENDTCPIPBLOCK'
+                        conn.send(retval)
+                        this_logobj.reset()
                     else:
                         raise ValueError("I don't understand this 1 component command"+str(args))
                 return leave_open
@@ -104,6 +103,6 @@ with prologix_connection() as p:
                         else:
                             print("no data received")
                     except socket.timeout as e:
-                        if self.currently_logging:
-                            this_log.add(Rx=b.rxpowermv_float(),
+                        if this_logobj.currently_logging:
+                            this_logobj.add(Rx=b.rxpowermv_float(),
                                     power=g.read_power())

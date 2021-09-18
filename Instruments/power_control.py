@@ -110,4 +110,4 @@ class power_control(object):
         attributes"""
         self.send('STOP_LOG')
         retval = self.get_bytes(b'ENDTCPIPBLOCK')
-        return pickle.loads(retval[:len("ENDTCPIPBLOCK")])
+        return pickle.loads(retval[:-len("ENDTCPIPBLOCK")])

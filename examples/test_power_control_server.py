@@ -1,6 +1,8 @@
 """test the power control server
 
-run this while running power_control_server.py on the same computer
+run this while running `python -m Instruments.power_control_server`
+(or `power_control_server` as a command)
+on the same computer
 
 generates hdf output to be read by test_power_control_server_read.py"""
 from Instruments import power_control
@@ -23,9 +25,12 @@ with power_control() as p:
         elif j == 20:
             p.set_power(12)
         elif j == 99:
-            log_array, log_dict = p.stop_log()
-    p.arrange_quit()
+            this_log = p.stop_log()
+    #p.arrange_quit()
+log_array = this_log.total_log
+print("log array",repr(log_array))
 print("log array shape",log_array.shape)
+log_dict = this_log.log_dict
 with h5py.File('output.h5', 'a') as f:
     log_grp = f.create_group('log') # normally, I would actually put this under the node with the data
     dset = log_grp.create_dataset("log",data=log_array)

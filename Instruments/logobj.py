@@ -1,3 +1,5 @@
+from numpy import dtype, empty, concatenate
+import time as timemodule
 class logobj(object):
     def __init__(self,
             array_len = 1000 # just the size of the buffer
@@ -12,12 +14,20 @@ class logobj(object):
         self.log_pos = 0
         self.array_len = array_len
         return
-    def add(time=None,
+    def reset(self):
+        "wipe the log and start over, set to not currently logging"
+        self.log_array = empty(self.array_len, dtype=self.log_dtype)
+        self.log_dict = {0:""} # use hash to convert commands to a number, and this to look up the meaning of the hashes
+        self.currently_logging = False
+        self.log_pos = 0
+        return
+    def add(self, time=None,
             Rx=None,
             power=None,
             cmd=None):
         if time is None:
-            time = time.time()
+            time = timemodule.time()
+        self.log_array[self.log_pos]['time'] = time
         if cmd is None:
             self.log_array[self.log_pos]['cmd'] = 0
         else:

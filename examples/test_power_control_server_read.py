@@ -48,6 +48,6 @@ for j,thisevent in enumerate(read_array[mask]):
     y_pos = j/n_events
     ax_Rx.text(thisevent['time'], y_pos, read_dict[thisevent['cmd']], transform=trans_Rx)
     ax_power.text(thisevent['time'], y_pos, read_dict[thisevent['cmd']], transform=trans_power)
-#ax.legend(**dict(bbox_to_anchor=(1.05,1), loc=2, borderaxespad=0.))
+ax_power.legend(**dict(bbox_to_anchor=(1.05,1), loc=2, borderaxespad=0.))
 plt.tight_layout()
 plt.show()

@@ -1,7 +1,6 @@
 # To be run from the computer connected to the EPR spectrometer
 import sys, os, time, socket, pickle
-from . import logobj
-from numpy import dtype, empty, concatenate
+from .logobj import logobj
 from numpy.random import rand
 
 
@@ -21,9 +20,10 @@ if True:
                 leave_open = True
                 cmd = cmd.strip()
                 print("I am processing",cmd)
-                if self.currently_logging:
+                if this_logobj.currently_logging:
                     this_logobj.add(Rx = rand(),
                             power = rand(),
+                            cmd = cmd)
                 args = cmd.split(b' ')
                 print("I split it to ",args)
                 if len(args) == 3:
@@ -31,6 +31,7 @@ if True:
                         freq1 = float(args[1])
                         freq2 = float(args[2])
                         time.sleep(1)
+                        min_f = 9.8
                         conn.send(('%0.6f'%min_f).encode('ASCII'))
                     else:
                         raise ValueError("I don't understand this 3 component command")
@@ -61,13 +62,12 @@ if True:
                         leave_open = False
                         quit()
                     elif args[0] == b'START_LOG':
-                        self.currently_logging = True
+                        this_logobj.currently_logging = True
                     elif args[0] == b'STOP_LOG':
-                        self.currently_logging = False
-                        conn.send(pickle.dumps(this_log)
-                                +b'ENDTCPIPBLOCK')
-                        del this_log
-                        this_log = logobj()
+                        this_logobj.currently_logging = False
+                        retval = pickle.dumps(this_logobj) +b'ENDTCPIPBLOCK'
+                        conn.send(retval)
+                        this_logobj.reset()
                     else:
                         raise ValueError("I don't understand this 1 component command"+str(args))
                 return leave_open
@@ -90,6 +90,6 @@ if True:
                         else:
                             print("no data received")
                     except socket.timeout as e:
-                        if self.currently_logging:
-                            this_log.add(Rx=rand(),
+                        if this_logobj.currently_logging:
+                            this_logobj.add(Rx=rand(),
                                     power=rand())
