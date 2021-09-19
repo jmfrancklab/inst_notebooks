@@ -59,9 +59,25 @@ class logobj(object):
     def __getstate__(self):
         """return a picklable object -- I go with a dictionary that contains the message dict and the total array"""
         retval = {}
-        retval["dict"] = self.log_dict
+        retval["dictkeys"] = list(self.log_dict.keys())
+        retval["dictvalues"] = list(self.log_dict.values())
         retval["array"] = self.total_log
         return retval
     def __setstate__(self,inputdict):
-        self.log_dict = inputdict["dict"]
-        self.total_log = inputdict["array"]
+        in_hdf = False
+        if 'dictkeys' in inputdict.keys():
+            self.log_dict = dict(zip(
+                inputdict["dictkeys"],
+                inputdict["dictvalues"]))
+        elif 'dictkeys' in inputdict.attrs.keys():
+            # allows setstate from hdf5 node
+            self.log_dict = dict(zip(
+                inputdict.attrs["dictkeys"],
+                inputdict.attrs["dictvalues"]))
+            in_hdf = True 
+        else:
+            raise IOError("I can't find dictkeys!")
+        if in_hdf:
+            self.total_log = inputdict["array"].value # makes accessible after hdf is closed (forces into memory)
+        else:
+            self.total_log = inputdict["array"]
