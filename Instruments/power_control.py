@@ -61,21 +61,19 @@ class power_control(object):
         if not success: raise ValueError("no response after 30 tries!!")
         return data
     def get_bytes(self,ending):
-        data = self.sock.recv(1024)
-        success = False
-        for j in range(300):
-            print("I've got %d bytes"%len(data))
-            if len(data) == 0:
+        data = ""
+        while not data.endswith(ending):
+            counter = 0
+            new_data = ""
+            while not len(new_data) > 0:
+                new_data = self.sock.recv(1024)
+                logger.debug(strm("new data is %d bytes"%len(new_data)))
+                counter += 1
+                if counter > 300:
+                    raise ValueError("No data acquired after 300 tries!!")
                 time.sleep(0.01)
-                data += self.sock.recv(1024)
-            else:
-                if data.endswith(ending):
-                    success = True
-                    break
-                else:
-                    data += self.sock.recv(1024)
-        if not success: raise ValueError("no success after 300 tries!!")
-        return data
+            data += new_data
+        return data        
     def send(self,msg):
         self.sock.send(msg.encode('ASCII')+b'\n')
         return
