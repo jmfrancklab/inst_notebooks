@@ -52,7 +52,7 @@ class Bridge12 (Serial):
         # Rx power -- it is lowered as we observe the Tx values
         self.safe_rx_level_int = int(convert_to_mv(13.)*10+0.5)# i.e. a setting of 13 dB for the absolute threshold
         # this is where the safe threshold is!!
-        if self.safe_rx_level_int > 5000: self.safe_rx_level_int = 11500 # changing this from 5000 to 11500
+        if self.safe_rx_level_int > 5000: self.safe_rx_level_int = 10500 # changing this from 5000 to 11500
         self.frq_sweep_10dBm_has_been_run = False
         self.tuning_curve_data = {}
         self._inside_with_block = False
@@ -150,12 +150,15 @@ class Bridge12 (Serial):
     def rfstatus_int_singletry(self):
         self.write(b'rfstatus?\r')
         retval = self.readline()
-        if retval.strip() == 'ERROR':
+        if retval.strip().startswith(b'E'):
             logger.info("got an error from rfstatus, trying again")
             self.write(b'rfstatus?\r')
             retval = self.readline()
-            if retval.strip() == 'ERROR':
-                raise RuntimeError("Tried to read rfstatus twice, and got 'ERROR' both times!!")
+            if retval.strip().startswith(b'E'):
+                logger.info("got another error from rfstatus, trying again")
+                retval = self.readline()
+                if retval.strip().startswith(b'E'):
+                    raise RuntimeError("Tried to read rfstatus twice, and got 'ERROR' both times!!")
         return int(retval)
     def rfstatus_int(self):
         "need two consecutive responses that match"
@@ -185,6 +188,8 @@ class Bridge12 (Serial):
     def power_int_singletry(self):
         self.write(b'power?\r')
         return int(self.readline())
+    def power_float(self):
+        return self.power_int()/10
     def power_int(self):
         "need two consecutive responses that match"
         h = self.power_int_singletry()
@@ -317,7 +322,15 @@ class Bridge12 (Serial):
     def freq_int(self):
         "return the frequency, in kHz (since it's set as an integer kHz)"
         self.write(b'freq?\r')
-        return int(self.readline())
+        for j in range(10):
+            retval = self.readline()
+            if retval.startswith(b'E001'):
+                print("Got error E001, trying again")
+            elif len(retval) == 0:
+                print("Got an empty string")
+            else:
+                return int(retval)
+        raise ValueError("I tried running 10 times and couldn't get a frequency!!!")
     def freq_sweep(self,freq,dummy_readings=1,fast_run=True):
         """Sweep over an array of frequencies.
         **Must** be run at 10 dBm the first time around; will fail otherwise.
@@ -473,6 +486,15 @@ class Bridge12 (Serial):
         self.bridge12_wait()
         self._inside_with_block = True
         return self
+    def soft_shutdown(self):
+        """do everything to shut the B12 down, but don't break out of the
+        with block or close the USB connection"""
+        self.set_power(0)
+        self.set_rf(False)
+        self.set_wg(False)
+        self.frq_sweep_10dBm_has_been_run = False
+        del self.freq_bounds
+        return
     def safe_shutdown(self):
         print("Entering safe shut down...")
         try:
