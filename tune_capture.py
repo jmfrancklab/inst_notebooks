@@ -17,17 +17,32 @@ print("the mode zoom is",h["ModeZoom"].value,"and the attenuation is",h["PowerAt
 print("setting to linear scale and 33 dB atten")
 h["LogScaleEnab"].value = False
 h["PowerAtten"].value = 33
-n_points = int(h["DataRange"][1])
 tune_data = {}
 h["RefArm"].value = "On"
+def return_curve(h,n_points):
+    n_curves = 5
+    y_data = np.empty((n_curves,n_points))
+    for j in range(n_curves):
+        for i in range(0, n_points):
+            y_data[j,i] = h["Data"][i]
+    return y_data
+def consistent_curve(h,n_points):
+    keepgoing = True
+    while keepgoing:
+        y_data = return_curve(h, n_points)
+        thisstd = np.sqrt(np.var(y_data,axis=0).mean())
+        keepgoing = thisstd < 1e-7 or thisstd > 2e-3*y_data.max()
+        if keepgoing:
+            print("std",thisstd,"max",y_data.max(),
+                    "capturing again")
+    print("max",y_data.max(),"std %e"%thisstd)
+    return y_data.mean(axis=0)
+
 for mode_zoom in [1,2,4,8]:
-    y_data = np.zeros(n_points)
-    x_data = np.linspace(-0.5/mode_zoom,0.5/mode_zoom,n_points)
     h['ModeZoom'].value = mode_zoom
-    time.sleep(2.0)
-    print("capture now...")
-    for i in range(0, n_points):
-        y_data[i] += h["Data"][i]
+    n_points = int(h["DataRange"][1])
+    x_data = np.linspace(-0.5/mode_zoom,0.5/mode_zoom,n_points)
+    y_data = consistent_curve(h, n_points)
     tune_data['y%d'%mode_zoom] = y_data
     tune_data['x%d'%mode_zoom] = x_data
 
@@ -36,19 +51,18 @@ h["RefArm"].value = "Off"
 h["PowerAtten"].value = 20
 time.sleep(2.0) # takes longer to turn up power
 for mode_zoom in [1,2,4,8]:
-    y_data = np.zeros(n_points)
-    x_data = np.linspace(-0.5/mode_zoom,0.5/mode_zoom,n_points)
     h['ModeZoom'].value = mode_zoom
-    time.sleep(2.0)
-    print("capture now...")
-    for i in range(0, n_points):
-        y_data[i] += h["Data"][i]
+    n_points = int(h["DataRange"][1])
+    x_data = np.linspace(-0.5/mode_zoom,0.5/mode_zoom,n_points)
+    y_data = consistent_curve(h, n_points)
     tune_data_hpnoref['y%d'%mode_zoom] = y_data
     tune_data_hpnoref['x%d'%mode_zoom] = x_data
 h["RefArm"].value = "On"
 
-for thisdata in (tune_data,tune_data_hpnoref):
+for thistitle,thisdata in (('33 dB, arm on',tune_data),
+    ('20 dB arm off',tune_data_hpnoref)):
     plt.figure()
+    plt.title(thistitle)
     for mode_zoom in [1,2,4,8]:
         y_data = thisdata['y%d'%mode_zoom]
         x_data = thisdata['x%d'%mode_zoom]
