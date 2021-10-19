@@ -11,4 +11,5 @@ __all__ = ['SerialInstrument','GDS_scope','AFG',"Bridge12"]
 from .HP8672A import HP8672A
 from .gigatronics import gigatronics
 from .gpib_eth import prologix_connection
+from .logobj import logobj
 __all__ += ['HP8672A','gigatronics','prologix_connection','power_control']

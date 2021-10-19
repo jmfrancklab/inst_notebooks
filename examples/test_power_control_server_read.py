@@ -4,6 +4,7 @@ import pylab as plt
 from numpy import empty
 from matplotlib.ticker import FuncFormatter
 import matplotlib.transforms as transforms
+from Instruments.logobj import logobj
 
 @FuncFormatter
 def thetime(x, position):
@@ -11,18 +12,11 @@ def thetime(x, position):
     return time.strftime('%I:%M%p',result)
 with h5py.File('output.h5', 'r') as f:
     log_grp = f['log']
-    dset = log_grp['log']
-    print("length of dset",dset.shape)
-    # {{{ convert to a proper structured array
-    read_array = empty(len(dset), dtype=dset.dtype)
-    read_array[:] = dset
-    # }}}
-    read_dict = {}
-    for j in range(dset.attrs['dict_len']):
-        val = dset.attrs['val%d'%j]
-        if isinstance(val, bytes):
-            val = val.decode('ASCII')
-        read_dict[dset.attrs['key%d'%j]] = val
+    thislog = logobj()
+    thislog.__setstate__(log_grp)
+    read_array = thislog.total_log
+    read_dict = thislog.log_dict
+print(read_array)
 for j in range(len(read_array)):
     thistime, thisrx, thispower, thiscmd = read_array[j]
     print('%-04d'%j,time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(thistime)),
@@ -48,6 +42,6 @@ for j,thisevent in enumerate(read_array[mask]):
     y_pos = j/n_events
     ax_Rx.text(thisevent['time'], y_pos, read_dict[thisevent['cmd']], transform=trans_Rx)
     ax_power.text(thisevent['time'], y_pos, read_dict[thisevent['cmd']], transform=trans_power)
-#ax.legend(**dict(bbox_to_anchor=(1.05,1), loc=2, borderaxespad=0.))
+ax_power.legend(**dict(bbox_to_anchor=(1.05,1), loc=2, borderaxespad=0.))
 plt.tight_layout()
 plt.show()
