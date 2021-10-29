@@ -20,6 +20,9 @@ class logobj(object):
         self.log_dict = {0:""} # use hash to convert commands to a number, and this to look up the meaning of the hashes
         self.currently_logging = False
         self.log_pos = 0
+        self.log_list = []
+        if hasattr(self,'_totallog'):
+            del self._totallog
         return
     def add(self, time=None,
             Rx=None,

@@ -24,7 +24,8 @@ setup(
         ext_modules = ext_modules,
         entry_points=dict(console_scripts=
             [
-                'power_control_server=Instruments.power_control_server:main'
+                'power_control_server=Instruments.power_control_server:main',
+                'quit_power_control=Instruments.just_quit:main'
                 ]
             )
         )

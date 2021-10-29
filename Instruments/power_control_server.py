@@ -41,23 +41,38 @@ with prologix_connection() as p:
                         last_power = b.power_float()
                         if dBm_setting > last_power + 3:
                             last_power += 3
+                            nsecs = -1*time.time()
                             print("SETTING TO...",last_power)
                             b.set_power(last_power)
                             for j in range(30):
                                 if b.power_float() < last_power:
                                     time.sleep(0.1)
+                                else:
+                                    break
+                            nsecs += time.time()
+                            print("took",j,"tries and",nsecs,"seconds")
                             while dBm_setting > last_power+3:
                                 last_power += 3
+                                nsecs = -1*time.time()
                                 print("SETTING TO...",last_power)
                                 b.set_power(last_power)
                                 for j in range(30):
                                     if b.power_float() < last_power:
                                         time.sleep(0.1)
-                            print("FINALLY - SETTING TO DESIRED POWER")
+                                    else:
+                                        break
+                                nsecs += time.time()
+                                print("took",j,"tries and",nsecs,"seconds")
+                        print("FINALLY - SETTING TO DESIRED POWER")
+                        nsecs = -1*time.time()
                         b.set_power(dBm_setting)
                         for j in range(30):
                             if b.power_float() < last_power:
                                 time.sleep(0.1)
+                            else:
+                                break
+                        nsecs += time.time()
+                        print("took",j,"tries and",nsecs,"seconds")
                     else:
                         raise ValueError("I don't understand this 2 component command:"+str(args))
                 elif len(args) == 1:
@@ -95,13 +110,29 @@ with prologix_connection() as p:
                     conn.settimeout(0.001)
                     try:
                         data = conn.recv(1024)
+                        timelist = []
+                        timelabels = []
                         conn.settimeout(oldtimeout)
+                        timelist.append(time.time())
+                        if oldtimeout is None:
+                            timelabels.append("set timeout to None on receiving command, '%s'"%(data))
+                        else:
+                            timelabels.append("set timeout to %g on receiving command, '%s'"%(oldtimeout,data))
                         if len(data) > 0:
-                            print("I received a command '",data,"'")
                             for cmd in data.strip().split(b'\n'):
+                                timelist.append(time.time())
+                                timelabels.append("about to process")
                                 leave_open = process_cmd(cmd,this_logobj)
+                                timelist.append(time.time())
+                                timelabels.append("processed %s"%cmd)
                         else:
                             print("no data received")
+                            timelist.append(time.time())
+                            timelabels.append("no data received")
+                        print("time to process:")
+                        print(" --> ".join([
+                            timelabels[j] + ' --> ' + str(timelist[j+1]-timelist[j])
+                            for j in range(len(timelist)-1)] + [timelabels[-1]]))
                     except socket.timeout as e:
                         if this_logobj.currently_logging:
                             this_logobj.add(Rx=b.rxpowermv_float(),

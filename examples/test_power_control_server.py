@@ -22,10 +22,10 @@ with power_control() as p:
         print(j)
         if j == 0:
             p.start_log()
-        time.sleep(0.1)
-        if j == 10:
+        time.sleep(0.5)
+        if j == 30:
             p.set_power(10.5)
-        elif j == 20:
+        elif j == 60:
             p.set_power(12)
         elif j == 99:
             this_log = p.stop_log()
@@ -34,6 +34,7 @@ log_array = this_log.total_log
 print("log array",repr(log_array))
 print("log array shape",log_array.shape)
 log_dict = this_log.log_dict
+print("log dict",repr(log_dict))
 with h5py.File('output.h5', 'a') as f:
     log_grp = f.create_group('log') # normally, I would actually put this under the node with the data
     hdf_save_dict_to_group(log_grp, this_log.__getstate__())

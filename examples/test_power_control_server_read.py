@@ -9,7 +9,7 @@ from Instruments.logobj import logobj
 @FuncFormatter
 def thetime(x, position):
     result = time.localtime(x)
-    return time.strftime('%I:%M%p',result)
+    return time.strftime('%I:%M:%S %p',result)
 with h5py.File('output.h5', 'r') as f:
     log_grp = f['log']
     thislog = logobj()
