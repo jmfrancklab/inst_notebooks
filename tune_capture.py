@@ -6,6 +6,10 @@ import sys
 import time
 sys.path.append('/opt/Bruker/xepr/sharedProDeL/Standard/XeprAPI/')
 import XeprAPI
+import h5py
+from datetime import datetime
+date = datetime.now().strftime('%y%m%d')
+output_name = 'empty_tube'
 x = XeprAPI.Xepr()
 x.XeprOpen()
 h = x.XeprExperiment('AcqHidden')
