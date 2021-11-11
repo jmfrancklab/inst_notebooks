@@ -71,14 +71,9 @@ for thistitle,thisdata in (('33 dB, arm on',tune_data),
         node_name = 'zoom%d'%mode_zoom
         y_data = thisdata['y%d'%mode_zoom]
         x_data = thisdata['x%d'%mode_zoom]
-        this_data = nddata(array(x_data),'frequency')
-        this_data.data = y_data
-        this_data.name(node_name)
+        np.savez(output_name+'_'+'%s'%node_name,
+                data = y_data,
+                frq=x_data)
         plt.plot(x_data,y_data,'o', alpha=0.5, label='zoom level %d'%mode_zoom)
     plt.legend()
-myfilename = date+'_'+output_name+'.h5'
-print("Saving File...")
-this_data.hdf5_write(myfilename)
-print("\n***FILE SAVED***\n")
-print("Name of saved data",this_data.name())
 plt.show()
