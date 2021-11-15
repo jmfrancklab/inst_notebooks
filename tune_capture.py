@@ -10,7 +10,7 @@ import XeprAPI
 from datetime import datetime
 #from pyspecdata import * 
 date = datetime.now().strftime('%y%m%d')
-output_name = 'empty_tube' #USE THE SAME NAME AS YOUR QEPR DATASET
+output_name = '211115_120mM_TEMPOL' #USE THE SAME NAME AS YOUR QEPR DATASET
 user = 'alex' #your user in xeprFiles
 x = XeprAPI.Xepr()
 x.XeprOpen()
