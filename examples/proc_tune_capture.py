@@ -2,7 +2,9 @@ from pyspecdata import *
 import matplotlib.pyplot as plt
 fl = figlist_var()
 filename = search_filename('211115_120mM_TEMPOL.npz', exp_type='francklab_esr/alex', unique=True) 
-set_1 = np.load(filename, allow_pickle=True,encoding='bytes')
+set_1 = np.load(filename, allow_pickle=True, encoding='bytes')
+print([j for j in set_1.keys()])
+print(set_1.data)
 set_1 = set_1['data'].item()
 zoom1 = set_1[b'zoom1']
 zoom2 = set_1[b'zoom2']
