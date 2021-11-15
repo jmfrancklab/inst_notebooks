@@ -75,9 +75,9 @@ for thistitle,thisdata in (('33 dB, arm on',tune_data),
         y_data = thisdata['y%d'%mode_zoom]
         x_data = thisdata['x%d'%mode_zoom]
         plt.plot(x_data,y_data,'o', alpha=0.5, label='zoom level %d'%mode_zoom)
-        thisdata = [[y_data],[x_data]]
-        nd_thisdata = np.array(thisdata)
-        mydata['%s'%mode_zoom] = nd_thisdata
+        thatdata = [[y_data],[x_data]]
+        nd_thatdata = np.array(thatdata)
+        mydata['zoom%d'%mode_zoom] = nd_thatdata
     plt.legend()
 BASE_PATH = "../xeprFiles/Data/"+"%s"%user
 filename = date+'_'+output_name
