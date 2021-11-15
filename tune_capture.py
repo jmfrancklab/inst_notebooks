@@ -3,14 +3,15 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
+import os
 import time
 sys.path.append('/opt/Bruker/xepr/sharedProDeL/Standard/XeprAPI/')
 import XeprAPI
-import h5py
 from datetime import datetime
 #from pyspecdata import * 
 date = datetime.now().strftime('%y%m%d')
-output_name = 'empty_tube'
+output_name = 'empty_tube' #USE THE SAME NAME AS YOUR QEPR DATASET
+user = 'alex' #your user in xeprFiles
 x = XeprAPI.Xepr()
 x.XeprOpen()
 h = x.XeprExperiment('AcqHidden')
@@ -72,14 +73,11 @@ for thistitle,thisdata in (('33 dB, arm on',tune_data),
         node_name = 'zoom%d'%mode_zoom
         y_data = thisdata['y%d'%mode_zoom]
         x_data = thisdata['x%d'%mode_zoom]
-        np.savez(output_name+'%s'%node_name,
-		data=y_data,
-		frq = x_data)
         plt.plot(x_data,y_data,'o', alpha=0.5, label='zoom level %d'%mode_zoom)
     plt.legend()
-#myfilename = date+'_'+output_name+'.h5'
-print("Saving File...")
-#this_data.hdf5_write(myfilename)
-print("\n***FILE SAVED***\n")
-#print("Name of saved data",this_data.name())
+BASE_PATH = "../xeprFiles/Data/"+"%s"%user
+filename = date+'_'+output_name
+np.savez(os.path.join(BASE_PATH,filename),
+        data = **thisdata)
+    
 plt.show()
