@@ -8,8 +8,9 @@ import time
 sys.path.append('/opt/Bruker/xepr/sharedProDeL/Standard/XeprAPI/')
 import XeprAPI
 from datetime import datetime
+#from pyspecdata import * 
 date = datetime.now().strftime('%y%m%d')
-output_name = 'empty_tube' #USE THE SAME NAME AS YOUR QEPR DATASET
+output_name = '211115_120mM_TEMPOL' #USE THE SAME NAME AS YOUR QEPR DATASET
 user = 'alex' #your user in xeprFiles
 x = XeprAPI.Xepr()
 x.XeprOpen()
@@ -68,15 +69,19 @@ for thistitle,thisdata in (('33 dB, arm on',tune_data),
     ('20 dB arm off',tune_data_hpnoref)):
     plt.figure()
     plt.title(thistitle)
+    mydata = {}
     for mode_zoom in [1,2,4,8]:
         node_name = 'zoom%d'%mode_zoom
         y_data = thisdata['y%d'%mode_zoom]
         x_data = thisdata['x%d'%mode_zoom]
         plt.plot(x_data,y_data,'o', alpha=0.5, label='zoom level %d'%mode_zoom)
+        thisdata = [[y_data],[x_data]]
+        nd_thisdata = np.array(thisdata)
+        mydata['%s'%mode_zoom] = nd_thisdata
     plt.legend()
 BASE_PATH = "../xeprFiles/Data/"+"%s"%user
 filename = date+'_'+output_name
 np.savez(os.path.join(BASE_PATH,filename),
-        data = **thisdata)
+        data = **mydata)
     
 plt.show()
