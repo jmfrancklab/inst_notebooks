@@ -1,25 +1,35 @@
 from pyspecdata import *
 import matplotlib.pyplot as plt
 fl = figlist_var()
-set_1 = np.load('empty_tubezoom1.npz')
-set_2 = np.load('empty_tubezoom2.npz')
-set_3 = np.load('empty_tubezoom4.npz')
-set_4 = np.load('empty_tubezoom8.npz')
-
-nd_set_1 = nddata(set_1['data'],['frq'])
-nd_set_1.setaxis('frq',set_1['frq'])
-nd_set_2 = nddata(set_2['data'],['frq'])
-nd_set_2.setaxis('frq',set_2['frq'])
-nd_set_3 = nddata(set_3['data'],['frq'])
-nd_set_3.setaxis('frq',set_3['frq'])
-nd_set_4 = nddata(set_4['data'],['frq'])
-nd_set_4.setaxis('frq',set_4['frq'])
-
-
+filename = search_filename('211115_120mM_TEMPOL.npz', exp_type='francklab_esr/alex', unique=True) 
+set_1 = np.load(filename, allow_pickle=True, encoding='bytes')
+print([j for j in set_1.keys()])
+print(set_1.data)
+set_1 = set_1['data'].item()
+zoom1 = set_1[b'zoom1']
+zoom2 = set_1[b'zoom2']
+zoom4 = set_1[b'zoom4']
+zoom8 = set_1[b'zoom8']
+zoom1_nd = nddata(zoom1[0][0],['frequency'])
+zoom2_nd = nddata(zoom2[0][0],['frequency'])
+zoom4_nd = nddata(zoom4[0][0],['frequency'])
+zoom8_nd = nddata(zoom8[0][0],['frequency'])
+zoom1_nd.setaxis('frequency',zoom1[1][0])
+zoom2_nd.setaxis('frequency',zoom2[1][0])
+zoom4_nd.setaxis('frequency',zoom4[1][0])
+zoom8_nd.setaxis('frequency',zoom8[1][0])
+fl.next('zoom1')
+fl.plot(zoom1_nd,'o')
+fl.next('zoom2')
+fl.plot(zoom2_nd,'o')
+fl.next('zoom4')
+fl.plot(zoom4_nd,'o')
+fl.next('zoom8')
+fl.plot(zoom8_nd,'o')
 fl.next('tune capture')
-fl.plot(nd_set_1,'o',label='zoom 1')
-fl.plot(nd_set_2,'o',label='zoom 2')
-fl.plot(nd_set_3,'o',label='zoom 4')
-fl.plot(nd_set_4,'o',label='zoom 8')
+fl.plot(zoom1_nd,'o',label='zoom 1')
+fl.plot(zoom2_nd,'o',label='zoom 2')
+fl.plot(zoom4_nd,'o',label='zoom 4')
+fl.plot(zoom8_nd,'o',label='zoom 8')
 fl.show()
 

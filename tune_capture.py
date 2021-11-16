@@ -82,6 +82,5 @@ for thistitle,thisdata in (('33 dB, arm on',tune_data),
 BASE_PATH = "../xeprFiles/Data/"+"%s"%user
 filename = date+'_'+output_name
 np.savez(os.path.join(BASE_PATH,filename),
-        data = mydata)
-    
+        **mydata)
 plt.show()
