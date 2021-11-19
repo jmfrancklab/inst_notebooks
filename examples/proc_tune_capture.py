@@ -1,3 +1,11 @@
+"""
+Processing the Captured Tuning Curve
+====================================
+
+Takes the npy file of the captured tuning curve at different
+zoom levels and plots them on the same plot, allowing us to 
+look at any drift or discrepancies of the tuning curve.
+"""
 from pyspecdata import *
 import matplotlib.pyplot as plt
 
