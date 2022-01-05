@@ -84,6 +84,9 @@ with prologix_connection() as p:
                     elif args[0] == b'GET_POWER':
                         result = b.power_float()
                         conn.send(('%0.1f'%result).encode('ASCII'))
+                    elif args[0] == b'MW_OFF':
+                        b.soft_shutdown()
+                        
                     elif args[0] == b'QUIT':
                         print("closing connection")
                         conn.close()
