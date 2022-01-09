@@ -99,6 +99,10 @@ class power_control(object):
         retval = self.get()
         retval = float(retval)
         return retval
+    def mw_off(self):
+        """power down amp and rf"""
+        self.send('MW_OFF')
+        return
     def start_log(self):
         self.send('START_LOG')
         return
