@@ -99,6 +99,8 @@ with prologix_connection() as p:
                         retval = pickle.dumps(this_logobj) +b'ENDTCPIPBLOCK'
                         conn.send(retval)
                         this_logobj.reset()
+                    elif args[0] == b'MW_OFF':
+                        b.soft_shutdown()
                     else:
                         raise ValueError("I don't understand this 1 component command"+str(args))
                 return leave_open
