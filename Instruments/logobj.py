@@ -14,6 +14,13 @@ class logobj(object):
         self.log_pos = 0
         self.array_len = array_len
         return
+    @classmethod
+    def from_group(cls,h5group):
+        """initialize a new log object with data loaded from the h5py group
+        h5group (factory method"""
+        thislog = cls()
+        thislog.__setstate__(h5group)
+        return thislog
     def reset(self):
         "wipe the log and start over, set to not currently logging"
         self.log_array = empty(self.array_len, dtype=self.log_dtype)
