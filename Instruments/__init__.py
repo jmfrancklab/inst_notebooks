@@ -9,7 +9,8 @@ __all__ = ['SerialInstrument','GDS_scope','AFG',"Bridge12"]
 #    print "warning! serial (USB) instruments not available!"
 #    __all__ = []
 from .HP8672A import HP8672A
+from .HP6623A import HP6623A
 from .gigatronics import gigatronics
 from .gpib_eth import prologix_connection
 from .logobj import logobj
-__all__ += ['HP8672A','gigatronics','prologix_connection','power_control']
+__all__ += ['HP8672A','HP6623A','gigatronics','prologix_connection','power_control']
