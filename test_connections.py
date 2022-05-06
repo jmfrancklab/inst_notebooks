@@ -14,8 +14,10 @@ with prologix_connection() as p:
         with HP6623A(prologix_instance=p, address=3) as HP:
             print("*** *** ***")
             print("*** *** ***")
-            #HP.set_output(channel=1,voltage=None,current=0.2)
-            HP.set_output()
-            HP.get_output()
+            #HP.set_voltage(2,0.2)
+            #print("Current on channel 1 is",HP.get_voltage(2))
+            #HP.set_current(2,0.4)
+            #print("Current on channel 1 is",HP.get_current(2))
+            HP.set_current()
             quit()
 
