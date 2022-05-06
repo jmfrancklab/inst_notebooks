@@ -16,6 +16,17 @@ class HP6623A (gpib_eth):
     def get_current(self, ch):
         self.write("IOUT? %s"%str(ch))
         return float(self.read())
+    def output(self, ch, trigger):
+        # trigger 0 is off, trigger 1 is on
+        self.write("OUT %s,%s"%(str(ch),str(trigger)))
+    def check_output(self, ch):
+        self.write("OUT? %s"%str(ch))
+        retval = float(self.read())
+        if retval == 0:
+            print("Ch %s output is OFF"%ch)
+        elif retval == 1:
+            print("Ch %s output is ON"%ch)
+        return 
     def close(self):
         #self.write(self.gpibaddress,'DE')         # Display Enable
 ##        self.write(self.gpibaddress,'HP')# if we don't do this, the display freezes
