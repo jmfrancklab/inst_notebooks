@@ -7,9 +7,11 @@ class HP6623A (gpib_eth):
         super().__init__(prologix_instance,address)
         self.stepsize = 0.5e6
     def set_output(self):
-        self.write("VSET 1,0")
+        self.write("VSET 1,0.0")
     def get_output(self):
-        self.respond("VOUT? 1",lines=1)
+        self.write("VOUT? 1")
+        self.write("ENTER A")
+        self.respond("DISP A")
     #def set_output(self,channel,voltage=None,current=None):
     #    if current is None:
     #        self.write("VSET %d,%f"%(channel,voltage))
