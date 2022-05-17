@@ -115,7 +115,3 @@ class power_control(object):
         self.send('STOP_LOG')
         retval = self.get_bytes(b'ENDTCPIPBLOCK')
         return pickle.loads(retval[:-len("ENDTCPIPBLOCK")])
-    def mw_off(self):
-        """power down rf and amp"""
-        self.send('MW_OFF')
-        return
