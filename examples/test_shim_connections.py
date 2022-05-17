@@ -1,3 +1,9 @@
+"""
+HP Shim Power Supply
+====================
+
+Just go through and set the voltage on a bunch of shim coils, and verify
+that the power supply believes that the currents have been changed."""
 from pylab import *
 from Instruments import HP6623A, prologix_connection, gigatronics
 from Instruments.bridge12 import convert_to_power, convert_to_mv
@@ -30,5 +36,3 @@ with prologix_connection() as p:
             #HP.set_voltage(2,0.2)
             #print("Current on channel 1 is",HP.get_voltage(2))
             print("*** *** ***")
-            quit()
-
