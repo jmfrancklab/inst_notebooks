@@ -5,7 +5,11 @@ from .log_inst import logger
 class HP6623A (gpib_eth):
     def __init__(self, prologix_instance=None, address=None):
         super().__init__(prologix_instance,address)
-        self.stepsize = 0.5e6
+        # here, call ID? to verify the ID of the instrument -- we have
+        # used this in the past to, e.g. cycle through and find an
+        # instrument by identifying where no error is thrown (or
+        # something like this,  but I remember the ID being useful)
+        idstring = self.respond('ID?') # Check ID command
     def set_voltage(self, ch, val):
         r"""set voltage
         
@@ -63,10 +67,10 @@ class HP6623A (gpib_eth):
         ch: int
             channel (1, 2, or 3)
         trigger: int
-            set to 0 to turn OFF output,
-            set to 1 to turn ON output
+            set to False to turn OFF output,
+            set to True to turn ON output
         """
-        self.write("OUT %s,%s"%(str(ch),str(trigger)))
+        self.write("OUT %s,%s"%(str(ch),str(int(trigger))))
     def check_output(self, ch):
         r"""check output status of specified
         channel
