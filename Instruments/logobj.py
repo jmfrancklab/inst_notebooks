@@ -88,6 +88,6 @@ class logobj(object):
         else:
             raise IOError("I can't find dictkeys!")
         if in_hdf:
-            self.total_log = inputdict["array"].value # makes accessible after hdf is closed (forces into memory)
+            self.total_log = inputdict["array"][:] # makes accessible after hdf is closed (forces into memory)
         else:
             self.total_log = inputdict["array"]
