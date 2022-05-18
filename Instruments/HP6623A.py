@@ -2,6 +2,42 @@ from pylab import *
 from .gpib_eth import gpib_eth
 from .log_inst import logger
 
+class ChannelAware(object):
+    "a parent class for channel-aware properties"
+    def num_channels(self,*args):
+        raise ValueError("you need to define num_channels")
+    def channel_set_func(self,channel,val):
+        raise ValueError("you need to define channel_set_func")
+    def channel_get_func(self,channel):
+        raise ValueError("you need to define channel_get_func")
+    def set_num_channels(self,number):
+        def ret_num_channels():
+            return number
+        self.num_channels = ret_num_channels
+    def setter(self,setter_func):
+        "if called as a decorator, define the set function"
+        self.channel_set_func = setter_func
+        return
+    def __init__(self,getter_func):
+        """The name function that is decorated becomes
+        the instance, and the decorated function should
+        accept one argument -- the channel -- and contain code on how to
+        retrieve the relevant info for the given
+        channel"""
+        self.channel_get_func = getter_func
+        return
+    def __getitem__(self,channel,val):
+        return self.channel_get_func(channel,val)
+    def __getslice__(self,*args):
+        raise ValueError("we probably could define slices, but that's not implemented yet")
+    def __setitem__(self,channel,val):
+        self.channel_set_func(channel,val)
+    def __len__(self):
+        return self.num_channels()
+    def __iter__(self):
+        for thischannel in range(self.num_channels()):
+            yield self.channel_get_func(thischannel)
+
 class HP6623A (gpib_eth):
     def __init__(self, prologix_instance=None, address=None):
         super().__init__(prologix_instance,address)
