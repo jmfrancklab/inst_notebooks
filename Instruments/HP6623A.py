@@ -3,7 +3,11 @@ from .gpib_eth import gpib_eth
 from .log_inst import logger
 
 class ChannelAware(object):
-    "a parent class for channel-aware properties"
+    """Build a class that we can use to decorate -- similar to @property, except that the decorated object can have many channels:
+
+    self.voltage[0] = 3 # set the voltage of channel 0 to 3
+    print(self.voltage) # print the voltage of channel 3
+    """
     def num_channels(self,*args):
         raise ValueError("you need to define num_channels")
     def channel_set_func(self,channel,val):
