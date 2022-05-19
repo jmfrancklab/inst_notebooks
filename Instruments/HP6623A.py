@@ -4,7 +4,7 @@ from .log_inst import logger
 
 class HP6623A (gpib_eth):
     def __init__(self, prologix_instance=None, address=None):
-        """initialize a new `HP6623A` power supply class
+        r"""initialize a new `HP6623A` power supply class
         """
         super().__init__(prologix_instance,address)
         self.write("ID?")
@@ -19,14 +19,15 @@ class HP6623A (gpib_eth):
         retval =  self.read()
         return
     def set_voltage(self, ch, val):
-        """set voltage (in Volts) on specific channel
+        r"""set voltage (in Volts) on specific channel
 
         Parameters
         ==========
         ch : int
             Channel 1, 2, or 3
         val : float
-            Voltage you want to set in Volts; check manual for limits on each channel.
+            Voltage you want to set in Volts; check manual for limits on each
+            channel.
         Returns
         =======
         None
@@ -35,7 +36,7 @@ class HP6623A (gpib_eth):
         self.write("VSET %s,%s"%(str(ch),str(val)))
         return
     def get_voltage(self, ch):
-        """get voltage (in Volts) on specific channel
+        r"""get voltage (in Volts) on specific channel
 
         Parameters
         ==========
@@ -49,7 +50,7 @@ class HP6623A (gpib_eth):
         self.write("VOUT? %s"%str(ch))
         return float(self.read())
     def set_current(self, ch, val):
-        """set current (in Amps) on specific channel
+        r"""set current (in Amps) on specific channel
 
         Parameters
         ==========
@@ -64,7 +65,7 @@ class HP6623A (gpib_eth):
         """
         self.write("ISET %s,%s"%(str(ch),str(val)))
     def get_current(self, ch):
-        """get current (in Amps) on specific channel
+        r"""get current (in Amps) on specific channel
 
         Parameters
         ==========
@@ -78,7 +79,7 @@ class HP6623A (gpib_eth):
         self.write("IOUT? %s"%str(ch))
         return float(self.read())
     def output(self, ch, trigger):
-        """turn on or off the output on specific channel
+        r"""turn on or off the output on specific channel
 
         Parameters
         ==========
@@ -99,8 +100,9 @@ class HP6623A (gpib_eth):
         elif not trigger:
             trigger = 0
         return self.write("OUT %s,%s"%(str(ch),str(trigger)))
+        self.write("OUT %s,%s"%(str(ch),str(trigger)))
     def check_output(self, ch):
-        """check the output status of a specific channel
+        r"""check the output status of a specific channel
 
         Parameters
         ==========
