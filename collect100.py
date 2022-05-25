@@ -19,6 +19,8 @@ r'''Use this program to collect 100 snapshots of noise in
     identifier which is associated with the output file. The file will be saved
     as YYMMDD_file_name.h5 following today's date.
 
+    *** want to have CH2 on as well as CH1 - both set to 50 mV
+
 '''
 #}}}
 from pylab import *
