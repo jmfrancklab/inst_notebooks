@@ -490,8 +490,8 @@ class Bridge12 (Serial):
         """do everything to shut the B12 down, but don't break out of the
         with block or close the USB connection"""
         self.set_power(0)
-        self.set_amp(False)
         self.set_rf(False)
+        self.set_amp(False)
         self.set_wg(False)
         self.frq_sweep_10dBm_has_been_run = False
         del self.freq_bounds

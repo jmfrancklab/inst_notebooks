@@ -11,7 +11,7 @@ def thetime(x, position):
     result = time.localtime(x)
     return time.strftime('%I:%M:%S %p',result)
 with h5py.File('output.h5', 'r') as f:
-    thislog = logobj.from_group(f['log'])
+    thislog = logobj.from_group(logobj(),f['log'])
     read_array = thislog.total_log
     read_dict = thislog.log_dict
 print(read_array)
