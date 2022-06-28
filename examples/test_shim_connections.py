@@ -16,29 +16,25 @@ from serial import Serial
 #            print("*** *** ***")
 #            quit()
 
+current_array = r_[0.,0.3]
+for index,this_current in enumerate(current_array):
+    print(index)
+quit()
+
 with prologix_connection() as p:
         with HP6623A(prologix_instance=p, address=3) as HP:
             print("*** *** ***")
-            HP.set_current(2,0.4)
-            print("Current on channel 1 is",HP.get_current(2))
-            HP.set_voltage(2,0.2)
-            print("Voltage on channel 1 is",HP.get_voltage(2))
-            print(HP.output(1,0))
-            print(HP.output(2,0))
-            print(HP.output(3,0))
-            print(HP.check_output(1))
-            print(HP.check_output(2))
-            print(HP.check_output(3))
-            print(HP.output(1,True))
-            print(HP.output(2,1))
-            print(HP.output(3,True))
-            print(HP.check_output(1))
-            print(HP.check_output(2))
-            print(HP.check_output(3))
-            print(HP.output(1,False))
-            print(HP.output(2,0))
-            print(HP.output(3,0))
-            print(HP.check_output(1))
-            print(HP.check_output(2))
-            print(HP.check_output(3))
+            # by setting voltage to 5, enter CC mode
+            HP.set_voltage(2,5)
+            # at this point, can enter desired current
+            HP.set_current(2,0.3)
+            input("Check?")
+            print("Current on channel 2 is",HP.get_current(2))
+            print("Voltage on channel 2 is",HP.get_voltage(2))
+            print("About to turn on output..")
+            HP.output(2,True)
+            HP.check_output(2)
+            print("About to turn off output..")
+            HP.output(2,False)
+            HP.check_output(2)
             print("*** *** ***")

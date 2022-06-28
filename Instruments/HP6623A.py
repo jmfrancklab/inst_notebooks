@@ -99,8 +99,8 @@ class HP6623A (gpib_eth):
             trigger = 1
         elif not trigger:
             trigger = 0
-        return self.write("OUT %s,%s"%(str(ch),str(trigger)))
         self.write("OUT %s,%s"%(str(ch),str(trigger)))
+        return 
     def check_output(self, ch):
         r"""check the output status of a specific channel
 
