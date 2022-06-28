@@ -406,8 +406,8 @@ class Bridge12 (Serial):
         if not self.frq_sweep_10dBm_has_been_run:
             logger.info("Did not find previous 10 dBm run, running now")
             self.set_wg(True)
-            self.set_rf(True)
             self.set_amp(True)
+            self.set_rf(True)
             self.set_power(10.0)
             freq = r_[ini_range[0]:ini_range[1]:ini_step]
             rx, tx = self.freq_sweep(freq)
@@ -511,6 +511,7 @@ class Bridge12 (Serial):
             return
         try:
             self.set_rf(False)
+            self.set_amp(False)
         except Exception as e:
             print("error on standard shutdown during set_rf -- running fallback shutdown")
             print("original error:")
