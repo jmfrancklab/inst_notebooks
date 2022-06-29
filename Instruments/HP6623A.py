@@ -77,7 +77,15 @@ class HP6623A (gpib_eth):
         
         """
         self.write("IOUT? %s"%str(ch))
-        return float(self.read())
+        curr_reading = float(self.read())
+        for i in range(30):
+            self.write("IOUT? %s"%str(ch))
+            this_val = float(self.read())
+            if curr_reading == this_val:
+                break
+            if i > 28:
+                raise ValueError("Not able to get stable meter reading after 30 tries. Returning: %0.3f"%curr_reading)
+        return curr_reading 
     def output(self, ch, trigger):
         r"""turn on or off the output on specific channel
 
@@ -121,4 +129,10 @@ class HP6623A (gpib_eth):
             print("Ch %s output is ON"%ch)
         return 
     def close(self):
+        for i in [1,2,3]:
+            # set voltage and current to 0 and turn off output on all channels,
+            # before exiting
+            self.set_voltage(i,0)
+            self.set_current(i,0)
+            self.output(i,False)
         super().close()
