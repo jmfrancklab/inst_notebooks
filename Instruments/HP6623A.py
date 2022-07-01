@@ -84,7 +84,7 @@ class HP6623A (gpib_eth):
             if curr_reading == this_val:
                 break
             if i > 28:
-                raise ValueError("Not able to get stable meter reading after 30 tries. Returning: %0.3f"%curr_reading)
+                print("Not able to get stable meter reading after 30 tries. Returning: %0.3f"%curr_reading)
         return curr_reading 
     def output(self, ch, trigger):
         r"""turn on or off the output on specific channel
