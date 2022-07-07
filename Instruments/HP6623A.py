@@ -1,6 +1,7 @@
 from pylab import *
 from .gpib_eth import gpib_eth
 from .log_inst import logger
+import time
 
 class HP6623A (gpib_eth):
     def __init__(self, prologix_instance=None, address=None):
@@ -34,6 +35,10 @@ class HP6623A (gpib_eth):
         
         """
         self.write("VSET %s,%s"%(str(ch),str(val)))
+        if val == 0.0:
+            return
+        else:
+            time.sleep(5)
         return
     def get_voltage(self, ch):
         r"""get voltage (in Volts) on specific channel
