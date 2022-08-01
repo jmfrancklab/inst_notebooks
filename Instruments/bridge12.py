@@ -533,5 +533,9 @@ class Bridge12 (Serial):
         self.close()
         return
     def __exit__(self, exception_type, exception_value, traceback):
-        self.safe_shutdown()
+        if exception_type:
+            print("exception type",exception_type)
+            self.safe_shutdown()
+        else:
+            self.safe_shutdown()
         return
