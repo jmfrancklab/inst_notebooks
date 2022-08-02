@@ -26,7 +26,7 @@ setup(
             [
                 'power_control_server=Instruments.power_control_server:main',
                 'quit_power_control=Instruments.just_quit:main',
-                'FLInst=Instruments.microwave_tuning_gui:cmd'
+                'FLInst=Instruments.cmd:cmd'
                 ]
             )
         )
