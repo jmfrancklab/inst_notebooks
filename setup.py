@@ -25,7 +25,8 @@ setup(
         entry_points=dict(console_scripts=
             [
                 'power_control_server=Instruments.power_control_server:main',
-                'quit_power_control=Instruments.just_quit:main'
+                'quit_power_control=Instruments.just_quit:main',
+                'FLInst=Instruments.microwave_tuning_gui:cmd'
                 ]
             )
         )
