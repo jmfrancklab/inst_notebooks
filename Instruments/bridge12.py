@@ -319,6 +319,8 @@ class Bridge12 (Serial):
                     return
             raise RuntimeError("After checking status 10 times, I can't get the "
                            "frequency to change -- result is %d setting is %d"%(result,setting))
+    def get_freq(self):
+        return self.freq_int()*1e3
     def freq_int(self):
         "return the frequency, in kHz (since it's set as an integer kHz)"
         self.write(b'freq?\r')
