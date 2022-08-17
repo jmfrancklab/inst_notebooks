@@ -10,8 +10,10 @@ import XeprAPI
 from datetime import datetime
 #from pyspecdata import * 
 date = datetime.now().strftime('%y%m%d')
-output_name = '211116_120mM_TEMPOL' #USE THE SAME NAME AS YOUR QEPR DATASET
-user = 'alex' #your user in xeprFiles
+if len(sys.argv) < 3:
+    raise ValueError('pass me a username followed by a filename (without date)!')
+user = sys.argv[1] 
+output_name = sys.argv[2]
 x = XeprAPI.Xepr()
 x.XeprOpen()
 h = x.XeprExperiment('AcqHidden')
@@ -81,6 +83,8 @@ for thistitle,thisdata in (('33 dB, arm on',tune_data),
     plt.legend()
 BASE_PATH = "../xeprFiles/Data/"+"%s"%user
 filename = date+'_'+output_name
-np.savez(os.path.join(BASE_PATH,filename),
+filename = os.path.join(BASE_PATH,filename)
+np.savez(filename,
         **mydata)
 plt.show()
+print("file saved to "+filename+'.npz')
