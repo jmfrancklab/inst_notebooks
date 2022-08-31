@@ -493,6 +493,7 @@ class Bridge12 (Serial):
         with block or close the USB connection"""
         self.set_power(0)
         self.set_rf(False)
+        self.set_amp(False)
         self.set_wg(False)
         self.frq_sweep_10dBm_has_been_run = False
         del self.freq_bounds
@@ -512,6 +513,7 @@ class Bridge12 (Serial):
             return
         try:
             self.set_rf(False)
+            self.set_amp(False)
         except Exception as e:
             print("error on standard shutdown during set_rf -- running fallback shutdown")
             print("original error:")

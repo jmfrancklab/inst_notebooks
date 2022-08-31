@@ -381,6 +381,5 @@ def main():
         final_frq = b.get_freq()
     print("dip found at",final_frq)
     myconfig["uw_dip_center_GHz"] = final_frq / 1e9
-    myconfig["mw_freqs"] = final_frq 
     myconfig["carrierFreq_MHz"] = myconfig["uw_dip_center_GHz"]*myconfig["guessed_MHz_to_GHz"]
     myconfig.write()
