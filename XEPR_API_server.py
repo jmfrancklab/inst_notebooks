@@ -45,7 +45,10 @@ def wait_for_field(exp, field):
     raise ValueError("timed out")
 def set_coarse_field(desired_field):
     """just set the field to the nearest 0.1 G"""
-    cmd.aqExpDel('set_field') # at least in IPython, this doesn't raise an error
+    try:
+        cmd.aqExpDel('set_field') # at least in IPython, this doesn't raise an error
+    except:
+        pass
     cmd.aqExpLoad(os.path.expanduser('~xuser/xeprFiles/Acquisition/set_field'))
     exp = x.XeprExperiment()
     print("trying to coarse set the field to",desired_field)
@@ -61,7 +64,10 @@ def set_field(desired_field):
 
     requires the existence of experiment `set_field` in
     the Acquisition folder"""
-    cmd.aqExpDel('set_field') # at least in IPython, this doesn't raise an error
+    try:
+        cmd.aqExpDel('set_field') # at least in IPython, this doesn't raise an error
+    except:
+        pass
     cmd.aqExpLoad(os.path.expanduser('~xuser/xeprFiles/Acquisition/set_field'))
     exp = x.XeprExperiment()
     exp["CenterField"].value = int(desired_field*10)/10.0 # nearest 0.1 beneath where I want to be
