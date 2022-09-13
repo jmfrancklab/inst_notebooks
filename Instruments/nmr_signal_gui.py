@@ -20,6 +20,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from SpinCore_pp.ppg import run_spin_echo
 import SpinCore_pp # just for config file, but whatever...
+from pyspecdata import gammabar_H
 
 import matplotlib
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -41,6 +42,7 @@ class NMRWindow(QMainWindow):
         self.create_status_bar()
         self.nPhaseSteps = 4
         self.npts = 2**14//self.nPhaseSteps
+        self.adc_offset()
         self.acq_NMR()
     def save_plot(self):
         file_choices = "PNG (*.png)|*.png"
@@ -91,12 +93,15 @@ class NMRWindow(QMainWindow):
         QMessageBox.information(self, "Click!", msg)
     
     def set_field_conditional(self,Field):
-        if hasattr(self,"prev_field") and abs(Field-self.prev_field) > 50. and abs(Field-self.prev_field) < 850.:
-            logger.info("You are trying to shift by an intermediate offset, so I'm going to set the field slowly.")
+        if hasattr(self,"prev_field") and abs(Field-self.prev_field) > 50./gammabar_H*1e4 and abs(Field-self.prev_field) < 850./gammabar_H*1e4:
+            print("You are trying to shift by an intermediate offset, so I'm going to set the field slowly.")
             Field = self.xepr.set_field(Field)
+            self.prev_field = Field
+        elif hasattr(self,"prev_field") and abs(Field-self.prev_field) < 50./gammabar_H*1e4:
+            print("You seem to be within 50 Hz, so I'm not changing the field")
         else:
             Field = self.xepr.set_coarse_field(Field)
-        self.prev_field = Field
+            self.prev_field = Field
     def generate_data(self):
         #{{{let computer set field
         print("I'm assuming that you've tuned your probe to",
@@ -107,7 +112,6 @@ class NMRWindow(QMainWindow):
         assert Field < 3700, "are you crazy??? field is too high!"
         assert Field > 3300, "are you crazy?? field is too low!"
         self.set_field_conditional(Field)
-        print("field set to ",Field)
         #}}}
         #{{{acquire echo
         self.echo_data = run_spin_echo(
@@ -140,6 +144,22 @@ class NMRWindow(QMainWindow):
         #}}}    
         self.myconfig.write()
         return
+    def adc_offset(self):
+        print("adc was ",self.myconfig['adc_offset'],end=' and ')
+        counter = 0
+        first = True
+        while first or not (result1 == result2) and (result2 == result3):
+            first = False
+            result1 = SpinCore_pp.adc_offset()
+            time.sleep(0.1)
+            result2 = SpinCore_pp.adc_offset()
+            time.sleep(0.1)
+            result3 = SpinCore_pp.adc_offset()
+            if counter > 20:
+                raise RuntimeError("after 20 tries, I can't stabilize ADC")
+            counter += 1
+        self.myconfig['adc_offset'] = result3
+        print("adc determined to be:",self.myconfig['adc_offset'])
     def acq_NMR(self):
         self.generate_data()
         self.regen_plots()
@@ -248,6 +268,9 @@ class NMRWindow(QMainWindow):
         self.bottom_right_vbox = QVBoxLayout()
         self.bottom_right_vbox.setContentsMargins(0, 0, 0, 0)
         #self.bottom_right_vbox.setSpacing(0)
+        self.adc_offset_button = QPushButton("&ADC Offset")
+        self.adc_offset_button.clicked.connect(self.adc_offset)
+        self.bottom_right_vbox.addWidget(self.adc_offset_button)
         self.slider_min = QSlider(Qt.Horizontal)
         self.slider_max = QSlider(Qt.Horizontal)
         for ini_val,w in [(9819000,self.slider_min),
