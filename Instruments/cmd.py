@@ -1,6 +1,7 @@
 import Instruments
 import Instruments.power_control_server
 import Instruments.microwave_tuning_gui
+import Instruments.nmr_signal_gui
 from Instruments.XEPR_eth import xepr
 import sys
 

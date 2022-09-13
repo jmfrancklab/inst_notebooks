@@ -9,6 +9,8 @@ which is a good layout reference
 
 JF updated to plot a sine wave
 """
+from numpy import r_
+import numpy as np
 from .XEPR_eth import xepr as xepr_from_module
 from scipy.interpolate import interp1d
 import time
@@ -16,6 +18,7 @@ import sys, os, random
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
+from SpinCore_pp.ppg import run_spin_echo
 import SpinCore_pp # just for config file, but whatever...
 
 import matplotlib
@@ -29,7 +32,7 @@ class NMRWindow(QMainWindow):
     def __init__(self, xepr, myconfig, parent=None):
         self.xepr = xepr
         self.myconfig = myconfig
-        QMainWindow.__init__(self, parent)
+        super().__init__(parent)
         self.setWindowTitle('NMR signal finder')
         self.setGeometry(20,20,1500,800)
 
@@ -37,24 +40,8 @@ class NMRWindow(QMainWindow):
         self.create_main_frame()
         self.create_status_bar()
         self.nPhaseSteps = 4
-        self.npts = 2**14/self.nPhaseSteps
-
-        self._already_fmode = False
-        self.line_data = []
-        self.x = []
-        self.timer = QTimer()
-        self.fmode = False
-        self.timer.setInterval(100) #.1 seconds
-        self.timer.timeout.connect(self.opt_update_frq)
-        self.timer.start(1000)
+        self.npts = 2**14//self.nPhaseSteps
         self.acq_NMR()
-        #self._n_times_run = 0
-    def opt_update_frq(self):
-        # if I'm in frequency mode, then update and redraw
-        # if not, don't do anything
-        if self.fmode:
-            self.dip_frq_GHz = self.xepr.get_freq() / 1e9
-            self.regen_plots()
     def save_plot(self):
         file_choices = "PNG (*.png)|*.png"
         
@@ -84,25 +71,9 @@ class NMRWindow(QMainWindow):
     def set_default_choices(self):
         self.textbox_apo.setText("10 ms")
         self.textbox_apo.setMinimumWidth(10)
-        self.SW = 200
-    def on_zoomclicked(self):
-        self._curzoomclicked = (str(self.slider_min.value()), str(self.slider_max.value()))
-        if (hasattr(self,'_prevzoomclicked') and
-                self._prevzoomclicked ==
-                self._curzoomclicked
-                ):
-            self.set_default_choices()
-            self.on_textchange()
-            del self._prevzoomclicked
-            return
-        self.textbox_apo.setText(self._curzoomclicked[0])
-        self.combo_sw.setText(self._curzoomclicked[1])
-        self.on_textchange()
-        self._prevzoomclicked = self._curzoomclicked
-        return
+        self.myconfig['SW_kHz'] = 200
     def on_textchange(self):
-        print("you changed your apodization
-                to",self.textbox_apo.text(),
+        print("you changed your apodization to",self.textbox_apo.text(),
                 "but I'm not yet programmed to do anything about that!")
         self.apo_time_const = 10e-3
         return
@@ -119,6 +90,13 @@ class NMRWindow(QMainWindow):
         
         QMessageBox.information(self, "Click!", msg)
     
+    def set_field_conditional(self,Field):
+        if hasattr(self,"prev_field") and abs(Field-self.prev_field) > 50. and abs(Field-self.prev_field) < 850.:
+            logger.info("You are trying to shift by an intermediate offset, so I'm going to set the field slowly.")
+            Field = self.xepr.set_field(Field)
+        else:
+            Field = self.xepr.set_coarse_field(Field)
+        self.prev_field = Field
     def generate_data(self):
         #{{{let computer set field
         print("I'm assuming that you've tuned your probe to",
@@ -128,17 +106,8 @@ class NMRWindow(QMainWindow):
         print("Based on that, and the gamma_eff_MHz_G you have in your .ini file, I'm setting the field to %f"%Field)
         assert Field < 3700, "are you crazy??? field is too high!"
         assert Field > 3300, "are you crazy?? field is too low!"
-        change_field = True
-        if self.xepr.exp_has_been_run:# in independent script, this isn't going to be true, because we spin up a new xepr object each time
-            print("yes, xepr has been run")
-            prev_field = self.xepr.get_field()
-            if abs(prev_field-Field) < 0.02:# 0.02 G is about 85 Hz
-                change_field = False
-        if change_field:
-            Field = self.xepr.set_field(Field)
-            print("field set to ",Field)
-        else:
-            print("it seems like you were already on resonance, so I'm not going to change the field")
+        self.set_field_conditional(Field)
+        print("field set to ",Field)
         #}}}
         #{{{acquire echo
         self.echo_data = run_spin_echo(
@@ -153,7 +122,7 @@ class NMRWindow(QMainWindow):
                 repetition = self.myconfig['repetition_us'],
                 tau_us = self.myconfig['tau_us'],
                 SW_kHz = self.myconfig['SW_kHz'],
-                output_name = filename,
+                output_name = "GUI",
                 ret_data = None)
         #}}}
         #{{{setting acq_params
@@ -184,7 +153,8 @@ class NMRWindow(QMainWindow):
             self.echo_data.mean('nScans')
         self.echo_data.ft('t2', shift=True)
         self.echo_data.ift('t2')
-        self.echo_data *= exp(-abs((self.echo_data.fromaxis('t2')-config_dict['tau_us']*1e-6))/filter_timeconst)
+        filter_timeconst = self.apo_time_const
+        self.echo_data *= np.exp(-abs((self.echo_data.fromaxis('t2')-self.myconfig['tau_us']*1e-6))/filter_timeconst)
         self.echo_data.ft('t2')
         # {{{ pull essential parts of plotting routine
         #    from pyspecdata -- these are pulled from
@@ -209,12 +179,14 @@ class NMRWindow(QMainWindow):
         for j in self.echo_data.getaxis('ph1'):
             pyspec_plot(abs(self.echo_data['ph1':j]), label=f'Δp={j}', alpha=0.5)
         centerfrq = abs(self.echo_data['ph1',+1]).argmax('t2').item()
-        axvline(x=centerfrq/1e3,ls=':',color='r',alpha=0.25)
+        self.axes.axvline(x=centerfrq,ls=':',color='r',alpha=0.25)
         # }}}
+        noise = self.echo_data['ph1',r_[0,2,3]]['t2':centerfrq].run(np.std,'ph1')
+        signal = abs(self.echo_data['ph1',1]['t2':centerfrq])
         if signal > 3*noise:
-            Field = config_dict['carrierFreq_MHz'] / config_dict['gamma_eff_MHz_G']
-            config_dict['gamma_eff_MHz_G'] -= centerfrq*1e-6/Field
-            config_dict.write()
+            Field = self.myconfig['carrierFreq_MHz'] / self.myconfig['gamma_eff_MHz_G']
+            self.myconfig['gamma_eff_MHz_G'] -= centerfrq*1e-6/Field
+            self.myconfig.write()
         else:
             print('*'*5 + "warning! SNR looks bad! I'm not adjusting γ!!!" + '*'*5) # this is not yet tested!
         self.canvas.draw()
@@ -253,11 +225,12 @@ class NMRWindow(QMainWindow):
         self.combo_sw.addItem("3.9")
         self.combo_sw.activated[str].connect(self.SW_changed)
         self.set_default_choices()
+        self.bottomleft_vbox.addWidget(self.combo_sw)
         self.textbox_apo.editingFinished.connect(self.on_textchange)
         self.bottomleft_vbox.addWidget(self.textbox_apo)
         self.acquire_button = QPushButton("&Acquire NMR")
         self.acquire_button.clicked.connect(self.acq_NMR)
-        self.bottomleft_vbox.addWidget(self.textbox_apo)
+        self.bottomleft_vbox.addWidget(self.acquire_button)
         # }}}
         # {{{ box to stack checkboxes
         self.boxes_vbox = QVBoxLayout()
@@ -305,8 +278,8 @@ class NMRWindow(QMainWindow):
         my_sw = {"200":200.0,
                 "24":24.0,
                 "3.9":3.9}
-        self.SW = my_sw[arg]
-        print("changing SW to",self.SW)
+        self.myconfig['SW_kHz'] = my_sw[arg]
+        print("changing SW to",self.myconfig['SW_kHz'])
 
     def create_status_bar(self):
         self.status_text = QLabel("This is a demo")
@@ -357,8 +330,8 @@ class NMRWindow(QMainWindow):
 def main():
     myconfig = SpinCore_pp.configuration("active.ini")
     app = QApplication(sys.argv)
-    with xepr_from_module as x:
+    with xepr_from_module() as x:
         tunwin = NMRWindow(x,myconfig)
-    tunwin.show()
-    app.exec_()
+        tunwin.show()
+        app.exec_()
     myconfig.write()
