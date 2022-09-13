@@ -36,8 +36,8 @@ class NMRWindow(QMainWindow):
         self.create_menu()
         self.create_main_frame()
         self.create_status_bar()
-        self.phcyc = 4
-        self.npts = 2**14/self.phcyc
+        self.nPhaseSteps = 4
+        self.npts = 2**14/self.nPhaseSteps
 
         self._already_fmode = False
         self.line_data = []
@@ -119,103 +119,56 @@ class NMRWindow(QMainWindow):
         QMessageBox.information(self, "Click!", msg)
     
     def generate_data(self):
-        #{{{importing acquisition parameters
-        config_dict = SpinCore_pp.configuration('active.ini')
-        nPoints = int(config_dict['acq_time_ms']*config_dict['SW_kHz']+0.5)
-        #}}}
-        #{{{create filename and save to config file
-        date = datetime.now().strftime('%y%m%d')
-        config_dict['type'] = 'echo'
-        config_dict['date'] = date
-        config_dict['echo_counter'] += 1
-        filename = f"{config_dict['date']}_{config_dict['chemical']}_{config_dict['type']}"
-        #}}}
         #{{{let computer set field
         print("I'm assuming that you've tuned your probe to",
-                config_dict['carrierFreq_MHz'],
+                self.myconfig['carrierFreq_MHz'],
                 "since that's what's in your .ini file")
-        Field = config_dict['carrierFreq_MHz']/config_dict['gamma_eff_MHz_G']
+        Field = self.myconfig['carrierFreq_MHz']/self.myconfig['gamma_eff_MHz_G']
         print("Based on that, and the gamma_eff_MHz_G you have in your .ini file, I'm setting the field to %f"%Field)
-        with xepr() as x:
-            assert Field < 3700, "are you crazy??? field is too high!"
-            assert Field > 3300, "are you crazy?? field is too low!"
-            change_field = True
-            if x.exp_has_been_run:# in independent script, this isn't going to be true, because we spin up a new xepr object each time
-                prev_field = x.get_field()
-                if abs(prev_field-Field) < 0.02:# 0.02 G is about 85 Hz
-                    change_field = False
-            if change_field:
-                Field = x.set_field(Field)
-                print("field set to ",Field)
-            else:
-                print("it seems like you were already on resonance, so I'm not going to change the field")
-        #}}}
-        #{{{check total points
-        nPhaseSteps = 4
-        total_pts = nPoints*nPhaseSteps
-        assert total_pts < 2**14, "You are trying to acquire %d points (too many points) -- either change SW or acq time so nPoints x nPhaseSteps is less than 16384\nyou could try reducing the acq_time_ms to %f"%(total_pts,config_dict['acq_time_ms']*16384/total_pts)
+        assert Field < 3700, "are you crazy??? field is too high!"
+        assert Field > 3300, "are you crazy?? field is too low!"
+        change_field = True
+        if self.xepr.exp_has_been_run:# in independent script, this isn't going to be true, because we spin up a new xepr object each time
+            print("yes, xepr has been run")
+            prev_field = self.xepr.get_field()
+            if abs(prev_field-Field) < 0.02:# 0.02 G is about 85 Hz
+                change_field = False
+        if change_field:
+            Field = self.xepr.set_field(Field)
+            print("field set to ",Field)
+        else:
+            print("it seems like you were already on resonance, so I'm not going to change the field")
         #}}}
         #{{{acquire echo
-        echo_data = run_spin_echo(
-                nScans=config_dict['nScans'],
+        self.echo_data = run_spin_echo(
+                nScans=self.myconfig['nScans'],
                 indirect_idx = 0,
                 indirect_len = 1,
-                adcOffset = config_dict['adc_offset'],
-                carrierFreq_MHz = config_dict['carrierFreq_MHz'],
-                nPoints = nPoints,
-                nEchoes = config_dict['nEchoes'],
-                p90_us = config_dict['p90_us'],
-                repetition = config_dict['repetition_us'],
-                tau_us = config_dict['tau_us'],
-                SW_kHz = config_dict['SW_kHz'],
+                adcOffset = self.myconfig['adc_offset'],
+                carrierFreq_MHz = self.myconfig['carrierFreq_MHz'],
+                nPoints = self.npts,
+                nEchoes = self.myconfig['nEchoes'],
+                p90_us = self.myconfig['p90_us'],
+                repetition = self.myconfig['repetition_us'],
+                tau_us = self.myconfig['tau_us'],
+                SW_kHz = self.myconfig['SW_kHz'],
                 output_name = filename,
                 ret_data = None)
         #}}}
         #{{{setting acq_params
-        echo_data.set_prop("postproc_type","proc_Hahn_echoph")
-        echo_data.set_prop("acq_params",config_dict.asdict())
-        echo_data.name(config_dict['type']+'_'+str(config_dict['echo_counter']))
+        self.echo_data.set_prop("postproc_type","proc_Hahn_echoph")
+        self.echo_data.set_prop("acq_params",self.myconfig.asdict())
         #}}}
         #{{{ chunking
-        echo_data.chunk('t',['ph1','t2'],[4,-1])
-        echo_data.setaxis('ph1',r_[0.,1.,2.,3.]/4)
-        if config_dict['nScans'] > 1:
-            echo_data.setaxis('nScans',r_[0:config_dict['nScans']])
-        echo_data.reorder(['ph1','nScans','t2'])
-        echo_data.squeeze()
-        echo_data.set_units('t2','s')
+        self.echo_data.chunk('t',['ph1','t2'],[4,-1])
+        self.echo_data.setaxis('ph1',r_[0.,1.,2.,3.]/4)
+        if self.myconfig['nScans'] > 1:
+            self.echo_data.setaxis('nScans',r_[0:self.myconfig['nScans']])
+        self.echo_data.reorder(['ph1','nScans','t2'])
+        self.echo_data.squeeze()
+        self.echo_data.set_units('t2','s')
         #}}}    
-        target_directory = getDATADIR(exp_type='ODNP_NMR_comp/Echoes')
-        filename_out = filename + '.h5'
-        nodename = echo_data.name()
-        if os.path.exists(filename+'.h5'):
-            print('this file already exists so we will add a node to it!')
-            with h5py.File(os.path.normpath(os.path.join(target_directory,
-                f"{filename_out}"))) as fp:
-                if nodename in fp.keys():
-                    print("this nodename already exists, lets delete it to overwrite")
-                    del fp[nodename]
-            echo_data.hdf5_write(f'{filename_out}/{nodename}', directory = target_directory)
-        else:
-            try:
-                echo_data.hdf5_write(filename+'.h5',
-                        directory=target_directory)
-            except:
-                print(f"I had problems writing to the correct file {filename}.h5, so I'm going to try to save your file to temp.h5 in the current directory")
-                if os.path.exists("temp.h5"):
-                    print("there is a temp.h5 -- I'm removing it")
-                    os.remove('temp.h5')
-                echo_data.hdf5_write('temp.h5')
-                print("if I got this far, that probably worked -- be sure to move/rename temp.h5 to the correct name!!")
-        print("\n*** FILE SAVED IN TARGET DIRECTORY ***\n")
-        print(("Name of saved data",echo_data.name()))
-        print(("Shape of saved data",ndshape(echo_data)))
-        config_dict.write()
-        print("Your *current* γ_eff (MHz/G) should be ",
-                config_dict['gamma_eff_MHz_G'],
-                ' - (Δν*1e-6/',Field,
-                '), where Δν is your resonance offset')
-        print("So, look at the resonance offset where your signal shows up, and enter the new value for gamma_eff_MHz_G into your .ini file, and run me again!")
+        self.myconfig.write()
         return
     def acq_NMR(self):
         self.generate_data()
@@ -224,50 +177,41 @@ class NMRWindow(QMainWindow):
     def regen_plots(self):
         """ Redraws the figure
         """
-        config_dict = SpinCore_pp.configuration('active.ini')
-        date = datetime.now().strftime('%y%m%d')
-        config_dict['type'] = 'echo'
-        config_dict['date'] = date
-        filename = f"{config_dict['date']}_{config_dict['chemical']}_{config_dict['type']}"
-        d = find_file(filename, exp_type='ODNP_NMR_comp/Echoes',
-                expno=config_dict['type']+'_'+str(config_dict['echo_counter']))
-        if d.get_units('t2') is None:
-            d.set_units('t2','s')
-        d.ft('ph1', unitary=True)
-        print(ndshape(d))
-        if 'nScans' in d.dimlabels:
-            d.mean('nScans')
-        d.ft('t2', shift=True)
+        self.echo_data.ft('ph1', unitary=True)
+        print(ndshape(self.echo_data))
+        if 'nScans' in self.echo_data.dimlabels:
+            self.echo_data.mean('nScans')
+        self.echo_data.ft('t2', shift=True)
         # {{{ show raw data with peak pick
         fl.next('raw ft')
-        for j in d.getaxis('ph1'):
-            fl.plot(abs(d['ph1':j]), label=f'Δp={j}', alpha=0.5)
-        centerfrq = abs(d['ph1',+1]).argmax('t2').item()
+        for j in self.echo_data.getaxis('ph1'):
+            fl.plot(abs(self.echo_data['ph1':j]), label=f'Δp={j}', alpha=0.5)
+        centerfrq = abs(self.echo_data['ph1',+1]).argmax('t2').item()
         axvline(x=centerfrq/1e3,ls=':',color='r',alpha=0.25)
         # }}}
-        d_fullsw = d.C
+        d_fullsw = self.echo_data.C
         fl.next('zoomed')
-        for j in d.getaxis('ph1'):
-            fl.plot(abs(d['ph1':j]['t2':tuple(r_[-3e3,3e3]+centerfrq)]), label=f'Δp={j}', alpha=0.5)
-        noise = d['ph1',r_[0,2,3]]['t2':centerfrq].run(std,'ph1')
-        signal = abs(d['ph1',1]['t2':centerfrq])
-        d = d['t2':tuple(r_[-3e3,3e3]+centerfrq)]
-        d.ift('t2')
+        for j in self.echo_data.getaxis('ph1'):
+            fl.plot(abs(self.echo_data['ph1':j]['t2':tuple(r_[-3e3,3e3]+centerfrq)]), label=f'Δp={j}', alpha=0.5)
+        noise = self.echo_data['ph1',r_[0,2,3]]['t2':centerfrq].run(std,'ph1')
+        signal = abs(self.echo_data['ph1',1]['t2':centerfrq])
+        self.echo_data = self.echo_data['t2':tuple(r_[-3e3,3e3]+centerfrq)]
+        self.echo_data.ift('t2')
         fl.next('time domain, filtered')
         filter_timeconst = 10e-3
-        myfilter = exp(-abs((d.fromaxis('t2')-config_dict['tau_us']*1e-6))/filter_timeconst)
-        for j in d.getaxis('ph1'):
-            fl.plot(abs(d['ph1':j]), label=f'Δp={j}', alpha=0.5)
-        fl.plot(myfilter*abs(d['ph1',1]['t2':config_dict['tau_us']*1e-6]))
+        myfilter = exp(-abs((self.echo_data.fromaxis('t2')-config_dict['tau_us']*1e-6))/filter_timeconst)
+        for j in self.echo_data.getaxis('ph1'):
+            fl.plot(abs(self.echo_data['ph1':j]), label=f'Δp={j}', alpha=0.5)
+        fl.plot(myfilter*abs(self.echo_data['ph1',1]['t2':config_dict['tau_us']*1e-6]))
         # {{{ show filtered data with peak pick
-        d = d_fullsw
-        d.ift('t2')
-        d *= exp(-abs((d.fromaxis('t2')-config_dict['tau_us']*1e-6))/filter_timeconst)
-        d.ft('t2')
+        self.echo_data = d_fullsw
+        self.echo_data.ift('t2')
+        self.echo_data *= exp(-abs((self.echo_data.fromaxis('t2')-config_dict['tau_us']*1e-6))/filter_timeconst)
+        self.echo_data.ft('t2')
         fl.next('apodized ft')
-        for j in d.getaxis('ph1'):
-            fl.plot(abs(d['ph1':j]), label=f'Δp={j}', alpha=0.5)
-        centerfrq = abs(d['ph1',+1]).argmax('t2').item()
+        for j in self.echo_data.getaxis('ph1'):
+            fl.plot(abs(self.echo_data['ph1':j]), label=f'Δp={j}', alpha=0.5)
+        centerfrq = abs(self.echo_data['ph1',+1]).argmax('t2').item()
         axvline(x=centerfrq/1e3,ls=':',color='r',alpha=0.25)
         # }}}
         if signal > 3*noise:
