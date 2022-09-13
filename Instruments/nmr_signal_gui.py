@@ -178,6 +178,7 @@ class NMRWindow(QMainWindow):
     def regen_plots(self):
         """ Redraws the figure
         """
+        self.axes.clear()        
         self.echo_data.ft('ph1', unitary=True)
         if 'nScans' in self.echo_data.dimlabels:
             self.echo_data.mean('nScans')
@@ -216,6 +217,7 @@ class NMRWindow(QMainWindow):
             config_dict.write()
         else:
             print('*'*5 + "warning! SNR looks bad! I'm not adjusting γ!!!" + '*'*5) # this is not yet tested!
+        self.canvas.draw()
         return
     def create_main_frame(self):
         self.main_frame = QWidget()
@@ -270,9 +272,9 @@ class NMRWindow(QMainWindow):
         # }}}
         slider_label = QLabel('Bar width (%):')
         # {{{ box to stack sliders
-        self.slider_vbox = QVBoxLayout()
-        self.slider_vbox.setContentsMargins(0, 0, 0, 0)
-        #self.slider_vbox.setSpacing(0)
+        self.bottom_right_vbox = QVBoxLayout()
+        self.bottom_right_vbox.setContentsMargins(0, 0, 0, 0)
+        #self.bottom_right_vbox.setSpacing(0)
         self.slider_min = QSlider(Qt.Horizontal)
         self.slider_max = QSlider(Qt.Horizontal)
         for ini_val,w in [(9819000,self.slider_min),
@@ -282,7 +284,7 @@ class NMRWindow(QMainWindow):
             w.setTracking(True)
             w.setTickPosition(QSlider.TicksBothSides)
             w.valueChanged.connect(self.regen_plots)
-            self.slider_vbox.addWidget(w)
+            self.bottom_right_vbox.addWidget(w)
         # }}}
         # {{{ we stack the bottom vboxes side by side
         bottom_hbox = QHBoxLayout()
@@ -290,7 +292,7 @@ class NMRWindow(QMainWindow):
         bottom_hbox.addLayout(self.boxes_vbox)
         bottom_hbox.addWidget(slider_label)
         bottom_hbox.setAlignment(slider_label, Qt.AlignVCenter)
-        bottom_hbox.addLayout(self.slider_vbox) # requires a different command!
+        bottom_hbox.addLayout(self.bottom_right_vbox) # requires a different command!
         # }}}
         main_layout = QVBoxLayout()
         main_layout.addWidget(self.canvas)
