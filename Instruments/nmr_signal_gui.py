@@ -104,6 +104,7 @@ class NMRWindow(QMainWindow):
         print("you changed your apodization
                 to",self.textbox_apo.text(),
                 "but I'm not yet programmed to do anything about that!")
+        self.apo_time_const = 10e-3
         return
 
     def on_pick(self, event):
@@ -178,39 +179,34 @@ class NMRWindow(QMainWindow):
         """ Redraws the figure
         """
         self.echo_data.ft('ph1', unitary=True)
-        print(ndshape(self.echo_data))
         if 'nScans' in self.echo_data.dimlabels:
             self.echo_data.mean('nScans')
         self.echo_data.ft('t2', shift=True)
-        # {{{ show raw data with peak pick
-        fl.next('raw ft')
-        for j in self.echo_data.getaxis('ph1'):
-            fl.plot(abs(self.echo_data['ph1':j]), label=f'Δp={j}', alpha=0.5)
-        centerfrq = abs(self.echo_data['ph1',+1]).argmax('t2').item()
-        axvline(x=centerfrq/1e3,ls=':',color='r',alpha=0.25)
-        # }}}
-        d_fullsw = self.echo_data.C
-        fl.next('zoomed')
-        for j in self.echo_data.getaxis('ph1'):
-            fl.plot(abs(self.echo_data['ph1':j]['t2':tuple(r_[-3e3,3e3]+centerfrq)]), label=f'Δp={j}', alpha=0.5)
-        noise = self.echo_data['ph1',r_[0,2,3]]['t2':centerfrq].run(std,'ph1')
-        signal = abs(self.echo_data['ph1',1]['t2':centerfrq])
-        self.echo_data = self.echo_data['t2':tuple(r_[-3e3,3e3]+centerfrq)]
-        self.echo_data.ift('t2')
-        fl.next('time domain, filtered')
-        filter_timeconst = 10e-3
-        myfilter = exp(-abs((self.echo_data.fromaxis('t2')-config_dict['tau_us']*1e-6))/filter_timeconst)
-        for j in self.echo_data.getaxis('ph1'):
-            fl.plot(abs(self.echo_data['ph1':j]), label=f'Δp={j}', alpha=0.5)
-        fl.plot(myfilter*abs(self.echo_data['ph1',1]['t2':config_dict['tau_us']*1e-6]))
-        # {{{ show filtered data with peak pick
-        self.echo_data = d_fullsw
         self.echo_data.ift('t2')
         self.echo_data *= exp(-abs((self.echo_data.fromaxis('t2')-config_dict['tau_us']*1e-6))/filter_timeconst)
         self.echo_data.ft('t2')
-        fl.next('apodized ft')
+        # {{{ pull essential parts of plotting routine
+        #    from pyspecdata -- these are pulled from
+        #    the plot function inside core
+        def pyspec_plot(*args, **kwargs):
+            myy = args[0]
+            longest_dim = np.argmax(myy.data.shape)
+            if len(myy.data.shape)>1:
+                all_but_longest = set(range(len(myy.data.shape)))^set((longest_dim,))
+                all_but_longest = list(all_but_longest)
+            else:
+                all_but_longest = []
+            myx = myy.getaxis(myy.dimlabels[longest_dim])
+            myxlabel = myy.unitify_axis(longest_dim)
+            if len(myy.data.shape) == 1:
+                myy = myy.data
+            else:
+                myy = np.squeeze(myy.data.transpose([longest_dim]+all_but_longest))
+            self.axes.plot(myx,myy,**kwargs)
+            self.axes.set_xlabel(myxlabel)
+        # }}}
         for j in self.echo_data.getaxis('ph1'):
-            fl.plot(abs(self.echo_data['ph1':j]), label=f'Δp={j}', alpha=0.5)
+            pyspec_plot(abs(self.echo_data['ph1':j]), label=f'Δp={j}', alpha=0.5)
         centerfrq = abs(self.echo_data['ph1',+1]).argmax('t2').item()
         axvline(x=centerfrq/1e3,ls=':',color='r',alpha=0.25)
         # }}}
@@ -220,7 +216,6 @@ class NMRWindow(QMainWindow):
             config_dict.write()
         else:
             print('*'*5 + "warning! SNR looks bad! I'm not adjusting γ!!!" + '*'*5) # this is not yet tested!
-        print(fl)
         return
     def create_main_frame(self):
         self.main_frame = QWidget()
