@@ -1,6 +1,7 @@
 import Instruments
 import Instruments.power_control_server
 import Instruments.microwave_tuning_gui
+import Instruments.nmr_signal_gui
 from Instruments.XEPR_eth import xepr
 import sys
 
@@ -13,8 +14,8 @@ def set_field(arg):
         field = x.set_field(field)
         print("field set to ",field)
 def cmd():
-    success = False
     cmds = {
+            "NMRsignal":Instruments.nmr_signal_gui.main,
             "MWtune":Instruments.microwave_tuning_gui.main,
             "server":Instruments.power_control_server.main,
             "quitServer":Instruments.power_control_server.main,
