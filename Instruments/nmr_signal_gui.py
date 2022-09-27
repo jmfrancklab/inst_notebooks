@@ -263,7 +263,7 @@ class NMRWindow(QMainWindow):
         self.fmode_cb.stateChanged.connect(self.regen_plots)
         self.boxes_vbox.addWidget(self.fmode_cb)
         # }}}
-        slider_label = QLabel('Bar width (%):')
+        slider_label = QLabel('Frequency Offset (%):')
         # {{{ box to stack sliders
         self.bottom_right_vbox = QVBoxLayout()
         self.bottom_right_vbox.setContentsMargins(0, 0, 0, 0)
@@ -305,7 +305,7 @@ class NMRWindow(QMainWindow):
         print("changing SW to",self.myconfig['SW_kHz'])
 
     def create_status_bar(self):
-        self.status_text = QLabel("This is a demo")
+        self.status_text = QLabel("Finding NMR signal")
         self.statusBar().addWidget(self.status_text, 1)
         
     def create_menu(self):        
