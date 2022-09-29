@@ -196,13 +196,18 @@ class NMRWindow(QMainWindow):
             self.axes.plot(myx,myy,**kwargs)
             self.axes.set_xlabel(myxlabel)
         # }}}
+        noise = self.echo_data['ph1',r_[0,2,3]].run(np.std,'ph1')
+        signal = abs(self.echo_data['ph1',1])
+        signal -= noise
         for j in self.echo_data.getaxis('ph1'):
             pyspec_plot(abs(self.echo_data['ph1':j]), label=f'Δp={j}', alpha=0.5)
-        centerfrq = abs(self.echo_data['ph1',+1]).argmax('t2').item()
+        centerfrq = signal.C.argmax('t2').item()
         self.axes.axvline(x=centerfrq,ls=':',color='r',alpha=0.25)
+        pyspec_plot(noise, color='k', label=f'Δp={j}', alpha=0.75)
+        pyspec_plot(signal, color='r', label=f'Δp={j}', alpha=0.75)
         # }}}
-        noise = self.echo_data['ph1',r_[0,2,3]]['t2':centerfrq].run(np.std,'ph1')
-        signal = abs(self.echo_data['ph1',1]['t2':centerfrq])
+        noise = noise['t2':centerfrq]
+        signal = signal['t2':centerfrq]
         if signal > 3*noise:
             Field = self.myconfig['carrierFreq_MHz'] / self.myconfig['gamma_eff_MHz_G']
             self.myconfig['gamma_eff_MHz_G'] -= centerfrq*1e-6/Field
