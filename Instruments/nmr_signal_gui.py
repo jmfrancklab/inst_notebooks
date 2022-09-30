@@ -263,32 +263,32 @@ class NMRWindow(QMainWindow):
         self.fmode_cb.stateChanged.connect(self.regen_plots)
         self.boxes_vbox.addWidget(self.fmode_cb)
         # }}}
-        slider_label = QLabel('Frequency Offset (%):')
+        #slider_label = QLabel('Frequency Offset (%):')
         # {{{ box to stack sliders
-        self.bottom_right_vbox = QVBoxLayout()
-        self.bottom_right_vbox.setContentsMargins(0, 0, 0, 0)
+        #self.bottom_right_vbox = QVBoxLayout()
+        #self.bottom_right_vbox.setContentsMargins(0, 0, 0, 0)
         #self.bottom_right_vbox.setSpacing(0)
         self.adc_offset_button = QPushButton("&ADC Offset")
         self.adc_offset_button.clicked.connect(self.adc_offset)
-        self.bottom_right_vbox.addWidget(self.adc_offset_button)
-        self.slider_min = QSlider(Qt.Horizontal)
-        self.slider_max = QSlider(Qt.Horizontal)
-        for ini_val,w in [(9819000,self.slider_min),
-                (9825000,self.slider_max)]:
-            self.on_textchange()
-            w.setValue(ini_val)
-            w.setTracking(True)
-            w.setTickPosition(QSlider.TicksBothSides)
-            w.valueChanged.connect(self.regen_plots)
-            self.bottom_right_vbox.addWidget(w)
+        #self.bottom_right_vbox.addWidget(self.adc_offset_button)
+        #self.slider_min = QSlider(Qt.Horizontal)
+        #self.slider_max = QSlider(Qt.Horizontal)
+        #for ini_val,w in [(9819000,self.slider_min),
+        #        (9825000,self.slider_max)]:
+        #    self.on_textchange()
+        #    w.setValue(ini_val)
+        #    w.setTracking(True)
+        #    w.setTickPosition(QSlider.TicksBothSides)
+        #    w.valueChanged.connect(self.regen_plots)
+        #    self.bottom_right_vbox.addWidget(w)
         # }}}
         # {{{ we stack the bottom vboxes side by side
         bottom_hbox = QHBoxLayout()
         bottom_hbox.addLayout(self.bottomleft_vbox)
         bottom_hbox.addLayout(self.boxes_vbox)
-        bottom_hbox.addWidget(slider_label)
-        bottom_hbox.setAlignment(slider_label, Qt.AlignVCenter)
-        bottom_hbox.addLayout(self.bottom_right_vbox) # requires a different command!
+        #bottom_hbox.addWidget(slider_label)
+        #bottom_hbox.setAlignment(slider_label, Qt.AlignVCenter)
+        #bottom_hbox.addLayout(self.bottom_right_vbox) # requires a different command!
         # }}}
         main_layout = QVBoxLayout()
         main_layout.addWidget(self.canvas)
