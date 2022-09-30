@@ -79,7 +79,15 @@ class NMRWindow(QMainWindow):
                 "but I'm not yet programmed to do anything about that!")
         self.apo_time_const = 10e-3
         return
-
+    def text_nScans(self):
+        print("This bar is for changing the number of scans we want the initial default
+        to be 4")
+        self.nScans = 4
+        return
+    def text_rep_time(self):
+        print("Here we can adjust the repetition time")
+        self.rep_time = 1e6
+        return
     def on_pick(self, event):
         # The event received here is of the type
         # matplotlib.backend_bases.PickEvent
@@ -247,7 +255,11 @@ class NMRWindow(QMainWindow):
         self.set_default_choices()
         self.bottomleft_vbox.addWidget(self.combo_sw)
         self.textbox_apo.editingFinished.connect(self.on_textchange)
+        self.nScans.editingFinished.connect(self.text_nScans)
+        self.rep_time.editingFinished.connect(self.text_rep_time)
         self.bottomleft_vbox.addWidget(self.textbox_apo)
+        self.bottomleft_vbox.addWidget(self.text_nScans)
+        self.bottomleft_vbox.addWidget(self.text_rep_time)
         self.acquire_button = QPushButton("&Acquire NMR")
         self.acquire_button.clicked.connect(self.acq_NMR)
         self.bottomleft_vbox.addWidget(self.acquire_button)
@@ -263,32 +275,40 @@ class NMRWindow(QMainWindow):
         self.fmode_cb.stateChanged.connect(self.regen_plots)
         self.boxes_vbox.addWidget(self.fmode_cb)
         # }}}
-        #slider_label = QLabel('Frequency Offset (%):')
+        slider_label = QLabel('Frequency Offset (%):')
+        nScans_label = QLabel('Number of Scans:')
+        rep_time_label = QLabel('Repetition Delay:')
         # {{{ box to stack sliders
-        #self.bottom_right_vbox = QVBoxLayout()
-        #self.bottom_right_vbox.setContentsMargins(0, 0, 0, 0)
+        self.bottom_right_vbox = QVBoxLayout()
+        self.bottom_right_vbox.setContentsMargins(0, 0, 0, 0)
         #self.bottom_right_vbox.setSpacing(0)
         self.adc_offset_button = QPushButton("&ADC Offset")
         self.adc_offset_button.clicked.connect(self.adc_offset)
-        #self.bottom_right_vbox.addWidget(self.adc_offset_button)
-        #self.slider_min = QSlider(Qt.Horizontal)
-        #self.slider_max = QSlider(Qt.Horizontal)
-        #for ini_val,w in [(9819000,self.slider_min),
-        #        (9825000,self.slider_max)]:
-        #    self.on_textchange()
-        #    w.setValue(ini_val)
-        #    w.setTracking(True)
-        #    w.setTickPosition(QSlider.TicksBothSides)
-        #    w.valueChanged.connect(self.regen_plots)
-        #    self.bottom_right_vbox.addWidget(w)
+        self.bottom_right_vbox.addWidget(self.adc_offset_button)
+        self.slider_min = QSlider(Qt.Horizontal)
+        self.slider_max = QSlider(Qt.Horizontal)
+        for ini_val,w in [(9819000,self.slider_min),
+                (9825000,self.slider_max)]:
+            self.on_textchange()
+            self.text_nScans()
+            self.text_rep_time()
+            w.setValue(ini_val)
+            w.setTracking(True)
+            w.setTickPosition(QSlider.TicksBothSides)
+            w.valueChanged.connect(self.regen_plots)
+            self.bottom_right_vbox.addWidget(w)
         # }}}
         # {{{ we stack the bottom vboxes side by side
         bottom_hbox = QHBoxLayout()
         bottom_hbox.addLayout(self.bottomleft_vbox)
         bottom_hbox.addLayout(self.boxes_vbox)
-        #bottom_hbox.addWidget(slider_label)
-        #bottom_hbox.setAlignment(slider_label, Qt.AlignVCenter)
-        #bottom_hbox.addLayout(self.bottom_right_vbox) # requires a different command!
+        bottom_hbox.addWidget(slider_label)
+        bottom_hbox.addWidget(nScans_label)
+        bottom_hbox.addWidget(rep_time_label)
+        bottom_hbox.setAlignment(slider_label, Qt.AlignVCenter)
+        bottom_hbox.setAlignment(nScans_label, Qt.AlignVBottom)
+        bottom_hbox.setAlignment(rep_time_label,Qt.AlignVTop)
+        bottom_hbox.addLayout(self.bottom_right_vbox) # requires a different command!
         # }}}
         main_layout = QVBoxLayout()
         main_layout.addWidget(self.canvas)
