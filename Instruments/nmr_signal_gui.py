@@ -79,13 +79,12 @@ class NMRWindow(QMainWindow):
                 "but I'm not yet programmed to do anything about that!")
         self.apo_time_const = 10e-3
         return
-    def text_nScans(self):
-        print("This bar is for changing the number of scans we want the initial default
-        to be 4")
+    def text_nScans_onchange(self):
+        """This bar is for changing the number of scans we want the initial default to be 4"""
         self.nScans = 4
         return
-    def text_rep_time(self):
-        print("Here we can adjust the repetition time")
+    def text_rep_time_onchange(self):
+        """Here we can adjust the repetition time"""
         self.rep_time = 1e6
         return
     def on_pick(self, event):
@@ -247,6 +246,8 @@ class NMRWindow(QMainWindow):
         #     button
         self.bottomleft_vbox = QVBoxLayout()
         self.textbox_apo = QLineEdit()
+        self.text_nScans = QLineEdit()
+        self.text_rep_time = QLineEdit()
         self.combo_sw = QComboBox()
         self.combo_sw.addItem("200")
         self.combo_sw.addItem("24")
@@ -255,11 +256,9 @@ class NMRWindow(QMainWindow):
         self.set_default_choices()
         self.bottomleft_vbox.addWidget(self.combo_sw)
         self.textbox_apo.editingFinished.connect(self.on_textchange)
-        self.nScans.editingFinished.connect(self.text_nScans)
-        self.rep_time.editingFinished.connect(self.text_rep_time)
+        self.text_nScans.editingFinished.connect(self.text_nScans_onchange)
+        self.text_rep_time.editingFinished.connect(self.text_rep_time_onchange)
         self.bottomleft_vbox.addWidget(self.textbox_apo)
-        self.bottomleft_vbox.addWidget(self.text_nScans)
-        self.bottomleft_vbox.addWidget(self.text_rep_time)
         self.acquire_button = QPushButton("&Acquire NMR")
         self.acquire_button.clicked.connect(self.acq_NMR)
         self.bottomleft_vbox.addWidget(self.acquire_button)
@@ -285,18 +284,22 @@ class NMRWindow(QMainWindow):
         self.adc_offset_button = QPushButton("&ADC Offset")
         self.adc_offset_button.clicked.connect(self.adc_offset)
         self.bottom_right_vbox.addWidget(self.adc_offset_button)
+        self.bottom_right_vbox.addWidget(self.text_nScans)
+        self.bottom_right_vbox.addWidget(self.text_rep_time)
         self.slider_min = QSlider(Qt.Horizontal)
         self.slider_max = QSlider(Qt.Horizontal)
         for ini_val,w in [(9819000,self.slider_min),
                 (9825000,self.slider_max)]:
-            self.on_textchange()
-            self.text_nScans()
-            self.text_rep_time()
             w.setValue(ini_val)
             w.setTracking(True)
             w.setTickPosition(QSlider.TicksBothSides)
             w.valueChanged.connect(self.regen_plots)
             self.bottom_right_vbox.addWidget(w)
+        # }}}
+        # {{{ have it evaluate the text boxes first time around
+        self.on_textchange()
+        self.text_nScans_onchange()
+        self.text_rep_time_onchange()
         # }}}
         # {{{ we stack the bottom vboxes side by side
         bottom_hbox = QHBoxLayout()
