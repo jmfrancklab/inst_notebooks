@@ -57,20 +57,23 @@ class Bridge12 (Serial):
         self.tuning_curve_data = {}
         self._inside_with_block = False
         self.fit_data = {}
+        print("init done")
     def bridge12_wait(self):
         #time.sleep(5)
         def look_for(this_str):
             for j in range(1000):
                 a = self.read_until(this_str+'\r\n'.encode('utf-8'))
                 time.sleep(0.1)
-                #print "a is",repr(a)
                 logger.debug("look for "+(this_str).decode('utf-8')+" try"+str(j+1))
                 if this_str in a:
                     logger.debug("found: "+this_str.decode('utf-8'))
                     break
         look_for('MPS Started'.encode('utf-8'))
+        print("MPS Started")
         look_for('System Ready'.encode('utf-8'))
+        print("System Ready")
         look_for('Synthesizer detected'.encode('utf-8'))
+        print("Synthesizer detected")
         return
     def help(self):
         self.write(b"help\r") #command for "help"
