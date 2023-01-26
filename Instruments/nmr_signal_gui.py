@@ -123,10 +123,9 @@ class NMRWindow(QMainWindow):
                 nPoints = self.npts,
                 nEchoes = self.myconfig['nEchoes'],
                 p90_us = self.myconfig['p90_us'],
-                repetition = self.myconfig['repetition_us'],
+                repetition_us = self.myconfig['repetition_us'],
                 tau_us = self.myconfig['tau_us'],
                 SW_kHz = self.myconfig['SW_kHz'],
-                output_name = "GUI",
                 ret_data = None)
         #}}}
         #{{{setting acq_params
@@ -205,6 +204,7 @@ class NMRWindow(QMainWindow):
         self.axes.axvline(x=centerfrq,ls=':',color='r',alpha=0.25)
         pyspec_plot(noise, color='k', label=f'Δp={j}', alpha=0.75)
         pyspec_plot(signal, color='r', label=f'Δp={j}', alpha=0.75)
+        self.axes.legend()
         # }}}
         noise = noise['t2':centerfrq]
         signal = signal['t2':centerfrq]

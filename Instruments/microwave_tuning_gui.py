@@ -108,6 +108,8 @@ class TuningWindow(QMainWindow):
         self.right_slider_lim = int(self.textbox2.text())
         if self.right_slider_lim < self.left_slider_lim:
             self.right_slider_lim = self.left_slider_lim+1
+            self.textbox1.setText(str(self.left_slider_lim))
+            self.textbox2.setText(str(self.right_slider_lim))
         for w in [
                 self.slider_min,
                 self.slider_max]:
