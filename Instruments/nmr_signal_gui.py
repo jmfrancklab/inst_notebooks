@@ -168,8 +168,6 @@ class NMRWindow(QMainWindow):
         """
         self.axes.clear()        
         self.echo_data.ft('ph1', unitary=True)
-        if 'nScans' in self.echo_data.dimlabels:
-            self.echo_data.mean('nScans')
         self.echo_data.ft('t2', shift=True)
         self.echo_data.ift('t2')
         filter_timeconst = self.apo_time_const
@@ -195,11 +193,16 @@ class NMRWindow(QMainWindow):
             self.axes.plot(myx,myy,**kwargs)
             self.axes.set_xlabel(myxlabel)
         # }}}
+        if 'nScans' in self.echo_data.dimlabels:
+            multiscan_copy = self.echo_data.C
+            self.echo_data.mean('nScans')
         noise = self.echo_data['ph1',r_[0,2,3]].run(np.std,'ph1')
         signal = abs(self.echo_data['ph1',1])
         signal -= noise
         for j in self.echo_data.getaxis('ph1'):
             pyspec_plot(abs(self.echo_data['ph1':j]), label=f'Δp={j}', alpha=0.5)
+            if 'nScans' in self.echo_data.dimlabels and j==1:
+                pyspec_plot(abs(self.echo_data['ph1':j]), color='k', label=f'Δp={j}, indiv', alpha=0.1)
         centerfrq = signal.C.argmax('t2').item()
         self.axes.axvline(x=centerfrq,ls=':',color='r',alpha=0.25)
         pyspec_plot(noise, color='k', label=f'Δp={j}', alpha=0.75)
