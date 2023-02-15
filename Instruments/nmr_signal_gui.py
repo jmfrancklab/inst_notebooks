@@ -202,7 +202,8 @@ class NMRWindow(QMainWindow):
         for j in self.echo_data.getaxis('ph1'):
             pyspec_plot(abs(self.echo_data['ph1':j]), label=f'Δp={j}', alpha=0.5)
             if 'nScans' in self.echo_data.dimlabels and j==1:
-                pyspec_plot(abs(self.echo_data['ph1':j]), color='k', label=f'Δp={j}, indiv', alpha=0.1)
+                for k in range(ndshape(multiscan_copy)['nScans']):
+                    pyspec_plot(abs(multiscan_copy['ph1':j]['nScans',k]), color='k', label=f'Δp={j}, indiv', alpha=0.1)
         centerfrq = signal.C.argmax('t2').item()
         self.axes.axvline(x=centerfrq,ls=':',color='r',alpha=0.25)
         pyspec_plot(noise, color='k', label=f'Δp={j}', alpha=0.75)
