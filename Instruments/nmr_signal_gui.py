@@ -21,13 +21,11 @@ from PyQt5.QtWidgets import *
 from SpinCore_pp.ppg import run_spin_echo
 import SpinCore_pp # just for config file, but whatever...
 from pyspecdata import gammabar_H
-
+import pyspecdata as psp
 import matplotlib
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
-
-import numpy as np
 
 class NMRWindow(QMainWindow):
     def __init__(self, xepr, myconfig, parent=None):
@@ -193,17 +191,18 @@ class NMRWindow(QMainWindow):
             self.axes.plot(myx,myy,**kwargs)
             self.axes.set_xlabel(myxlabel)
         # }}}
-        if 'nScans' in self.echo_data.dimlabels:
+        if int(psp.ndshape(self.echo_data)['nScans']) > 1:
             multiscan_copy = self.echo_data.C
+            many_scans = True
             self.echo_data.mean('nScans')
         noise = self.echo_data['ph1',r_[0,2,3]].run(np.std,'ph1')
         signal = abs(self.echo_data['ph1',1])
         signal -= noise
         for j in self.echo_data.getaxis('ph1'):
             pyspec_plot(abs(self.echo_data['ph1':j]), label=f'Δp={j}', alpha=0.5)
-            if 'nScans' in self.echo_data.dimlabels and j==1:
-                for k in range(ndshape(multiscan_copy)['nScans']):
-                    pyspec_plot(abs(multiscan_copy['ph1':j]['nScans',k]), color='k', label=f'Δp={j}, indiv', alpha=0.1)
+            if many_scans and j==1:
+                for k in range(psp.ndshape(multiscan_copy)['nScans']):
+                    pyspec_plot(abs(multiscan_copy['ph1':j]['nScans',k]), label=f'Δp=1, scan {k}', alpha=0.2)
         centerfrq = signal.C.argmax('t2').item()
         self.axes.axvline(x=centerfrq,ls=':',color='r',alpha=0.25)
         pyspec_plot(noise, color='k', label=f'Noise std', alpha=0.75)
