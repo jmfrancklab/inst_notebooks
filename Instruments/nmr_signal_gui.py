@@ -191,10 +191,13 @@ class NMRWindow(QMainWindow):
             self.axes.plot(myx,myy,**kwargs)
             self.axes.set_xlabel(myxlabel)
         # }}}
-        if int(psp.ndshape(self.echo_data)['nScans']) > 1:
-            multiscan_copy = self.echo_data.C
-            many_scans = True
-            self.echo_data.mean('nScans')
+        if 'nScans' in self.echo_data.dimlabels:
+            if int(psp.ndshape(self.echo_data)['nScans']) > 1:
+                multiscan_copy = self.echo_data.C
+                many_scans = True
+                self.echo_data.mean('nScans')
+        else:
+            many_scans = False
         noise = self.echo_data['ph1',r_[0,2,3]].run(np.std,'ph1')
         signal = abs(self.echo_data['ph1',1])
         signal -= noise
