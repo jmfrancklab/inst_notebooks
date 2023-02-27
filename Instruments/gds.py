@@ -212,8 +212,8 @@ class GDS_scope (SerialInstrument):
 
         # Similarly, use V/div scale to scale the y values of the data
         print("acquisition parameters",param)
-        data_array *= float(param.pop('Vertical Scale'))/0.2 # we saw
-        #              empirically that 0.2 corresponds to about 1 division
+        data_array *= float(param.pop('Vertical Scale'))
+        data_array *= 5*1.032 # this is empirical
         if not all(isfinite(x_axis)):
             raise ValueError("your x axis is not finite!! len(data_array) is %s and 'Sampling Period' is %s"%(str(len(data_array)),str(param.pop('Sampling Period'))))
         data = nddata(data_array,['t']).setaxis('t',x_axis)
