@@ -166,6 +166,16 @@ class GDS_scope (SerialInstrument):
             The scope data, as a pyspecdata nddata, with the
             extra information stored as nddata properties
         """
+        ready = self.respond(':ACQ%d:STAT?'%ch)
+        j = 0
+        while int(ready) == 0 and j<100:
+            time.sleep(0.1)
+            ready = self.respond(':ACQ%d:STAT?'%ch)
+            print("acquisition not ready, waiting....")
+            j += 1
+        if j==100: raise RuntimeError("never became ready!!!")
+
+        print("ready:",ready)
         self.write(':ACQ%d:MEM?'%ch)
         def upto_hashtag():
             this_char = self.read(1)
@@ -192,7 +202,7 @@ class GDS_scope (SerialInstrument):
 
         # convert the binary string
         data_array = fromstring(data,dtype='i2')
-        data_array =  double(data_array)/double(2**(2*8))
+        data_array = double(data_array)/double(2**(2*8-1))
         # I could do the following
         #x_axis = r_[0:len(data_array)] * float(param['Sampling Period'])
         # but since I'm "using up" the sampling period, do this:
@@ -201,6 +211,7 @@ class GDS_scope (SerialInstrument):
 
 
         # Similarly, use V/div scale to scale the y values of the data
+        print("acquisition parameters",param)
         data_array *= float(param.pop('Vertical Scale'))/0.2 # we saw
         #              empirically that 0.2 corresponds to about 1 division
         if not all(isfinite(x_axis)):
