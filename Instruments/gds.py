@@ -192,7 +192,7 @@ class GDS_scope (SerialInstrument):
 
         # convert the binary string
         data_array = fromstring(data,dtype='i2')
-        data_array =  double(data_array)/double(2**(2*8-1))
+        data_array =  double(data_array)/double(2**(2*8))
         # I could do the following
         #x_axis = r_[0:len(data_array)] * float(param['Sampling Period'])
         # but since I'm "using up" the sampling period, do this:
