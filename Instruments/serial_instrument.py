@@ -160,7 +160,10 @@ class SerialInstrument (object):
                 response = float(response)
             except ValueError:
                 raise ValueError("I got a response that I couln't convert to a floating point number:\n\t"+response)
-            if abs((value - response)/response) < error:
+            if response == 0 and value == 0:
+                return response
+            if abs((value - response)*2/(response +
+                value)) < error:
                 self.flush()
                 return response
             else:
