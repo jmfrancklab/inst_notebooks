@@ -224,7 +224,7 @@ class Bridge12 (Serial):
             power values -- give a dBm (not 10*dBm) as a floating point number
         """
         #if not self._inside_with_block: raise ValueError("you MUST use a with block so the error handling works well")
-        setting = int(10*round(dBm*2)/2.+0.5)# find closest 0.5 dBm, and round
+        setting = int(10*round(dBm))# for HP, find closest 1.0 dBm, and round
         #if setting > 400:
         #    raise ValueError("You are not allowed to use this function to set a power of greater than 40 dBm for safety reasons")
         #elif setting < 0:
@@ -236,15 +236,15 @@ class Bridge12 (Serial):
         #        raise RuntimeError("Before you try to set the power above 10 dBm, you must first set a lower power!!!")
         #    if setting > 30+self.cur_pwr_int: 
         #        raise RuntimeError("Once you are above 10 dBm, you must raise the power in MAX 3 dB increments.  The power is currently %g, and you tried to set it to %g -- this is not allowed!"%(self.cur_pwr_int/10.,setting/10.))
-        #if setting > 0: self.rxpowermv_int_singletry() # doing this just for safety interlock
+        if setting > 0: self.rxpowermv_int_singletry() # doing this just for safety interlock
         logger.info(' '.join([str(j) for j in [
             "Setting HP power to",
-            (setting)-35.0,
+            (setting/10)-35.0,
             "dBm, which is",
             setting,
             "dBm after amplifier"]]))
-        self.h.set_power((setting)-35.0) # in the old code, this had a /10, but I think that was because we were specifying 10*dBm rather than dBm
-        self.cur_pwr_int = ((setting) - 35.0)
+        self.h.set_power((setting/10)-35.0) # in the old code, this had a /10, but I think that was because we were specifying 10*dBm rather than dBm
+        self.cur_pwr_int = setting
     def rxpowermv_int_singletry(self):
         """read the integer value for the Rx power (which is 10* the value in mV).  Also has a software interlock so that if the Rx power ever exceeds self.safe_rx_level_int, then the amp shuts down."""
         self.write(b'rxpowermv?\r')
