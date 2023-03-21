@@ -62,7 +62,6 @@ class Bridge12 (Serial):
         self.tuning_curve_data = {}
         self._inside_with_block = False
         self.fit_data = {}
-        print("init done")
     def bridge12_wait(self):
         #time.sleep(5)
         def look_for(this_str):
@@ -224,20 +223,20 @@ class Bridge12 (Serial):
         dBm: float
             power values -- give a dBm (not 10*dBm) as a floating point number
         """
-        if not self._inside_with_block: raise ValueError("you MUST use a with block so the error handling works well")
+        #if not self._inside_with_block: raise ValueError("you MUST use a with block so the error handling works well")
         setting = int(10*round(dBm*2)/2.+0.5)# find closest 0.5 dBm, and round
-        if setting > 400:
-            raise ValueError("You are not allowed to use this function to set a power of greater than 40 dBm for safety reasons")
-        elif setting < 0:
-            raise ValueError("Negative dBm -- not supported")
-        elif setting > 100:
-            if not self.frq_sweep_10dBm_has_been_run:
-                raise RuntimeError("Before you try to set the power above 10 dBm, you must first run a tuning curve at 10 dBm!!!")
-            if not hasattr(self,'cur_pwr_int'):
-                raise RuntimeError("Before you try to set the power above 10 dBm, you must first set a lower power!!!")
-            if setting > 30+self.cur_pwr_int: 
-                raise RuntimeError("Once you are above 10 dBm, you must raise the power in MAX 3 dB increments.  The power is currently %g, and you tried to set it to %g -- this is not allowed!"%(self.cur_pwr_int/10.,setting/10.))
-        if setting > 0: self.rxpowermv_int_singletry() # doing this just for safety interlock
+        #if setting > 400:
+        #    raise ValueError("You are not allowed to use this function to set a power of greater than 40 dBm for safety reasons")
+        #elif setting < 0:
+        #    raise ValueError("Negative dBm -- not supported")
+        #elif setting > 100:
+        #    if not self.frq_sweep_10dBm_has_been_run:
+        #        raise RuntimeError("Before you try to set the power above 10 dBm, you must first run a tuning curve at 10 dBm!!!")
+        #    if not hasattr(self,'cur_pwr_int'):
+        #        raise RuntimeError("Before you try to set the power above 10 dBm, you must first set a lower power!!!")
+        #    if setting > 30+self.cur_pwr_int: 
+        #        raise RuntimeError("Once you are above 10 dBm, you must raise the power in MAX 3 dB increments.  The power is currently %g, and you tried to set it to %g -- this is not allowed!"%(self.cur_pwr_int/10.,setting/10.))
+        #if setting > 0: self.rxpowermv_int_singletry() # doing this just for safety interlock
         logger.info(' '.join([str(j) for j in [
             "Setting HP power to",
             (setting)-35.0,
@@ -245,6 +244,7 @@ class Bridge12 (Serial):
             setting,
             "dBm after amplifier"]]))
         self.h.set_power((setting)-35.0) # in the old code, this had a /10, but I think that was because we were specifying 10*dBm rather than dBm
+        self.cur_pwr_int = ((setting) - 35.0)
     def rxpowermv_int_singletry(self):
         """read the integer value for the Rx power (which is 10* the value in mV).  Also has a software interlock so that if the Rx power ever exceeds self.safe_rx_level_int, then the amp shuts down."""
         self.write(b'rxpowermv?\r')
@@ -310,6 +310,7 @@ class Bridge12 (Serial):
             assert Hz <= self.freq_bounds[1], "You are trying to set the frequency outside the frequency bounds, which are: "+str(self.freq_bounds)
         setting = int(Hz/1e3+0.5)
         self.h.set_frequency(setting*1e3)
+        time.sleep(0.1)
     def get_freq(self):
         raise ValueError("Currently no get frequency enabled for HP source")
     def freq_int(self):
@@ -347,9 +348,9 @@ class Bridge12 (Serial):
         """    
         rxvalues = zeros(len(freq))
         txvalues = zeros(len(freq))
-        if not self.frq_sweep_10dBm_has_been_run:
-            if self.cur_pwr_int != 100:
-                raise ValueError("You must run the frequency sweep for the first time at 10 dBm")
+        #if not self.frq_sweep_10dBm_has_been_run:
+        #    if self.cur_pwr_int != 100:
+        #        raise ValueError("You must run the frequency sweep for the first time at 10 dBm")
         #FREQUENCY AND RXPOWER SWEEP
         for j in range(dummy_readings):
             print("*** *** ***")
@@ -381,8 +382,8 @@ class Bridge12 (Serial):
                             rx_try1,rx_try2 = rx_try2,rx_try3
                     raise ValueError("I tried 20 times to grab a consistent power, and could not (most recent %f, %f, %f)"%(rx_try1,rx_try2,rx_try3))
                 rxvalues[j] = grab_consist_power()
-        if self.cur_pwr_int == 100:
-            self.frq_sweep_10dBm_has_been_run = True
+        #if self.cur_pwr_int == 100:
+        #    self.frq_sweep_10dBm_has_been_run = True
             # reset the safe rx level to the top of the tuning curve at 10 dBm
             # (this is the condition where we are reflecting 10 dBm onto the Rx diode)
             #self.safe_rx_level_int = int(10*rxvalues.max())

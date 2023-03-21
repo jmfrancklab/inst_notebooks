@@ -292,8 +292,8 @@ class TuningWindow(QMainWindow):
         #self.slider_vbox.setSpacing(0)
         self.slider_min = QSlider(Qt.Horizontal)
         self.slider_max = QSlider(Qt.Horizontal)
-        for ini_val,w in [(9819000,self.slider_min),
-                (9825000,self.slider_max)]:
+        for ini_val,w in [(9815000,self.slider_min),
+                (9820000,self.slider_max)]:
             self.on_textchange()
             w.setValue(ini_val)
             w.setTracking(True)
@@ -376,7 +376,7 @@ def main():
         b.set_rf(True)
         b.set_amp(True)
         time.sleep(5)
-        b.set_power(0.35)
+        b.set_power(10)
         tunwin = TuningWindow(b)
         tunwin.show()
         app.exec_()
