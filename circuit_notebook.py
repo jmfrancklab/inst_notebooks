@@ -1,10 +1,10 @@
 
 # coding: utf-8
 
-get_ipython().magic(u'pylab inline')
+get_ipython().magic('pylab inline')
 from pyspecdata import *
 from IPython.display import Markdown,display
-get_ipython().magic(u'load_ext pyspecdata.ipy')
+get_ipython().magic('load_ext pyspecdata.ipy')
 
 
 # to run this, run py convert.py circuit_notebook.py, and run the ipynb file output
@@ -20,7 +20,7 @@ R = 2.0
 # first calculate the resonant frequency
 
 C_resonant = 1./((2*pi*15e6)**2*L)
-print C_resonant/1e-12,'pF'
+print(C_resonant/1e-12,'pF')
 
 
 # Now, pick a reasonable capacitance, and simulate the result that we expect.  I define $Z$ as a function, so that I can set the resistance easily.
@@ -29,7 +29,7 @@ C = round(C_resonant/1e-12)*1e-12
 nu = r_[10:20:5000j]*1e6
 omega = 2*pi*nu
 f_expect = 1/sqrt(L*C)/2/pi/1e6
-print "expected resonance",f_expect,'MHz'
+print("expected resonance",f_expect,'MHz')
 
 Z = lambda R: 1./(1j*omega*C) + R + 1j*omega*L
 
@@ -109,7 +109,7 @@ import scipy.optimize as o
 imd = r.C
 imd.data = r.imag.data
 fn = imd.interp('f',None,return_func=True)
-print "measured resonance frequency is",o.newton(fn,15e6)/1e6,"MHz vs. expected",f_expect,'MHz'
+print("measured resonance frequency is",o.newton(fn,15e6)/1e6,"MHz vs. expected",f_expect,'MHz')
 
 
 # # Part 2: Use sympy to calculate 

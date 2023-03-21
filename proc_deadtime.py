@@ -69,7 +69,7 @@ if not default:
         integration_center = 55.e6 
         integration_width = 10.e6
     else:
-        print "Unrecognized width choice"
+        print("Unrecognized width choice")
         integration_center = 14.5e6 
         integration_width = 2.e6
     # }}}
@@ -82,8 +82,8 @@ def load_noise(date,id_string,captures):
                 directory=getDATADIR(exp_type='test_equip'))
         s.set_units('t','s')
     except:
-        print "accumulated data was not found, pulling individual captures"
-        for j in xrange(1,cap_len+1):
+        print("accumulated data was not found, pulling individual captures")
+        for j in range(1,cap_len+1):
             j_str = str(j)
             d = nddata_hdf5(filename+'/capture'+j_str+'_'+date,
                 directory=getDATADIR(exp_type='test_equip'))
@@ -92,7 +92,7 @@ def load_noise(date,id_string,captures):
                 channels = ((ndshape(d)) + ('capture',cap_len)).alloc()
                 channels.setaxis('t',d.getaxis('t')).set_units('t','s')
                 channels.setaxis('ch',d.getaxis('ch'))
-            print "loading signal %s into capture %s "%(j_str,j_str)
+            print("loading signal %s into capture %s "%(j_str,j_str))
             channels['capture',j-1]=d        
         s = channels
         s.labels('capture',captures)
@@ -144,9 +144,9 @@ for date,id_string,numchan,gain_factor in [
             #('180630','spin_echo_exp_block2',2,gain_factor_dcasc12), 
     ]:
     label = date+'_'+id_string
-    print "\n*** LOADING:",id_string,"***"
+    print("\n*** LOADING:",id_string,"***")
     d = load_noise(date,id_string,captures)['ch',0]
-    print ndshape(d)
+    print(ndshape(d))
     # Preliminary processing, from gen_power_data()
     raw_signal = (ndshape(d)).alloc()
     raw_signal.setaxis('t',d.getaxis('t')).set_units('t','s')
@@ -159,8 +159,8 @@ for date,id_string,numchan,gain_factor in [
     noise_slice = (161e-6,250e-6)
     d = d['t':noise_slice]
     acq_time = diff(d.getaxis('t')[r_[0,-1]])[0]
-    print acq_time 
-    print ndshape(d)
+    print(acq_time) 
+    print(ndshape(d))
 #    d.ift('t')
 #    y = d['capture',1]
 #    y.name('Volts')
@@ -187,7 +187,7 @@ for date,id_string,numchan,gain_factor in [
     if integration:
         interval = tuple(integration_center+r_[-1,1]*integration_width)
         startf,stopf = tuple(interval)
-        print "INTEGRATION INTERVAL:",startf/1e6,"to",stopf/1e6,"MHz"
+        print("INTEGRATION INTERVAL:",startf/1e6,"to",stopf/1e6,"MHz")
         if 'ch' not in s.dimlabels:
             # {{{ a hack to create a fake ch axis
             t_label = s.getaxis('t')

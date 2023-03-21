@@ -13,23 +13,23 @@ if impedance:
 
         w = sqrt(1./(L_*(Cm+Ct)))
         f = w/2/pi
-        print f*1e-6
+        print(f*1e-6)
 
         Z = w*w*L_*L_/50.
-        print Z
+        print(Z)
 
 # for calculating cap
 
 Cm = 100e-12
 Ct = 1000e-12+100e-12
-print (Cm+Ct)*1e12
+print((Cm+Ct)*1e12)
 L = 80e-9
 factor = 1+(Cm/Ct)
 L_ = L/factor
 
 w = sqrt(1./(L_*(Cm+Ct)))
 f = w/2/pi
-print f*1e-6
+print(f*1e-6)
 
 Z = w*w*L_*L_/50.
-print Z
+print(Z)

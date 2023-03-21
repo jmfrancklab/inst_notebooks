@@ -86,15 +86,15 @@ for date,id_string,numchan,indirect_range in [
     confirm_triggers = False 
     #{{{ confirm that different phases trigger differently due to differing rising edges
     if confirm_triggers:
-        print ndshape(s)
-        print ndshape(s_raw)
+        print(ndshape(s))
+        print(ndshape(s_raw))
         subset = s['ch',1]['t':(1e-6,100e-6)]
         fl.next('raw data')
         if not single_90:
             fl.plot(s_raw['ch',1]['indirect',0]['ph2',0].reorder('t').real)
             onephase = subset.C.smoosh(['ph2','indirect'], noaxis = True, dimname='repeat').reorder('t')
             onephase_raw = s_raw['ch',1].C.smoosh(['ph2','indirect'], noaxis=True, dimname='repeat').reorder('t')
-            print "dimensions of re-grouped raw data",ndshape(onephase_raw)
+            print("dimensions of re-grouped raw data",ndshape(onephase_raw))
         if single_90:
             fl.plot(s_raw['ch',1]['indirect',-1].reorder('t').real)
             onephase = subset.C.reorder('t')
@@ -102,8 +102,8 @@ for date,id_string,numchan,indirect_range in [
             onephase_raw = s_raw['ch',1].C.reorder('t')
             onephase_raw.rename('indirect','repeat')
         colors = ['r','g','b','c']
-        for k in xrange(ndshape(onephase)['ph1']):
-            for j in xrange(ndshape(onephase)['repeat']):
+        for k in range(ndshape(onephase)['ph1']):
+            for j in range(ndshape(onephase)['repeat']):
                 fl.next('compare rising edge')
                 # need to define time slice for rising edge
                 fl.plot(abs(onephase['repeat',j]['t':(26.2e-6,26.6e-6)]['ph1',k].C.reorder('t',first=True)),color=colors[k],alpha=0.3)
@@ -114,7 +114,7 @@ for date,id_string,numchan,indirect_range in [
                 fl.plot((onephase_raw['repeat',j]['t':(27.1e-6,27.9e-6)]['ph1',k].C.reorder('t',first=True)),color=colors[k],alpha=0.3)
                 fl.next('compare falling edge, raw')
                 fl.plot((onephase_raw['repeat',j]['t':(27.1e-6,27.9e-6)]['ph1',k].C.reorder('t',first=True)),color=colors[k],alpha=0.3)
-        print ndshape(onephase)
+        print(ndshape(onephase))
         #}}}
     #{{{ shifting the axis so that 0 is centered on the pulses
     # before we even slice, we need an idea of where the pulse is
@@ -133,7 +133,7 @@ for date,id_string,numchan,indirect_range in [
     #fl.show();quit()
     #}}}
     avg_t = average_time(pulse_slice)
-    print avg_t
+    print(avg_t)
     # this creates an nddata of the time averages for each 90 pulse
     logger.debug(strm('dimensions of average_time:',ndshape(avg_t)))
     # shift the time axis down by the average time, so that 90 is centered around t=0
@@ -187,8 +187,8 @@ for date,id_string,numchan,indirect_range in [
         if single_90:
             onephase_raw_shift = s_raw['ch',1].C.reorder('t')
             onephase_raw_shift.rename('indirect','repeat')
-        for k in xrange(ndshape(onephase_raw)['ph1']):
-            for j in xrange(ndshape(onephase_raw)['repeat']):
+        for k in range(ndshape(onephase_raw)['ph1']):
+            for j in range(ndshape(onephase_raw)['repeat']):
                 fl.next('compare rising edge: uncorrected')
                 fl.plot((onephase_raw_shift['repeat',j]['ph1',k]['t':(-1.4e-6,-1.1e-6)].C.reorder('t',first=True)+2*k),color=colors[k],alpha=0.3)
                 fl.next('compare falling edge: uncorrected')
@@ -203,8 +203,8 @@ for date,id_string,numchan,indirect_range in [
         if single_90:
             onephase_rawc = raw_corr['ch',1].C.reorder('t')
             onephase_rawc.rename('indirect','repeat')
-        for k in xrange(ndshape(onephase_rawc)['ph1']):
-            for j in xrange(ndshape(onephase_rawc)['repeat']):
+        for k in range(ndshape(onephase_rawc)['ph1']):
+            for j in range(ndshape(onephase_rawc)['repeat']):
                 fl.next('compare rising edge: corrected')
                 fl.plot(onephase_rawc['repeat',j]['ph1',k]['t':(-1.4e-6,-1.1e-6)].C.reorder('t',first=True),color=colors[k],alpha=0.3)
                 fl.next('compare falling edge: corrected')

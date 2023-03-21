@@ -39,7 +39,7 @@ class GDS_Channel_Properties (object):
             self.gds.write(':CHAN%d:DISP ON'%self.ch)
             self.gds.demand(":CHAN%d:DISP?"%self.ch,'ON')
             cmd = ':CHAN%d:DISP?'%self.ch
-            print "CH",self.ch," display is",bool(str(self.gds.respond(cmd)))
+            print("CH",self.ch," display is",bool(str(self.gds.respond(cmd))))
         else:
             self.gds.write(':CHAN%d:DISP OFF'%self.ch)
             self.gds.demand("CHAN%d:DISP?"%self.ch,'OFF')
@@ -59,7 +59,7 @@ class GDS_Channel_Properties (object):
         vs_str = '%0.3E'%vs
         cmd = ':CHAN%d:SCAL %f'%(self.ch,vs)
         #self.demand(':CHAN1:SCAL 100e-9',vs_str)
-        print "Setting CH",self.ch," volt scale to %s volt/div"%vs_str
+        print("Setting CH",self.ch," volt scale to %s volt/div"%vs_str)
         self.gds.write(cmd)
         return
 #        @property
@@ -80,11 +80,12 @@ class GDS_Channel_Properties (object):
 class GDS_scope (SerialInstrument):
     """Next, we can define a class for the scope, based on `pyspecdata`"""
     def __init__(self,model='3254'):
-        super(self.__class__,self).__init__('GDS-'+model)
-        logger.debug(strm("identify from within GDS",super(self.__class__,self).respond('*idn?')))
+        super().__init__('GDS-'+model)
+        print(strm("debugging -- identify from within GDS",super().respond('*idn?')))
+        logger.debug(strm("identify from within GDS",super().respond('*idn?')))
         logger.debug("I should have just opened the serial connection")
-        self.CH1 = GDS_Channel_Properties (1,self)
-        self.CH2 = GDS_Channel_Properties (2,self)
+        self.CH1 = GDS_Channel_Properties(1,self)
+        self.CH2 = GDS_Channel_Properties(2,self)
         return
     def __getitem__(self,arg):
         if arg == 0:
@@ -94,14 +95,17 @@ class GDS_scope (SerialInstrument):
         else:
             raise ValueError("There is no channel "+str(arg))
 
-    def timscal(self,ts):
-        print "Query time scale in sec/div"
-        print self.respond(':TIM:SCAL?')
+    def timscal(self,ts,pos=None):
+        print("Query time scale in sec/div")
+        print(self.respond(':TIM:SCAL?'))
         ts_str = ' %0.6e'%ts
         self.write(':TIM:SCAL ',ts)
         self.demand(':TIM:SCAL?',ts)
+        if pos is not None:
+            self.write(':TIM:POS ',pos)
+            self.demand(':TIM:POS?',pos)
         #Running into matching error here, but command does work
-        print "Time scale (sec/div) is set to",self.respond(':TIM:SCAL?')
+        print("Time scale (sec/div) is set to",self.respond(':TIM:SCAL?'))
         return
     
     def acquire_mode(self,mode,num_avg=1):
@@ -131,10 +135,10 @@ class GDS_scope (SerialInstrument):
         """
         possible_avg = [2**1, 2**2, 2**3, 2**4, 2**5, 2**6, 2**7, 2**8]
         self.write(':ACQ:MOD %s'%mode)
-        print "Acquire mode is:",self.respond(':ACQ:MOD?')
+        print("Acquire mode is:",self.respond(':ACQ:MOD?'))
         if num_avg in possible_avg:
             self.write(':ACQ:AVER %d'%num_avg)
-            print "Number of averages set to:",self.respond(':ACQ:AVER?')
+            print("Number of averages set to:",self.respond(':ACQ:AVER?'))
     
     def autoset(self):
         self.write(':AUTOS')
@@ -162,6 +166,16 @@ class GDS_scope (SerialInstrument):
             The scope data, as a pyspecdata nddata, with the
             extra information stored as nddata properties
         """
+        ready = self.respond(':ACQ%d:STAT?'%ch)
+        j = 0
+        while int(ready) == 0 and j<100:
+            time.sleep(0.1)
+            ready = self.respond(':ACQ%d:STAT?'%ch)
+            print("acquisition not ready, waiting....")
+            j += 1
+        if j==100: raise RuntimeError("never became ready!!!")
+
+        print("ready:",ready)
         self.write(':ACQ%d:MEM?'%ch)
         def upto_hashtag():
             this_char = self.read(1)
@@ -170,7 +184,6 @@ class GDS_scope (SerialInstrument):
                 this_line += this_char
                 this_char = self.read(1)
             return this_line
-
         #Further divides settings
         preamble = upto_hashtag().split(';')
         
@@ -180,26 +193,29 @@ class GDS_scope (SerialInstrument):
         
         #Generates list of parameters in the preamble
         param = dict([tuple(x.split(',')) for x in preamble if len(x.split(',')) == 2])
-        
+
         #Reads waveform data of 50,000 bytes
-        self.read(6)# length of 550000
-        data = self.read(50001)
-        assert data[-1] == '\n', "data is not followed by newline!"
+        self.read_binary(6) # length of 550000
+        data = self.read_binary(50001)
+        assert data[-1] == 10, "data is not followed by newline!, rather it's %d"%data[-1]
         data = data[:-1]
 
         # convert the binary string
         data_array = fromstring(data,dtype='i2')
-        data_array =  double(data_array)/double(2**(2*8-1))
-
+        data_array = double(data_array)/double(2**(2*8-1))
         # I could do the following
         #x_axis = r_[0:len(data_array)] * float(param['Sampling Period'])
         # but since I'm "using up" the sampling period, do this:
         x_axis = r_[0:len(data_array)] * float(param.pop('Sampling Period'))
         # r_[... is used by numpy to construct arrays on the fly
 
+
         # Similarly, use V/div scale to scale the y values of the data
-        data_array *= float(param.pop('Vertical Scale'))/0.2 # we saw
-        #              empirically that 0.2 corresponds to about 1 division
+        print("acquisition parameters",param)
+        data_array *= float(param.pop('Vertical Scale'))
+        data_array *= 5*1.032 # this is empirical
+        if not all(isfinite(x_axis)):
+            raise ValueError("your x axis is not finite!! len(data_array) is %s and 'Sampling Period' is %s"%(str(len(data_array)),str(param.pop('Sampling Period'))))
         data = nddata(data_array,['t']).setaxis('t',x_axis)
         data.set_units('t',param.pop('Horizontal Units').replace('S','s'))
         data.set_units(param.pop('Vertical Units'))
@@ -221,7 +237,7 @@ class GDS_scope (SerialInstrument):
                 except:
                     pass
             return retval
-        for j in param.keys():
+        for j in list(param.keys()):
             param[j] = autoconvert_number(param[j])
         data.other_info.update(param)
         data.name(name)

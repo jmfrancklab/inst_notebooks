@@ -4,6 +4,7 @@ import os
 import sys
 matplotlib.rcParams['legend.fontsize'] ='xx-small'
 matplotlib.rcParams['legend.labelspacing'] = 0.2 
+rcParams['savefig.transparent'] = True
 #4096 points
 # {{{ constants measured elsewhere
 gain_factor_new = 73503.77279 
@@ -62,7 +63,7 @@ if not default:
         integration_center = 55.e6 
         integration_width = 10.e6
     else:
-        print "Unrecognized width choice"
+        print("Unrecognized width choice")
         integration_center = 14.5e6 
         integration_width = 2.e6
     # }}}
@@ -75,8 +76,8 @@ def load_noise(date,id_string,captures):
                 directory=getDATADIR(exp_type='test_equip'))
         s.set_units('t','s')
     except:
-        print "accumulated data was not found, pulling individual captures"
-        for j in xrange(1,cap_len+1):
+        print("accumulated data was not found, pulling individual captures")
+        for j in range(1,cap_len+1):
             j_str = str(j)
             d = nddata_hdf5(filename+'/capture'+j_str+'_'+date,
                 directory=getDATADIR(exp_type='test_equip'))
@@ -85,7 +86,7 @@ def load_noise(date,id_string,captures):
                 channels = ((ndshape(d)) + ('capture',cap_len)).alloc()
                 channels.setaxis('t',d.getaxis('t')).set_units('t','s')
                 channels.setaxis('ch',d.getaxis('ch'))
-            print "loading signal %s into capture %s "%(j_str,j_str)
+            print("loading signal %s into capture %s "%(j_str,j_str))
             channels['capture',j-1]=d        
         s = channels
         s.labels('capture',captures)
@@ -270,6 +271,7 @@ for date,id_string,numchan,gain_factor in [
         #('190425','term_25_0_1',2,gain_factor_new),
         #('190425','term_25_0_2',2,gain_factor_new),
         #('190425','term_25_0_0_1',2,gain_factor_new),
+        #('190425','term_test_0_0',2,gain_factor_new),
         #('190425','term_test_0_1',2,gain_factor_new),
         #('190425','term_test_0_2',2,gain_factor_new),
         #('190425','term_test_1_0',2,gain_factor_new),
@@ -300,48 +302,17 @@ for date,id_string,numchan,gain_factor in [
         #('190531','term_test_0_48in',2,gain_factor_new),
         #('190531','term_test_0_60in',2,gain_factor_new),
         #('190531','term_test_0_72in',2,gain_factor_new),
-        #('190531','term_test_0_triax',2,gain_factor_new),
-        #('190531','triax_1_0',2,gain_factor_new),
-        #('190531','triax_1_1',2,gain_factor_new),
-        #('190531','triax_1_2',2,gain_factor_new),
-        #('190531','triax_1_3',2,gain_factor_new),
-        #('190531','triax_1_4',2,gain_factor_new),
-        #('190531','triax_2_0',2,gain_factor_new),
-        #('190531','triax_2_0_1',2,gain_factor_new),
-        #('190531','triax_1_4_1',2,gain_factor_new),
-        #('190531','triax_3_2',2,gain_factor_new),
-        #('190531','triax_3_3',2,gain_factor_new),
-        #('190531','triax_4_0',2,gain_factor_new),
-        #('190602','test_1_1',2,gain_factor_new),
-        #('190602','test_1_2',2,gain_factor_new),
-        #('190602','test_2_1',2,gain_factor_new),
-        #('190602','test_2_2',2,gain_factor_new),
-        ##('190602','test_3',2,gain_factor_new), # Triax, Minicircuits
-        #('190602','test_4',2,gain_factor_new),
-        #('190602','test_5',2,gain_factor_new),
-        #('190602','test_6',2,gain_factor_new),
-        #('190602','test_7',2,gain_factor_new),
-        #('190602','test_8',2,gain_factor_new),
-        #('190603','test_1',2,gain_factor_new),
-        #('190603','test_2',2,gain_factor_new),
-        #('190603','test_3',2,gain_factor_new),
-        ##('190614','test_1_0',2,gain_factor_new), # Triax, Minicircuits
-        ##('190614','test_3',2,gain_factor_new), # Triax, DNP probe
-        ##('190614','test_4',2,gain_factor_new), # Triax, probe v2.0
-        ##('190614','test_5',2,gain_factor_new), # Coax, probe v2.0
-        ##('190614','test_6',2,gain_factor_new), # Coax, DNP probe 
-        ##('190614','test_7',2,gain_factor_new), # Coax, DNP probe 
-        #('190712','test_1',2,gain_factor_new), 
-        #('190712','test_2',2,gain_factor_new), 
-        #('190712','test_3',2,gain_factor_new), 
-        ('190712','test_4',2,gain_factor_new), 
-        ('190712','test_5',2,gain_factor_new), 
-        #('190712','test_6',2,gain_factor_new), 
-        #('190712','test_6_1',2,gain_factor_new), 
-        #('190716','test_1',2,gain_factor_new), 
-        #('190716','test_1_1',2,gain_factor_new), 
-        ('190716','test_2',2,gain_factor_new), 
-        ('190716','test_3',2,gain_factor_new), 
+        #('190531','term_test_0_72in',2,gain_factor_new),
+        #('190712','test_4',2,gain_factor_new),
+        #('190712','test_5',2,gain_factor_new),
+        ('190716','test_2',2,gain_factor_new),
+        #('190716','test_3',2,gain_factor_new),
+        #('200212','test_50_off_0',2,gain_factor_new),
+        #('200212','test_50_off_1',2,gain_factor_new),
+        ('200212','test_50_off_2',2,gain_factor_new),
+        ('200212','test_50_on_0',2,gain_factor_new),
+        #('200212','test_short50_on_0',2,gain_factor_new),
+        #('200212','test_long50_on_0',2,gain_factor_new),
 
     ]:
     # }}}
@@ -363,74 +334,22 @@ for date,id_string,numchan,gain_factor in [
             label = 'full spectrometer, probe v2.0 detached from cavity'
     plot_labels = True
     if plot_labels:
-        if '190602' == date:
-            if 'test_3' == id_string:
-                label = 'Triax 36", Mini-Circuits terminator (6/2/2019)'
-        elif '190614' == date:
-            if 'test_1_0' == id_string:
-                label = 'Triax 36", Mini-Circuits terminator (6/14/2019)'
-            elif 'test_3' == id_string:
-                label = 'Triax 36", DNP probe (6/14/2019)'
-            elif 'test_4' == id_string:
-                label = 'Triax 36", probe v2.0 (6/14/2019)'
-            elif 'test_5' == id_string:
-                label = 'New coax 36", probe v2.0 (6/14/2019)'
-            elif 'test_6' == id_string:
-                label = 'New coax 36", DNP probe (6/14/2019)'
-        #{{{ plotting parameters -- for older files
-        #{{{ plotting AFG waveform, attn, power splitter, with low pass filter
-        elif id_string == 'control_SE':
-            plot_params = dict(label = 'Waveform, 100 MSPS', color = 'blue', alpha=0.15, plottype='semilogy')
-        elif id_string == 'control_SE_250MSPS':
-            plot_params = dict(label = 'Waveform, 250 MSPS', color = 'orange', alpha=0.15, plottype='semilogy')
-        elif id_string == 'control_SE_500MSPS':
-            plot_params = dict(label = 'Waveform, 500 MSPS', color = 'green', alpha=0.15, plottype='semilogy')
-        elif id_string == 'control_SE_1GSPS':
-            plot_params = dict(label = 'Waveform, 1 GSPS', color = 'red', alpha=0.15, plottype='semilogy')
-        elif id_string == 'control_SE_2p5GSPS':
-            plot_params = dict(label = 'Waveform, 2.5 GSPS', color = 'purple', alpha=0.15, plottype='semilogy')
-            #}}}
-        #{{{ plotting AFG waveform, attn, power splitter, no input low pass filter
-        elif id_string == 'control_SE_nofilter':
-            plot_params = dict(label = 'Waveform, no filter, 100 MSPS', color = 'blue', alpha=0.15, linestyle=':', plottype='semilogy')
-        elif id_string == 'control_SE_250MSPS_nofilter':
-            plot_params = dict(label = 'Waveform, no filter, 250 MSPS', color = 'orange', alpha=0.15, linestyle=':', plottype='semilogy')
-        elif id_string == 'control_SE_500MSPS_nofilter':
-            plot_params = dict(label = 'Waveform, no filter, 500 MSPS', color = 'green', alpha=0.15, linestyle=':', plottype='semilogy')
-        elif id_string == 'control_SE_1GSPS_nofilter':
-            plot_params = dict(label = 'Waveform, no filter, 1 GSPS', color = 'red', alpha=0.15, linestyle=':', plottype='semilogy')
-        elif id_string == 'control_SE_2p5GSPS_nofilter':
-            plot_params = dict(label = 'Waveform, no filter, 2.5 GSPS', color = 'purple', alpha=0.15, linestyle=':', plottype='semilogy')
-            #}}}
-        #{{{ plotting network, up to ENI amplifier with 50 ohm input
-        elif id_string == 'network_SE':
-            plot_params = dict(label = '50$\Omega$ input ENI, 100 MSPS', color = '#1f77b4', alpha=0.255, linestyle=':', plottype='semilogy')
-        elif id_string == 'network_SE_250MSPS':
-            plot_params = dict(label = '50$\Omega$ input ENI, 250 MSPS', color ='#ff7f0e', alpha=0.25, linestyle=':', plottype='semilogy')
-        elif id_string == 'network_SE_500MSPS':
-            plot_params = dict(label = '50$\Omega$ input ENI, 500 MSPS', color = '#2ca02c', alpha=0.25, linestyle=':', plottype='semilogy')
-        elif id_string == 'network_SE_1GSPS':
-            plot_params = dict(label = '50$\Omega$ input ENI, 1 GSPS', color ='#d62728', alpha=0.25, linestyle=':', plottype='semilogy')
-        elif id_string == 'network_SE_2p5GSPS':
-            plot_params = dict(label = '50$\Omega$ input ENI, 2.5 GSPS', color ='#9467bd', alpha=0.25, linestyle=':', plottype='semilogy')
-            #}}}
-        #{{{ plotting network, everything but magnet and sample
-        elif id_string == 'network_SE_full':
-            plot_params = dict(label = 'Network, 100 MSPS', color = '#1f77b4', alpha=0.25, plottype='semilogy')
-        elif id_string == 'network_SE_full_250MSPS':
-            plot_params = dict(label = 'Network, 250 MSPS', color ='#ff7f0e', alpha=0.25, plottype='semilogy')
-        elif id_string == 'network_SE_full_500MSPS':
-            plot_params = dict(label = 'Network, 500 MSPS', color = '#2ca02c', alpha=0.25, plottype='semilogy')
-        elif id_string == 'network_SE_full_1GSPS':
-            plot_params = dict(label = 'Network, 1 GSPS', color ='#d62728', alpha=0.25, plottype='semilogy')
-        elif id_string == 'network_SE_full_2p5GSPS':
-            plot_params = dict(label = 'Network, 2.5 GSPS', color ='#9467bd', alpha=0.25, plottype='semilogy')
-            #}}}
-            #}}}
+        if 'test_0_0' in id_string:
+            label = 'No box, magnet off'
+        elif 'test_1_0' in id_string:
+            label = 'No box, magnet on'
+        elif 'test_50_off' in id_string:
+            label = 'Box, magnet off'
+        elif 'test_50_on' in id_string:
+            label = 'Box, magnet on'
+        elif 'test_short50_on' in id_string:
+            label = 'Box, magnet on, 1 ft BNC'
+        elif 'test_long50_on' in id_string:
+            label = 'Box, magnet on, 5.5 ft BNC'
         #}}}
     #label += ' (g=%0.2f)'%gain_factor
    # }}}
-    print "\n*** LOADING:",id_string,"***"
+    print("\n*** LOADING:",id_string,"***")
     s = load_noise(date,id_string,captures)
     #{{{ slicing
     if 'spectrometer_noise' in id_string:
@@ -454,15 +373,15 @@ for date,id_string,numchan,gain_factor in [
         #}}}
     acq_time = diff(s.getaxis('t')[r_[0,-1]])[0]
     u_acq_time = diff(u.getaxis('t')[r_[0,-1]])[0]
-    print acq_time
-    print "\t"
-    print u_acq_time
-    print "\t"
-    print "ACQUISITION TIME IS:\t",acq_time
+    print(acq_time)
+    print("\t")
+    print(u_acq_time)
+    print("\t")
+    print("ACQUISITION TIME IS:\t",acq_time)
     #{{{ calculate PSD for s
     s.ft('t',shift=True)
     s = abs(s)['t':(0,None)]**2   #mod square and throw out negative frequencies
-    s.mean('capture', return_error=False)
+    s.mean('capture')
     width = 0.04e6
     #s.convolve('t',width) # we do this before chopping things up, since it uses
     #                      fft and assumes that the signal is periodic (at this
@@ -482,7 +401,7 @@ for date,id_string,numchan,gain_factor in [
     ##fl.plot(u['capture',1])
     u.ft('t',shift=True)
     u = abs(u)['t':(0,None)]**2
-    u.mean('capture', return_error = False)
+    u.mean('capture')
     #u.convolve('t',width)
     u /= 50.
     u /= u_acq_time
@@ -497,7 +416,7 @@ for date,id_string,numchan,gain_factor in [
         ##fl.show()
         ##quit()
         u_filt = abs(u_filt)['t':(0,None)]**2
-        u_filt.mean('capture', return_error = False)
+        u_filt.mean('capture')
         u_filt.convolve('t',width)
         u_filt /= 50.
         u_filt /= u_acq_time
@@ -510,31 +429,33 @@ for date,id_string,numchan,gain_factor in [
                 u /= k_B*T
                 u_filt /= k_B*T
                 fl.next('Network Noise Power Spectral Density (Input-referred) (convolution = %0.1e Hz)'%width)
-                s.name('${S_{xx}(\\nu)}/{k_{B}T}$')
+                s.name('${S(\\nu)}/{k_{B}T}$')
                 fl.plot(s['ch',0],alpha=0.35,label='%s'%label,plottype='semilogy')
                 #axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
                 fl.next('Network Noise Power Spectral Density, Input-referred')
-                u.name('${S_{xx}(\\nu)}/{k_{B}T}$')
+                u.name('${S(\\nu)}/{k_{B}T}$')
                 fl.plot(u['ch',0],alpha=0.35,plottype='semilogy')
                 #axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
+                u_filt = u_filt['t':(None,45e6)]
                 if filtering:
                     fl.next('Digitally-Filtered Network Noise Power Spectral Density,\n Input-referred ($\sigma$=%0.3f kHz)'%(width*1e-3))
-                    u_filt.name('${S_{xx}(\\nu)}/{k_{B}T}$')
-                    fl.plot(u_filt['ch',0],alpha=0.35,label='%s'%label,plottype='semilogy')
+                    u_filt.name('${S(\\nu)}/{k_{B}T}$')
+                    fl.plot(u_filt['ch',0],alpha=0.8,label='%s'%label,plottype='semilogy')
+                    #ylim(None,10**1.75)
                     #axhline(y=k_B*T/1e-12, linestyle=':', alpha=0.5, color='purple') # 1e-12 b/c the axis is given in pW
                     #axvline(14.46, linestyle=':', alpha=0.5, c='k')
             if plot_params:
                 fl.next('Network Noise Power Spectral Density (Input-referred) (convolution = %0.1e Hz)'%width)
-                s.name('${S_{xx}(\\nu)}/{k_{B}T}$')
+                s.name('${S(\\nu)}/{k_{B}T}$')
                 fl.plot(s['ch',0],**plot_params)
                 #axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
                 fl.next('Network Noise Power Spectral Density, Input-referred')
-                u.name('${S_{xx}(\\nu)}/{k_{B}T}$')
+                u.name('${S(\\nu)}/{k_{B}T}$')
                 fl.plot(u['ch',0],**plot_params)
                 #axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
                 if filtering:
                     fl.next('Digitally-Filtered Network Noise Power Spectral Density, Input-referred')
-                    u_filt.name('${S_{xx}(\\nu)}/{k_{B}T}$')
+                    u_filt.name('${S(\\nu)}/{k_{B}T}$')
                     fl.plot(u_filt['ch',0]**plot_params)
                     #axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW
             #}}}
@@ -542,7 +463,7 @@ for date,id_string,numchan,gain_factor in [
     if integration:
         interval = tuple(integration_center+r_[-1,1]*integration_width)
         startf,stopf = tuple(interval)
-        print "INTEGRATION INTERVAL:",startf/1e6,"to",stopf/1e6,"MHz"
+        print("INTEGRATION INTERVAL:",startf/1e6,"to",stopf/1e6,"MHz")
         if 'ch' not in s.dimlabels:
             # {{{ a hack to create a fake ch axis
             t_label = s.getaxis('t')
@@ -563,7 +484,7 @@ for date,id_string,numchan,gain_factor in [
 #            #}}}
 #        else:
         fl.next('FULL Power Spectral Density (Input-referred) (convolution = %0.1e Hz)'%width)
-        s.name('$S_{xx}(\\nu)$').set_units('W/Hz')
+        s.name('$S(\\nu)$').set_units('W/Hz')
 #        s_slice.name('$S_{xx}(\\nu)$').set_units('W/Hz')
         fl.plot(s['ch',0], alpha=0.35, label="%s"%label, plottype='semilogy')
         axhline(y=k_B*T/1e-12, alpha=0.9, color='purple') # 1e-12 b/c the axis is given in pW

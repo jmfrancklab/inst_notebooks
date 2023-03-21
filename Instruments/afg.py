@@ -31,11 +31,11 @@ class AFG_Channel_Properties (object):
         """Take a numpy ndarray `data`, and set it up for AWG output
         Default rate set to 50 MHz
         """
-        print "About to output the ndarray..."
-        cmd = 'SOUR%d:DATA:DAC VOLATILE, '%self.ch
-        cmd += self.afg.binary_block(data)
-        self.afg.write(cmd)
-        print "Initial ndArray frequency set to",rate/len(data)
+        print("About to output the ndarray...")
+        cmd = ['SOUR%d:DATA:DAC VOLATILE,'%self.ch]
+        cmd += [self.afg.binary_block(data)]
+        self.afg.write(*cmd)
+        print("Initial ndArray frequency set to",rate/len(data))
         self.afg.write('SOUR%d:APPL:USER %+0.7E'%(self.ch, rate/len(data)))
         self.afg.check_idn()
         self.afg.write('SOUR%d:ARB:OUTP'%self.ch)
@@ -57,9 +57,31 @@ class AFG_Channel_Properties (object):
     @freq.setter
     def freq(self,f):
         cmd = 'SOUR%d:FREQ %+0.7E'%(self.ch, f)
-        print "About to call:",cmd
+        print("About to call:",cmd)
         self.afg.write(cmd)
         self.afg.demand('SOUR%d:FREQ?'%(self.ch), f)
+        return
+    @property
+    def FM_freq(self):
+        cmd = 'SOUR%d:FM:INT:FREQ?'%self.ch
+        return float(self.afg.respond(cmd))
+    @FM_freq.setter
+    def FM_freq(self,f):
+        cmd = 'SOUR%d:FM:INT:FREQ %+0.7E'%(self.ch,f)
+        print("about to call:",cmd)
+        self.afg.write(cmd)
+        self.afg.demand('SOUR%d:FM:INT:FREQ?'%(self.ch,f), f)
+        return
+    @property
+    def FM_dev(self,dev):
+        cmd = 'SOUR%d:FM:DEV?'%self.ch
+        return float(self.afg.respond(cmd))
+    @FM_dev.setter
+    def FM_dev(self,dev):
+        cmd = 'SOUR%d:FM:DEV %+0.7E'%(self.ch,dev)
+        print("about to call:",cmd)
+        self.afg.write(cmd)
+        self.afg.demand('SOUR%d:FM:DEV?'%(self.ch,dev), dev)
         return
     @property
     def ampl(self):
@@ -70,10 +92,34 @@ class AFG_Channel_Properties (object):
     @ampl.setter
     def ampl(self,amp):
         cmd = 'SOUR%d:AMP %+0.7E'%(self.ch, amp)
-        print "About to call:",cmd
+        print("About to call:",cmd)
         self.afg.write(cmd)
         self.afg.demand('SOUR%d:AMP?'%(self.ch), amp)
         return
+    @property
+    def FM_mod(self):
+        cmd = 'SOUR%d:FM:STAT?'%self.ch
+        return bool(int(self.afg.respond(cmd)))
+    @FM_mod.setter
+    def FM_mod(self,onoff):
+        if onoff:
+            self.afg.write('SOUR%d:FM:STAT on'%self.ch)
+            self.afg.demand("SOUR%d:FM:STAT?"%self.ch,1)
+            cmd = 'SOUR%d:FM:STAT?'%self.ch
+        else:
+            self.afg.write('SOUR%d:FM:STAT OFF'%self.ch)
+            self.afg.demand("SOUR%d:FM:STAT?"%self.ch,0)
+        return
+    @property
+    def tri_shape(self):
+        cmd = 'SOUR%d:FM:INT:FUNC?'%self.ch
+        return bool(int(self.afg.respond(cmd)))
+    @tri_shape.setter
+    def tri_shape(self,TRI):
+        self.afg.write('SOUR%d:FM:INT:FUNC TRI'%self.ch)
+        self.afg.demand("SOUR%d:FM:INT:FUNC?"%self.ch,1)
+        cmd = 'SOUR%d:fm:int:func?'%self.ch
+        return       
     @property
     def burst(self):
         cmd = 'SOUR%d:BURS:STAT?'%self.ch
@@ -123,7 +169,7 @@ class AFG (SerialInstrument):
     `self[0]` will return self.CH1 and `self[1]` will return self.CH2
     """
     def __init__(self,model='2225'):
-        super(self.__class__,self).__init__('AFG-'+model)
+        super().__init__('AFG-'+model)
         logger.debug(strm("identify from within AFG",super(self.__class__,self).respond('*idn?')))
         logger.debug("I should have just opened the serial connection")
         return
@@ -160,7 +206,7 @@ class AFG (SerialInstrument):
             f_chosen = thisf
         # }}}
         cmd = 'SOUR%d:APPL:SIN %0.3f%s,1,0'%(ch,f/f_chosen,unit_chosen)
-        print cmd
+        print(cmd)
         self.write(cmd)
         
         ###ALEC 2017-10-06
@@ -218,7 +264,7 @@ class AFG (SerialInstrument):
         data_len = len(data)
         data_len = str(data_len)
         assert (len(data_len) < 10), "the number describing the data length must be less than ten digits long, but your data length is "+data_len
-        initialization = '#'+str(len(data_len))+data_len
+        initialization = b'#'+str(len(data_len)).encode('ascii')+data_len.encode('ascii')
         return initialization+data
     def set_sweep(self, start=3e3, stop=5e3, time=1, ch=1):
         assert time>=1e-3, "It seems like the AFG will only allow time values set to 1ms or higher"

@@ -7,15 +7,15 @@ from scipy import signal
 
 fl = figlist_var()
 
-print "These are the instruments available:"
+print("These are the instruments available:")
 SerialInstrument(None)
-print "done printing available instruments"
+print("done printing available instruments")
 
-with SerialInstrument('GDS-3254') as s:
-    print s.respond('*idn?')
-    
-with SerialInstrument('AFG-2225') as s:
-    print s.respond('*idn?')
+#with SerialInstrument('GDS-3254') as s:
+#    print s.respond('*idn?')
+#    
+#with SerialInstrument('AFG-2225') as s:
+#    print s.respond('*idn?')
 
 
 with GDS_scope() as g:
@@ -25,7 +25,7 @@ with GDS_scope() as g:
      #g.write(':CHAN1:DISP OFF')
      #g.write(':CHAN2:DISP OFF')
      g.CH1.voltscal=100E-3
-     g.CH2.voltscal=40E-3
+     g.CH2.voltscal=100E-3
 #      g.timscal(500e-9)
 #      print "Trigger response"
 #      print g.respond(':TRIG:MOD?')

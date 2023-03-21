@@ -30,6 +30,7 @@ class SerialInstrument (object):
             If textidn is set to None, just show the available instruments.
         """
         self._textidn = textidn
+        self._id_attempts_left = 12
         if textidn is None:
             self.show_instruments()
         else:
@@ -48,10 +49,25 @@ class SerialInstrument (object):
         (Similar to a print command, but directed at the instrument)"""
         text = ' '.join([str(j) for j in args])
         logger.debug(strm("when trying to write, port looks like this:",self.connection))
-        self.connection.write(text+'\n')
+        self.connection.write((text+'\n').encode('utf-8'))
+        return
+    def write(self,*args):
+        """Send info to the instrument.  Take a comma-separated list of
+        arguments, which are converted to strings and separated by a space,
+        and then converted to a byte string.
+        (Similar to a print command, but directed at the instrument)"""
+        text = b' '.join(j if type(j) is bytes else j.encode('utf-8')
+                for j in
+                (str(k) if type(k) is not bytes else k for k in args))
+        logger.debug(strm("when trying to write, port looks like this:",self.connection))
+        self.connection.write(text+b'\n')
         return
     def read(self, *args, **kwargs):
-        return self.connection.read(*args, **kwargs)
+        retval = self.connection.read(*args, **kwargs)
+        return retval.decode('utf-8')
+    def read_binary(self, *args, **kwargs):
+        retval = self.connection.read(*args, **kwargs)
+        return retval
     def flush(self, timeout=1):
         """Flush the input (say we didn't read all of it, *etc.*)
         
@@ -62,7 +78,7 @@ class SerialInstrument (object):
         self.connection.timeout = timeout
         result = 'blah'
         while len(result)>0:
-            result = self.connection.read(2000)
+            result = self.connection.read(2000).decode('utf-8')
         self.connection.timeout = old_timeout
         return
     def respond(self,*args, **kwargs):
@@ -82,23 +98,24 @@ class SerialInstrument (object):
         old_timeout = self.connection.timeout
         if message_len is None:
             self.connection.timeout = 5
-            retval = self.connection.readline()
+            retval = self.connection.readline().decode('utf-8')
         else:
-            retval = self.connection.read(message_len)
+            retval = self.connection.read(message_len).decode('utf-8')
         self.connection.timeout = old_timeout
         return retval
     def show_instruments(self):
         """For testing.  Same as :func:`id_instrument`, except that it just prints the idn result from all com ports.
         """
         for j in comports():
+            print("inside show_instruments, looking at",j)
             port_id = j[0] # based on the previous, this is the port number
             try:
                 with serial.Serial(port_id) as s:
                     s.timeout = 0.1
                     assert s.isOpen(), "For some reason, I couldn't open the connection for %s!"%str(port_id)
-                    s.write('*idn?\n')
-                    result = s.readline()
-                    print result
+                    s.write(('*idn?\n').encode('utf-8'))
+                    result = s.readline().decode('utf-8')
+                    print(result)
             except SerialException:
                 pass
     # {{{ common commands
@@ -127,7 +144,7 @@ class SerialInstrument (object):
         while response is None or len(response) == 0 and j<tries:
             j += 1
             self.write(cmd) # to make sure it's done resetting
-            response = self.connection.readline()
+            response = self.connection.readline().decode('utf-8')
         if type(value) is str:
             m = re.match(value,response)
             if not m:
@@ -143,7 +160,10 @@ class SerialInstrument (object):
                 response = float(response)
             except ValueError:
                 raise ValueError("I got a response that I couln't convert to a floating point number:\n\t"+response)
-            if abs((value - response)/response) < error:
+            if response == 0 and value == 0:
+                return response
+            if abs((value - response)*2/(response +
+                value)) < error:
                 self.flush()
                 return response
             else:
@@ -155,14 +175,15 @@ class SerialInstrument (object):
         of any commands that take a while to execute.  It also executes a flush
         at the end, to make sure that there's nothing stuck in the buffer."""
         old_timeout = self.connection.timeout
-        self.connection.timeout = 0.1
+        self.connection.timeout = 5
         response = None
         j = 0
         while response is None or len(response) == 0 and j<tries:
             j += 1
-            self.write('*IDN?') # to make sure it's done resetting
-            response = self.connection.readline()
-        assert self._textidn in response
+            response = self.respond('*IDN?') # to make sure it's done resetting
+        if response is None or len(response)==0:
+            raise ValueError("I tried %d times to contact the %s, to no avail!!!"%(tries,self._textidn))
+        assert self._textidn in response, repr(response)+' does not match '+repr(self._textidn)
         self.flush(timeout=0.1)
         self.connection.timeout = old_timeout
         return response
@@ -190,7 +211,7 @@ class SerialInstrument (object):
         return
     def learn(self):
         "Returns the settings as a data string."
-        return self.respond('*LRN?')
+        return self.respond('*LRN?'.encode('utf-8'))
     # }}}
     def id_instrument(self,textidn):
         """A helper function for :func:`init` Identify the instrument that returns an ID string containing ``textidn``
@@ -200,22 +221,29 @@ class SerialInstrument (object):
             should work on either Windows or Mac/Linux.
         """
         if len(port_dict) == 0:
-            print "port dict has no results, so searching for instruments"
+            print("port dict has no results, so searching for instruments")
             for j in comports():
-                port_id = j[0] # based on the previous, this is the port number
+                print("testing port",j)
+                port_id = j.device # based on the previous, this is the port number
                 try:
                     with serial.Serial(port_id) as s:
                         s.timeout = 0.1
                         assert s.isOpen(), "For some reason, I couldn't open the connection for %s!"%str(port_id)
-                        s.write('*idn?\n')
-                        result = s.readline()
+                        s.write('*idn?\n'.encode('utf-8'))
+                        result = s.readline().decode('utf-8')
                         port_dict[port_id] = result
                 except SerialException:
+                    print("port appears to be open already?")
                     pass # on windows this is triggered if the port is already open
-        for port_id, result in port_dict.iteritems():
+        print("this is the port dictionary that I generate:",port_dict)
+        for port_id, result in port_dict.items():
             if textidn in result:
                 return port_id
-        print "I looped through all the com ports and didn't find ",textidn,"resetting port_dict, and trying again"
-        for j in port_dict.keys():
+        print("I looped through all the com ports and didn't find ",textidn,"resetting port_dict, and trying again")
+        for j in list(port_dict.keys()):
             port_dict.pop(j)
-        return self.id_instrument(textidn)
+        self._id_attempts_left -= 1
+        if self._id_attempts_left > 0:
+            return self.id_instrument(textidn)
+        else:
+            raise RuntimeError("maxed out attempts to id instrument")

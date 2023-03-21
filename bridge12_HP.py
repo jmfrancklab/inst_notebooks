@@ -15,17 +15,17 @@ from itertools import cycle
 run_bridge12 = True
 if run_bridge12:
     with Bridge12() as b:
-        print "SETTING WAVEGUIDE SWITCH"
+        print("SETTING WAVEGUIDE SWITCH")
         b.set_wg(True)
-        print "WAVEGUIDE SET"
-        print "SETTING AMPLIFIER"
+        print("WAVEGUIDE SET")
+        print("SETTING AMPLIFIER")
         b.set_amp(True)
-        print "AMPLIFIER SET"
+        print("AMPLIFIER SET")
         
-        print "SETTING FREQUENCY..."
+        print("SETTING FREQUENCY...")
         b.set_freq(9.851321e9)
       
-        print "SETTING POWER..."
+        print("SETTING POWER...")
         b.set_power(10.0)
-        raw_input("Enter to exit...")
-        print "EXITING."
+        input("Enter to exit...")
+        print("EXITING.")

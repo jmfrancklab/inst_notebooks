@@ -14,7 +14,7 @@ if use_udp:
     sock.bind((IP, PORT))
     while True:
         data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
-        print "received message:", data
+        print("received message:", data)
 else:
     sock = socket.socket(socket.AF_INET, # Internet
                          socket.SOCK_STREAM) # TCP
@@ -25,4 +25,4 @@ else:
         data = conn.recv(1024) # buffer size is 1024 bytes
         conn.close()
         if len(data) > 0:
-            print data.strip()
+            print(data.strip())

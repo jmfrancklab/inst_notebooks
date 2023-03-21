@@ -9,15 +9,15 @@ from scipy import signal
 
 fl = figlist_var()
 #{{{ Initialize instruments
-print "These are the instruments available:"
+print("These are the instruments available:")
 SerialInstrument(None)
-print "done printing available instruments"
+print("done printing available instruments")
 
 with SerialInstrument('GDS-3254') as s:
-    print s.respond('*idn?')
+    print(s.respond('*idn?'))
     
 with SerialInstrument('AFG-2225') as s:
-    print s.respond('*idn?')
+    print(s.respond('*idn?'))
     #}}}
 #{{{ nutation curve with spin echo
 def se_nutation(freq = 14.4289e6, min_t_90, max_t_90, step, T1 = 200e-3, ph_cyc = True):
@@ -117,8 +117,8 @@ def se_nutation(freq = 14.4289e6, min_t_90, max_t_90, step, T1 = 200e-3, ph_cyc 
                 if ph_cyc:
                     num_ph1_steps = 4
                     num_ph2_steps = 2
-                    for ph2 in xrange(0,4,num_ph2_steps):
-                        for ph1 in xrange(num_ph1_steps):
+                    for ph2 in range(0,4,num_ph2_steps):
+                        for ph1 in range(num_ph1_steps):
                             y_ph = y.copy()
                             y_ph[1:int(points_90)] *= exp(1j*ph1*pi/2)
                             y_ph[int(points_90+points_d1):-1] *= exp(1j*ph2*pi/2)
@@ -128,7 +128,7 @@ def se_nutation(freq = 14.4289e6, min_t_90, max_t_90, step, T1 = 200e-3, ph_cyc 
                             with GDS_scope() as g:
                                 g.acquire_mode('average',2)
                                 time.sleep(4*d_interseq) # 4 seconds to average
-                                print "Acquiring..."
+                                print("Acquiring...")
                                 ch1_wf = g.waveform(ch=1)
                                 ch2_wf = g.waveform(ch=2)
                                 time_acq = time.time()
@@ -144,11 +144,11 @@ def se_nutation(freq = 14.4289e6, min_t_90, max_t_90, step, T1 = 200e-3, ph_cyc 
                                 data.setaxis('t90_values',t_90_range)
                             data['t90_values',t_90]['ph1':ph1]['ph2':ph2]['ch',0] = ch1_wf
                             data['t90_values',t_90]['ph1':ph1]['ph2':ph2]['ch',1] = ch1_wf
-                            print "**********"
-                            print "90 TIME ",t_90,",INDEX NO.",x
-                            print "ph1",ph1
-                            print "ph2",ph2
-                            print "Done acquiring" 
+                            print("**********")
+                            print("90 TIME ",t_90,",INDEX NO.",x)
+                            print("ph1",ph1)
+                            print("ph2",ph2)
+                            print("Done acquiring") 
     data.name("this_capture")
     data.hdf5_write(date+"_"+id_string+".h5")
     return end 
@@ -158,4 +158,4 @@ date = '180720'
 id_string = 'SE_sweep_nutation'
 num_cycles = 10 
 t1,t2 = spin_echo(num_cycles = num_cycles)
-print "Time:",t2-t1,"s"
+print("Time:",t2-t1,"s")
