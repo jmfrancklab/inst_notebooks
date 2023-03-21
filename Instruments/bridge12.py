@@ -189,18 +189,12 @@ class Bridge12 (Serial):
                 return
         raise RuntimeError("After checking status 10 times, I can't get the mw power to turn on/off")
     def power_int_singletry(self):
-        self.write(b'power?\r')
-        return int(self.readline())
+        raise ValueError("this is not relevant for HP source")
     def power_float(self):
         return self.power_int()/10
     def power_int(self):
         "need two consecutive responses that match"
-        h = self.power_int_singletry()
-        i = self.power_int_singletry()
-        while h != i:
-            h = i
-            i = self.power_int_singletry()
-        return h
+        raise ValueError("this is not relevant for HP source")
     def calit_power(self,dBm):
         """This bypasses all safeties of the bridge12 and is to be used ONLY
         for running a calibration curve -- this is because we are not actually
@@ -237,19 +231,14 @@ class Bridge12 (Serial):
                 raise RuntimeError("Before you try to set the power above 10 dBm, you must first set a lower power!!!")
             if setting > 30+self.cur_pwr_int: 
                 raise RuntimeError("Once you are above 10 dBm, you must raise the power in MAX 3 dB increments.  The power is currently %g, and you tried to set it to %g -- this is not allowed!"%(self.cur_pwr_int/10.,setting/10.))
-        self.write(b'power %d\r'%setting)
         if setting > 0: self.rxpowermv_int_singletry() # doing this just for safety interlock
-        for j in range(10):
-            result = self.power_int()
-            if setting > 0: self.rxpowermv_int_singletry() # doing this just for safety interlock
-            if result == setting:
-                self.cur_pwr_int = result
-                return
-            time.sleep(10e-3)
-        raise RuntimeError(("After checking status 10 times, I can't get the"
-            "power to change: I'm trying to set to %d/10 dBm, but the Bridge12"
-            "keeps replying saying that it's set to %d/10"
-            "dBm")%(setting,result))
+        logger.info(' '.join([str(j) for j in [
+            "Setting HP power to",
+            (setting)-35.0,
+            "dBm, which is",
+            setting,
+            "dBm after amplifier"]]))
+        self.h.set_power((setting)-35.0) # in the old code, this had a /10, but I think that was because we were specifying 10*dBm rather than dBm
     def rxpowermv_int_singletry(self):
         """read the integer value for the Rx power (which is 10* the value in mV).  Also has a software interlock so that if the Rx power ever exceeds self.safe_rx_level_int, then the amp shuts down."""
         self.write(b'rxpowermv?\r')
@@ -314,16 +303,9 @@ class Bridge12 (Serial):
             assert Hz >= self.freq_bounds[0], "You are trying to set the frequency outside the frequency bounds, which are: "+str(self.freq_bounds)
             assert Hz <= self.freq_bounds[1], "You are trying to set the frequency outside the frequency bounds, which are: "+str(self.freq_bounds)
         setting = int(Hz/1e3+0.5)
-        self.write(b'freq %d\r'%(setting))
-        if self.freq_int() != setting:
-            for j in range(10):
-                result = self.freq_int()
-                if result == setting:
-                    return
-            raise RuntimeError("After checking status 10 times, I can't get the "
-                           "frequency to change -- result is %d setting is %d"%(result,setting))
+        self.h.set_frequency(setting*1e3)
     def get_freq(self):
-        return self.freq_int()*1e3
+        raise ValueError("Currently no get frequency enabled for HP source")
     def freq_int(self):
         "return the frequency, in kHz (since it's set as an integer kHz)"
         self.write(b'freq?\r')
@@ -490,6 +472,8 @@ class Bridge12 (Serial):
     def __enter__(self):
         self.bridge12_wait()
         self._inside_with_block = True
+        self.h = HP8672A(gpibaddress=19)
+        self.h.__enter__()
         return self
     def soft_shutdown(self):
         """do everything to shut the B12 down, but don't break out of the
@@ -503,12 +487,12 @@ class Bridge12 (Serial):
     def safe_shutdown(self):
         print("Entering safe shut down...")
         try:
-            self.set_power(0)
+            self.h.set_power(-111)
         except Exception as e:
             print("error on standard shutdown during set_power -- running fallback shutdown")
             print("original error:")
             print(e)
-            self.write(b'power %d\r'%0)
+            self.h.set_power(-111)
             self.write(b'rfstatus %d\r'%0)
             self.write(b'wgstatus %d\r'%0)
             self.close()
@@ -519,7 +503,7 @@ class Bridge12 (Serial):
             print("error on standard shutdown during set_rf -- running fallback shutdown")
             print("original error:")
             print(e)
-            self.write(b'power %d\r'%0)
+            self.h.set_power(-111)
             self.write(b'rfstatus %d\r'%0)
             self.write(b'wgstatus %d\r'%0)
             self.close()
@@ -530,7 +514,7 @@ class Bridge12 (Serial):
             print("error on standard shutdown during set_wg -- running fallback shutdown")
             print("original error:")
             print(e)
-            self.write(b'power %d\r'%0)
+            self.h.set_power(-111)
             self.write(b'rfstatus %d\r'%0)
             self.write(b'wgstatus %d\r'%0)
             self.close()
@@ -543,4 +527,5 @@ class Bridge12 (Serial):
             self.safe_shutdown()
         else:
             self.safe_shutdown()
+        self.h.__exit__(exception_type, exception_value, traceback)
         return
