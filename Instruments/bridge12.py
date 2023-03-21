@@ -37,11 +37,11 @@ def convert_to_power(x,which_cal='Rx'):
 class Bridge12 (Serial):
     def __init__(self, prologix_object=None):
         # Grab the port labeled as Arduino (since the Bridge12 microcontroller is an Arduino)
-        if self.prologix_object is not None:
+        if prologix_object is not None:
             self.I_own_prologix = False
         else:
             self.I_own_prologix = True
-        self.prologix = prologix_object
+        self.prologix = prologix_object    
         cport = comports()
         if type(cport) is list and hasattr(cport[0],'device'):
             portlist = [j.device for j in comports() if 'Arduino Due' in j.description]
@@ -77,8 +77,9 @@ class Bridge12 (Serial):
         print("MPS Started")
         look_for('System Ready'.encode('utf-8'))
         print("System Ready")
-        look_for('Synthesizer detected'.encode('utf-8'))
-        print("Synthesizer detected")
+        # we don't do this because we're using HP source
+        #look_for('Synthesizer detected'.encode('utf-8'))
+        #print("Synthesizer detected")
         return
     def help(self):
         self.write(b"help\r") #command for "help"
@@ -477,10 +478,11 @@ class Bridge12 (Serial):
     def __enter__(self):
         self.bridge12_wait()
         self._inside_with_block = True
-        if self.prologix_object is None:
-            self.prologix_object = prologix()
+        #self.h = HP8672A(address=19)
+        if self.prologix is None:
+            self.prologix_object = prologix_connection()
             self.prologix_object.__enter__()
-        self.h = HP8672A(prologix=self.prologix_object, gpibaddress=19)
+        self.h = HP8672A(prologix_instance=self.prologix_object, address=19)    
         self.h.__enter__()
         return self
     def soft_shutdown(self):
@@ -537,5 +539,5 @@ class Bridge12 (Serial):
             self.safe_shutdown()
         self.h.__exit__(exception_type, exception_value, traceback)
         if self.I_own_prologix:
-            self.prologix_object.__exit__(exception_type, exception_value, traceback)
+            self.prologix_object.__exit__(exception_type, exception_value,traceback)
         return

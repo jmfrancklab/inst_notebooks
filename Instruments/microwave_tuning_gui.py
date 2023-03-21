@@ -376,7 +376,7 @@ def main():
         b.set_rf(True)
         b.set_amp(True)
         time.sleep(5)
-        b.set_power(10.0)
+        b.set_power(0.35)
         tunwin = TuningWindow(b)
         tunwin.show()
         app.exec_()

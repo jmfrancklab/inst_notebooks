@@ -7,6 +7,7 @@ class HP8672A (gpib_eth):
         super().__init__(prologix_instance,address)
         self.stepsize = 0.5e6 # this is a lie, but it's used as a default by wobbandmin
     def set_frequency(self,frequency):
+        print("Frequency set to:",frequency)
         self.write('P%08dZ0'%int(round(frequency*1e-3)))# just use the 10 GHz setting, and fill out all the other decimal places with zeros
         return
     def set_power(self,dBm,coarse_setting=None):
