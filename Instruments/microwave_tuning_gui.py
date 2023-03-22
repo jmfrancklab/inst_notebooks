@@ -220,10 +220,13 @@ class TuningWindow(QMainWindow):
             self.axes.set_xlabel(r'$\nu_{B12}$ / GHz')
             self.axes.set_ylabel(r'Rx / mV')
             self.axes.axvline(x=dip_frq_GHz, ls='--', c='r')
+            self.myconfig['uw_dip_center_ghz'] = dip_frq_GHz
+            self.myconfig["carrierFreq_MHz"] = self.myconfig["uw_dip_center_GHz"]*self.myconfig["guessed_MHz_to_GHz"]
             self.B12.set_freq(dip_frq_GHz*1e9) # always do this, so that it should be safe to slightly turn up the power
             self.axes.set_xlim(self.slider_min.value()/1e6,
                     self.slider_max.value()/1e6)
             self.canvas.draw()
+            self.myconfig.write()
         return
     def create_main_frame(self):
         self.main_frame = QWidget()
@@ -398,8 +401,9 @@ def main():
         tunwin = TuningWindow(b,myconfig)
         tunwin.show()
         app.exec_()
-        final_frq = b.get_freq()
-    print("dip found at",final_frq)
-    myconfig["uw_dip_center_GHz"] = final_frq / 1e9
+        #final_frq = b.get_freq()
+    #print("dip found at",final_frq)
+    print("dip found at",dip_frq_GHz)
+    myconfig["uw_dip_center_GHz"] = dip_frq_GHz
     myconfig["carrierFreq_MHz"] = myconfig["uw_dip_center_GHz"]*myconfig["guessed_MHz_to_GHz"]
     myconfig.write()
