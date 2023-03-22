@@ -28,9 +28,9 @@ from matplotlib.figure import Figure
 import numpy as np
 
 class TuningWindow(QMainWindow):
-    def __init__(self, B12, myconfig, parent=None):
+    def __init__(self, B12, config, parent=None):
         self.B12 = B12
-        self.myconfig = myconfig
+        self.myconfig = config
         QMainWindow.__init__(self, parent)
         self.setWindowTitle('B12 tuning!')
         self.setGeometry(20,20,1500,800)
@@ -81,12 +81,9 @@ class TuningWindow(QMainWindow):
         """
         QMessageBox.about(self, "About the demo", msg.strip())
     
-    def set_default_choices(self):
-        self.myconfig['HP_power'] = 2.0
-
     def orig_zoom_limits(self):
         for ini_val, w in [('9810000',self.textbox1),
-                ('9830000',self.textbox2)]:
+                ('9835000',self.textbox2)]:
             w.setText(ini_val)
             w.setMinimumWidth(8)
             w.editingFinished.connect(self.on_textchange)
@@ -145,13 +142,17 @@ class TuningWindow(QMainWindow):
                 self.slider_min.value():
                 self.slider_max.value():
                 15j])
-        self.B12.set_power(self.myconfig['HP_power'])
         temp, tx = self.B12.freq_sweep(self.x[-1]*1e3)
         self.line_data.append(temp)
         if hasattr(self,'interpdata'):
             del self.interpdata
             del self.dip_frq_GHz
         return
+    def dip_lock(self):
+        print('going to perform diplock')
+        print(self.slider_min.value()*1e-6)
+        f = self.B12.lock_on_dip(ini_range = (float(self.slider_min.value()*1e3),float(self.slider_max.value()*1e3)))
+        print("test")
     def on_recapture(self):
         self.generate_data()
         self.regen_plots()
@@ -220,13 +221,11 @@ class TuningWindow(QMainWindow):
             self.axes.set_xlabel(r'$\nu_{B12}$ / GHz')
             self.axes.set_ylabel(r'Rx / mV')
             self.axes.axvline(x=dip_frq_GHz, ls='--', c='r')
-            self.myconfig['uw_dip_center_ghz'] = dip_frq_GHz
-            self.myconfig["carrierFreq_MHz"] = self.myconfig["uw_dip_center_GHz"]*self.myconfig["guessed_MHz_to_GHz"]
+            self.myconfig['uw_dip_center_GHz'] = dip_frq_GHz
             self.B12.set_freq(dip_frq_GHz*1e9) # always do this, so that it should be safe to slightly turn up the power
             self.axes.set_xlim(self.slider_min.value()/1e6,
                     self.slider_max.value()/1e6)
             self.canvas.draw()
-            self.myconfig.write()
         return
     def create_main_frame(self):
         self.main_frame = QWidget()
@@ -265,24 +264,22 @@ class TuningWindow(QMainWindow):
         self.textboxes_vbox = QVBoxLayout()
         self.textbox1 = QLineEdit()
         self.textbox2 = QLineEdit()
+
         self.orig_zoom_limits()
         # }}}
         
         # {{{ buttons
         self.button_vbox = QVBoxLayout()
         self.draw_button = QPushButton("&Re-Capture")
-        self.combo_power = QComboBox()
-        self.combo_power.addItem("low power")
-        self.combo_power.addItem("medium power")
-        self.combo_power.addItem("high power")
-        self.combo_power.activated[str].connect(self.power_changed)
-        self.set_default_choices()
-        self.textboxes_vbox.addWidget(self.combo_power)
         self.draw_button.clicked.connect(self.on_recapture)
         self.button_vbox.addWidget(self.draw_button)
         self.zoom_button = QPushButton("&Zoom Limits")
         self.zoom_button.clicked.connect(self.on_zoomclicked)
         self.button_vbox.addWidget(self.zoom_button)
+        slider_label = QLabel('Bar width (%):')
+        self.dip_lock_button = QPushButton("&dip lock")
+        self.dip_lock_button.clicked.connect(self.dip_lock)
+        self.button_vbox.addWidget(self.dip_lock_button)
         # }}}
 
         
@@ -298,8 +295,6 @@ class TuningWindow(QMainWindow):
         self.boxes_vbox.addWidget(self.fmode_cb)
         # }}}
         
-        slider_label = QLabel('Bar width (%):')
-
         # {{{ box to stack sliders
         self.slider_vbox = QVBoxLayout()
         self.slider_vbox.setContentsMargins(0, 0, 0, 0)
@@ -307,7 +302,7 @@ class TuningWindow(QMainWindow):
         self.slider_min = QSlider(Qt.Horizontal)
         self.slider_max = QSlider(Qt.Horizontal)
         for ini_val,w in [(9810000,self.slider_min),
-                (9830000,self.slider_max)]:#these values MUST match the values on line 84
+                (9835000,self.slider_max)]:
             self.on_textchange()
             w.setValue(ini_val)
             w.setTracking(True)
@@ -318,7 +313,7 @@ class TuningWindow(QMainWindow):
         
         # {{{ Layout with box sizers
         hbox = QHBoxLayout()
-        hbox.addLayout(self.boxes_vbox)
+        
         hbox.addLayout(self.textboxes_vbox) # requires a different command!
         hbox.addLayout(self.button_vbox) # requires a different command!
         hbox.addLayout(self.boxes_vbox) # requires a different command!
@@ -335,13 +330,7 @@ class TuningWindow(QMainWindow):
         
         self.main_frame.setLayout(vbox)
         self.setCentralWidget(self.main_frame)
-    def power_changed(self,arg):
-        my_power = {"low power":2.0,
-                "medium power": 8.0,
-                "high power": 10.0}
-        self.myconfig['HP_power'] = my_power[arg]
-        print("changing power to",self.myconfig['HP_power'])
-
+    
     def create_status_bar(self):
         self.status_text = QLabel("This is a demo")
         self.statusBar().addWidget(self.status_text, 1)
@@ -396,14 +385,12 @@ def main():
         b.set_rf(True)
         b.set_amp(True)
         time.sleep(5)
-        #print(myconfig['HP_power'])
-        #b.set_power(myconfig['HP_power'])
+        b.set_power(10)
         tunwin = TuningWindow(b,myconfig)
         tunwin.show()
         app.exec_()
-        #final_frq = b.get_freq()
-    #print("dip found at",final_frq)
-    print("dip found at",dip_frq_GHz)
-    myconfig["uw_dip_center_GHz"] = dip_frq_GHz
+        final_frq = b.get_freq()
+    print("dip found at",final_frq)
+    myconfig["uw_dip_center_GHz"] = final_frq / 1e9
     myconfig["carrierFreq_MHz"] = myconfig["uw_dip_center_GHz"]*myconfig["guessed_MHz_to_GHz"]
     myconfig.write()
