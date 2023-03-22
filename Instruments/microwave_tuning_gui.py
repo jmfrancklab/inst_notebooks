@@ -149,13 +149,73 @@ class TuningWindow(QMainWindow):
             del self.dip_frq_GHz
         return
     def dip_lock(self):
-        print('going to perform diplock')
-        print(self.slider_min.value()*1e-6)
-        f = self.B12.lock_on_dip(ini_range = (float(self.slider_min.value()*1e3),float(self.slider_max.value()*1e3)))
-        print("test")
+        this_return = self.B12.lock_on_dip(ini_range = (float(self.slider_min.value()*1e3),float(self.slider_max.value()*1e3)))
+        self.powerlist = list(set((float(k.split('dBm')[0 ]) for k in list(self.B12.tuning_curve_data.keys()))))
+        self.powerlist.sort()
+        print(self.B12.tuning_curve_data)
+        self.ax_arrays = [j for j in self.B12.tuning_curve_data.keys() if '_rx' in j]
+        rx_data = []
+        for j in range(len(self.ax_arrays)):
+            rx_data.append(self.B12.tuning_curve_data[self.ax_arrays[j]])
+        print(rx_data)
+        return 
     def on_recapture(self):
         self.generate_data()
         self.regen_plots()
+        return
+    def on_dip_lock(self):
+        self.dip_lock()
+        self.plot_dip_lock()
+        return
+    def plot_dip_lock(self):
+        self.fmode = self.fmode_cb.isChecked()
+        self.axes.clear()
+        self.axes.grid(self.grid_cb.isChecked())
+        if self.fmode:
+            if not self._already_fmode:
+                self._already_fmode = True
+            self.cavas.draw()
+        else:
+            self._already_fmode = False
+            for j in range(len(self.powerlist)):
+                self.axes.plot(self.x[j]/1e6,self.line_data[j],'o-',
+                        alpha=0.5*(j+1)/len(self.line_data))
+            # {{{ for the last trace, interpolate, and find the min
+            if hasattr(self, 'interpdata'):
+                xx, yy = self.interpdata
+                dip_frq_GHz = self.dip_frq_GHz
+            else:
+                x,y = self.x[-1], self.line_data[-1]
+                minidx = np.argmin(y)
+                zoomidx = np.r_[minidx-2:minidx+3]
+                print("1 zoomidx",zoomidx)
+                zoomidx = zoomidx[zoomidx < len(x)]
+                print("2 zoomidx",zoomidx)
+                zoomidx = zoomidx[zoomidx > 0]
+                print("3 zoomidx",zoomidx)
+                if len(zoomidx) > 3:
+                    whichkind = 'cubic'
+                elif len(zoomidx) > 2:
+                    whichkind = 'quadratic'
+                else:
+                    whichkind = 'linear'
+                f = interp1d(x[zoomidx], y[zoomidx], kind=whichkind)
+                xx = np.linspace(x[zoomidx[0]],
+                        x[zoomidx[-1]], 100)
+                yy = f(xx)
+                dip_frq_GHz = xx[np.argmin(yy)]/1e6
+                self.interpdata = xx, yy
+                self.dip_frq_GHz = dip_frq_GHz
+                # }}}
+            self.axes.plot(xx/1e6, yy, 'r', alpha=0.5)
+            self.axes.set_xlabel(r'$\nu_{B12}$ / GHz')
+            self.axes.set_ylabel(r'Rx / mV')
+            self.axes.axvline(x=dip_frq_GHz, ls='--', c='r')
+            self.myconfig['uw_dip_center_GHz'] = dip_frq_GHz
+            self.B12.set_freq(dip_frq_GHz*1e9) # always do this, so that it should be safe to slightly turn up the power
+            self.axes.set_xlim(self.slider_min.value()/1e6,
+                    self.slider_max.value()/1e6)
+            self.canvas.draw()
         return
     def regen_plots(self):
         """ Redraws the figure
@@ -278,7 +338,7 @@ class TuningWindow(QMainWindow):
         self.button_vbox.addWidget(self.zoom_button)
         slider_label = QLabel('Bar width (%):')
         self.dip_lock_button = QPushButton("&dip lock")
-        self.dip_lock_button.clicked.connect(self.dip_lock)
+        self.dip_lock_button.clicked.connect(self.on_dip_lock)
         self.button_vbox.addWidget(self.dip_lock_button)
         # }}}
 

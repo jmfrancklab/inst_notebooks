@@ -348,9 +348,9 @@ class Bridge12 (Serial):
         """    
         rxvalues = zeros(len(freq))
         txvalues = zeros(len(freq))
-        #if not self.frq_sweep_10dBm_has_been_run:
-        #    if self.cur_pwr_int != 100:
-        #        raise ValueError("You must run the frequency sweep for the first time at 10 dBm")
+        if not self.frq_sweep_10dBm_has_been_run:
+            if self.cur_pwr_int != 100:
+                raise ValueError("You must run the frequency sweep for the first time at 10 dBm")
         #FREQUENCY AND RXPOWER SWEEP
         for j in range(dummy_readings):
             print("*** *** ***")
@@ -363,6 +363,7 @@ class Bridge12 (Serial):
             _ = self.rxpowermv_float()
         for j,f in enumerate(freq):
             generate_beep(500, 300)
+            print(f)
             self.set_freq(f)  #is this what I would put here (the 'f')?
             time.sleep(1e-3) # determined this by making sure 11 dB and 10 dB curves line up
             txvalues[j] = self.txpowermv_float()
@@ -382,11 +383,11 @@ class Bridge12 (Serial):
                             rx_try1,rx_try2 = rx_try2,rx_try3
                     raise ValueError("I tried 20 times to grab a consistent power, and could not (most recent %f, %f, %f)"%(rx_try1,rx_try2,rx_try3))
                 rxvalues[j] = grab_consist_power()
-        #if self.cur_pwr_int == 100:
-        #    self.frq_sweep_10dBm_has_been_run = True
+        if self.cur_pwr_int == 100:
+            self.frq_sweep_10dBm_has_been_run = True
             # reset the safe rx level to the top of the tuning curve at 10 dBm
             # (this is the condition where we are reflecting 10 dBm onto the Rx diode)
-            #self.safe_rx_level_int = int(10*rxvalues.max())
+            self.safe_rx_level_int = int(10*rxvalues.max())
         sweep_name = '%gdBm'%(self.cur_pwr_int/10.)
         self.tuning_curve_data[sweep_name+'_tx'] = txvalues
         self.tuning_curve_data[sweep_name+'_rx'] = rxvalues
@@ -467,6 +468,7 @@ class Bridge12 (Serial):
         # }}}
         # {{{ run the frequency sweep with the new limits
         freq = linspace(start_f,stop_f,n_freq_steps)
+        print(freq)
         self.set_power(dBm_increment+self.cur_pwr_int/10.)
         # with the new time constant added for freq_sweep, should we eliminate fast_run?
         rx, tx = self.freq_sweep(freq, fast_run=True)
