@@ -11,6 +11,7 @@ import time
 from .HP8672A import HP8672A
 from .gpib_eth import prologix_connection
 from .log_inst import logger
+amp_for_HP = 37.0 # use this as the amplification when we are using the HP source
 def generate_beep(f,dur):
     # do nothing -- can be used to generate a beep, but platform-dependent
     return
@@ -239,11 +240,11 @@ class Bridge12 (Serial):
         if setting > 0: self.rxpowermv_int_singletry() # doing this just for safety interlock
         logger.info(' '.join([str(j) for j in [
             "Setting HP power to",
-            (setting/10)-35.0,
+            (setting/10)-amp_for_HP,
             "dBm, which is",
             setting,
             "dBm after amplifier"]]))
-        self.h.set_power((setting/10)-35.0) # in the old code, this had a /10, but I think that was because we were specifying 10*dBm rather than dBm
+        self.h.set_power((setting/10)-amp_for_HP) # in the old code, this had a /10, but I think that was because we were specifying 10*dBm rather than dBm
         self.cur_pwr_int = setting
     def rxpowermv_int_singletry(self):
         """read the integer value for the Rx power (which is 10* the value in mV).  Also has a software interlock so that if the Rx power ever exceeds self.safe_rx_level_int, then the amp shuts down."""
@@ -263,7 +264,7 @@ class Bridge12 (Serial):
                     break
         retval = int(retval)
         if retval > self.safe_rx_level_int:
-            raise RuntimeError("Read an unsafe Rx level of %0.1fmV"%(retval/10.))
+            raise RuntimeError("Read an unsafe Rx level of %0.1fmV, bigger than %0.1fmV"%(retval/10., self.safe_rx_level_int/10))
         return retval
     def rxpowermv_float(self):
         "need two consecutive responses that match"
@@ -385,9 +386,6 @@ class Bridge12 (Serial):
                 rxvalues[j] = grab_consist_power()
         if self.cur_pwr_int == 100:
             self.frq_sweep_10dBm_has_been_run = True
-            # reset the safe rx level to the top of the tuning curve at 10 dBm
-            # (this is the condition where we are reflecting 10 dBm onto the Rx diode)
-            self.safe_rx_level_int = int(10*rxvalues.max())
         sweep_name = '%gdBm'%(self.cur_pwr_int/10.)
         self.tuning_curve_data[sweep_name+'_tx'] = txvalues
         self.tuning_curve_data[sweep_name+'_rx'] = rxvalues
@@ -442,8 +440,7 @@ class Bridge12 (Serial):
         # {{{ fit the mV values
         # start by pulling the data from the last tuning curve
         rx, tx, freq = [self.tuning_curve_data[self.last_sweep_name + '_' + j] for j in ['rx','tx','freq']]
-        p = polyfit(freq,rx,2)
-        c,b,a = p 
+        c,b,a = polyfit(freq,rx,2)
         # polynomial of form a+bx+cx^2
         self.fit_data[self.last_sweep_name + '_func'] = lambda x: a+b*x+c*x**2
         self.fit_data[self.last_sweep_name + '_range'] = freq[r_[0,-1]]
@@ -452,7 +449,7 @@ class Bridge12 (Serial):
         logger.info("Predicted center frequency: "+str(center*1e-9))
         # }}}
         # {{{ use the parabola fit to determine the new "safe" bounds for the next sweep
-        safe_rx = 7.0 # dBm, setting based off of values seeing in tests
+        safe_rx = 10.0 # dBm, setting based off of values seeing in tests
         a_new = a - convert_to_mv(safe_rx-dBm_increment) # this allows us to find the x values where a_new+bx+cx^2=safe_rx-dBm_increment
         safe_crossing = (-b+r_[-sqrt(b**2-4*a_new*c),sqrt(b**2-4*a_new*c)])/2/c
         safe_crossing.sort()
@@ -468,16 +465,25 @@ class Bridge12 (Serial):
         # }}}
         # {{{ run the frequency sweep with the new limits
         freq = linspace(start_f,stop_f,n_freq_steps)
-        print(freq)
+        print("zoom -- center frequency",freq)
+        print("zoom -- power",dBm_increment+self.cur_pwr_int/10.)
         self.set_power(dBm_increment+self.cur_pwr_int/10.)
         # with the new time constant added for freq_sweep, should we eliminate fast_run?
         rx, tx = self.freq_sweep(freq, fast_run=True)
         # }}}
+        self.freq_bounds = r_[start_f,stop_f]
         # MISSING -- DO BEFORE MOVING TO HIGHER POWERS!
         # test to see if any of the powers actually exceed the safety limit
         # if they do, then contract freq_bounds to include those powers
+        # {{{ use the polynomial min, unless is way off the lowest actual measurement
         min_f = freq[rx.argmin()]
-        return rx, tx, min_f
+        if abs(center - min_f)>0.2e6:
+            center = min_f
+            print("set center to min_f")
+        # }}}
+        self.set_freq(center)
+        print("at end of zoom, set center to %f"%center)
+        return rx, tx, center
     def __enter__(self):
         self.bridge12_wait()
         self._inside_with_block = True
