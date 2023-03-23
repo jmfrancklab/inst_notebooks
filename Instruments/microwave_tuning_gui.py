@@ -98,7 +98,7 @@ class TuningWindow(QMainWindow):
                 ):
             self.orig_zoom_limits()
             self.on_textchange()
-            del self._prevzoomclicked
+            delattr(self,'_prevzoomclicked')
             return
         self.textbox1.setText(self._curzoomclicked[0])
         self.textbox2.setText(self._curzoomclicked[1])
@@ -136,15 +136,17 @@ class TuningWindow(QMainWindow):
                 self.slider_min.value(),
                 "slider max",
                 self.slider_max.value())
-        self.x.append(np.r_[
-                self.slider_min.value():
-                self.slider_max.value():
-                15j])
+        a = self.slider_min.value()
+        b = self.slider_max.value()
+        if hasattr(self.B12,'freq_bounds'):
+            a = a if a > np.ceil(self.B12.freq_bounds[0]/1e3) else np.ceil(self.B12.freq_bounds[0]/1e3)
+            b = b if b < np.floor(self.B12.freq_bounds[-1]/1e3) else np.floor(self.B12.freq_bounds[-1]/1e3)
+        self.x.append(np.r_[a:b:15j])
         temp, tx = self.B12.freq_sweep(self.x[-1]*1e3)
         self.line_data.append(temp)
         if hasattr(self,'interpdata'):
-            del self.interpdata
-            del self.dip_frq_GHz
+            delattr(self,'interpdata')
+            delattr(self,'dip_frq_GHz')
         return
     def dip_lock(self):
         "run the dip lock routine from bridge12"
@@ -155,7 +157,6 @@ class TuningWindow(QMainWindow):
             self.has_been_locked_on_dip = True
         print('----------------------- about to call zoom')
         _, _, thisfrq = self.B12.zoom(n_freq_steps=8)
-        del self.interpdata # if there is interpolated data, it will use that to set the frequency at the end, but we want it to use the zomo data
         for o,v in [
                 (self.slider_min, int(self.B12.freq_bounds[0]/1e3+0.5)),
                 (self.slider_max, int(self.B12.freq_bounds[1]/1e3+0.5)),
@@ -165,16 +166,33 @@ class TuningWindow(QMainWindow):
         for thiskey in [j for j in self.B12.tuning_curve_data.keys() if '_rx' in j]:
             self.x.append(self.B12.tuning_curve_data[thiskey.replace('_rx','_freq')]/1e3)
             self.line_data.append(self.B12.tuning_curve_data[thiskey])
-        return thisfrq
+        if hasattr(self,'interpdata'):
+            # if there is interpolated data, it will use that to set the frequency at the end, but we want it to use the zomo data
+            delattr(self,'interpdata')
+            delattr(self,'dip_frq_GHz')
+        self.dip_frq_GHz = thisfrq/1e9
+        print("I set dip_frq_GHz to",self.dip_frq_GHz,hasattr(self,'dip_frq_GHz'))
+        print("inside dip lock -- interpdata?",hasattr(self,'interpdata'))
+        return
     def on_recapture(self):
+        if hasattr(self,'dip_frq_GHz'):
+            del self.dip_frq_GHz
+        if hasattr(self,'interpdata'):
+            del self.interpdata
         self.generate_data()
         self.regen_plots()
         return
     def on_dip_lock(self):
-        thisfrq = self.dip_lock()
-        self.regen_plots(freq_line=thisfrq/1e9)
+        print("start diplock")
+        self.dip_lock()
+        print("end diplock")
+        print("interpdata?",hasattr(self,'interpdata'))
+        print("start regen_plots")
+        print("interpdata?",hasattr(self,'interpdata'))
+        self.regen_plots()
+        print("end regen_plots")
         return
-    def regen_plots(self, freq_line=None):
+    def regen_plots(self):
         """ Redraws the figure
         """
         if len(self.line_data) > 6:
@@ -212,9 +230,12 @@ class TuningWindow(QMainWindow):
                         alpha=0.5*(j+1)/len(self.line_data))
             # {{{ for the last trace, interpolate, and find the min
             if hasattr(self, 'interpdata'):
+                print('yes, I have interpdata')
                 xx, yy = self.interpdata
                 dip_frq_GHz = self.dip_frq_GHz
-            else:
+                self.axes.plot(xx/1e6, yy, 'r', alpha=0.5)
+            elif not hasattr(self, 'dip_frq_GHz'):
+                print('no interpdata, and no center freq')
                 x,y = self.x[-1], self.line_data[-1]
                 minidx = np.argmin(y)
                 zoomidx = np.r_[minidx-2:minidx+3]
@@ -237,17 +258,17 @@ class TuningWindow(QMainWindow):
                 self.interpdata = xx, yy
                 self.dip_frq_GHz = dip_frq_GHz
                 # }}}
-            self.axes.plot(xx/1e6, yy, 'r', alpha=0.5)
+                self.axes.plot(xx/1e6, yy, 'r', alpha=0.5)
+            else:
+                print("no interpdata, but a center frequency")
             self.axes.set_xlabel(r'$\nu_{B12}$ / GHz')
             self.axes.set_ylabel(r'Rx / mV')
-            self.axes.axvline(x=dip_frq_GHz, ls='--', c='r')
-            self.myconfig['uw_dip_center_GHz'] = dip_frq_GHz
-            self.B12.set_freq(dip_frq_GHz*1e9) # always do this, so that it should be safe to slightly turn up the power
+            self.axes.axvline(x=self.dip_frq_GHz, ls='--', c='r')
+            self.myconfig['uw_dip_center_GHz'] = self.dip_frq_GHz
+            self.B12.set_freq(self.dip_frq_GHz*1e9) # always do this, so that it should be safe to slightly turn up the power
             self.axes.set_xlim(self.slider_min.value()/1e6,
                     self.slider_max.value()/1e6)
             self.canvas.draw()
-        if freq_line is not None:
-            self.axes.axvline(x=freq_line, ls='--', c='r')
         return
     def create_main_frame(self):
         self.main_frame = QWidget()
@@ -299,7 +320,7 @@ class TuningWindow(QMainWindow):
         self.zoom_button.clicked.connect(self.on_zoomclicked)
         self.button_vbox.addWidget(self.zoom_button)
         slider_label = QLabel('Bar width (%):')
-        self.dip_lock_button = QPushButton("&dip lock")
+        self.dip_lock_button = QPushButton("&dip lock\nincrease power")
         self.dip_lock_button.clicked.connect(self.on_dip_lock)
         self.button_vbox.addWidget(self.dip_lock_button)
         # }}}
