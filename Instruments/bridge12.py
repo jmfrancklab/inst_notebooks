@@ -354,10 +354,6 @@ class Bridge12 (Serial):
                 raise ValueError("You must run the frequency sweep for the first time at 10 dBm")
         #FREQUENCY AND RXPOWER SWEEP
         for j in range(dummy_readings):
-            print("*** *** ***")
-            print(freq)
-            print(freq[0])
-            print("*** *** ***")
             self.set_freq(freq[0])  #is this what I would put here (the 'f')?
             time.sleep(10e-3) # allow synthesizer to settle
             _ = self.txpowermv_float()
