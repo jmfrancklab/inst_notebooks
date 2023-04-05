@@ -195,12 +195,19 @@ class Bridge12 (Serial):
                 return
         raise RuntimeError("After checking status 10 times, I can't get the mw power to turn on/off")
     def power_int_singletry(self):
-        raise ValueError("this is not relevant for HP source")
+        return self.h.get_power()
+        #raise ValueError("this is not relevant for HP source")
     def power_float(self):
         return self.power_int()/10
     def power_int(self):
         "need two consecutive responses that match"
-        raise ValueError("this is not relevant for HP source")
+        h = self.power_int_singletry()
+        i = self.power_int_singletry()
+        while h != i:
+            h = i
+            i = self.power_int_singletry()
+        return h    
+        #raise ValueError("this is not relevant for HP source")
     def calit_power(self,dBm):
         """This bypasses all safeties of the bridge12 and is to be used ONLY
         for running a calibration curve -- this is because we are not actually
@@ -360,7 +367,6 @@ class Bridge12 (Serial):
             _ = self.rxpowermv_float()
         for j,f in enumerate(freq):
             generate_beep(500, 300)
-            print(f)
             self.set_freq(f)  #is this what I would put here (the 'f')?
             time.sleep(1e-3) # determined this by making sure 11 dB and 10 dB curves line up
             txvalues[j] = self.txpowermv_float()
