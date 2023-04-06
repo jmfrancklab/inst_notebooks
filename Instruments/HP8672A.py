@@ -38,7 +38,4 @@ class HP8672A (gpib_eth):
         assert vernier[vernier_idx] + coarse_values[coarse_idx]
         cmd = 'K' + ascii_set[coarse_idx] + ascii_set[vernier_idx]
         self.write(cmd)
-        self.power = dBm + 37
         return
-    def get_power(self):
-        return self.power

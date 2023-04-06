@@ -14,4 +14,3 @@ with prologix_connection() as p:
         h.set_frequency(9.820701e9)#try setting MHz first
         h.set_power(output_power-37.0)
 
-
