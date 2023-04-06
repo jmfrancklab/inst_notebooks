@@ -195,19 +195,13 @@ class Bridge12 (Serial):
                 return
         raise RuntimeError("After checking status 10 times, I can't get the mw power to turn on/off")
     def power_int_singletry(self):
-        return self.h.get_power()
-        #raise ValueError("this is not relevant for HP source")
+        raise ValueError("this is not relevant for HP source")
     def power_float(self):
-        return self.power_int()
+        if not hasattr(self,'cur_pwr_int'):
+            raise ValueError("you have not yet set a power, and I'm relying on the previous HP setting")
+        return self.cur_pwr_int/10
     def power_int(self):
-        "need two consecutive responses that match"
-        h = self.power_int_singletry()
-        i = self.power_int_singletry()
-        while h != i:
-            h = i
-            i = self.power_int_singletry()
-        return h    
-        #raise ValueError("this is not relevant for HP source")
+        raise ValueError("this is not relevant for HP source")
     def calit_power(self,dBm):
         """This bypasses all safeties of the bridge12 and is to be used ONLY
         for running a calibration curve -- this is because we are not actually
@@ -231,19 +225,21 @@ class Bridge12 (Serial):
         dBm: float
             power values -- give a dBm (not 10*dBm) as a floating point number
         """
-        #if not self._inside_with_block: raise ValueError("you MUST use a with block so the error handling works well")
+        if not self._inside_with_block: raise ValueError("you MUST use a with block so the error handling works well")
         setting = int(10*round(dBm))# for HP, find closest 1.0 dBm, and round
-        #if setting > 400:
-        #    raise ValueError("You are not allowed to use this function to set a power of greater than 40 dBm for safety reasons")
-        #elif setting < 0:
-        #    raise ValueError("Negative dBm -- not supported")
-        #elif setting > 100:
-        #    if not self.frq_sweep_10dBm_has_been_run:
-        #        raise RuntimeError("Before you try to set the power above 10 dBm, you must first run a tuning curve at 10 dBm!!!")
-        #    if not hasattr(self,'cur_pwr_int'):
-        #        raise RuntimeError("Before you try to set the power above 10 dBm, you must first set a lower power!!!")
-        #    if setting > 30+self.cur_pwr_int: 
-        #        raise RuntimeError("Once you are above 10 dBm, you must raise the power in MAX 3 dB increments.  The power is currently %g, and you tried to set it to %g -- this is not allowed!"%(self.cur_pwr_int/10.,setting/10.))
+        # {{{ these are safety interlocks -- do NOT comment these out
+        if setting > 400:
+            raise ValueError("You are not allowed to use this function to set a power of greater than 40 dBm for safety reasons")
+        elif setting < 0:
+            raise ValueError("Negative dBm -- not supported")
+        elif setting > 100:
+            if not self.frq_sweep_10dBm_has_been_run:
+                raise RuntimeError("Before you try to set the power above 10 dBm, you must first run a tuning curve at 10 dBm!!!")
+            if not hasattr(self,'cur_pwr_int'):
+                raise RuntimeError("Before you try to set the power above 10 dBm, you must first set a lower power!!!")
+            if setting > 30+self.cur_pwr_int: 
+                raise RuntimeError("Once you are above 10 dBm, you must raise the power in MAX 3 dB increments.  The power is currently %g, and you tried to set it to %g -- this is not allowed!"%(self.cur_pwr_int/10.,setting/10.))
+        # }}}
         if setting > 0: self.rxpowermv_int_singletry() # doing this just for safety interlock
         logger.info(' '.join([str(j) for j in [
             "Setting HP power to",
