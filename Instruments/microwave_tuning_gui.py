@@ -11,7 +11,7 @@ JF updated to plot a sine wave
 """
 import Instruments
 import Instruments.power_control_server
-from Instruments import Bridge12
+from Instruments import Bridge12,prologix_connection
 from scipy.interpolate import interp1d
 import time
 import sys, os, random
@@ -424,7 +424,7 @@ class TuningWindow(QMainWindow):
 def main():
     myconfig = SpinCore_pp.configuration("active.ini")
     app = QApplication(sys.argv)
-    with Bridge12() as b:
+    with Bridge12(prologix_object = prologix_connection()) as b:
         b.set_wg(True)
         b.set_rf(True)
         b.set_amp(True)
