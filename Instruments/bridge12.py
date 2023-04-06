@@ -489,7 +489,7 @@ class Bridge12 (Serial):
         if self.prologix is None:
             self.prologix_object = prologix_connection()
             self.prologix_object.__enter__()
-        self.h = HP8672A(prologix_instance=self.prologix_object, address=19)    
+        self.h = HP8672A(prologix_instance=self.prologix, address=19)    
         self.h.__enter__()
         return self
     def soft_shutdown(self):
