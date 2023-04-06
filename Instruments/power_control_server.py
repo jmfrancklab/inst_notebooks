@@ -9,7 +9,7 @@ PORT = 6002
 def main():
     with prologix_connection() as p:
         with gigatronics(prologix_instance=p, address=7) as g:
-            with Bridge12(prologix_object=p) as b:
+            with Bridge12(prologix_instance=p) as b:
                 sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
                 sock.bind((IP,PORT))
                 this_logobj = logobj()
