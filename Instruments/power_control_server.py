@@ -61,7 +61,6 @@ def main():
                                             break
                                     nsecs += time.time()
                                     print("took",j,"tries and",nsecs,"seconds")
-                            print("FINALLY - SETTING TO DESIRED POWER")
                             nsecs = -1*time.time()
                             b.set_power(dBm_setting)
                             for j in range(30):

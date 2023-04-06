@@ -198,7 +198,7 @@ class Bridge12 (Serial):
         return self.h.get_power()
         #raise ValueError("this is not relevant for HP source")
     def power_float(self):
-        return self.power_int()/10
+        return self.power_int()
     def power_int(self):
         "need two consecutive responses that match"
         h = self.power_int_singletry()
@@ -499,7 +499,7 @@ class Bridge12 (Serial):
     def soft_shutdown(self):
         """do everything to shut the B12 down, but don't break out of the
         with block or close the USB connection"""
-        self.set_power(0)
+        self.h.set_power(-111)
         self.set_rf(False)
         self.set_wg(False)
         self.frq_sweep_10dBm_has_been_run = False

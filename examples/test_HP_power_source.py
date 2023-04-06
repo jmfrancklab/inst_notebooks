@@ -12,5 +12,6 @@ output_power = desired_atten_reading + 20
 with prologix_connection() as p:
     with HP8672A(prologix_instance=p,address=19) as h:
         h.set_frequency(9.820701e9)#try setting MHz first
-        h.set_power(output_power-35.0)
+        h.set_power(output_power-37.0)
+
 

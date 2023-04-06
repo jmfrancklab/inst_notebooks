@@ -265,6 +265,7 @@ class TuningWindow(QMainWindow):
             self.axes.set_ylabel(r'Rx / mV')
             self.axes.axvline(x=self.dip_frq_GHz, ls='--', c='r')
             self.myconfig['uw_dip_center_GHz'] = self.dip_frq_GHz
+            self.myconfig.write()
             self.B12.set_freq(self.dip_frq_GHz*1e9) # always do this, so that it should be safe to slightly turn up the power
             self.axes.set_xlim(self.slider_min.value()/1e6,
                     self.slider_max.value()/1e6)
