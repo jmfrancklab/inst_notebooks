@@ -11,6 +11,7 @@ import time
 from .HP8672A import HP8672A
 from .gpib_eth import prologix_connection
 from .log_inst import logger
+amp_for_HP = 37.0 # use this as the amplification when we are using the HP source
 def generate_beep(f,dur):
     # do nothing -- can be used to generate a beep, but platform-dependent
     return
@@ -35,8 +36,13 @@ def convert_to_power(x,which_cal='Rx'):
     return log10(y)*10.0+2.2
 
 class Bridge12 (Serial):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, prologix_object=None):
         # Grab the port labeled as Arduino (since the Bridge12 microcontroller is an Arduino)
+        if prologix_object is not None:
+            self.I_own_prologix = False
+        else:
+            self.I_own_prologix = True
+        self.prologix = prologix_object    
         cport = comports()
         if type(cport) is list and hasattr(cport[0],'device'):
             portlist = [j.device for j in comports() if 'Arduino Due' in j.description]
@@ -63,14 +69,17 @@ class Bridge12 (Serial):
             for j in range(1000):
                 a = self.read_until(this_str+'\r\n'.encode('utf-8'))
                 time.sleep(0.1)
-                #print "a is",repr(a)
                 logger.debug("look for "+(this_str).decode('utf-8')+" try"+str(j+1))
                 if this_str in a:
                     logger.debug("found: "+this_str.decode('utf-8'))
                     break
         look_for('MPS Started'.encode('utf-8'))
+        print("MPS Started")
         look_for('System Ready'.encode('utf-8'))
-        look_for('Synthesizer detected'.encode('utf-8'))
+        print("System Ready")
+        # we don't do this because we're using HP source
+        #look_for('Synthesizer detected'.encode('utf-8'))
+        #print("Synthesizer detected")
         return
     def help(self):
         self.write(b"help\r") #command for "help"
@@ -186,18 +195,13 @@ class Bridge12 (Serial):
                 return
         raise RuntimeError("After checking status 10 times, I can't get the mw power to turn on/off")
     def power_int_singletry(self):
-        self.write(b'power?\r')
-        return int(self.readline())
+        raise ValueError("this is not relevant for HP source")
     def power_float(self):
-        return self.power_int()/10
+        if not hasattr(self,'cur_pwr_int'):
+            raise ValueError("you have not yet set a power, and I'm relying on the previous HP setting")
+        return self.cur_pwr_int/10
     def power_int(self):
-        "need two consecutive responses that match"
-        h = self.power_int_singletry()
-        i = self.power_int_singletry()
-        while h != i:
-            h = i
-            i = self.power_int_singletry()
-        return h
+        raise ValueError("this is not relevant for HP source")
     def calit_power(self,dBm):
         """This bypasses all safeties of the bridge12 and is to be used ONLY
         for running a calibration curve -- this is because we are not actually
@@ -222,7 +226,8 @@ class Bridge12 (Serial):
             power values -- give a dBm (not 10*dBm) as a floating point number
         """
         if not self._inside_with_block: raise ValueError("you MUST use a with block so the error handling works well")
-        setting = int(10*round(dBm*2)/2.+0.5)# find closest 0.5 dBm, and round
+        setting = int(10*round(dBm))# for HP, find closest 1.0 dBm, and round
+        # {{{ these are safety interlocks -- do NOT comment these out
         if setting > 400:
             raise ValueError("You are not allowed to use this function to set a power of greater than 40 dBm for safety reasons")
         elif setting < 0:
@@ -234,19 +239,16 @@ class Bridge12 (Serial):
                 raise RuntimeError("Before you try to set the power above 10 dBm, you must first set a lower power!!!")
             if setting > 30+self.cur_pwr_int: 
                 raise RuntimeError("Once you are above 10 dBm, you must raise the power in MAX 3 dB increments.  The power is currently %g, and you tried to set it to %g -- this is not allowed!"%(self.cur_pwr_int/10.,setting/10.))
-        self.write(b'power %d\r'%setting)
+        # }}}
         if setting > 0: self.rxpowermv_int_singletry() # doing this just for safety interlock
-        for j in range(10):
-            result = self.power_int()
-            if setting > 0: self.rxpowermv_int_singletry() # doing this just for safety interlock
-            if result == setting:
-                self.cur_pwr_int = result
-                return
-            time.sleep(10e-3)
-        raise RuntimeError(("After checking status 10 times, I can't get the"
-            "power to change: I'm trying to set to %d/10 dBm, but the Bridge12"
-            "keeps replying saying that it's set to %d/10"
-            "dBm")%(setting,result))
+        logger.info(' '.join([str(j) for j in [
+            "Setting HP power to",
+            (setting/10)-amp_for_HP,
+            "dBm, which is",
+            setting,
+            "dBm after amplifier"]]))
+        self.h.set_power((setting/10)-amp_for_HP) # in the old code, this had a /10, but I think that was because we were specifying 10*dBm rather than dBm
+        self.cur_pwr_int = setting
     def rxpowermv_int_singletry(self):
         """read the integer value for the Rx power (which is 10* the value in mV).  Also has a software interlock so that if the Rx power ever exceeds self.safe_rx_level_int, then the amp shuts down."""
         self.write(b'rxpowermv?\r')
@@ -265,7 +267,7 @@ class Bridge12 (Serial):
                     break
         retval = int(retval)
         if retval > self.safe_rx_level_int:
-            raise RuntimeError("Read an unsafe Rx level of %0.1fmV"%(retval/10.))
+            raise RuntimeError("Read an unsafe Rx level of %0.1fmV, bigger than %0.1fmV"%(retval/10., self.safe_rx_level_int/10))
         return retval
     def rxpowermv_float(self):
         "need two consecutive responses that match"
@@ -311,14 +313,10 @@ class Bridge12 (Serial):
             assert Hz >= self.freq_bounds[0], "You are trying to set the frequency outside the frequency bounds, which are: "+str(self.freq_bounds)
             assert Hz <= self.freq_bounds[1], "You are trying to set the frequency outside the frequency bounds, which are: "+str(self.freq_bounds)
         setting = int(Hz/1e3+0.5)
-        self.write(b'freq %d\r'%(setting))
-        if self.freq_int() != setting:
-            for j in range(10):
-                result = self.freq_int()
-                if result == setting:
-                    return
-            raise RuntimeError("After checking status 10 times, I can't get the "
-                           "frequency to change -- result is %d setting is %d"%(result,setting))
+        self.h.set_frequency(setting*1e3)
+        time.sleep(0.1)
+    def get_freq(self):
+        raise ValueError("Currently no get frequency enabled for HP source")
     def freq_int(self):
         "return the frequency, in kHz (since it's set as an integer kHz)"
         self.write(b'freq?\r')
@@ -359,10 +357,6 @@ class Bridge12 (Serial):
                 raise ValueError("You must run the frequency sweep for the first time at 10 dBm")
         #FREQUENCY AND RXPOWER SWEEP
         for j in range(dummy_readings):
-            print("*** *** ***")
-            print(freq)
-            print(freq[0])
-            print("*** *** ***")
             self.set_freq(freq[0])  #is this what I would put here (the 'f')?
             time.sleep(10e-3) # allow synthesizer to settle
             _ = self.txpowermv_float()
@@ -390,9 +384,6 @@ class Bridge12 (Serial):
                 rxvalues[j] = grab_consist_power()
         if self.cur_pwr_int == 100:
             self.frq_sweep_10dBm_has_been_run = True
-            # reset the safe rx level to the top of the tuning curve at 10 dBm
-            # (this is the condition where we are reflecting 10 dBm onto the Rx diode)
-            #self.safe_rx_level_int = int(10*rxvalues.max())
         sweep_name = '%gdBm'%(self.cur_pwr_int/10.)
         self.tuning_curve_data[sweep_name+'_tx'] = txvalues
         self.tuning_curve_data[sweep_name+'_rx'] = rxvalues
@@ -447,8 +438,7 @@ class Bridge12 (Serial):
         # {{{ fit the mV values
         # start by pulling the data from the last tuning curve
         rx, tx, freq = [self.tuning_curve_data[self.last_sweep_name + '_' + j] for j in ['rx','tx','freq']]
-        p = polyfit(freq,rx,2)
-        c,b,a = p 
+        c,b,a = polyfit(freq,rx,2)
         # polynomial of form a+bx+cx^2
         self.fit_data[self.last_sweep_name + '_func'] = lambda x: a+b*x+c*x**2
         self.fit_data[self.last_sweep_name + '_range'] = freq[r_[0,-1]]
@@ -457,7 +447,7 @@ class Bridge12 (Serial):
         logger.info("Predicted center frequency: "+str(center*1e-9))
         # }}}
         # {{{ use the parabola fit to determine the new "safe" bounds for the next sweep
-        safe_rx = 7.0 # dBm, setting based off of values seeing in tests
+        safe_rx = 10.0 # dBm, setting based off of values seeing in tests
         a_new = a - convert_to_mv(safe_rx-dBm_increment) # this allows us to find the x values where a_new+bx+cx^2=safe_rx-dBm_increment
         safe_crossing = (-b+r_[-sqrt(b**2-4*a_new*c),sqrt(b**2-4*a_new*c)])/2/c
         safe_crossing.sort()
@@ -473,23 +463,39 @@ class Bridge12 (Serial):
         # }}}
         # {{{ run the frequency sweep with the new limits
         freq = linspace(start_f,stop_f,n_freq_steps)
+        print("zoom -- center frequency",freq)
+        print("zoom -- power",dBm_increment+self.cur_pwr_int/10.)
         self.set_power(dBm_increment+self.cur_pwr_int/10.)
         # with the new time constant added for freq_sweep, should we eliminate fast_run?
         rx, tx = self.freq_sweep(freq, fast_run=True)
         # }}}
+        self.freq_bounds = r_[start_f,stop_f]
         # MISSING -- DO BEFORE MOVING TO HIGHER POWERS!
         # test to see if any of the powers actually exceed the safety limit
         # if they do, then contract freq_bounds to include those powers
+        # {{{ use the polynomial min, unless is way off the lowest actual measurement
         min_f = freq[rx.argmin()]
-        return rx, tx, min_f
+        if abs(center - min_f)>0.2e6:
+            center = min_f
+            print("set center to min_f")
+        # }}}
+        self.set_freq(center)
+        print("at end of zoom, set center to %f"%center)
+        return rx, tx, center
     def __enter__(self):
         self.bridge12_wait()
         self._inside_with_block = True
+        #self.h = HP8672A(address=19)
+        if self.prologix is None:
+            self.prologix_object = prologix_connection()
+            self.prologix_object.__enter__()
+        self.h = HP8672A(prologix_instance=self.prologix, address=19)    
+        self.h.__enter__()
         return self
     def soft_shutdown(self):
         """do everything to shut the B12 down, but don't break out of the
         with block or close the USB connection"""
-        self.set_power(0)
+        self.h.set_power(-111)
         self.set_rf(False)
         self.set_amp(False)
         self.set_wg(False)
@@ -499,12 +505,12 @@ class Bridge12 (Serial):
     def safe_shutdown(self):
         print("Entering safe shut down...")
         try:
-            self.set_power(0)
+            self.h.set_power(-111)
         except Exception as e:
             print("error on standard shutdown during set_power -- running fallback shutdown")
             print("original error:")
             print(e)
-            self.write(b'power %d\r'%0)
+            self.h.set_power(-111)
             self.write(b'rfstatus %d\r'%0)
             self.write(b'wgstatus %d\r'%0)
             self.close()
@@ -516,7 +522,7 @@ class Bridge12 (Serial):
             print("error on standard shutdown during set_rf -- running fallback shutdown")
             print("original error:")
             print(e)
-            self.write(b'power %d\r'%0)
+            self.h.set_power(-111)
             self.write(b'rfstatus %d\r'%0)
             self.write(b'wgstatus %d\r'%0)
             self.close()
@@ -527,7 +533,7 @@ class Bridge12 (Serial):
             print("error on standard shutdown during set_wg -- running fallback shutdown")
             print("original error:")
             print(e)
-            self.write(b'power %d\r'%0)
+            self.h.set_power(-111)
             self.write(b'rfstatus %d\r'%0)
             self.write(b'wgstatus %d\r'%0)
             self.close()
@@ -535,5 +541,12 @@ class Bridge12 (Serial):
         self.close()
         return
     def __exit__(self, exception_type, exception_value, traceback):
-        self.safe_shutdown()
+        if exception_type:
+            print("exception type",exception_type)
+            self.safe_shutdown()
+        else:
+            self.safe_shutdown()
+        self.h.__exit__(exception_type, exception_value, traceback)
+        if self.I_own_prologix:
+            self.prologix_object.__exit__(exception_type, exception_value,traceback)
         return

@@ -22,7 +22,7 @@ class HP8672A (gpib_eth):
         """
         assert dBm <= 3 and dBm >= -120, "dBm value must be between -120 and 3 dBm"
         # {{{ all of the following is based off fig 15-6 from the programming manual
-        ascii_set = list('013456789:;<=')
+        ascii_set = list('0123456789:;<=')
         coarse_values = r_[0:-120:-10]
         vernier = r_[3:-11:-1]
         # }}}
@@ -35,6 +35,7 @@ class HP8672A (gpib_eth):
             raise ValueError("I can't generate a power of %f using a coarse setting of %f"%(dBm,coarse_setting))
         vernier_idx = argmin(abs(residual - vernier))
         logger.debug("I'm going to set the coarse value to %f and the vernier to %f"%(coarse_values[coarse_idx],vernier[vernier_idx]))
+        assert vernier[vernier_idx] + coarse_values[coarse_idx]
         cmd = 'K' + ascii_set[coarse_idx] + ascii_set[vernier_idx]
         self.write(cmd)
         return
