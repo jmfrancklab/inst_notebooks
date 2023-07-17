@@ -57,20 +57,23 @@ class Bridge12 (Serial):
         self.tuning_curve_data = {}
         self._inside_with_block = False
         self.fit_data = {}
+        print("init done")
     def bridge12_wait(self):
         #time.sleep(5)
         def look_for(this_str):
             for j in range(1000):
                 a = self.read_until(this_str+'\r\n'.encode('utf-8'))
                 time.sleep(0.1)
-                #print "a is",repr(a)
                 logger.debug("look for "+(this_str).decode('utf-8')+" try"+str(j+1))
                 if this_str in a:
                     logger.debug("found: "+this_str.decode('utf-8'))
                     break
         look_for('MPS Started'.encode('utf-8'))
+        print("MPS Started")
         look_for('System Ready'.encode('utf-8'))
+        print("System Ready")
         look_for('Synthesizer detected'.encode('utf-8'))
+        print("Synthesizer detected")
         return
     def help(self):
         self.write(b"help\r") #command for "help"
@@ -319,6 +322,8 @@ class Bridge12 (Serial):
                     return
             raise RuntimeError("After checking status 10 times, I can't get the "
                            "frequency to change -- result is %d setting is %d"%(result,setting))
+    def get_freq(self):
+        return self.freq_int()*1e3
     def freq_int(self):
         "return the frequency, in kHz (since it's set as an integer kHz)"
         self.write(b'freq?\r')
@@ -535,5 +540,9 @@ class Bridge12 (Serial):
         self.close()
         return
     def __exit__(self, exception_type, exception_value, traceback):
-        self.safe_shutdown()
+        if exception_type:
+            print("exception type",exception_type)
+            self.safe_shutdown()
+        else:
+            self.safe_shutdown()
         return
