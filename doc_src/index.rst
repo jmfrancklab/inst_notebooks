@@ -12,9 +12,5 @@ Welcome to inst_notebooks's documentation!
    intro 
 
 This is the documentation for the programs we use to interface with our instrumentation. Most useful has been our implementation of GUIs and QT for the purposes of user friendly programs to get on NMR resonance and minimize the iris reflection when microwaves are output to the cavity.  
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+To understand the structure of the experiments and code,
+start on the :doc:`intro <./intro>` page, or browse the documentation to the left.

@@ -74,7 +74,7 @@ master_doc = 'index'
 # General information about the project.
 project = 'inst_notebooks'
 copyright = '2019, John M. Franck group'
-authors = 'Alexandria Guinness, Alec A. Beaton, Samantha M. Betts, John M. Franck'
+author = 'Alexandria Guinness, Alec A. Beaton, Samantha M. Betts, John M. Franck'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
