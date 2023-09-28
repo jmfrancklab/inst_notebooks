@@ -36,13 +36,13 @@ def convert_to_power(x,which_cal='Rx'):
     return log10(y)*10.0+2.2
 
 class Bridge12 (Serial):
-    def __init__(self, prologix_object=None):
+    def __init__(self, prologix_instance=None):
         # Grab the port labeled as Arduino (since the Bridge12 microcontroller is an Arduino)
-        if prologix_object is not None:
+        if prologix_instance is not None:
             self.I_own_prologix = False
         else:
             self.I_own_prologix = True
-        self.prologix = prologix_object    
+        self.prologix_instance = prologix_instance    
         cport = comports()
         if type(cport) is list and hasattr(cport[0],'device'):
             portlist = [j.device for j in comports() if 'Arduino Due' in j.description]
@@ -486,10 +486,10 @@ class Bridge12 (Serial):
         self.bridge12_wait()
         self._inside_with_block = True
         #self.h = HP8672A(address=19)
-        if self.prologix is None:
-            self.prologix_object = prologix_connection()
-            self.prologix_object.__enter__()
-        self.h = HP8672A(prologix_instance=self.prologix, address=19)    
+        if self.prologix_instance is None:
+            self.prologix_instance = prologix_connection()
+            self.prologix_instance.__enter__()
+        self.h = HP8672A(prologix_instance=self.prologix_instance, address=19)    
         self.h.__enter__()
         return self
     def soft_shutdown(self):
@@ -546,5 +546,5 @@ class Bridge12 (Serial):
             self.safe_shutdown()
         self.h.__exit__(exception_type, exception_value, traceback)
         if self.I_own_prologix:
-            self.prologix_object.__exit__(exception_type, exception_value,traceback)
+            self.prologix_instance.__exit__(exception_type, exception_value,traceback)
         return
