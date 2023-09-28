@@ -401,6 +401,7 @@ class Bridge12 (Serial):
             self.set_amp(True)
             self.set_power(10.0)
             freq = r_[ini_range[0]:ini_range[1]:ini_step]
+            logger.info("ini range: "+str(ini_range)+"ini step: "+str(ini_step))
             rx, tx = self.freq_sweep(freq)
         assert self.frq_sweep_10dBm_has_been_run, "I should have run the 10 dBm curve -- not sure what happened"
         rx,freq = [self.tuning_curve_data['%gdBm_%s'%(10.0,j)] for j in ['rx','freq']]
@@ -408,6 +409,8 @@ class Bridge12 (Serial):
         rx_midpoint = (max(rx_dBm) + min(rx_dBm))/2.0
         over_bool = rx_dBm > rx_midpoint # Contains False everywhere rx_dBm is under
         if not over_bool[0]:
+            print("rx_dBm[0]",rx_dBm[0],"rx_midpoint is",rx_midpoint)
+            print("here is the whole curve:",rx_dBm,"and over_bool",over_bool)
             raise ValueError("Tuning curve doesn't start over the midpoint, which doesn't make sense -- check %gdBm_%s"%(10.0,'rx'))
         over_diff = r_[0,diff(int32(over_bool))]# should indicate whether this position has lifted over (+1) or dropped under (-1) the midpoint
         over_idx = r_[0:len(over_diff)]
