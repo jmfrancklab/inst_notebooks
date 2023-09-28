@@ -424,7 +424,7 @@ class TuningWindow(QMainWindow):
 def main():
     myconfig = SpinCore_pp.configuration("active.ini")
     app = QApplication(sys.argv)
-    with Bridge12(prologix_object = prologix_connection()) as b:
+    with Bridge12(prologix_instance = prologix_connection()) as b:
         b.set_wg(True)
         b.set_rf(True)
         b.set_amp(True)
