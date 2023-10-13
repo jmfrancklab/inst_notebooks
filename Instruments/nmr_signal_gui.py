@@ -11,21 +11,32 @@ JF updated to plot a sine wave
 """
 from numpy import r_
 import numpy as np
-from .XEPR_eth import xepr as xepr_from_module
 from scipy.interpolate import interp1d
 import time
 import sys, os, random
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
-from SpinCore_pp.ppg import run_spin_echo
 import SpinCore_pp # just for config file, but whatever...
-from pyspecdata import gammabar_H
+from pyspecdata import gammabar_H, nddata
 import pyspecdata as psp
 import matplotlib
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
+
+class mock_xepr(object):
+    def set_field(self,x):
+        print("setting field to",x)
+        return x
+    def set_coarse_field(self,x):
+        print("coarse_setting field to",x)
+        return x
+    def __enter__(self):
+        return self
+    def __exit__(self,*args):
+        pass
+
 
 class NMRWindow(QMainWindow):
     def __init__(self, xepr, myconfig, parent=None):
@@ -85,13 +96,14 @@ class NMRWindow(QMainWindow):
         # It carries lots of information, of which we're using
         # only a small amount here.
         # 
-        box_points = event.artist.get_bbox().get_points()
-        msg = "You've clicked on a bar with coords:\n %s" % box_points
+        msg = "You've clicked on a point with x index:\n %s" % event.ind
+        print(msg)
         
         QMessageBox.information(self, "Click!", msg)
     
     def set_field_conditional(self,Field):
         if hasattr(self,"prev_field") and abs(Field-self.prev_field) > 50./gammabar_H*1e4 and abs(Field-self.prev_field) < 850./gammabar_H*1e4:
+            print(self.prev_field, "previous field")
             print("You are trying to shift by an intermediate offset, so I'm going to set the field slowly.")
             Field = self.xepr.set_field(Field)
             self.prev_field = Field
@@ -112,7 +124,7 @@ class NMRWindow(QMainWindow):
         self.set_field_conditional(Field)
         #}}}
         #{{{acquire echo
-        self.echo_data = nddata(np.random.normal(size=256*4),['t'],[-1]).setaxis('t', linspace(0,1,256*4)) 
+        self.echo_data = nddata(np.random.normal(size=256*4),[1,-1],['nScans','t']).setaxis('t', np.linspace(0,1,256*4)) 
         #}}}
         #{{{setting acq_params
         self.echo_data.set_prop("postproc_type","proc_Hahn_echoph")
@@ -133,18 +145,6 @@ class NMRWindow(QMainWindow):
         print("adc was ",self.myconfig['adc_offset'],end=' and ')
         counter = 0
         first = True
-        while first or not (result1 == result2) and (result2 == result3):
-            first = False
-            result1 = SpinCore_pp.adc_offset()
-            time.sleep(0.1)
-            result2 = SpinCore_pp.adc_offset()
-            time.sleep(0.1)
-            result3 = SpinCore_pp.adc_offset()
-            if counter > 20:
-                raise RuntimeError("after 20 tries, I can't stabilize ADC")
-            counter += 1
-        self.myconfig['adc_offset'] = result3
-        print("adc determined to be:",self.myconfig['adc_offset'])
     def acq_NMR(self):
         self.generate_data()
         self.regen_plots()
@@ -176,6 +176,7 @@ class NMRWindow(QMainWindow):
                 myy = myy.data
             else:
                 myy = np.squeeze(myy.data.transpose([longest_dim]+all_but_longest))
+            kwargs.update({'picker':True})
             self.axes.plot(myx,myy,**kwargs)
             self.axes.set_xlabel(myxlabel)
         # }}}
@@ -351,8 +352,8 @@ class NMRWindow(QMainWindow):
 
 def main():
     myconfig = SpinCore_pp.configuration("active.ini")
-    app = QApplication(sys.argv)
-    with xepr_from_module() as x:
+    with mock_xepr() as x:
+        app = QApplication(sys.argv)
         tunwin = NMRWindow(x,myconfig)
         tunwin.show()
         app.exec_()
