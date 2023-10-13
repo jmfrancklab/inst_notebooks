@@ -112,19 +112,7 @@ class NMRWindow(QMainWindow):
         self.set_field_conditional(Field)
         #}}}
         #{{{acquire echo
-        self.echo_data = run_spin_echo(
-                nScans=self.myconfig['nScans'],
-                indirect_idx = 0,
-                indirect_len = 1,
-                adcOffset = self.myconfig['adc_offset'],
-                carrierFreq_MHz = self.myconfig['carrierFreq_MHz'],
-                nPoints = self.npts,
-                nEchoes = self.myconfig['nEchoes'],
-                p90_us = self.myconfig['p90_us'],
-                repetition_us = self.myconfig['repetition_us'],
-                tau_us = self.myconfig['tau_us'],
-                SW_kHz = self.myconfig['SW_kHz'],
-                ret_data = None)
+        self.echo_data = nddata(np.random.normal(size=256*4),['t'],[-1]).setaxis('t', linspace(0,1,256*4)) 
         #}}}
         #{{{setting acq_params
         self.echo_data.set_prop("postproc_type","proc_Hahn_echoph")

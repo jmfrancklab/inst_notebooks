@@ -43,6 +43,22 @@ fl = figlist_var()
 #with SerialInstrument('GDS-3254') as s:
 #    print s.respond('*idn?')
 def collect(date,id_string,captures):
+    """this just captures multiple waveforms on the scope. There is no setup or
+    triggering here -- this is typically used to capture noise for noise
+    density plots.
+
+    Parameters
+    ----------
+    id_string: str
+        used together with the date to determine the HDF filename
+    capture: ndarray
+        the axis coordinates that will be used to label the "captures" dimension of the result
+
+    Returns
+    -------
+    retval: nddata
+        has dimensions "capture" "t" and (check this) maybe "ch"
+    """
     capture_length = len(captures)
     start = timer()
     datalist = []

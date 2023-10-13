@@ -7,6 +7,7 @@ matplotlib.rcParams['legend.labelspacing'] = 0.2
 rcParams['savefig.transparent'] = True
 #4096 points
 # {{{ constants measured elsewhere
+# {{{ these constants should NOT bit used as-is -- you will calibrate and determine the gain of the spectrometer box, which is a single number
 gain_factor_new = 73503.77279 
 gain_factor_amp1 = 525.94786172         #LNA 2
 gain_factor_amp2 = 531.84920761         #LNA 1
@@ -19,20 +20,14 @@ gain_factor_pdcasc12 = 45514.53212012    #probe,duplexer,cascade
 scope_noise = 4.4578468934e-19                         # pulled from the gain=1.0 calculation of the
                                                         # scope noise, below
 atten_factor = 7.056e-5
+# }}}
 T = 273.15 + 20.
 power_signal_AFG = ((50.e-3)/(sqrt(2)*2))**2./50.
 test_signal_power = power_signal_AFG * atten_factor
 # }}}
-    # {{{ command line arguments for integration interval 
-default = True
-try:
-    sys.argv[1]
+# {{{ command line arguments for integration interval 
+if len(sys.argv) > 1:
     default = False
-except:
-    sys.argv[0]
-if default:
-    integration = False
-if not default:
     integration = True
     width_choice = int(sys.argv[1])
     if width_choice == 1:
@@ -66,7 +61,10 @@ if not default:
         print("Unrecognized width choice")
         integration_center = 14.5e6 
         integration_width = 2.e6
-    # }}}
+else:
+    default = True
+    integration = False
+# }}}
 #{{{ loads noise into accumulated data file for faster processing
 def load_noise(date,id_string,captures):
     cap_len = len(captures)
