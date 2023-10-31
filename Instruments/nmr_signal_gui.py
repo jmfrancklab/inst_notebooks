@@ -190,11 +190,11 @@ class NMRWindow(QMainWindow):
             pyspec_plot(abs(self.echo_data['ph1':j]), label=f'Δp={j}', alpha=0.5)
             if many_scans and j==1:
                 for k in range(psp.ndshape(multiscan_copy)['nScans']):
-                    pyspec_plot(abs(multiscan_copy['ph1':j]['nScans',k]), label=f'Δp=1, scan {k}', alpha=0.2)
+                    pyspec_plot(abs(multiscan_copy['ph1':j]['nScans',k]), label=f'Δp=1, scan {k}', alpha=0.2, lw=1)
         centerfrq = signal.C.argmax('t2').item()
-        self.vline = self.axes.axvline(x=centerfrq,ls=':',color='r',alpha=0.25)
-        pyspec_plot(noise, color='k', label=f'Noise std', alpha=0.75)
-        pyspec_plot(signal, color='r', label=f'abs of signal - noise', alpha=0.75)
+        self.vline = self.axes.axvline(x=centerfrq,ls=':',color='r',alpha=0.25, lw=2)
+        pyspec_plot(noise, color='k', label=f'Noise std', alpha=0.75,lw=2)
+        pyspec_plot(signal, color='r', label=f'abs of signal - noise', alpha=0.75, lw=2.5)
         self.axes.legend()
         # }}}
         noise = noise['t2':centerfrq]
