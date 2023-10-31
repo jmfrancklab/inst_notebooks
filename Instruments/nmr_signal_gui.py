@@ -90,16 +90,12 @@ class NMRWindow(QMainWindow):
         return
 
     def on_pick(self, event):
-        # The event received here is of the type
-        # matplotlib.backend_bases.PickEvent
-        #
-        # It carries lots of information, of which we're using
-        # only a small amount here.
-        # 
-        msg = "You've clicked on a point with x index:\n %s" % event.ind
-        print(msg)
-        
-        QMessageBox.information(self, "Click!", msg)
+        if hasattr(self,'vline'):
+            self.vline.set_xdata(event.mouseevent.xdata)
+            self.canvas.draw()
+            # note that this ONLY moves where the line is displayed --
+            # it will not actually affect where the field is set to.
+            # You want to add in that code.
     
     def set_field_conditional(self,Field):
         if hasattr(self,"prev_field") and abs(Field-self.prev_field) > 50./gammabar_H*1e4 and abs(Field-self.prev_field) < 850./gammabar_H*1e4:
@@ -196,7 +192,7 @@ class NMRWindow(QMainWindow):
                 for k in range(psp.ndshape(multiscan_copy)['nScans']):
                     pyspec_plot(abs(multiscan_copy['ph1':j]['nScans',k]), label=f'Δp=1, scan {k}', alpha=0.2)
         centerfrq = signal.C.argmax('t2').item()
-        self.axes.axvline(x=centerfrq,ls=':',color='r',alpha=0.25)
+        self.vline = self.axes.axvline(x=centerfrq,ls=':',color='r',alpha=0.25)
         pyspec_plot(noise, color='k', label=f'Noise std', alpha=0.75)
         pyspec_plot(signal, color='r', label=f'abs of signal - noise', alpha=0.75)
         self.axes.legend()
