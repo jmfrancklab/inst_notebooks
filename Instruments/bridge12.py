@@ -391,27 +391,43 @@ class Bridge12 (Serial):
         self.last_sweep_name = sweep_name
         return rxvalues, txvalues
     def lock_on_dip(self, ini_range=(9.81e9,9.83e9),
-            ini_step=0.5e6,# should be half 3 dB width for Q=10,000
+            ini_step=0.1e6,# should be half 3 dB width for Q=10,000
             dBm_increment=3, n_freq_steps=15):
         """Locks onto the main dip, and finds the first polynomial fit also sets the current frequency bounds."""    
         if not self.frq_sweep_10dBm_has_been_run:
+            wg_engaged = False
             logger.info("Did not find previous 10 dBm run, running now")
-            self.set_wg(True)
-            self.set_rf(True)
-            self.set_amp(True)
-            self.set_power(10.0)
-            freq = r_[ini_range[0]:ini_range[1]:ini_step]
-            logger.info("ini range: "+str(ini_range)+"ini step: "+str(ini_step))
-            rx, tx = self.freq_sweep(freq)
-        assert self.frq_sweep_10dBm_has_been_run, "I should have run the 10 dBm curve -- not sure what happened"
-        rx,freq = [self.tuning_curve_data['%gdBm_%s'%(10.0,j)] for j in ['rx','freq']]
-        rx_dBm = convert_to_power(rx)
-        rx_midpoint = (max(rx_dBm) + min(rx_dBm))/2.0
+            while not wg_engaged:
+                try:
+                    self.set_wg(True)
+                    self.set_rf(True)
+                    self.set_amp(True)
+                    self.set_power(10.0)
+                    freq = r_[ini_range[0]:ini_range[1]:ini_step]
+                    logger.info("ini range: "+str(ini_range)+"ini step: "+str(ini_step))
+                    rx, tx = self.freq_sweep(freq)
+                    assert self.frq_sweep_10dBm_has_been_run, "I should have run the 10 dBm curve -- not sure what happened"
+                    rx,freq = [self.tuning_curve_data['%gdBm_%s'%(10.0,j)] for j in ['rx','freq']]
+                    rx_dBm = convert_to_power(rx)
+                    rx_midpoint = (max(rx_dBm) + min(rx_dBm))/2.0
+                    over_bool = rx_dBm > rx_midpoint # Contains False everywhere rx_dBm is under
+                    if not over_bool[0]:
+                        result = input("couldn't find the midpoint, maybe the wg didn't turn on completely. Try again?")
+                        if result.lower().startswith("y"):
+                            wg_engaged = False
+                        else:
+                            raise ValueError("Tuning curve doesn't start over the midpoint, which doesn't make sense -- check %gdBm_%s"%(10.0,'rx'))
+                    else:
+                        wg_engaged = True
+                except:
+                    result = input("couldn't find the midpoint, maybe the wg didn't turn on completely. Try again?")
+                    if result.lower().startswith("y"):
+                        wg_engaged = False
+                    else:
+                        self.set_rf(False)
+                        self.set_wg(False)
+                        raise ValueError("Tuning curve doesn't start over the midpoint, which doesn't make sense -- check %gdBm_%s"%(10.0,'rx'))
         over_bool = rx_dBm > rx_midpoint # Contains False everywhere rx_dBm is under
-        if not over_bool[0]:
-            print("rx_dBm[0]",rx_dBm[0],"rx_midpoint is",rx_midpoint)
-            print("here is the whole curve:",rx_dBm,"and over_bool",over_bool)
-            raise ValueError("Tuning curve doesn't start over the midpoint, which doesn't make sense -- check %gdBm_%s"%(10.0,'rx'))
         over_diff = r_[0,diff(int32(over_bool))]# should indicate whether this position has lifted over (+1) or dropped under (-1) the midpoint
         over_idx = r_[0:len(over_diff)]
         # store the indices at the start and stop of a dip
