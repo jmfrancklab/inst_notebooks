@@ -411,12 +411,16 @@ class Bridge12 (Serial):
                     rx_dBm = convert_to_power(rx)
                     rx_midpoint = (max(rx_dBm) + min(rx_dBm))/2.0
                     over_bool = rx_dBm > rx_midpoint # Contains False everywhere rx_dBm is under
+                    print("A OVERBOOL IS",over_bool)
                     if not over_bool[0]:
                         result = input("couldn't find the midpoint, maybe the wg didn't turn on completely. Try again?")
                         if result.lower().startswith("y"):
                             wg_engaged = False
                         else:
+                            self.set_rf(False)
+                            self.set_wg(False)
                             raise ValueError("Tuning curve doesn't start over the midpoint, which doesn't make sense -- check %gdBm_%s"%(10.0,'rx'))
+                            break
                     else:
                         wg_engaged = True
                 except:
@@ -427,8 +431,14 @@ class Bridge12 (Serial):
                         self.set_rf(False)
                         self.set_wg(False)
                         raise ValueError("Tuning curve doesn't start over the midpoint, which doesn't make sense -- check %gdBm_%s"%(10.0,'rx'))
+                        break
+        assert self.frq_sweep_10dBm_has_been_run, "I should have run the 10 dBm curve -- not sure what happened"
+        rx,freq = [self.tuning_curve_data['%gdBm_%s'%(10.0,j)] for j in ['rx','freq']]
+        rx_dBm = convert_to_power(rx)
+        rx_midpoint = (max(rx_dBm) + min(rx_dBm))/2.0
         over_bool = rx_dBm > rx_midpoint # Contains False everywhere rx_dBm is under
         over_diff = r_[0,diff(int32(over_bool))]# should indicate whether this position has lifted over (+1) or dropped under (-1) the midpoint
+        print("B OVERBOOL IS:",over_bool)
         over_idx = r_[0:len(over_diff)]
         # store the indices at the start and stop of a dip
         start_dip = over_idx[over_diff == -1] -1 # because this identified the point *after* the crossing
