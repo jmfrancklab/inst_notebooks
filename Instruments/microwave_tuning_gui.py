@@ -83,8 +83,8 @@ class TuningWindow(QMainWindow):
         QMessageBox.about(self, "About the demo", msg.strip())
     
     def orig_zoom_limits(self):
-        for ini_val, w in [('9810000',self.textbox1),
-                ('9835000',self.textbox2)]:
+        for ini_val, w in [('9815000',self.textbox1),
+                ('9825000',self.textbox2)]:
             w.setText(ini_val)
             w.setMinimumWidth(8)
             w.editingFinished.connect(self.on_textchange)
