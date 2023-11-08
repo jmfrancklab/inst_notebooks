@@ -403,15 +403,14 @@ class Bridge12 (Serial):
                     self.set_rf(True)
                     self.set_amp(True)
                     self.set_power(10.0)
-                    freq = r_[ini_range[0]:ini_range[1]:ini_step]
-                    logger.info("ini range: "+str(ini_range)+"ini step: "+str(ini_step))
-                    rx, tx = self.freq_sweep(freq)
+                    ini_range_str = f"ini_range:{ini_range}, ini step: {ini_step}"
+                    logger.info(ini_range_str)
+                    rx, tx = self.freq_sweep(r_[ini_range[0]:ini_range[1]:ini_step])
                     assert self.frq_sweep_10dBm_has_been_run, "I should have run the 10 dBm curve -- not sure what happened"
                     rx,freq = [self.tuning_curve_data['%gdBm_%s'%(10.0,j)] for j in ['rx','freq']]
                     rx_dBm = convert_to_power(rx)
                     rx_midpoint = (max(rx_dBm) + min(rx_dBm))/2.0
                     over_bool = rx_dBm > rx_midpoint # Contains False everywhere rx_dBm is under
-                    print("A OVERBOOL IS",over_bool)
                     if not over_bool[0]:
                         result = input("couldn't find the midpoint, maybe the wg didn't turn on completely. Try again?")
                         if result.lower().startswith("y"):
@@ -438,7 +437,6 @@ class Bridge12 (Serial):
         rx_midpoint = (max(rx_dBm) + min(rx_dBm))/2.0
         over_bool = rx_dBm > rx_midpoint # Contains False everywhere rx_dBm is under
         over_diff = r_[0,diff(int32(over_bool))]# should indicate whether this position has lifted over (+1) or dropped under (-1) the midpoint
-        print("B OVERBOOL IS:",over_bool)
         over_idx = r_[0:len(over_diff)]
         # store the indices at the start and stop of a dip
         start_dip = over_idx[over_diff == -1] -1 # because this identified the point *after* the crossing
