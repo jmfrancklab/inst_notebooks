@@ -420,7 +420,6 @@ class Bridge12 (Serial):
                             self.set_rf(False)
                             self.set_wg(False)
                             raise ValueError("Tuning curve doesn't start over the midpoint, which doesn't make sense -- check %gdBm_%s"%(10.0,'rx'))
-                            break
                     else:
                         wg_engaged = True
                 except:
@@ -431,7 +430,6 @@ class Bridge12 (Serial):
                         self.set_rf(False)
                         self.set_wg(False)
                         raise ValueError("Tuning curve doesn't start over the midpoint, which doesn't make sense -- check %gdBm_%s"%(10.0,'rx'))
-                        break
         assert self.frq_sweep_10dBm_has_been_run, "I should have run the 10 dBm curve -- not sure what happened"
         rx,freq = [self.tuning_curve_data['%gdBm_%s'%(10.0,j)] for j in ['rx','freq']]
         rx_dBm = convert_to_power(rx)
