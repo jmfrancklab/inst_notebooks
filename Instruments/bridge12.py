@@ -391,7 +391,7 @@ class Bridge12 (Serial):
         self.last_sweep_name = sweep_name
         return rxvalues, txvalues
     def lock_on_dip(self, ini_range=(9.81e9,9.83e9),
-            ini_step=0.1e6,# should be half 3 dB width for Q=10,000
+            ini_step=0.5e6,# should be half 3 dB width for Q=10,000
             dBm_increment=3, n_freq_steps=15):
         """Locks onto the main dip, and finds the first polynomial fit also sets the current frequency bounds."""    
         if not self.frq_sweep_10dBm_has_been_run:
@@ -403,9 +403,9 @@ class Bridge12 (Serial):
                     self.set_rf(True)
                     self.set_amp(True)
                     self.set_power(10.0)
-                    ini_range_str = f"ini_range:{ini_range}, ini step: {ini_step}"
-                    logger.info(ini_range_str)
-                    rx, tx = self.freq_sweep(r_[ini_range[0]:ini_range[1]:ini_step])
+                    freq = r_[ini_range[0]:ini_range[1]:ini_step]
+                    logger.info("ini range: "+str(ini_range)+"ini step: "+str(ini_step))
+                    rx, tx = self.freq_sweep(freq)
                     assert self.frq_sweep_10dBm_has_been_run, "I should have run the 10 dBm curve -- not sure what happened"
                     rx,freq = [self.tuning_curve_data['%gdBm_%s'%(10.0,j)] for j in ['rx','freq']]
                     rx_dBm = convert_to_power(rx)
@@ -419,7 +419,6 @@ class Bridge12 (Serial):
                             self.set_rf(False)
                             self.set_wg(False)
                             raise ValueError("Tuning curve doesn't start over the midpoint, which doesn't make sense -- check %gdBm_%s"%(10.0,'rx'))
-                            break
                     else:
                         wg_engaged = True
                 except:
@@ -430,7 +429,6 @@ class Bridge12 (Serial):
                         self.set_rf(False)
                         self.set_wg(False)
                         raise ValueError("Tuning curve doesn't start over the midpoint, which doesn't make sense -- check %gdBm_%s"%(10.0,'rx'))
-                        break
         assert self.frq_sweep_10dBm_has_been_run, "I should have run the 10 dBm curve -- not sure what happened"
         rx,freq = [self.tuning_curve_data['%gdBm_%s'%(10.0,j)] for j in ['rx','freq']]
         rx_dBm = convert_to_power(rx)
