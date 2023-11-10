@@ -390,6 +390,14 @@ class Bridge12 (Serial):
         self.tuning_curve_data[sweep_name+'_freq'] = freq
         self.last_sweep_name = sweep_name
         return rxvalues, txvalues
+    def handle_midpoint_failure(self):
+        result = input("Couldn't fine the midpoint; maybe the wg didn't turn on completely, try again?")
+        if result.lower().startswith("y"):
+            wg_engaged = False
+        else:
+            self.set_rf(False)
+            self.set_wg(False)
+            raise ValueError("Tuning curve doesn't start over the midpoint, which doesn't make sense -- check %gdBm_%s"%(10.0,'rx'))
     def lock_on_dip(self, ini_range=(9.81e9,9.83e9),
             ini_step=0.5e6,# should be half 3 dB width for Q=10,000
             dBm_increment=3, n_freq_steps=15):
@@ -412,25 +420,13 @@ class Bridge12 (Serial):
                     rx_midpoint = (max(rx_dBm) + min(rx_dBm))/2.0
                     over_bool = rx_dBm > rx_midpoint # Contains False everywhere rx_dBm is under
                     if not over_bool[0]:
-                        result = input("couldn't find the midpoint, maybe the wg didn't turn on completely. Try again?")
-                        if result.lower().startswith("y"):
-                            wg_engaged = False
-                        else:
-                            self.set_rf(False)
-                            self.set_wg(False)
-                            raise ValueError("Tuning curve doesn't start over the midpoint, which doesn't make sense -- check %gdBm_%s"%(10.0,'rx'))
+                        self.handle_midpoint_failure()
                     else:
                         wg_engaged = True
                 except:
-                    result = input("couldn't find the midpoint, maybe the wg didn't turn on completely. Try again?")
-                    if result.lower().startswith("y"):
-                        wg_engaged = False
-                    else:
-                        self.set_rf(False)
-                        self.set_wg(False)
-                        raise ValueError("Tuning curve doesn't start over the midpoint, which doesn't make sense -- check %gdBm_%s"%(10.0,'rx'))
+                    self.handle_midpoint_failure()
         assert self.frq_sweep_10dBm_has_been_run, "I should have run the 10 dBm curve -- not sure what happened"
-        rx,freq = [self.tuning_curve_data['%gdBm_%s'%(10.0,j)] for j in ['rx','freq']]
+        rx,freq = [self.tuning_curve_data[f"%gdBm_{j}"%(10.0)] for j in ['rx','freq']]
         rx_dBm = convert_to_power(rx)
         rx_midpoint = (max(rx_dBm) + min(rx_dBm))/2.0
         over_bool = rx_dBm > rx_midpoint # Contains False everywhere rx_dBm is under
