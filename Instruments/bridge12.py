@@ -397,7 +397,7 @@ class Bridge12 (Serial):
         else:
             self.set_rf(False)
             self.set_wg(False)
-            raise ValueError("Tuning curve doesn't start over the midpoint, which doesn't make sense -- check %gdBm_%s"%(10.0,'rx'))
+            raise ValueError("The reflection of the first point is the same or lower than the rx of the dip, which doesn't make sense -- check %gdBm_%s"%(10.0,'rx'))
     def lock_on_dip(self, ini_range=(9.81e9,9.83e9),
             ini_step=0.5e6,# should be half 3 dB width for Q=10,000
             dBm_increment=3, n_freq_steps=15):
@@ -417,16 +417,18 @@ class Bridge12 (Serial):
                     rx,freq = [self.tuning_curve_data['%gdBm_%s'%(10.0,j)] for j in ['rx','freq']]
                     rx_dBm = convert_to_power(rx)
                     rx_midpoint = (max(rx_dBm) + min(rx_dBm))/2.0
+                    #is the first rx higher than the midpoint (rx of dip/2)? If not this means we are not looking at a dip - ex. if the wg didn't switch on our rx would be a straight line and we would not have a dip
                     if not (rx_dBm > rx_midpoint)[0]:
                         self.handle_midpoint_failure()
                     else:
                         wg_engaged = True
                 except:
                     self.handle_midpoint_failure()
+        else:
+            rx,freq = [self.tuning_curve_data['%gdBm_%s'%(10.0,j)] for j in ['rx','freq']]
+            rx_dBm = convert_to_power(rx)
+            rx_midpoint = (max(rx_dBm) + min(rx_dBm))/2.0
         assert self.frq_sweep_10dBm_has_been_run, "I should have run the 10 dBm curve -- not sure what happened"
-        rx,freq = [self.tuning_curve_data['%gdBm_%s'%(10.0,j)] for j in ['rx','freq']]
-        rx_dBm = convert_to_power(rx)
-        rx_midpoint = (max(rx_dBm) + min(rx_dBm))/2.0
         over_bool = rx_dBm > rx_midpoint 
         over_diff = r_[0,diff(int32(over_bool))]# should indicate whether this position has lifted over (+1) or dropped under (-1) the midpoint
         over_idx = r_[0:len(over_diff)]
