@@ -205,7 +205,7 @@ class AFG (SerialInstrument):
             unit_chosen = thisunit
             f_chosen = thisf
         # }}}
-        cmd = 'SOUR%d:APPL:SIN %0.3f%s,%f,0'%(ch,f/f_chosen,unit_chosen,V)
+        cmd = 'SOUR%d:APPL:SIN %0.3f%s,1,0'%(ch,f/f_chosen,unit_chosen)
         print(cmd)
         self.write(cmd)
         
