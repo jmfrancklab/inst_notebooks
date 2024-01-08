@@ -50,9 +50,8 @@ class Bridge12 (Serial):
         super().__init__(thisport, timeout=3, baudrate=115200)
         # this number represents the highest possible reasonable value for the
         # Rx power -- it is lowered as we observe the Tx values
-        self.safe_rx_level_int = int(convert_to_mv(13.)*10+0.5)# i.e. a setting of 13 dB for the absolute threshold
-        # this is where the safe threshold is!!
-        if self.safe_rx_level_int > 5000: self.safe_rx_level_int = 10500 # changing this from 5000 to 11500
+        # 1/8/24 updated to give as a 10*dBm value
+        self.safe_rx_level_int = 100 # i.e. a 10 dBm threshold
         self.frq_sweep_10dBm_has_been_run = False
         self.tuning_curve_data = {}
         self._inside_with_block = False
@@ -91,6 +90,7 @@ class Bridge12 (Serial):
                 grab_more_lines = False
         logger.info(repr(entire_response))
     def wgstatus_int_singletry(self):
+        self.readline()
         self.write(b'wgstatus?\r')
         return int((self.readline()).decode('utf-8'))
     def wgstatus_int(self):
@@ -151,6 +151,7 @@ class Bridge12 (Serial):
                 return
         raise RuntimeError("After checking status 10 times, I can't get the amplifier to turn on/off")
     def rfstatus_int_singletry(self):
+        self.readline()
         self.write(b'rfstatus?\r')
         retval = self.readline()
         if retval.strip().startswith(b'E'):
@@ -238,10 +239,10 @@ class Bridge12 (Serial):
             if setting > 30+self.cur_pwr_int: 
                 raise RuntimeError("Once you are above 10 dBm, you must raise the power in MAX 3 dB increments.  The power is currently %g, and you tried to set it to %g -- this is not allowed!"%(self.cur_pwr_int/10.,setting/10.))
         self.write(b'power %d\r'%setting)
-        if setting > 0: self.rxpowermv_int_singletry() # doing this just for safety interlock
+        if setting > 0: self.rxpowerdbm_float() # doing this just for safety interlock
         for j in range(10):
             result = self.power_int()
-            if setting > 0: self.rxpowermv_int_singletry() # doing this just for safety interlock
+            if setting > 0: self.rxpowerdbm_float() # doing this just for safety interlock
             if result == setting:
                 self.cur_pwr_int = result
                 return
@@ -250,50 +251,25 @@ class Bridge12 (Serial):
             "power to change: I'm trying to set to %d/10 dBm, but the Bridge12"
             "keeps replying saying that it's set to %d/10"
             "dBm")%(setting,result))
-    def rxpowermv_int_singletry(self):
-        """read the integer value for the Rx power (which is 10* the value in mV).  Also has a software interlock so that if the Rx power ever exceeds self.safe_rx_level_int, then the amp shuts down."""
-        self.write(b'rxpowermv?\r')
-        retval = self.readline()
-        retval = retval.strip()
-        if retval == 'ERROR':
-            logger.info("Found ERROR condition on trying to read rxpowermv -- trying again")
-            j = 0
-            while j < 10:
-                time.sleep(10e-3)
-                self.write(b'rxpowermv?\r')
-                retval = self.readline()
-                retval = retval.strip()
-                if retval != 'ERROR':
-                    logger.info("after try %d, it responded with %s"%(j+1,retval))
-                    break
-        retval = int(retval)
-        if retval > self.safe_rx_level_int:
-            raise RuntimeError("Read an unsafe Rx level of %0.1fmV"%(retval/10.))
-        return retval
-    def rxpowermv_float(self):
-        "need two consecutive responses that match"
-        for j in range(3):
-            # burn a few measurements
-            self.rxpowermv_int_singletry()
-        h = self.rxpowermv_int_singletry()
-        i = self.rxpowermv_int_singletry()
-        while h != i:
-            h = self.rxpowermv_int_singletry()
-            i = self.rxpowermv_int_singletry()
-        return float(h)/10.
-    def txpowermv_int_singletry(self):
-        self.write(b'txpowermv?\r')
+    def rxpowerdbm_float(self):
+        "retrieve rx power in dBm"
+        retval = self.write(b'rxpowerdbm?\r')
+        assert retval < self.safe_rx_level_int # safety interlock
+        return retval/10.0 # above is in units of 10*dBm, return as dBm
+    def txpowerdbm_int_singletry(self):
+        self.readline()
+        self.write(b'txpowerdbm?\r')
         return int(self.readline())
-    def txpowermv_float(self):
+    def txpowerdbm_float(self):
         "need two consecutive responses that match"
         for j in range(3):
             # burn a few measurements
-            self.txpowermv_int_singletry()
-        h = self.txpowermv_int_singletry()
-        i = self.txpowermv_int_singletry()
+            self.txpowerdbm_int_singletry()
+        h = self.txpowerdbm_int_singletry()
+        i = self.txpowerdbm_int_singletry()
         while h != i:
-            h = self.txpowermv_int_singletry()
-            i = self.txpowermv_int_singletry()
+            h = self.txpowerdbm_int_singletry()
+            i = self.txpowerdbm_int_singletry()
         return float(h)/10.
     def calib_set_freq(self,Hz):
         """Use only for setting frequency of the Bridge12 for calibration
@@ -314,6 +290,7 @@ class Bridge12 (Serial):
             assert Hz >= self.freq_bounds[0], "You are trying to set the frequency outside the frequency bounds, which are: "+str(self.freq_bounds)
             assert Hz <= self.freq_bounds[1], "You are trying to set the frequency outside the frequency bounds, which are: "+str(self.freq_bounds)
         setting = int(Hz/1e3+0.5)
+        self.readline()
         self.write(b'freq %d\r'%(setting))
         if self.freq_int() != setting:
             for j in range(10):
@@ -326,6 +303,7 @@ class Bridge12 (Serial):
         return self.freq_int()*1e3
     def freq_int(self):
         "return the frequency, in kHz (since it's set as an integer kHz)"
+        self.readline()
         self.write(b'freq?\r')
         for j in range(10):
             retval = self.readline()
@@ -370,23 +348,25 @@ class Bridge12 (Serial):
             print("*** *** ***")
             self.set_freq(freq[0])  #is this what I would put here (the 'f')?
             time.sleep(10e-3) # allow synthesizer to settle
-            _ = self.txpowermv_float()
-            _ = self.rxpowermv_float()
+            _ = self.txpowerdbm_float()
+            _ = self.rxpowerdbm_float() # 1/8/24: didn't know why this was here, probably for safety interlock
         for j,f in enumerate(freq):
             generate_beep(500, 300)
             self.set_freq(f)  #is this what I would put here (the 'f')?
             time.sleep(1e-3) # determined this by making sure 11 dB and 10 dB curves line up
-            txvalues[j] = self.txpowermv_float()
+            txvalues[j] = self.txpowerdbm_float()
             if fast_run:
-                rxvalues[j] = self.rxpowermv_float()
+                rxvalues[j] = self.rxpowerdbm_float()
             else:
-                # the rxpowermv itself demands two consecutive responses to match
-                # this then makes sure that three of those measurements match (so essentially, six in a row must match)
+                # we are assuming that in the upgraded mps, there is some amount of internal self-check
+                # of the rxpower dbm measurements, so unlike before, the rxpowerdbm_float function
+                # only reads from the MPS once --
+                # the following line then makes sure that three of the rxpowerdbm_float measurements match
                 def grab_consist_power():
-                    rx_try1 = self.rxpowermv_float()
-                    rx_try2 = self.rxpowermv_float()
+                    rx_try1 = self.rxpowerdbm_float()
+                    rx_try2 = self.rxpowerdbm_float()
                     for j in range(20):
-                        rx_try3 = self.rxpowermv_float()
+                        rx_try3 = self.rxpowerdbm_float()
                         if rx_try1 == rx_try2 and rx_try2 == rx_try3:
                             return rx_try1
                         else:
