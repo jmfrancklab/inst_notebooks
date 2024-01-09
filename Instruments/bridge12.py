@@ -407,7 +407,19 @@ class Bridge12 (Serial):
     def lock_on_dip(self, ini_range=(9.81e9,9.83e9),
             ini_step=0.5e6,# should be half 3 dB width for Q=10,000
             dBm_increment=3, n_freq_steps=15):
-        """Locks onto the main dip, and finds the first polynomial fit also sets the current frequency bounds."""    
+        """
+        1.  Retrieves the 10 dBm if it has been run, or runs one if it has not.
+        2.  Makes sure that the first point of the tuning curve gives a
+            reflection that's high enough (i.e. that we're not starting in the
+            middle of the dip)
+        3.  Make sure that we actually see a *dip* in the middle.
+
+            For this and the previous step, we use the middle of the middle of
+            the y-axis values (which we call the "midpoint") -- the dip is the stuff
+            that falls under the "midpoint"
+        4.  Run a new frequency sweep over just the dip.
+        5.  Call the zoom function to zoom in on the dip.
+        """    
         if not self.frq_sweep_10dBm_has_been_run:
             logger.info("Did not find previous 10 dBm run, running now")
             self.set_wg(True)
@@ -446,7 +458,27 @@ class Bridge12 (Serial):
         rx, tx = self.freq_sweep(freq_axis, fast_run=True)
         return self.zoom(dBm_increment=2,n_freq_steps=n_freq_steps)
     def zoom(self, dBm_increment=2, n_freq_steps=15):
-        "please write a docstring here"
+        """
+        1.  pull the last frequency sweep that was run, and fit it to a 2^nd^ order polynomial:
+            :math:`rx(\\nu) = a+b\\nu+c\\nu^2`
+        2.  Use the polynomial to determine the center frequency (:math:`-\\frac{b}{2c}`).
+        3.  Find the intercepts of :math:`rx(\\nu)=rx_{target}`, where :math:`rx_{target}` gives
+            the rx reading that we predict will correspond to
+            the max "safe" level of the rx *after* we have increased by :math:`dBm_{increment}`
+            -- *i.e.* we want the frequency sweep for step 4 here to be conducted at a power that is
+            :math:`dBm_{increment}` higher than where we are now,
+            and over a more limited ("zoomed") range of frequencies.
+        4.  Run a new frequency sweep between the two frequencies where we predict :math:`rx(\\nu)` to be equal to :math:`rx_{safe}`. 
+
+        Return
+        ======
+        rx: array
+            the rx readings of the zoomed frequency sweep conducted at current power + dBm_increment
+        tx: array
+            the tx readings of the zoomed frequency sweep conducted at current power + dBm_increment
+        min_f: float
+            the frequency at which the zoomed frequency sweep is minimized
+        """
         assert self.frq_sweep_10dBm_has_been_run, "You're trying to run zoom before you ran a frequency sweep at 10 dBm -- something is wonky!!!"
         assert hasattr(self,'freq_bounds'), "you probably haven't run lock_on_dip, which you need to do before zoom"
         # {{{ fit the mV values
