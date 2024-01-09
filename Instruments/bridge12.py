@@ -190,7 +190,6 @@ class Bridge12 (Serial):
                 return
         raise RuntimeError("After checking status 10 times, I can't get the mw power to turn on/off")
     def power_int_singletry(self):
-        self.readline()
         self.write(b'power?\r')
         return int(self.readline())
     def power_float(self):
