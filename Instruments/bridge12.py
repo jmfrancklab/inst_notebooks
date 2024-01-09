@@ -151,7 +151,6 @@ class Bridge12 (Serial):
                 return
         raise RuntimeError("After checking status 10 times, I can't get the amplifier to turn on/off")
     def rfstatus_int_singletry(self):
-        self.readline()
         self.write(b'rfstatus?\r')
         retval = self.readline()
         if retval.strip().startswith(b'E'):
@@ -190,7 +189,6 @@ class Bridge12 (Serial):
                 return
         raise RuntimeError("After checking status 10 times, I can't get the mw power to turn on/off")
     def power_int_singletry(self):
-        self.readline()
         self.write(b'power?\r')
         return int(self.readline())
     def power_float(self):
@@ -305,9 +303,8 @@ class Bridge12 (Serial):
         return self.freq_int()*1e3
     def freq_int(self):
         "return the frequency, in kHz (since it's set as an integer kHz)"
+        self.write(b'freq?\r')
         for j in range(10):
-            self.readline()
-            self.write(b'freq?\r')
             retval = self.readline()
             if retval.startswith(b'E001'):
                 print("Got error E001, trying again")
@@ -397,6 +394,7 @@ class Bridge12 (Serial):
             self.set_rf(True)
             self.set_power(10.0)
             freq = r_[ini_range[0]:ini_range[1]:ini_step]
+            logger.info("ini range: "+str(ini_range)+"ini step: "+str(ini_step))
             rx, tx = self.freq_sweep(freq)
         assert self.frq_sweep_10dBm_has_been_run, "I should have run the 10 dBm curve -- not sure what happened"
         rx,freq = [self.tuning_curve_data['%gdBm_%s'%(10.0,j)] for j in ['rx','freq']]
@@ -404,6 +402,8 @@ class Bridge12 (Serial):
         rx_midpoint = (max(rx_dBm) + min(rx_dBm))/2.0
         over_bool = rx_dBm > rx_midpoint # Contains False everywhere rx_dBm is under
         if not over_bool[0]:
+            print("rx_dBm[0]",rx_dBm[0],"rx_midpoint is",rx_midpoint)
+            print("here is the whole curve:",rx_dBm,"and over_bool",over_bool)
             raise ValueError("Tuning curve doesn't start over the midpoint, which doesn't make sense -- check %gdBm_%s"%(10.0,'rx'))
         over_diff = r_[0,diff(int32(over_bool))]# should indicate whether this position has lifted over (+1) or dropped under (-1) the midpoint
         over_idx = r_[0:len(over_diff)]
@@ -434,8 +434,7 @@ class Bridge12 (Serial):
         # {{{ fit the mV values
         # start by pulling the data from the last tuning curve
         rx, tx, freq = [self.tuning_curve_data[self.last_sweep_name + '_' + j] for j in ['rx','tx','freq']]
-        p = polyfit(freq,rx,2)
-        c,b,a = p 
+        c,b,a = polyfit(freq,rx,2)
         # polynomial of form a+bx+cx^2
         self.fit_data[self.last_sweep_name + '_func'] = lambda x: a+b*x+c*x**2
         self.fit_data[self.last_sweep_name + '_range'] = freq[r_[0,-1]]
@@ -462,16 +461,21 @@ class Bridge12 (Serial):
         freq = linspace(start_f,stop_f,n_freq_steps)
         print("GOING TO TRY AND SET TO THIS POWER")
         print(dBm_increment+self.cur_pwr_int/10.)
-        input("CAN I SET THIS POWER?")
         self.set_power(dBm_increment+self.cur_pwr_int/10.)
         # with the new time constant added for freq_sweep, should we eliminate fast_run?
         rx, tx = self.freq_sweep(freq, fast_run=True)
         # }}}
+        self.freq_bounds = r_[start_f,stop_f]
         # MISSING -- DO BEFORE MOVING TO HIGHER POWERS!
         # test to see if any of the powers actually exceed the safety limit
         # if they do, then contract freq_bounds to include those powers
         min_f = freq[rx.argmin()]
-        return rx, tx, min_f
+        if abs(center - min_f)>0.2e6:
+            center = min_f
+            print("set center to min_f")
+        self.set_freq(center)
+        print("at end of zoom, set center to %f"%center)
+        return rx, tx, center
     def __enter__(self):
         self.bridge12_wait()
         self._inside_with_block = True
