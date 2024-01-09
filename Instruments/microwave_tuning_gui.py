@@ -28,24 +28,29 @@ from matplotlib.figure import Figure
 import numpy as np
 
 class TuningWindow(QMainWindow):
+    print("TUNING WINDOW CLASS WAS CALLED")
     def __init__(self, B12, parent=None):
+        print("FIRST PART OF INIT")
         self.B12 = B12
         QMainWindow.__init__(self, parent)
         self.setWindowTitle('B12 tuning!')
         self.setGeometry(20,20,1500,800)
-
+        print("GOING TO CREATE THE MENU")
         self.create_menu()
+        print("GOING TO CREATE MAIN FRAME")
         self.create_main_frame()
+        print("GOING TO GREATE STATUS BAR")
         self.create_status_bar()
-
         self._already_fmode = False
         self.line_data = []
         self.x = []
         self.timer = QTimer()
         self.fmode = False
+        print("GOING TO SET INTERVAL")
         self.timer.setInterval(100) #.1 seconds
         self.timer.timeout.connect(self.opt_update_frq)
         self.timer.start(1000)
+        print("IN INIT ON RECAPTURE CALL")
         self.on_recapture()
         #self._n_times_run = 0
     def opt_update_frq(self):
@@ -81,8 +86,8 @@ class TuningWindow(QMainWindow):
         QMessageBox.about(self, "About the demo", msg.strip())
     
     def orig_zoom_limits(self):
-        for ini_val, w in [('9700000',self.textbox1),
-                ('9900000',self.textbox2)]:
+        for ini_val, w in [('9819000',self.textbox1),
+                ('9822000',self.textbox2)]:
             w.setText(ini_val)
             w.setMinimumWidth(8)
             w.editingFinished.connect(self.on_textchange)
@@ -130,6 +135,7 @@ class TuningWindow(QMainWindow):
         QMessageBox.information(self, "Click!", msg)
     
     def generate_data(self):
+        print("NOW I AM IN GENERATE DATA")
         print("slider min",
                 self.slider_min.value(),
                 "slider max",
@@ -141,13 +147,20 @@ class TuningWindow(QMainWindow):
                 self.slider_min.value():
                 self.slider_max.value():
                 15j])
+        print("CALLING FREQ_SWEEP IN B12 WITH THESE KWARGS")
+        print(self.x[-1]*1e3)
         temp, tx = self.B12.freq_sweep(self.x[-1]*1e3)
+        print("FREQ_SWEEP RETURNED THIS TEMP")
+        print(temp)
+        print("FREQ_SWEEP RETURNED THIS TX")
+        print(tx)
         self.line_data.append(temp)
         if hasattr(self,'interpdata'):
             del self.interpdata
             del self.dip_frq_GHz
         return
     def on_recapture(self):
+        print("NOW I AM IN ON_RECAPTURE")
         self.generate_data()
         self.regen_plots()
         return
@@ -370,13 +383,19 @@ class TuningWindow(QMainWindow):
 
 def main():
     myconfig = SpinCore_pp.configuration("active.ini")
+    print("configured")
     app = QApplication(sys.argv)
     with Bridge12() as b:
+        print("AFTER BRIDGE12 INSTANCE IN MAIN")
         b.set_wg(True)
+        print("AFTER SET WG")
         b.set_rf(True)
+        print("AFTER SET RF")
         b.set_amp(True)
+        print("AFTER SET AMP")
         time.sleep(5)
         b.set_power(10.0)
+        print("AFTER SET POWER")
         tunwin = TuningWindow(b)
         tunwin.show()
         app.exec_()

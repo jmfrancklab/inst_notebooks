@@ -56,23 +56,24 @@ class Bridge12 (Serial):
         self.tuning_curve_data = {}
         self._inside_with_block = False
         self.fit_data = {}
-        print("init done")
     def bridge12_wait(self):
         #time.sleep(5)
         def look_for(this_str):
             for j in range(1000):
-                a = self.read_until(this_str+'\r\n'.encode('utf-8'))
+                a = self.read_until((this_str+'\r\n').encode('utf-8')).decode('utf-8')
                 time.sleep(0.1)
-                logger.debug("look for "+(this_str).decode('utf-8')+" try"+str(j+1))
+                logger.debug("look for "+this_str+" try"+str(j+1))
                 if this_str in a:
-                    logger.debug("found: "+this_str.decode('utf-8'))
+                    logger.debug("found: "+this_str)
                     break
-        look_for('MPS Started'.encode('utf-8'))
+        look_for('MPS Started')
         print("MPS Started")
-        look_for('System Ready'.encode('utf-8'))
+        look_for('System Ready')
         print("System Ready")
-        look_for('Synthesizer detected'.encode('utf-8'))
+        look_for('Synthesizer detected')
         print("Synthesizer detected")
+        look_for("Power updated")
+        print("Power updates")  
         return
     def help(self):
         self.write(b"help\r") #command for "help"
@@ -90,7 +91,6 @@ class Bridge12 (Serial):
                 grab_more_lines = False
         logger.info(repr(entire_response))
     def wgstatus_int_singletry(self):
-        self.readline()
         self.write(b'wgstatus?\r')
         return int((self.readline()).decode('utf-8'))
     def wgstatus_int(self):
@@ -190,6 +190,7 @@ class Bridge12 (Serial):
                 return
         raise RuntimeError("After checking status 10 times, I can't get the mw power to turn on/off")
     def power_int_singletry(self):
+        self.readline()
         self.write(b'power?\r')
         return int(self.readline())
     def power_float(self):
@@ -239,6 +240,8 @@ class Bridge12 (Serial):
             if setting > 30+self.cur_pwr_int: 
                 raise RuntimeError("Once you are above 10 dBm, you must raise the power in MAX 3 dB increments.  The power is currently %g, and you tried to set it to %g -- this is not allowed!"%(self.cur_pwr_int/10.,setting/10.))
         self.write(b'power %d\r'%setting)
+        retval = self.readline().decode()
+        assert "Power updated" in retval
         if setting > 0: self.rxpowerdbm_float() # doing this just for safety interlock
         for j in range(10):
             result = self.power_int()
@@ -253,11 +256,11 @@ class Bridge12 (Serial):
             "dBm")%(setting,result))
     def rxpowerdbm_float(self):
         "retrieve rx power in dBm"
-        retval = self.write(b'rxpowerdbm?\r')
+        self.write(b'rxpowerdbm?\r')
+        retval = int(self.readline().strip())
         assert retval < self.safe_rx_level_int # safety interlock
         return retval/10.0 # above is in units of 10*dBm, return as dBm
     def txpowerdbm_int_singletry(self):
-        self.readline()
         self.write(b'txpowerdbm?\r')
         return int(self.readline())
     def txpowerdbm_float(self):
@@ -290,7 +293,6 @@ class Bridge12 (Serial):
             assert Hz >= self.freq_bounds[0], "You are trying to set the frequency outside the frequency bounds, which are: "+str(self.freq_bounds)
             assert Hz <= self.freq_bounds[1], "You are trying to set the frequency outside the frequency bounds, which are: "+str(self.freq_bounds)
         setting = int(Hz/1e3+0.5)
-        self.readline()
         self.write(b'freq %d\r'%(setting))
         if self.freq_int() != setting:
             for j in range(10):
@@ -303,9 +305,9 @@ class Bridge12 (Serial):
         return self.freq_int()*1e3
     def freq_int(self):
         "return the frequency, in kHz (since it's set as an integer kHz)"
-        self.readline()
-        self.write(b'freq?\r')
         for j in range(10):
+            self.readline()
+            self.write(b'freq?\r')
             retval = self.readline()
             if retval.startswith(b'E001'):
                 print("Got error E001, trying again")
