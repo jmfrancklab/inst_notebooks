@@ -48,7 +48,6 @@ class TuningWindow(QMainWindow):
         self.timer.timeout.connect(self.opt_update_frq)
         self.timer.start(1000)
         self.on_recapture()
-        self.has_been_locked_on_dip = False
         #self._n_times_run = 0
     def opt_update_frq(self):
         # if I'm in frequency mode, then update and redraw
@@ -148,49 +147,9 @@ class TuningWindow(QMainWindow):
             delattr(self,'interpdata')
             delattr(self,'dip_frq_GHz')
         return
-    def dip_lock(self):
-        "run the dip lock routine from bridge12"
-        # note that the 1e3 here comes from the conversion between SI frequencies and the integer slider bar values (i.e. kHz)
-        if not self.has_been_locked_on_dip:
-            print('----------------------- about to call dip lock')
-            _ = self.B12.lock_on_dip(ini_range = (float(self.slider_min.value()*1e3),float(self.slider_max.value()*1e3)))
-            self.has_been_locked_on_dip = True
-        print('----------------------- about to call zoom')
-        _, _, thisfrq = self.B12.zoom(n_freq_steps=8)
-        for o,v in [
-                (self.slider_min, int(self.B12.freq_bounds[0]/1e3+0.5)),
-                (self.slider_max, int(self.B12.freq_bounds[1]/1e3+0.5)),
-                ]:
-            o.setValue(v)
-            o.update()
-        for thiskey in [j for j in self.B12.tuning_curve_data.keys() if '_rx' in j]:
-            self.x.append(self.B12.tuning_curve_data[thiskey.replace('_rx','_freq')]/1e3)
-            self.line_data.append(self.B12.tuning_curve_data[thiskey])
-        if hasattr(self,'interpdata'):
-            # if there is interpolated data, it will use that to set the frequency at the end, but we want it to use the zomo data
-            delattr(self,'interpdata')
-            delattr(self,'dip_frq_GHz')
-        self.dip_frq_GHz = thisfrq/1e9
-        print("I set dip_frq_GHz to",self.dip_frq_GHz,hasattr(self,'dip_frq_GHz'))
-        print("inside dip lock -- interpdata?",hasattr(self,'interpdata'))
-        return
     def on_recapture(self):
-        if hasattr(self,'dip_frq_GHz'):
-            del self.dip_frq_GHz
-        if hasattr(self,'interpdata'):
-            del self.interpdata
         self.generate_data()
         self.regen_plots()
-        return
-    def on_dip_lock(self):
-        print("start diplock")
-        self.dip_lock()
-        print("end diplock")
-        print("interpdata?",hasattr(self,'interpdata'))
-        print("start regen_plots")
-        print("interpdata?",hasattr(self,'interpdata'))
-        self.regen_plots()
-        print("end regen_plots")
         return
     def regen_plots(self):
         """ Redraws the figure
@@ -230,12 +189,9 @@ class TuningWindow(QMainWindow):
                         alpha=0.5*(j+1)/len(self.line_data))
             # {{{ for the last trace, interpolate, and find the min
             if hasattr(self, 'interpdata'):
-                print('yes, I have interpdata')
                 xx, yy = self.interpdata
                 dip_frq_GHz = self.dip_frq_GHz
-                self.axes.plot(xx/1e6, yy, 'r', alpha=0.5)
-            elif not hasattr(self, 'dip_frq_GHz'):
-                print('no interpdata, and no center freq')
+            else:
                 x,y = self.x[-1], self.line_data[-1]
                 minidx = np.argmin(y)
                 zoomidx = np.r_[minidx-2:minidx+3]
@@ -258,12 +214,10 @@ class TuningWindow(QMainWindow):
                 self.interpdata = xx, yy
                 self.dip_frq_GHz = dip_frq_GHz
                 # }}}
-                self.axes.plot(xx/1e6, yy, 'r', alpha=0.5)
-            else:
-                print("no interpdata, but a center frequency")
+            self.axes.plot(xx/1e6, yy, 'r', alpha=0.5)
             self.axes.set_xlabel(r'$\nu_{B12}$ / GHz')
             self.axes.set_ylabel(r'Rx / mV')
-            self.axes.axvline(x=self.dip_frq_GHz, ls='--', c='r')
+            self.axes.axvline(x=dip_frq_GHz, ls='--', c='r')
             self.myconfig['uw_dip_center_GHz'] = self.dip_frq_GHz
             self.myconfig['carrierfreq_mhz'] = self.dip_frq_GHz * self.myconfig['guessed_mhz_to_ghz']
             self.myconfig.write()
@@ -321,10 +275,6 @@ class TuningWindow(QMainWindow):
         self.zoom_button = QPushButton("&Zoom Limits")
         self.zoom_button.clicked.connect(self.on_zoomclicked)
         self.button_vbox.addWidget(self.zoom_button)
-        slider_label = QLabel('Bar width (%):')
-        self.dip_lock_button = QPushButton("&dip lock\nincrease power")
-        self.dip_lock_button.clicked.connect(self.on_dip_lock)
-        self.button_vbox.addWidget(self.dip_lock_button)
         # }}}
 
         
@@ -340,6 +290,8 @@ class TuningWindow(QMainWindow):
         self.boxes_vbox.addWidget(self.fmode_cb)
         # }}}
         
+        slider_label = QLabel('Bar width (%):')
+
         # {{{ box to stack sliders
         self.slider_vbox = QVBoxLayout()
         self.slider_vbox.setContentsMargins(0, 0, 0, 0)
