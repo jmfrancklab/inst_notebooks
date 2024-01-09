@@ -207,15 +207,14 @@ class TuningWindow(QMainWindow):
                 xx = np.linspace(x[zoomidx[0]],
                         x[zoomidx[-1]], 100)
                 yy = f(xx)
-                dip_frq_GHz = xx[np.argmin(yy)]/1e6
+                self.dip_frq_GHz = xx[np.argmin(yy)]/1e6
                 self.interpdata = xx, yy
-                self.dip_frq_GHz = dip_frq_GHz
                 # }}}
             self.axes.plot(xx/1e6, yy, 'r', alpha=0.5)
             self.axes.set_xlabel(r'$\nu_{B12}$ / GHz')
             self.axes.set_ylabel(r'Rx / mV')
-            self.axes.axvline(x=dip_frq_GHz, ls='--', c='r')
-            self.B12.set_freq(dip_frq_GHz*1e9) # always do this, so that it should be safe to slightly turn up the power
+            self.axes.axvline(x=self.dip_frq_GHz, ls='--', c='r')
+            self.B12.set_freq(self.dip_frq_GHz*1e9) # always do this, so that it should be safe to slightly turn up the power
             self.axes.set_xlim(self.slider_min.value()/1e6,
                     self.slider_max.value()/1e6)
             self.canvas.draw()
