@@ -445,7 +445,7 @@ class Bridge12 (Serial):
         # }}}
         # {{{ use the parabola fit to determine the new "safe" bounds for the next sweep
         safe_rx = 7.0 # dBm, setting based off of values seeing in tests
-        a_new = a - convert_to_mv(safe_rx-dBm_increment) # this allows us to find the x values where a_new+bx+cx^2=safe_rx-dBm_increment
+        a_new = a - (safe_rx-dBm_increment) # this allows us to find the x values where a_new+bx+cx^2=safe_rx-dBm_increment
         safe_crossing = (-b+r_[-sqrt(b**2-4*a_new*c),sqrt(b**2-4*a_new*c)])/2/c
         safe_crossing.sort()
         start_f,stop_f = safe_crossing
@@ -460,6 +460,9 @@ class Bridge12 (Serial):
         # }}}
         # {{{ run the frequency sweep with the new limits
         freq = linspace(start_f,stop_f,n_freq_steps)
+        print("GOING TO TRY AND SET TO THIS POWER")
+        print(dBm_increment+self.cur_pwr_int/10.)
+        input("CAN I SET THIS POWER?")
         self.set_power(dBm_increment+self.cur_pwr_int/10.)
         # with the new time constant added for freq_sweep, should we eliminate fast_run?
         rx, tx = self.freq_sweep(freq, fast_run=True)
