@@ -151,6 +151,7 @@ class Bridge12 (Serial):
                 return
         raise RuntimeError("After checking status 10 times, I can't get the amplifier to turn on/off")
     def rfstatus_int_singletry(self):
+        self.readline()
         self.write(b'rfstatus?\r')
         retval = self.readline()
         if retval.strip().startswith(b'E'):
@@ -189,6 +190,7 @@ class Bridge12 (Serial):
                 return
         raise RuntimeError("After checking status 10 times, I can't get the mw power to turn on/off")
     def power_int_singletry(self):
+        self.readline()
         self.write(b'power?\r')
         return int(self.readline())
     def power_float(self):
@@ -303,8 +305,9 @@ class Bridge12 (Serial):
         return self.freq_int()*1e3
     def freq_int(self):
         "return the frequency, in kHz (since it's set as an integer kHz)"
-        self.write(b'freq?\r')
         for j in range(10):
+            self.readline()
+            self.write(b'freq?\r')
             retval = self.readline()
             if retval.startswith(b'E001'):
                 print("Got error E001, trying again")
