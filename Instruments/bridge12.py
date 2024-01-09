@@ -459,16 +459,17 @@ class Bridge12 (Serial):
         return self.zoom(dBm_increment=2,n_freq_steps=n_freq_steps)
     def zoom(self, dBm_increment=2, n_freq_steps=15):
         """
-        1.  pull the last frequency sweep that was run, and fit it to a 2^nd^ order polynomial:
+        1.  Pull the last frequency sweep that was run, and fit it to a 2^nd^ order polynomial:
             :math:`rx(\\nu) = a+b\\nu+c\\nu^2`
         2.  Use the polynomial to determine the center frequency (:math:`-\\frac{b}{2c}`).
-        3.  Find the intercepts of :math:`rx(\\nu)=rx_{target}`, where :math:`rx_{target}` gives
-            the rx reading that we predict will correspond to
-            the max "safe" level of the rx *after* we have increased by :math:`dBm_{increment}`
-            -- *i.e.* we want the frequency sweep for step 4 here to be conducted at a power that is
-            :math:`dBm_{increment}` higher than where we are now,
-            and over a more limited ("zoomed") range of frequencies.
-        4.  Run a new frequency sweep between the two frequencies where we predict :math:`rx(\\nu)` to be equal to :math:`rx_{safe}`. 
+        3.  Find the roots of :math:`rx(\\nu)-rx_{target}`, where :math:`rx_{target}` gives
+            the rx reading, at the current power setting, that we predict will correspond to
+            the max "safe" level (`safe_rx`) of the rx *after* we have increased by :math:`dBm_{increment}`
+            -- *i.e.* this targets the result noted in step #4
+        4.  Run a new frequency sweep between the two frequencies where we predict :math:`rx(\\nu)` to be equal to :math:`rx_{safe}`.
+            **If everything went well, the new reflection profile will run over a more limited (zoomed) frequency range,
+            starting with a reflection profile corresponding to approximately `safe_rx`, falling to a minimum reflection
+            at `min_f`, and rise back to approximately `safe_rx`**
 
         Return
         ======
