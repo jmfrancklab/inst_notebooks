@@ -98,7 +98,7 @@ class TuningWindow(QMainWindow):
                 ):
             self.orig_zoom_limits()
             self.on_textchange()
-            del self._prevzoomclicked
+            delattr(self,'_prevzoomclicked')
             return
         self.textbox1.setText(self._curzoomclicked[0])
         self.textbox2.setText(self._curzoomclicked[1])
@@ -136,18 +136,17 @@ class TuningWindow(QMainWindow):
                 self.slider_min.value(),
                 "slider max",
                 self.slider_max.value())
-        if len(self.line_data) > 6:
-            self.line_data.pop(0)
-            self.x.pop(0)
-        self.x.append(np.r_[
-                self.slider_min.value():
-                self.slider_max.value():
-                15j])
+        a = self.slider_min.value()
+        b = self.slider_max.value()
+        if hasattr(self.B12,'freq_bounds'):
+            a = a if a > np.ceil(self.B12.freq_bounds[0]/1e3) else np.ceil(self.B12.freq_bounds[0]/1e3)
+            b = b if b < np.floor(self.B12.freq_bounds[-1]/1e3) else np.floor(self.B12.freq_bounds[-1]/1e3)
+        self.x.append(np.r_[a:b:15j])
         temp, tx = self.B12.freq_sweep(self.x[-1]*1e3)
         self.line_data.append(temp)
         if hasattr(self,'interpdata'):
-            del self.interpdata
-            del self.dip_frq_GHz
+            delattr(self,'interpdata')
+            delattr(self,'dip_frq_GHz')
         return
     def dip_lock(self):
         "run the dip lock routine from bridge12"
