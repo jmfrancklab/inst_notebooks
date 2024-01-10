@@ -293,7 +293,6 @@ class Bridge12 (Serial):
             for j in range(10):
                 result = self.freq_int()
                 if result == setting:
-                    print("frequency set to",result)
                     return
             raise RuntimeError("After checking status 10 times, I can't get the "
                            "frequency to change -- result is %d setting is %d"%(result,setting))
