@@ -114,6 +114,7 @@ class Bridge12 (Serial):
         """
         print("SETTING WG...")
         self.write(b'wgstatus %d\r'%setting)
+        self.read_until(b"Power updated\r\n")
         print("SET WG...")
         for j in range(10):
             result = self.wgstatus_int()
@@ -241,9 +242,19 @@ class Bridge12 (Serial):
             "dBm")%(setting,result))
     def rxpowerdbm_float(self):
         "retrieve rx power in dBm"
-        retval = self.robust_int_response(b'rxpowerdbm?\r')
-        assert retval < self.safe_rx_level_int # safety interlock
-        print("rx level",retval/10.0)
+        self.reset_input_buffer()
+        def grab_consist_value():
+            rx_try1 = self.robust_int_response(b'rxpowerdbm?\r')
+            rx_try2 = self.robust_int_response(b'rxpowerdbm?\r')
+            for j in range(20):
+                rx_try3 = self.robust_int_response(b'rxpowerdbm?\r')
+                if abs(rx_try1 - rx_try2)<2 and abs(rx_try2 - rx_try3)<2 and abs(rx_try3-rx_try1)<2:
+                    return (rx_try1+rx_try2+rx_try3)/3.0
+                else:
+                    rx_try1,rx_try2 = rx_try2,rx_try3
+            raise ValueError("I tried 20 times to grab a consistent power, and could not (most recent %f, %f, %f)"%(rx_try1,rx_try2,rx_try3))
+        retval = grab_consist_value()
+        assert retval < self.safe_rx_level_int, "safety interlock triggered"
         return retval/10.0 # above is in units of 10*dBm, return as dBm
     def txpowerdbm_int_singletry(self):
         return self.robust_int_response(b'txpowerdbm?\r')
@@ -352,29 +363,13 @@ class Bridge12 (Serial):
             time.sleep(10e-3) # allow synthesizer to settle
             _ = self.txpowerdbm_float()
             _ = self.rxpowerdbm_float() # 1/8/24: didn't know why this was here, probably for safety interlock
+        time.sleep(1)
+        self.reset_input_buffer()
         for j,f in enumerate(freq):
             generate_beep(500, 300)
             self.set_freq(f)  #is this what I would put here (the 'f')?
-            time.sleep(1) # determined this by making sure 11 dB and 10 dB curves line up
+            rxvalues[j] = self.rxpowerdbm_float()
             txvalues[j] = self.txpowerdbm_float()
-            if fast_run:
-                rxvalues[j] = self.rxpowerdbm_float()
-            else:
-                # we are assuming that in the upgraded mps, there is some amount of internal self-check
-                # of the rxpower dbm measurements, so unlike before, the rxpowerdbm_float function
-                # only reads from the MPS once --
-                # the following line then makes sure that three of the rxpowerdbm_float measurements match
-                def grab_consist_power():
-                    rx_try1 = self.rxpowerdbm_float()
-                    rx_try2 = self.rxpowerdbm_float()
-                    for j in range(20):
-                        rx_try3 = self.rxpowerdbm_float()
-                        if rx_try1 == rx_try2 and rx_try2 == rx_try3:
-                            return rx_try1
-                        else:
-                            rx_try1,rx_try2 = rx_try2,rx_try3
-                    raise ValueError("I tried 20 times to grab a consistent power, and could not (most recent %f, %f, %f)"%(rx_try1,rx_try2,rx_try3))
-                rxvalues[j] = grab_consist_power()
         if self.cur_pwr_int == 100:
             self.frq_sweep_10dBm_has_been_run = True
             # reset the safe rx level to the top of the tuning curve at 10 dBm

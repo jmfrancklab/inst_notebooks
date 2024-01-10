@@ -142,6 +142,7 @@ class TuningWindow(QMainWindow):
             b = b if b < np.floor(self.B12.freq_bounds[-1]/1e3) else np.floor(self.B12.freq_bounds[-1]/1e3)
         self.x.append(np.r_[a:b:15j])
         temp, tx = self.B12.freq_sweep(self.x[-1]*1e3)
+        #self.line_data.append(10**(temp/10.0))
         self.line_data.append(temp)
         if hasattr(self,'interpdata'):
             delattr(self,'interpdata')
@@ -216,7 +217,7 @@ class TuningWindow(QMainWindow):
                 # }}}
             self.axes.plot(xx/1e6, yy, 'r', alpha=0.5)
             self.axes.set_xlabel(r'$\nu_{B12}$ / GHz')
-            self.axes.set_ylabel(r'Rx / mV')
+            self.axes.set_ylabel(r'Rx / dBm')
             self.axes.axvline(x=dip_frq_GHz, ls='--', c='r')
             self.myconfig['uw_dip_center_GHz'] = self.dip_frq_GHz
             self.myconfig['carrierfreq_mhz'] = self.dip_frq_GHz * self.myconfig['guessed_mhz_to_ghz']
