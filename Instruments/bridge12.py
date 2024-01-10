@@ -91,8 +91,7 @@ class Bridge12 (Serial):
                 grab_more_lines = False
         logger.info(repr(entire_response))
     def wgstatus_int_singletry(self):
-        self.write(b'wgstatus?\r')
-        return int((self.readline()).decode('utf-8'))
+        return self.robust_int_response(b'wgstatus?\r')
     def wgstatus_int(self):
         "need two consecutive responses that match"
         c = self.wgstatus_int_singletry()
@@ -122,8 +121,7 @@ class Bridge12 (Serial):
                 return
         raise RuntimeError("After checking status 10 times, I can't get the waveguide to change")
     def ampstatus_int_singletry(self):
-        self.write(b'ampstatus?\r')
-        return int(self.readline())
+        return self.robust_int_response(b'ampstatus?\r')
     def ampstatus_int(self):
         "need two consecutive responses that match"
         a = self.ampstatus_int_singletry()
@@ -151,19 +149,7 @@ class Bridge12 (Serial):
                 return
         raise RuntimeError("After checking status 10 times, I can't get the amplifier to turn on/off")
     def rfstatus_int_singletry(self):
-        self.readline()
-        self.write(b'rfstatus?\r')
-        retval = self.readline()
-        if retval.strip().startswith(b'E'):
-            logger.info("got an error from rfstatus, trying again")
-            self.write(b'rfstatus?\r')
-            retval = self.readline()
-            if retval.strip().startswith(b'E'):
-                logger.info("got another error from rfstatus, trying again")
-                retval = self.readline()
-                if retval.strip().startswith(b'E'):
-                    raise RuntimeError("Tried to read rfstatus twice, and got 'ERROR' both times!!")
-        return int(retval)
+        return self.robust_int_response(b'rfstatus?\r')
     def rfstatus_int(self):
         "need two consecutive responses that match"
         f = self.rfstatus_int_singletry()
@@ -190,8 +176,7 @@ class Bridge12 (Serial):
                 return
         raise RuntimeError("After checking status 10 times, I can't get the mw power to turn on/off")
     def power_int_singletry(self):
-        self.write(b'power?\r')
-        return int(self.readline())
+        return self.robust_int_response(b'power?\r')
     def power_float(self):
         return self.power_int()/10
     def power_int(self):
@@ -210,6 +195,7 @@ class Bridge12 (Serial):
         conditions before proceeding."""
         setting = int(10*round(dBm*2)/2.+0.5)
         self.write(b'power %d\r'%setting)
+        retval = self.readline().decode()
     def set_power(self,dBm):
         """set *and check* power.  On successful completion, set `self.cur_pwr_int` to 10*(power in dBm).
 
@@ -239,8 +225,8 @@ class Bridge12 (Serial):
             if setting > 30+self.cur_pwr_int: 
                 raise RuntimeError("Once you are above 10 dBm, you must raise the power in MAX 3 dB increments.  The power is currently %g, and you tried to set it to %g -- this is not allowed!"%(self.cur_pwr_int/10.,setting/10.))
         self.write(b'power %d\r'%setting)
-        retval = self.readline().decode()
-        assert "Power updated" in retval
+        #retval = self.readline().decode()
+        self.read_until(b"Power updated\r\n")
         if setting > 0: self.rxpowerdbm_float() # doing this just for safety interlock
         for j in range(10):
             result = self.power_int()
@@ -255,13 +241,12 @@ class Bridge12 (Serial):
             "dBm")%(setting,result))
     def rxpowerdbm_float(self):
         "retrieve rx power in dBm"
-        self.write(b'rxpowerdbm?\r')
-        retval = int(self.readline().strip())
+        retval = self.robust_int_response(b'rxpowerdbm?\r')
         assert retval < self.safe_rx_level_int # safety interlock
+        print("rx level",retval/10.0)
         return retval/10.0 # above is in units of 10*dBm, return as dBm
     def txpowerdbm_int_singletry(self):
-        self.write(b'txpowerdbm?\r')
-        return int(self.readline())
+        return self.robust_int_response(b'txpowerdbm?\r')
     def txpowerdbm_float(self):
         "need two consecutive responses that match"
         for j in range(3):
@@ -297,25 +282,40 @@ class Bridge12 (Serial):
             for j in range(10):
                 result = self.freq_int()
                 if result == setting:
+                    print("frequency set to",result)
                     return
             raise RuntimeError("After checking status 10 times, I can't get the "
                            "frequency to change -- result is %d setting is %d"%(result,setting))
     def get_freq(self):
         return self.freq_int()*1e3
-    def freq_int(self):
-        "return the frequency, in kHz (since it's set as an integer kHz)"
+    def robust_int_response(self,cmd,numtries=10):
         for j in range(10):
-            self.readline()
-            self.write(b'freq?\r')
+            success = False
+            self.write(cmd)
             retval = self.readline()
             if retval.startswith(b'E001'):
                 print("Got error E001, trying again")
             elif len(retval) == 0:
                 print("Got an empty string")
             else:
-                return int(retval)
-        raise ValueError("I tried running 10 times and couldn't get a frequency!!!")
-    def freq_sweep(self,freq,dummy_readings=1,fast_run=True):
+                try:
+                    retval = int(retval)
+                    success = True
+                except:
+                    print("WARNING (robust try",j,"): B12 is spewing garbage!!: \""+retval.decode()+'"')
+            if success:
+                return retval
+            else:
+                self.reset_input_buffer() # we want to be able to change the power using the MPS front panel,
+                #                           and when we do this, the MPS likes to spew garbage
+                #                           NOTE: I can check for stuff by looking at in_waiting,
+                #                                 but I need to remember that it takes time after a write
+                #                                 command for stuff to move into the buffer
+        raise ValueError("I tried running 10 times and couldn't get an integer!!!")
+    def freq_int(self):
+        "return the frequency, in kHz (since it's set as an integer kHz)"
+        return self.robust_int_response(b'freq?\r')
+    def freq_sweep(self,freq,dummy_readings=1,fast_run=False):
         """Sweep over an array of frequencies.
         **Must** be run at 10 dBm the first time around; will fail otherwise.
 
@@ -336,6 +336,7 @@ class Bridge12 (Serial):
         txvalues: array
             An array of floats, same length as freq, containing the transmitted power in dBm at each frequency.
         """    
+        self.write(b"screen 2\r") # change to the screen that shows the reflection
         rxvalues = zeros(len(freq))
         txvalues = zeros(len(freq))
         if not self.frq_sweep_10dBm_has_been_run:
@@ -354,7 +355,7 @@ class Bridge12 (Serial):
         for j,f in enumerate(freq):
             generate_beep(500, 300)
             self.set_freq(f)  #is this what I would put here (the 'f')?
-            time.sleep(1e-3) # determined this by making sure 11 dB and 10 dB curves line up
+            time.sleep(1) # determined this by making sure 11 dB and 10 dB curves line up
             txvalues[j] = self.txpowerdbm_float()
             if fast_run:
                 rxvalues[j] = self.rxpowerdbm_float()
@@ -519,6 +520,7 @@ class Bridge12 (Serial):
             print("original error:")
             print(e)
             self.write(b'power %d\r'%0)
+            self.readline() # gobble power string
             self.write(b'rfstatus %d\r'%0)
             self.write(b'wgstatus %d\r'%0)
             self.close()
@@ -531,6 +533,7 @@ class Bridge12 (Serial):
             print("original error:")
             print(e)
             self.write(b'power %d\r'%0)
+            self.readline() # gobble power string
             self.write(b'rfstatus %d\r'%0)
             self.write(b'wgstatus %d\r'%0)
             self.close()
@@ -542,6 +545,7 @@ class Bridge12 (Serial):
             print("original error:")
             print(e)
             self.write(b'power %d\r'%0)
+            self.readline() # gobble power string
             self.write(b'rfstatus %d\r'%0)
             self.write(b'wgstatus %d\r'%0)
             self.close()
