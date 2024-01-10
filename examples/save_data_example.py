@@ -1,82 +1,70 @@
 """
-test of logging
-===============
+test of dip locking and logging
+===============================
 
-This test of the logging mimics an ODNP field sweep experiment.
-
-# you need to say exactly which pulse program in the spincore repo it's derived from
+This is roughly derived from the combined_ODNP.py example in SpinCore. Similar in fashion, the script generates a power list, and loops through each power generating fake data using the run_scans function defined below. At each power the "data" records the start and stop times that will correspond to the times and powers inside the log allowing one to average over each power step. 
 """
 from numpy import *
 from numpy.random import rand
 from pyspecdata import *
+from pyspecdata.file_saving.hdf_save_dict_to_group import hdf_save_dict_to_group
+import SpinCore_pp
+from SpinCore_pp.power_helper import Ep_spacing_from_phalf
 from Instruments import *
-import os
-import sys
-import time
+import os,sys,time
 import random
 import h5py
-long_delay = 0.18 # 0.1 gives 205k, we need 300k for failure, 0.18 gives failure with total log len of 16446, total size 527349
-short_delay = 1e-4
-def gen_powerlist(max_power, steps, min_dBm_step=0.5):
-    "generate a list of (roughly) evenly spaced powers up to max_power"
-    lin_steps = steps
-    def det_allowed(lin_steps):
-        powers = r_[0:max_power:1j*lin_steps][1:]
-        vectorize(powers)
-        rdB_settings = ones_like(powers)
-        for x in range(len(powers)):
-            rdB_settings[x] = round(10*(log10(powers[x])+3.0)/min_dBm_step)*min_dBm_step # round to nearest min_dBm_step
-        return unique(rdB_settings)
-    dB_settings = det_allowed(lin_steps)
-    while len(dB_settings) < steps-1:
-        lin_steps += 1
-        dB_settings = det_allowed(lin_steps)
-        if lin_steps >= 200:
-            raise ValueError("I think I'm in an infinite loop -- maybe you"
-                    "can't request %d steps between 0 and %f W without going"
-                    "below %f a step?")%(steps,max_power,min_dBm_step)
-    return dB_settings
-max_power = 4
-power_steps = 25
+from datetime import datetime
+
+# {{{create filename and save to config file
+config_dict = SpinCore_pp.configuration("active.ini")
+date = datetime.now().strftime("%y%m%d")
+config_dict["type"] = "test_B12_log"
+config_dict["date"] = date
+filename = f"{config_dict['date']}_{config_dict['chemical']}_{config_dict['type']}.h5"
+target_directory = getDATADIR(exp_type="ODNP_NMR_comp/test_equipment")
+# }}}
+# {{{set phase cycling
+ph1_cyc = r_[0, 1, 2, 3]
+ph2_cyc = r_[0]
+nPhaseSteps = len(ph1_cyc)*len(ph2_cyc)
+#}}}
 #{{{ params for Bridge 12/power
-dB_settings = gen_powerlist(4,25.0)
+dB_settings = Ep_spacing_from_phalf(
+        est_phalf = 0.2,
+        max_power = config_dict['max_power'],
+        p_steps = config_dict['power_steps']+1,
+        min_dBm_step = config_dict['min_dBm_step'],
+        three_down = True)
 powers =1e-3*10**(dB_settings/10.)
 nPoints = 2048
-nEchoes = 1
+short_delay = 0.5
+long_delay = 5
 #}}}
-#{{{ time of pulse prog
-DNP_data = None
-#{{{ pulse prog
-def run_scans(nScans, power_idx, field_idx, DNP_data=None):
-    ph1_cyc = r_[0,1,2,3]
-    ph2_cyc = r_[0]
+#{{{ function that generates fake data with two indirect dimensions
+def run_scans(nScans, indirect_idx, indirect_len, nEchoes, indirect_fields = None, ret_data=None):
     nPhaseSteps = len(ph1_cyc)*len(ph2_cyc)
     data_length = 2*nPoints*nEchoes*nPhaseSteps
-    for x in range(nScans):
+    for nScans_idx in range(nScans):
         raw_data = np.random.random(data_length) + np.random.random(data_length) * 1j
-        data_array = complex128(raw_data[0::2]+1j*raw_data[1::2])
-        dataPoints = int(shape(data_array)[0])
-        if DNP_data is None and power_idx ==0 and field_idx == 0:
-            time_axis = linspace(0.0,1*nPhaseSteps*85.3*1e-3,dataPoints)
-            DNP_data = ndshape([len(powers),len(r_[3501:3530:0.1]),1,dataPoints],['power','field','nScans','t']).alloc(dtype=complex128)
-            DNP_data.setaxis('power',r_[powers]).set_units('W')
-            DNP_data.setaxis('field',r_[3501:3530:0.1]).set_units('G')
-            DNP_data.setaxis('t',time_axis).set_units('t','s')
-            DNP_data.setaxis('nScans',r_[0:1])
-            DNP_data.name("node_name")
-        DNP_data['power',power_idx]['field',field_idx]['nScans',x] = data_array
-        if nScans > 1:
-            DNP_data.setaxis('nScans',r_[0:1])
-        return DNP_data
+        data_array = []
+        data_array[::] = complex128(raw_data[0::2]+1j*raw_data[1::2])
+        dataPoints = float(shape(data_array)[0])
+        if ret_data is None:
+            times_dtype = dtype(
+                    [(indirect_fields[0],double),(indirect_fields[1],double)]
+            )
+            mytimes = zeros(indirect_len,dtype = times_dtype)
+            time_axis =  r_[0:dataPoints] / (3.9 * 1e3)
+            ret_data = ndshape(
+                    [indirect_len,nScans,len(time_axis)],["indirect","nScans","t"]).alloc(dtype=complex128)
+            ret_data.setaxis('indirect',mytimes)
+            ret_data.setaxis('t',time_axis).set_units('t','s')
+            ret_data.setaxis('nScans',r_[0:nScans])
+        ret_data['indirect',indirect_idx]['nScans',nScans_idx] = data_array
+    return ret_data
 #}}}
-
-#}}}
-#{{{where error occurs
-meter_powers = zeros_like(dB_settings)
-carrierFreqs_MHz = zeros_like(r_[3501:3530:0.1], dtype=float)
-# define the array of fields once, at the beginning of the file!
-fields_Set = zeros_like(r_[3501:3530:0.1],dtype=float)
-
+power_settings_dBm = zeros_like(dB_settings)
 with power_control() as p:
     for j,this_dB in enumerate(dB_settings):
         print("I'm going to pretend to run",this_dB,"dBm")
@@ -86,24 +74,48 @@ with power_control() as p:
         p.set_power(this_dB)
         for k in range(10):
             time.sleep(short_delay)
-            if p.get_power_setting() >= this_dB: break
+            if p.get_power_setting() >= this_dB: 
+                break
         time.sleep(long_delay)
-        meter_powers[j] = p.get_power_setting()
-        if True:
-            # the following seems unrealistic for a field sweep -- what's
-            # up with that?
-            for B0_index,desired_B0 in enumerate(r_[3501:3530:1]):
-                #carrierFreq_MHz = rand()
-                carrierFreqs_MHz[B0_index] = rand()
-                fields_Set[B0_index] = rand()
-                time.sleep(short_delay)
-                if True:
-                    DNP_data = run_scans(1,j,B0_index,DNP_data)
-                    time.sleep(long_delay)
-    log_array, log_dict = p.stop_log()# where error occurred originally!
-print("EXITING...")    
-#}}}
+        power_settings_dBm[j] = p.get_power_setting()
+        DNP_ini_time = time.time()
+        if j == 0: 
+            retval = p.dip_lock(
+                config_dict['uw_dip_center_GHz'] - config_dict['uw_dip_width_GHz'] / 2,
+                config_dict['uw_dip_center_GHz'] + config_dict['uw_dip_width_GHz'] / 2,
+            ) #needed to set powers above 10 dBm - in future we plan on debugging so this is not needed
+            DNP_data = run_scans(
+                    nScans = config_dict['nScans'],
+                    indirect_idx=j,
+                    indirect_len=len(powers),
+                    nEchoes=config_dict["nEchoes"],
+                    indirect_fields=("start_times", "stop_times"),
+                    ret_data=None,
+                    )
+        else:
+            run_scans(
+                    nScans = config_dict['nScans'],
+                    indirect_idx=j,
+                    indirect_len=len(powers),
+                    nEchoes=config_dict["nEchoes"],
+                    indirect_fields=("start_times", "stop_times"),
+                    ret_data=DNP_data,
+                    )
+        DNP_done = time.time()
+        if j == 0:
+            time_axis_coords = DNP_data.getaxis("indirect")
+        time_axis_coords[j]['start_times'] = DNP_ini_time
+        time_axis_coords[j]['stop_times'] = DNP_done
+    DNP_data.name("nodename_test")
+    nodename = DNP_data.name()
+    try:
+        DNP_data.hdf5_write(filename,directory=target_directory)
+    except:
+        if os.path.exists("temp.h5"):
+            os.remove("temp.h5")
+            DNP_data.hdf5_write("temp.h5")
+    this_log = p.stop_log()        
+with h5py.File(os.path.normpath(os.path.join(target_directory, filename)),"a") as f:
+    log_grp = f.create_group("log")
+    hdf_save_dict_to_group(log_grp,this_log.__getstate__())
 
-# save the log, like in the other examples (copy/paste) -- actually call it the
-# same thing, so that we can just use the example that reads + displays the
-# logfile directly
