@@ -56,6 +56,7 @@ class Bridge12 (Serial):
         self.tuning_curve_data = {}
         self._inside_with_block = False
         self.fit_data = {}
+        print("init done")
     def bridge12_wait(self):
         #time.sleep(5)
         def look_for(this_str):
@@ -226,7 +227,6 @@ class Bridge12 (Serial):
             if setting > 30+self.cur_pwr_int: 
                 raise RuntimeError("Once you are above 10 dBm, you must raise the power in MAX 3 dB increments.  The power is currently %g, and you tried to set it to %g -- this is not allowed!"%(self.cur_pwr_int/10.,setting/10.))
         self.write(b'power %d\r'%setting)
-        #retval = self.readline().decode()
         self.read_until(b"Power updated\r\n")
         if setting > 0: self.rxpowerdbm_float() # doing this just for safety interlock
         for j in range(10):
@@ -241,7 +241,7 @@ class Bridge12 (Serial):
             "keeps replying saying that it's set to %d/10"
             "dBm")%(setting,result))
     def rxpowerdbm_float(self):
-        "retrieve rx power in dBm"
+        """read the integer value for the Rx power."
         self.reset_input_buffer()
         def grab_consist_value():
             rx_try1 = self.robust_int_response(b'rxpowerdbm?\r')
@@ -449,7 +449,8 @@ class Bridge12 (Serial):
         # {{{ fit the mV values
         # start by pulling the data from the last tuning curve
         rx, tx, freq = [self.tuning_curve_data[self.last_sweep_name + '_' + j] for j in ['rx','tx','freq']]
-        c,b,a = polyfit(freq,rx,2)
+        p = polyfit(freq,rx,2)
+        c,b,a = p 
         # polynomial of form a+bx+cx^2
         self.fit_data[self.last_sweep_name + '_func'] = lambda x: a+b*x+c*x**2
         self.fit_data[self.last_sweep_name + '_range'] = freq[r_[0,-1]]
@@ -474,8 +475,6 @@ class Bridge12 (Serial):
         # }}}
         # {{{ run the frequency sweep with the new limits
         freq = linspace(start_f,stop_f,n_freq_steps)
-        print("GOING TO TRY AND SET TO THIS POWER")
-        print(dBm_increment+self.cur_pwr_int/10.)
         self.set_power(dBm_increment+self.cur_pwr_int/10.)
         # with the new time constant added for freq_sweep, should we eliminate fast_run?
         rx, tx = self.freq_sweep(freq, fast_run=True)
@@ -487,9 +486,7 @@ class Bridge12 (Serial):
         min_f = freq[rx.argmin()]
         if abs(center - min_f)>0.2e6:
             center = min_f
-            print("set center to min_f")
         self.set_freq(center)
-        print("at end of zoom, set center to %f"%center)
         return rx, tx, center
     def __enter__(self):
         self.bridge12_wait()
