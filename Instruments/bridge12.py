@@ -73,7 +73,7 @@ class Bridge12 (Serial):
         look_for('Synthesizer detected')
         print("Synthesizer detected")
         look_for("Power updated")
-        print("Power updates")  
+        print("Power updated")  
         return
     def help(self):
         self.write(b"help\r") #command for "help"
