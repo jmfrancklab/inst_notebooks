@@ -142,7 +142,6 @@ class TuningWindow(QMainWindow):
             b = b if b < np.floor(self.B12.freq_bounds[-1]/1e3) else np.floor(self.B12.freq_bounds[-1]/1e3)
         self.x.append(np.r_[a:b:15j])
         temp, tx = self.B12.freq_sweep(self.x[-1]*1e3)
-        #self.line_data.append(10**(temp/10.0))
         self.line_data.append(temp)
         if hasattr(self,'interpdata'):
             delattr(self,'interpdata')
