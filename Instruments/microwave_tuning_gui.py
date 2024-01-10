@@ -210,14 +210,13 @@ class TuningWindow(QMainWindow):
                 xx = np.linspace(x[zoomidx[0]],
                         x[zoomidx[-1]], 100)
                 yy = f(xx)
-                dip_frq_GHz = xx[np.argmin(yy)]/1e6
+                self.dip_frq_GHz = xx[np.argmin(yy)]/1e6
                 self.interpdata = xx, yy
-                self.dip_frq_GHz = dip_frq_GHz
                 # }}}
             self.axes.plot(xx/1e6, yy, 'r', alpha=0.5)
             self.axes.set_xlabel(r'$\nu_{B12}$ / GHz')
             self.axes.set_ylabel(r'Rx / dBm')
-            self.axes.axvline(x=dip_frq_GHz, ls='--', c='r')
+            self.axes.axvline(x=self.dip_frq_GHz, ls='--', c='r')
             self.myconfig['uw_dip_center_GHz'] = self.dip_frq_GHz
             self.myconfig['carrierfreq_mhz'] = self.dip_frq_GHz * self.myconfig['guessed_mhz_to_ghz']
             self.myconfig.write()
