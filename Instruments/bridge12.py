@@ -241,7 +241,7 @@ class Bridge12 (Serial):
             "keeps replying saying that it's set to %d/10"
             "dBm")%(setting,result))
     def rxpowerdbm_float(self):
-        """read the integer value for the Rx power."
+        """read the integer value for the Rx power."""
         self.reset_input_buffer()
         def grab_consist_value():
             rx_try1 = self.robust_int_response(b'rxpowerdbm?\r')
@@ -299,6 +299,11 @@ class Bridge12 (Serial):
     def get_freq(self):
         return self.freq_int()*1e3
     def robust_int_response(self,cmd,numtries=10):
+        """Sends the command/query to the B12 and asks for a response. Because there is a new "Power updated" that is periodically fed into the buffer by the B12, there is a check to see if the returned message is an integer and if not (implying it is extra "Power updated" nonsense) it resets the input buffer and moves to the desired integer value"""
+        if self.in_waiting > 0:
+            temp = self.read(self.in_waiting)
+            print("WARNING, I found junk in the buffer:",temp)
+        self.reset_input_buffer()    
         for j in range(10):
             success = False
             self.write(cmd)
