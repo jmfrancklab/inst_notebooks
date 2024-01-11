@@ -424,12 +424,15 @@ class Bridge12 (Serial):
                     rx_dBm = convert_to_power(rx)
                     rx_midpoint = (max(rx_dBm) + min(rx_dBm))/2.0
                     #is the first rx higher than the midpoint (rx of dip/2)? If not this means we are not looking at a dip - ex. if the wg didn't switch on our rx would be a straight line and we would not have a dip
-                    if not (rx_dBm > rx_midpoint)[0]:
-                        self.handle_midpoint_failure()
-                    else:
-                        wg_engaged = True
+                    wg_engaged = True
                 except:
-                    self.handle_midpoint_failure()
+                    result = input("Couldn't find the midpoint; maybe the wg didn't turn on completely. If you'd like me to try again type 'y', if not type 'n' or CTRL-C")
+                    if result.lower().startswith("y"):
+                        wg_engaged = False
+                    else:
+                        self.set_rf(False)
+                        self.set_wg(False)
+                        raise ValueError("The reflection of the first point is the same or lower than the rx of the dip, which doesn't make sense -- check %gdBm_%s"%(10.0,rx))
         else:
             rx,freq = [self.tuning_curve_data['%gdBm_%s'%(10.0,j)] for j in ['rx','freq']]
             rx_dBm = convert_to_power(rx)
