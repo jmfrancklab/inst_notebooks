@@ -367,7 +367,6 @@ class Bridge12 (Serial):
             time.sleep(10e-3) # allow synthesizer to settle
             _ = self.txpowerdbm_float()
             _ = self.rxpowerdbm_float() # 1/8/24: didn't know why this was here, probably for safety interlock
-        time.sleep(1)
         self.reset_input_buffer()
         for j,f in enumerate(freq):
             generate_beep(500, 300)
