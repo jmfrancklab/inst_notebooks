@@ -514,6 +514,7 @@ class Bridge12 (Serial):
         min_f = freq[rx.argmin()]
         if abs(center - min_f)>0.2e6:
             center = min_f
+            print("New center found to be:",center)
         self.set_freq(center)
         return rx, tx, center
     def __enter__(self):
