@@ -384,14 +384,6 @@ class Bridge12 (Serial):
         self.tuning_curve_data[sweep_name+'_freq'] = freq
         self.last_sweep_name = sweep_name
         return rxvalues, txvalues
-    def handle_midpoint_failure(self):
-        result = input("Couldn't fine the midpoint; maybe the wg didn't turn on completely, try again?")
-        if result.lower().startswith("y"):
-            wg_engaged = False
-        else:
-            self.set_rf(False)
-            self.set_wg(False)
-            raise ValueError("The reflection of the first point is the same or lower than the rx of the dip, which doesn't make sense -- check %gdBm_%s"%(10.0,'rx'))
     def lock_on_dip(self, ini_range=(9.81e9,9.83e9),
             ini_step=0.5e6,# should be half 3 dB width for Q=10,000
             dBm_increment=3, n_freq_steps=15):
@@ -500,7 +492,7 @@ class Bridge12 (Serial):
         # }}}
         # {{{ use the parabola fit to determine the new "safe" bounds for the next sweep
         safe_rx = 7.0 # dBm, setting based off of values seeing in tests
-        a_new = a - (safe_rx-dBm_increment) # this allows us to find the x values where a_new+bx+cx^2=safe_rx-dBm_increment
+        a_new = a - (safe_rx-dBm_increment) # following the docstring above the (safe_rx-dBm_increment is the target rx
         safe_crossing = (-b+r_[-sqrt(b**2-4*a_new*c),sqrt(b**2-4*a_new*c)])/2/c
         safe_crossing.sort()
         start_f,stop_f = safe_crossing
@@ -519,10 +511,6 @@ class Bridge12 (Serial):
         # with the new time constant added for freq_sweep, should we eliminate fast_run?
         rx, tx = self.freq_sweep(freq, fast_run=True)
         # }}}
-        self.freq_bounds = r_[start_f,stop_f]
-        # MISSING -- DO BEFORE MOVING TO HIGHER POWERS!
-        # test to see if any of the powers actually exceed the safety limit
-        # if they do, then contract freq_bounds to include those powers
         min_f = freq[rx.argmin()]
         if abs(center - min_f)>0.2e6:
             center = min_f
