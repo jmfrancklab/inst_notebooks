@@ -241,7 +241,7 @@ class Bridge12 (Serial):
             "keeps replying saying that it's set to %d/10"
             "dBm")%(setting,result))
     def rxpowerdbm_float(self):
-        """read the integer value for the Rx power."
+        """read the integer value for the Rx power."""
         self.reset_input_buffer()
         def grab_consist_value():
             rx_try1 = self.robust_int_response(b'rxpowerdbm?\r')
