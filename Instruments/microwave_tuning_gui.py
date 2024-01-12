@@ -82,6 +82,9 @@ class TuningWindow(QMainWindow):
         QMessageBox.about(self, "About the demo", msg.strip())
     
     def orig_zoom_limits(self):
+        #Typical tuning curve is centered on 9.8193 GHz with a width of 
+        #about 0.003 GHz and a minimum of -1.2 dBm. These limits produce
+        #a plot with the dip centered
         for ini_val, w in [('9816000',self.textbox1),
                 ('9823000',self.textbox2)]:
             w.setText(ini_val)
@@ -300,6 +303,7 @@ class TuningWindow(QMainWindow):
         #self.slider_vbox.setSpacing(0)
         self.slider_min = QSlider(Qt.Horizontal)
         self.slider_max = QSlider(Qt.Horizontal)
+        #original settings of MWtune 
         for ini_val,w in [(9816000,self.slider_min),
                 (9823000,self.slider_max)]:
             self.on_textchange()
