@@ -9,7 +9,6 @@ from numpy.random import rand
 from pyspecdata import *
 from pyspecdata.file_saving.hdf_save_dict_to_group import hdf_save_dict_to_group
 import SpinCore_pp
-from SpinCore_pp.power_helper import Ep_spacing_from_phalf
 from Instruments import *
 import os,sys,time
 import random
@@ -28,12 +27,7 @@ ph1_cyc = r_[0, 1, 2, 3]
 ph2_cyc = r_[0]
 #}}}
 #{{{ params for Bridge 12/power
-dB_settings = Ep_spacing_from_phalf(
-        est_phalf = 0.2,
-        max_power = config_dict['max_power'],
-        p_steps = config_dict['power_steps']+1,
-        min_dBm_step = config_dict['min_dBm_step'],
-        three_down = False)
+dB_settings = round(linspace(0,35,14)/0.5)*0.5
 powers =1e-3*10**(dB_settings/10.)
 nPoints = 2048
 short_delay = 0.5

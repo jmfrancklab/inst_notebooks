@@ -51,7 +51,7 @@ class Bridge12 (Serial):
         # this number represents the highest possible reasonable value for the
         # Rx power -- it is lowered as we observe the Tx values
         # 1/8/24 updated to give as a 10*dBm value
-        self.safe_rx_level_int = 100 # i.e. a 10 dBm threshold
+        self.safe_rx_level_int = 180 # i.e. a 10 dBm threshold
         self.frq_sweep_10dBm_has_been_run = False
         self.tuning_curve_data = {}
         self._inside_with_block = False
