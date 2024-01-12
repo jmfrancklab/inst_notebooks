@@ -431,6 +431,8 @@ class Bridge12 (Serial):
             rx_midpoint = (max(rx_dBm) + min(rx_dBm))/2.0
         assert self.frq_sweep_10dBm_has_been_run, "I should have run the 10 dBm curve -- not sure what happened"
         over_bool = rx_dBm > rx_midpoint # Contains False everywhere rx_dBm is under
+        if not over_bool[0]:
+            raise ValueError("Tuning Curve doesn't start over the midpoint, which doesn't make sense- check %gdBm_%s"%(10.0,'rx'))
         over_diff = r_[0,diff(int32(over_bool))]# should indicate whether this position has lifted over (+1) or dropped under (-1) the midpoint
         over_idx = r_[0:len(over_diff)]
         # store the indices at the start and stop of a dip
@@ -514,7 +516,7 @@ class Bridge12 (Serial):
         min_f = freq[rx.argmin()]
         if abs(center - min_f)>0.2e6:
             center = min_f
-            print("New center found to be:",center)
+            print("WARNING: The center of the dip has moved from the previously measured value of %d. Now it's at %d"%(min_f,center))
         self.set_freq(center)
         return rx, tx, center
     def __enter__(self):
