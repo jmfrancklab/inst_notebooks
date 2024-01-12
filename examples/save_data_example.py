@@ -8,20 +8,15 @@ from numpy import *
 from numpy.random import rand
 from pyspecdata import *
 from pyspecdata.file_saving.hdf_save_dict_to_group import hdf_save_dict_to_group
-import SpinCore_pp
 from Instruments import *
 import os,sys,time
 import random
 import h5py
 from datetime import datetime
 
-# {{{create filename and save to config file
-config_dict = SpinCore_pp.configuration("active.ini")
-config_dict["type"] = "test_B12_log"
-config_dict["date"] = datetime.now().strftime("%y%m%d")
-filename = f"{config_dict['date']}_{config_dict['chemical']}_{config_dict['type']}.h5"
+date = datetime.now().strftime("%y%m%d")
+filename = date+'_'+"test_B12_log.h5"
 target_directory = getDATADIR(exp_type="ODNP_NMR_comp/test_equipment")
-# }}}
 # {{{set phase cycling
 ph1_cyc = r_[0, 1, 2, 3]
 ph2_cyc = r_[0]
@@ -30,14 +25,18 @@ ph2_cyc = r_[0]
 dB_settings = round(linspace(0,35,14)/0.5)*0.5
 powers =1e-3*10**(dB_settings/10.)
 nPoints = 2048
+nEchoes = 1
+nScans = 1
+uw_dip_center_GHz = 9.82
+uw_dip_width_GHz = 0.008
 short_delay = 0.5
 long_delay = 5
 #}}}
 #{{{ function that generates fake data with two indirect dimensions
 def run_scans(indirect_idx, indirect_len, indirect_fields = None, ret_data=None):
     nPhaseSteps = len(ph1_cyc)*len(ph2_cyc)
-    data_length = 2*nPoints*config_dict['nEchoes']*nPhaseSteps
-    for nScans_idx in range(config_dict['nScans']):
+    data_length = 2*nPoints*nEchoes*nPhaseSteps
+    for nScans_idx in range(nScans):
         raw_data = np.random.random(data_length) + np.random.random(data_length) * 1j
         data_array = []
         data_array[::] = complex128(raw_data[0::2]+1j*raw_data[1::2])
@@ -49,10 +48,10 @@ def run_scans(indirect_idx, indirect_len, indirect_fields = None, ret_data=None)
             mytimes = zeros(indirect_len,dtype = times_dtype)
             time_axis =  r_[0:dataPoints] / (3.9 * 1e3)
             ret_data = ndshape(
-                    [indirect_len,config_dict['nScans'],len(time_axis)],["indirect","nScans","t"]).alloc(dtype=complex128)
+                    [indirect_len,nScans,len(time_axis)],["indirect","nScans","t"]).alloc(dtype=complex128)
             ret_data.setaxis('indirect',mytimes)
             ret_data.setaxis('t',time_axis).set_units('t','s')
-            ret_data.setaxis('nScans',r_[0:config_dict['nScans']])
+            ret_data.setaxis('nScans',r_[0:nScans])
         ret_data['indirect',indirect_idx]['nScans',nScans_idx] = data_array
     return ret_data
 #}}}
@@ -73,8 +72,8 @@ with power_control() as p:
         DNP_ini_time = time.time()
         if j == 0: 
             retval = p.dip_lock(
-                config_dict['uw_dip_center_GHz'] - config_dict['uw_dip_width_GHz'] / 2,
-                config_dict['uw_dip_center_GHz'] + config_dict['uw_dip_width_GHz'] / 2,
+                uw_dip_center_GHz - uw_dip_width_GHz / 2,
+                uw_dip_center_GHz + uw_dip_width_GHz / 2,
             ) #needed to set powers above 10 dBm - in future we plan on debugging so this is not needed
             DNP_data = run_scans(
                     indirect_idx=j,
