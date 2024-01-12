@@ -82,8 +82,8 @@ class TuningWindow(QMainWindow):
         QMessageBox.about(self, "About the demo", msg.strip())
     
     def orig_zoom_limits(self):
-        for ini_val, w in [('9815000',self.textbox1),
-                ('9826000',self.textbox2)]:
+        for ini_val, w in [('9819000',self.textbox1),
+                ('9825000',self.textbox2)]:
             w.setText(ini_val)
             w.setMinimumWidth(8)
             w.editingFinished.connect(self.on_textchange)
@@ -137,6 +137,9 @@ class TuningWindow(QMainWindow):
                 self.slider_max.value())
         a = self.slider_min.value()
         b = self.slider_max.value()
+        #Since we are only doing 15 points in the dip, zooming out further than 
+        #the initial limits will form a low resolution dip or might actually jump 
+        #over the dip completely
         if hasattr(self.B12,'freq_bounds'):
             a = a if a > np.ceil(self.B12.freq_bounds[0]/1e3) else np.ceil(self.B12.freq_bounds[0]/1e3)
             b = b if b < np.floor(self.B12.freq_bounds[-1]/1e3) else np.floor(self.B12.freq_bounds[-1]/1e3)
@@ -210,14 +213,13 @@ class TuningWindow(QMainWindow):
                 xx = np.linspace(x[zoomidx[0]],
                         x[zoomidx[-1]], 100)
                 yy = f(xx)
-                dip_frq_GHz = xx[np.argmin(yy)]/1e6
+                self.dip_frq_GHz = xx[np.argmin(yy)]/1e6
                 self.interpdata = xx, yy
-                self.dip_frq_GHz = dip_frq_GHz
                 # }}}
             self.axes.plot(xx/1e6, yy, 'r', alpha=0.5)
             self.axes.set_xlabel(r'$\nu_{B12}$ / GHz')
             self.axes.set_ylabel(r'Rx / dBm')
-            self.axes.axvline(x=dip_frq_GHz, ls='--', c='r')
+            self.axes.axvline(x=self.dip_frq_GHz, ls='--', c='r')
             self.myconfig['uw_dip_center_GHz'] = self.dip_frq_GHz
             self.myconfig['carrierfreq_mhz'] = self.dip_frq_GHz * self.myconfig['guessed_mhz_to_ghz']
             self.myconfig.write()
@@ -298,8 +300,8 @@ class TuningWindow(QMainWindow):
         #self.slider_vbox.setSpacing(0)
         self.slider_min = QSlider(Qt.Horizontal)
         self.slider_max = QSlider(Qt.Horizontal)
-        for ini_val,w in [(9815000,self.slider_min),
-                (9826000,self.slider_max)]:
+        for ini_val,w in [(9819000,self.slider_min),
+                (9825000,self.slider_max)]:
             self.on_textchange()
             w.setValue(ini_val)
             w.setTracking(True)

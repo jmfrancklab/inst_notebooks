@@ -51,7 +51,7 @@ class Bridge12 (Serial):
         # this number represents the highest possible reasonable value for the
         # Rx power -- it is lowered as we observe the Tx values
         # 1/8/24 updated to give as a 10*dBm value
-        self.safe_rx_level_int = 100 # i.e. a 10 dBm threshold
+        self.safe_rx_level_int = 180 # see https://jmfrancklab.slack.com/archives/CLMMYDD98/p1704996597531449?thread_ts=1704981852.441149&cid=CLMMYDD98
         self.frq_sweep_10dBm_has_been_run = False
         self.tuning_curve_data = {}
         self._inside_with_block = False
@@ -299,6 +299,15 @@ class Bridge12 (Serial):
     def get_freq(self):
         return self.freq_int()*1e3
     def robust_int_response(self,cmd,numtries=10):
+        """Sends the command/query to the B12 and asks for a response. Because
+        there is a new "Power updated" that is periodically fed into the
+        buffer by the B12, there is a check to see if the returned message is
+        an integer and if not (implying it is extra "Power updated" nonsense)
+        it resets the input buffer and moves to the desired integer value"""
+        if self.in_waiting > 0:
+            temp = self.read(self.in_waiting)
+            print("WARNING, I found junk in the buffer:",temp)
+        self.reset_input_buffer()    
         for j in range(10):
             success = False
             self.write(cmd)
@@ -362,7 +371,6 @@ class Bridge12 (Serial):
             time.sleep(10e-3) # allow synthesizer to settle
             _ = self.txpowerdbm_float()
             _ = self.rxpowerdbm_float() # 1/8/24: didn't know why this was here, probably for safety interlock
-        time.sleep(1)
         self.reset_input_buffer()
         for j,f in enumerate(freq):
             generate_beep(500, 300)
@@ -380,18 +388,22 @@ class Bridge12 (Serial):
         self.tuning_curve_data[sweep_name+'_freq'] = freq
         self.last_sweep_name = sweep_name
         return rxvalues, txvalues
-    def handle_midpoint_failure(self):
-        result = input("Couldn't fine the midpoint; maybe the wg didn't turn on completely, try again?")
-        if result.lower().startswith("y"):
-            wg_engaged = False
-        else:
-            self.set_rf(False)
-            self.set_wg(False)
-            raise ValueError("The reflection of the first point is the same or lower than the rx of the dip, which doesn't make sense -- check %gdBm_%s"%(10.0,'rx'))
     def lock_on_dip(self, ini_range=(9.81e9,9.83e9),
             ini_step=0.5e6,# should be half 3 dB width for Q=10,000
             dBm_increment=3, n_freq_steps=15):
-        """Locks onto the main dip, and finds the first polynomial fit also sets the current frequency bounds."""    
+        """
+        1.  Retrieves the 10 dBm if it has been run, or runs one if it has not.
+        2.  Makes sure that the first point of the tuning curve gives a
+            reflection that's high enough (i.e. that we're not starting in the
+            middle of the dip)
+        3.  Make sure that we actually see a *dip* in the middle.
+
+            For this and the previous step, we use the middle of the middle of
+            the y-axis values (which we call the "midpoint") -- the dip is the stuff
+            that falls under the "midpoint"
+        4.  Run a new frequency sweep over just the dip.
+        5.  Call the zoom function to zoom in on the dip.
+        """    
         if not self.frq_sweep_10dBm_has_been_run:
             freq = r_[ini_range[0]:ini_range[1]:ini_step]
             logger.info("ini range: "+str(ini_range)+"ini step: "+str(ini_step))
@@ -407,19 +419,33 @@ class Bridge12 (Serial):
                     rx,freq = [self.tuning_curve_data['%gdBm_%s'%(10.0,j)] for j in ['rx','freq']]
                     rx_dBm = convert_to_power(rx)
                     rx_midpoint = (max(rx_dBm) + min(rx_dBm))/2.0
-                    #is the first rx higher than the midpoint (rx of dip/2)? If not this means we are not looking at a dip - ex. if the wg didn't switch on our rx would be a straight line and we would not have a dip
-                    if not (rx_dBm > rx_midpoint)[0]:
-                        self.handle_midpoint_failure()
-                    else:
-                        wg_engaged = True
+                    # is the first rx higher than the midpoint (rx of
+                    # dip/2)? If not this means we are not looking at a
+                    # dip - ex. if the wg didn't switch on our rx would
+                    # be a straight line and we would not have a dip
+                    over_bool = rx_dBm > rx_midpoint # Contains False everywhere rx_dBm is under
+                    if not over_bool[0]:
+                        # if the dip doesn't look good,
+                        # flag an error so that we need
+                        # to try to reengage the wg.
+                        raise ValueError("Tuning Curve doesn't start over the midpoint, which doesn't make sense- check %gdBm_%s"%(10.0,'rx'))
+                    wg_engaged = True
                 except:
-                    self.handle_midpoint_failure()
+                    result = input("Couldn't find the midpoint; maybe the wg didn't turn on completely. If you'd like me to try again type 'y', if not type 'n' or CTRL-C")
+                    if result.lower().startswith("y"):
+                        wg_engaged = False
+                    else:
+                        self.set_rf(False)
+                        self.set_wg(False)
+                        raise ValueError("The reflection of the first point is the same or lower than the rx of the dip, which doesn't make sense -- check %gdBm_%s"%(10.0,rx))
         else:
             rx,freq = [self.tuning_curve_data['%gdBm_%s'%(10.0,j)] for j in ['rx','freq']]
             rx_dBm = convert_to_power(rx)
             rx_midpoint = (max(rx_dBm) + min(rx_dBm))/2.0
+            over_bool = rx_dBm > rx_midpoint # Contains False everywhere rx_dBm is under
+            if not over_bool[0]:
+                raise ValueError("Tuning Curve doesn't start over the midpoint, which doesn't make sense- check %gdBm_%s"%(10.0,'rx'))
         assert self.frq_sweep_10dBm_has_been_run, "I should have run the 10 dBm curve -- not sure what happened"
-        over_bool = rx_dBm > rx_midpoint # Contains False everywhere rx_dBm is under
         over_diff = r_[0,diff(int32(over_bool))]# should indicate whether this position has lifted over (+1) or dropped under (-1) the midpoint
         over_idx = r_[0:len(over_diff)]
         # store the indices at the start and stop of a dip
@@ -443,7 +469,28 @@ class Bridge12 (Serial):
         rx, tx = self.freq_sweep(freq_axis, fast_run=True)
         return self.zoom(dBm_increment=2,n_freq_steps=n_freq_steps)
     def zoom(self, dBm_increment=2, n_freq_steps=15):
-        "please write a docstring here"
+        """
+        1.  Pull the last frequency sweep that was run, and fit it to a 2^nd^ order polynomial:
+            :math:`rx(\\nu) = a+b\\nu+c\\nu^2`
+        2.  Use the polynomial to determine the center frequency (:math:`-\\frac{b}{2c}`).
+        3.  Find the roots of :math:`rx(\\nu)-rx_{target}`, where :math:`rx_{target}` gives
+            the rx reading, at the current power setting, that we predict will correspond to
+            the max "safe" level (`safe_rx`) of the rx *after* we have increased by :math:`dBm_{increment}`
+            -- *i.e.* this targets the result noted in step #4
+        4.  Run a new frequency sweep between the two frequencies where we predict :math:`rx(\\nu)` to be equal to :math:`rx_{safe}`.
+            **If everything went well, the new reflection profile will run over a more limited (zoomed) frequency range,
+            starting with a reflection profile corresponding to approximately `safe_rx`, falling to a minimum reflection
+            at `min_f`, and rise back to approximately `safe_rx`**
+
+        Return
+        ======
+        rx: array
+            the rx readings of the zoomed frequency sweep conducted at current power + dBm_increment
+        tx: array
+            the tx readings of the zoomed frequency sweep conducted at current power + dBm_increment
+        min_f: float
+            the frequency at which the zoomed frequency sweep is minimized
+        """
         assert self.frq_sweep_10dBm_has_been_run, "You're trying to run zoom before you ran a frequency sweep at 10 dBm -- something is wonky!!!"
         assert hasattr(self,'freq_bounds'), "you probably haven't run lock_on_dip, which you need to do before zoom"
         # {{{ fit the mV values
@@ -460,7 +507,13 @@ class Bridge12 (Serial):
         # }}}
         # {{{ use the parabola fit to determine the new "safe" bounds for the next sweep
         safe_rx = 7.0 # dBm, setting based off of values seeing in tests
-        a_new = a - (safe_rx-dBm_increment) # this allows us to find the x values where a_new+bx+cx^2=safe_rx-dBm_increment
+        a_new = a - (safe_rx-dBm_increment) # following the
+        #                                     docstring
+        #                                     above the
+        #                                     (safe_rx-dBm_increment
+        #                                     is the target
+        #                                     rx before stepping 
+        #                                     up in power
         safe_crossing = (-b+r_[-sqrt(b**2-4*a_new*c),sqrt(b**2-4*a_new*c)])/2/c
         safe_crossing.sort()
         start_f,stop_f = safe_crossing
@@ -479,13 +532,12 @@ class Bridge12 (Serial):
         # with the new time constant added for freq_sweep, should we eliminate fast_run?
         rx, tx = self.freq_sweep(freq, fast_run=True)
         # }}}
-        self.freq_bounds = r_[start_f,stop_f]
-        # MISSING -- DO BEFORE MOVING TO HIGHER POWERS!
-        # test to see if any of the powers actually exceed the safety limit
-        # if they do, then contract freq_bounds to include those powers
         min_f = freq[rx.argmin()]
         if abs(center - min_f)>0.2e6:
             center = min_f
+            print("WARNING: The center of the dip has moved "
+                  "from the previously measured value of %d. "
+                  "Now it's at %d"%(min_f,center))
         self.set_freq(center)
         return rx, tx, center
     def __enter__(self):

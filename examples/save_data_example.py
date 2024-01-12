@@ -2,47 +2,43 @@
 test of dip locking and logging
 ===============================
 
-This is roughly derived from the combined_ODNP.py example in SpinCore. Similar in fashion, the script generates a power list, and loops through each power generating fake data using the run_scans function defined below. At each power the "data" records the start and stop times that will correspond to the times and powers inside the log allowing one to average over each power step. 
+This is roughly derived from the combined_ODNP.py example in SpinCore.
+Similar in fashion, the script generates a power list, and loops through
+each power generating fake data using the run_scans function defined
+below. At each power the "data" records the start and stop times that
+will correspond to the times and powers inside the log allowing one to
+average over each power step in a later post processing step. 
 """
 from numpy import *
 from numpy.random import rand
 from pyspecdata import *
 from pyspecdata.file_saving.hdf_save_dict_to_group import hdf_save_dict_to_group
-import SpinCore_pp
-from SpinCore_pp.power_helper import Ep_spacing_from_phalf
 from Instruments import *
 import os,sys,time
 import random
 import h5py
 from datetime import datetime
 
-# {{{create filename and save to config file
-config_dict = SpinCore_pp.configuration("active.ini")
 date = datetime.now().strftime("%y%m%d")
-config_dict["type"] = "test_B12_log"
-config_dict["date"] = date
-filename = f"{config_dict['date']}_{config_dict['chemical']}_{config_dict['type']}.h5"
+filename = date+'_'+"test_B12_log.h5"
 target_directory = getDATADIR(exp_type="ODNP_NMR_comp/test_equipment")
-# }}}
 # {{{set phase cycling
 ph1_cyc = r_[0, 1, 2, 3]
 ph2_cyc = r_[0]
-nPhaseSteps = len(ph1_cyc)*len(ph2_cyc)
 #}}}
 #{{{ params for Bridge 12/power
-dB_settings = Ep_spacing_from_phalf(
-        est_phalf = 0.2,
-        max_power = config_dict['max_power'],
-        p_steps = config_dict['power_steps']+1,
-        min_dBm_step = config_dict['min_dBm_step'],
-        three_down = True)
+dB_settings = round(linspace(0,35,14)/0.5)*0.5
 powers =1e-3*10**(dB_settings/10.)
 nPoints = 2048
+nEchoes = 1
+nScans = 1
+uw_dip_center_GHz = 9.82
+uw_dip_width_GHz = 0.008
 short_delay = 0.5
 long_delay = 5
 #}}}
 #{{{ function that generates fake data with two indirect dimensions
-def run_scans(nScans, indirect_idx, indirect_len, nEchoes, indirect_fields = None, ret_data=None):
+def run_scans(indirect_idx, indirect_len, indirect_fields = None, ret_data=None):
     nPhaseSteps = len(ph1_cyc)*len(ph2_cyc)
     data_length = 2*nPoints*nEchoes*nPhaseSteps
     for nScans_idx in range(nScans):
@@ -81,23 +77,19 @@ with power_control() as p:
         DNP_ini_time = time.time()
         if j == 0: 
             retval = p.dip_lock(
-                config_dict['uw_dip_center_GHz'] - config_dict['uw_dip_width_GHz'] / 2,
-                config_dict['uw_dip_center_GHz'] + config_dict['uw_dip_width_GHz'] / 2,
+                uw_dip_center_GHz - uw_dip_width_GHz / 2,
+                uw_dip_center_GHz + uw_dip_width_GHz / 2,
             ) #needed to set powers above 10 dBm - in future we plan on debugging so this is not needed
             DNP_data = run_scans(
-                    nScans = config_dict['nScans'],
                     indirect_idx=j,
                     indirect_len=len(powers),
-                    nEchoes=config_dict["nEchoes"],
                     indirect_fields=("start_times", "stop_times"),
                     ret_data=None,
                     )
         else:
             run_scans(
-                    nScans = config_dict['nScans'],
                     indirect_idx=j,
                     indirect_len=len(powers),
-                    nEchoes=config_dict["nEchoes"],
                     indirect_fields=("start_times", "stop_times"),
                     ret_data=DNP_data,
                     )
