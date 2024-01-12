@@ -498,7 +498,7 @@ class Bridge12 (Serial):
         # }}}
         # {{{ use the parabola fit to determine the new "safe" bounds for the next sweep
         safe_rx = 7.0 # dBm, setting based off of values seeing in tests
-        a_new = a - (safe_rx-dBm_increment) # following the docstring above the (safe_rx-dBm_increment is the target rx
+        a_new = a - (safe_rx-dBm_increment) # following the docstring above the (safe_rx-dBm_increment is the target rx before stepping up in power
         safe_crossing = (-b+r_[-sqrt(b**2-4*a_new*c),sqrt(b**2-4*a_new*c)])/2/c
         safe_crossing.sort()
         start_f,stop_f = safe_crossing
