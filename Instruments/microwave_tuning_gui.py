@@ -82,8 +82,8 @@ class TuningWindow(QMainWindow):
         QMessageBox.about(self, "About the demo", msg.strip())
     
     def orig_zoom_limits(self):
-        for ini_val, w in [('9819000',self.textbox1),
-                ('9825000',self.textbox2)]:
+        for ini_val, w in [('9816000',self.textbox1),
+                ('9823000',self.textbox2)]:
             w.setText(ini_val)
             w.setMinimumWidth(8)
             w.editingFinished.connect(self.on_textchange)
@@ -300,8 +300,8 @@ class TuningWindow(QMainWindow):
         #self.slider_vbox.setSpacing(0)
         self.slider_min = QSlider(Qt.Horizontal)
         self.slider_max = QSlider(Qt.Horizontal)
-        for ini_val,w in [(9819000,self.slider_min),
-                (9825000,self.slider_max)]:
+        for ini_val,w in [(9816000,self.slider_min),
+                (9823000,self.slider_max)]:
             self.on_textchange()
             w.setValue(ini_val)
             w.setTracking(True)
