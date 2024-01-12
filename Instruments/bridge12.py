@@ -51,7 +51,7 @@ class Bridge12 (Serial):
         # this number represents the highest possible reasonable value for the
         # Rx power -- it is lowered as we observe the Tx values
         # 1/8/24 updated to give as a 10*dBm value
-        self.safe_rx_level_int = 180 # i.e. a 10 dBm threshold
+        self.safe_rx_level_int = 180 # see https://jmfrancklab.slack.com/archives/CLMMYDD98/p1704996597531449?thread_ts=1704981852.441149&cid=CLMMYDD98
         self.frq_sweep_10dBm_has_been_run = False
         self.tuning_curve_data = {}
         self._inside_with_block = False
@@ -299,7 +299,11 @@ class Bridge12 (Serial):
     def get_freq(self):
         return self.freq_int()*1e3
     def robust_int_response(self,cmd,numtries=10):
-        """Sends the command/query to the B12 and asks for a response. Because there is a new "Power updated" that is periodically fed into the buffer by the B12, there is a check to see if the returned message is an integer and if not (implying it is extra "Power updated" nonsense) it resets the input buffer and moves to the desired integer value"""
+        """Sends the command/query to the B12 and asks for a response. Because
+        there is a new "Power updated" that is periodically fed into the
+        buffer by the B12, there is a check to see if the returned message is
+        an integer and if not (implying it is extra "Power updated" nonsense)
+        it resets the input buffer and moves to the desired integer value"""
         if self.in_waiting > 0:
             temp = self.read(self.in_waiting)
             print("WARNING, I found junk in the buffer:",temp)
