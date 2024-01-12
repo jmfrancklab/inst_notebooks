@@ -2,7 +2,12 @@
 test of dip locking and logging
 ===============================
 
-This is roughly derived from the combined_ODNP.py example in SpinCore. Similar in fashion, the script generates a power list, and loops through each power generating fake data using the run_scans function defined below. At each power the "data" records the start and stop times that will correspond to the times and powers inside the log allowing one to average over each power step in a later post processing step. 
+This is roughly derived from the combined_ODNP.py example in SpinCore.
+Similar in fashion, the script generates a power list, and loops through
+each power generating fake data using the run_scans function defined
+below. At each power the "data" records the start and stop times that
+will correspond to the times and powers inside the log allowing one to
+average over each power step in a later post processing step. 
 """
 from numpy import *
 from numpy.random import rand
@@ -34,10 +39,16 @@ long_delay = 5
 #}}}
 #{{{ function that generates fake data with two indirect dimensions
 def run_scans(indirect_idx, indirect_len, indirect_fields = None, ret_data=None):
+    # there are many changes to this function that seem to be aimed
+    # at making it more dependent on code that is elsewhere
+    # this should be a simple example, so I'm rolling those back
+    ph1_cyc = r_[0,1,2,3]
+    ph2_cyc = r_[0]
     nPhaseSteps = len(ph1_cyc)*len(ph2_cyc)
     data_length = 2*nPoints*nEchoes*nPhaseSteps
     for nScans_idx in range(nScans):
         raw_data = np.random.random(data_length) + np.random.random(data_length) * 1j
+<<<<<<< HEAD
         data_array = []
         data_array[::] = complex128(raw_data[0::2]+1j*raw_data[1::2])
         dataPoints = float(shape(data_array)[0])
