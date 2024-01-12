@@ -512,7 +512,8 @@ class Bridge12 (Serial):
         #                                     above the
         #                                     (safe_rx-dBm_increment
         #                                     is the target
-        #                                     rx
+        #                                     rx before stepping 
+        #                                     up in power
         safe_crossing = (-b+r_[-sqrt(b**2-4*a_new*c),sqrt(b**2-4*a_new*c)])/2/c
         safe_crossing.sort()
         start_f,stop_f = safe_crossing

@@ -82,7 +82,7 @@ class TuningWindow(QMainWindow):
         QMessageBox.about(self, "About the demo", msg.strip())
     
     def orig_zoom_limits(self):
-        for ini_val, w in [('9818000',self.textbox1),
+        for ini_val, w in [('9819000',self.textbox1),
                 ('9825000',self.textbox2)]:
             w.setText(ini_val)
             w.setMinimumWidth(8)
@@ -137,6 +137,9 @@ class TuningWindow(QMainWindow):
                 self.slider_max.value())
         a = self.slider_min.value()
         b = self.slider_max.value()
+        #Since we are only doing 15 points in the dip, zooming out further than 
+        #the initial limits will form a low resolution dip or might actually jump 
+        #over the dip completely
         if hasattr(self.B12,'freq_bounds'):
             a = a if a > np.ceil(self.B12.freq_bounds[0]/1e3) else np.ceil(self.B12.freq_bounds[0]/1e3)
             b = b if b < np.floor(self.B12.freq_bounds[-1]/1e3) else np.floor(self.B12.freq_bounds[-1]/1e3)

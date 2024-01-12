@@ -13,20 +13,15 @@ from numpy import *
 from numpy.random import rand
 from pyspecdata import *
 from pyspecdata.file_saving.hdf_save_dict_to_group import hdf_save_dict_to_group
-import SpinCore_pp
 from Instruments import *
 import os,sys,time
 import random
 import h5py
 from datetime import datetime
 
-# {{{create filename and save to config file
-config_dict = SpinCore_pp.configuration("active.ini")
-config_dict["type"] = "test_B12_log"
-config_dict["date"] = datetime.now().strftime("%y%m%d")
-filename = f"{config_dict['date']}_{config_dict['chemical']}_{config_dict['type']}.h5"
+date = datetime.now().strftime("%y%m%d")
+filename = date+'_'+"test_B12_log.h5"
 target_directory = getDATADIR(exp_type="ODNP_NMR_comp/test_equipment")
-# }}}
 # {{{set phase cycling
 ph1_cyc = r_[0, 1, 2, 3]
 ph2_cyc = r_[0]
@@ -35,34 +30,35 @@ ph2_cyc = r_[0]
 dB_settings = round(linspace(0,35,14)/0.5)*0.5
 powers =1e-3*10**(dB_settings/10.)
 nPoints = 2048
+nEchoes = 1
+nScans = 1
+uw_dip_center_GHz = 9.82
+uw_dip_width_GHz = 0.008
 short_delay = 0.5
 long_delay = 5
 #}}}
 #{{{ function that generates fake data with two indirect dimensions
 def run_scans(indirect_idx, indirect_len, indirect_fields = None, ret_data=None):
-    # there are many changes to this function that seem to be aimed
-    # at making it more dependent on code that is elsewhere
-    # this should be a simple example, so I'm rolling those back
-    ph1_cyc = r_[0,1,2,3]
-    ph2_cyc = r_[0]
     nPhaseSteps = len(ph1_cyc)*len(ph2_cyc)
     data_length = 2*nPoints*nEchoes*nPhaseSteps
-    for x in range(nScans):
+    for nScans_idx in range(nScans):
         raw_data = np.random.random(data_length) + np.random.random(data_length) * 1j
-        data_array = complex128(raw_data[0::2]+1j*raw_data[1::2])
-        dataPoints = int(shape(data_array)[0])
-        if DNP_data is None and power_idx ==0 and field_idx == 0:
-            time_axis = linspace(0.0,1*nPhaseSteps*85.3*1e-3,dataPoints)
-            DNP_data = ndshape([len(powers),len(r_[3501:3530:0.1]),1,dataPoints],['power','field','nScans','t']).alloc(dtype=complex128)
-            DNP_data.setaxis('power',r_[powers]).set_units('W')
-            DNP_data.setaxis('field',r_[3501:3530:0.1]).set_units('G')
-            DNP_data.setaxis('t',time_axis).set_units('t','s')
-            DNP_data.setaxis('nScans',r_[0:1])
-            DNP_data.name("node_name")
-        DNP_data['power',power_idx]['field',field_idx]['nScans',x] = data_array
-        if nScans > 1:
-            DNP_data.setaxis('nScans',r_[0:1])
-        return DNP_data
+        data_array = []
+        data_array[::] = complex128(raw_data[0::2]+1j*raw_data[1::2])
+        dataPoints = float(shape(data_array)[0])
+        if ret_data is None:
+            times_dtype = dtype(
+                    [(indirect_fields[0],double),(indirect_fields[1],double)]
+            )
+            mytimes = zeros(indirect_len,dtype = times_dtype)
+            time_axis =  r_[0:dataPoints] / (3.9 * 1e3)
+            ret_data = ndshape(
+                    [indirect_len,nScans,len(time_axis)],["indirect","nScans","t"]).alloc(dtype=complex128)
+            ret_data.setaxis('indirect',mytimes)
+            ret_data.setaxis('t',time_axis).set_units('t','s')
+            ret_data.setaxis('nScans',r_[0:nScans])
+        ret_data['indirect',indirect_idx]['nScans',nScans_idx] = data_array
+    return ret_data
 #}}}
 power_settings_dBm = zeros_like(dB_settings)
 with power_control() as p:
@@ -81,8 +77,8 @@ with power_control() as p:
         DNP_ini_time = time.time()
         if j == 0: 
             retval = p.dip_lock(
-                config_dict['uw_dip_center_GHz'] - config_dict['uw_dip_width_GHz'] / 2,
-                config_dict['uw_dip_center_GHz'] + config_dict['uw_dip_width_GHz'] / 2,
+                uw_dip_center_GHz - uw_dip_width_GHz / 2,
+                uw_dip_center_GHz + uw_dip_width_GHz / 2,
             ) #needed to set powers above 10 dBm - in future we plan on debugging so this is not needed
             DNP_data = run_scans(
                     indirect_idx=j,
