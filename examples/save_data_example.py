@@ -2,7 +2,12 @@
 test of dip locking and logging
 ===============================
 
-This is roughly derived from the combined_ODNP.py example in SpinCore. Similar in fashion, the script generates a power list, and loops through each power generating fake data using the run_scans function defined below. At each power the "data" records the start and stop times that will correspond to the times and powers inside the log allowing one to average over each power step in a later post processing step. 
+This is roughly derived from the combined_ODNP.py example in SpinCore.
+Similar in fashion, the script generates a power list, and loops through
+each power generating fake data using the run_scans function defined
+below. At each power the "data" records the start and stop times that
+will correspond to the times and powers inside the log allowing one to
+average over each power step in a later post processing step. 
 """
 from numpy import *
 from numpy.random import rand
@@ -35,26 +40,29 @@ long_delay = 5
 #}}}
 #{{{ function that generates fake data with two indirect dimensions
 def run_scans(indirect_idx, indirect_len, indirect_fields = None, ret_data=None):
+    # there are many changes to this function that seem to be aimed
+    # at making it more dependent on code that is elsewhere
+    # this should be a simple example, so I'm rolling those back
+    ph1_cyc = r_[0,1,2,3]
+    ph2_cyc = r_[0]
     nPhaseSteps = len(ph1_cyc)*len(ph2_cyc)
-    data_length = 2*nPoints*config_dict['nEchoes']*nPhaseSteps
-    for nScans_idx in range(config_dict['nScans']):
+    data_length = 2*nPoints*nEchoes*nPhaseSteps
+    for x in range(nScans):
         raw_data = np.random.random(data_length) + np.random.random(data_length) * 1j
-        data_array = []
-        data_array[::] = complex128(raw_data[0::2]+1j*raw_data[1::2])
-        dataPoints = float(shape(data_array)[0])
-        if ret_data is None:
-            times_dtype = dtype(
-                    [(indirect_fields[0],double),(indirect_fields[1],double)]
-            )
-            mytimes = zeros(indirect_len,dtype = times_dtype)
-            time_axis =  r_[0:dataPoints] / (3.9 * 1e3)
-            ret_data = ndshape(
-                    [indirect_len,config_dict['nScans'],len(time_axis)],["indirect","nScans","t"]).alloc(dtype=complex128)
-            ret_data.setaxis('indirect',mytimes)
-            ret_data.setaxis('t',time_axis).set_units('t','s')
-            ret_data.setaxis('nScans',r_[0:config_dict['nScans']])
-        ret_data['indirect',indirect_idx]['nScans',nScans_idx] = data_array
-    return ret_data
+        data_array = complex128(raw_data[0::2]+1j*raw_data[1::2])
+        dataPoints = int(shape(data_array)[0])
+        if DNP_data is None and power_idx ==0 and field_idx == 0:
+            time_axis = linspace(0.0,1*nPhaseSteps*85.3*1e-3,dataPoints)
+            DNP_data = ndshape([len(powers),len(r_[3501:3530:0.1]),1,dataPoints],['power','field','nScans','t']).alloc(dtype=complex128)
+            DNP_data.setaxis('power',r_[powers]).set_units('W')
+            DNP_data.setaxis('field',r_[3501:3530:0.1]).set_units('G')
+            DNP_data.setaxis('t',time_axis).set_units('t','s')
+            DNP_data.setaxis('nScans',r_[0:1])
+            DNP_data.name("node_name")
+        DNP_data['power',power_idx]['field',field_idx]['nScans',x] = data_array
+        if nScans > 1:
+            DNP_data.setaxis('nScans',r_[0:1])
+        return DNP_data
 #}}}
 power_settings_dBm = zeros_like(dB_settings)
 with power_control() as p:

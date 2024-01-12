@@ -419,7 +419,16 @@ class Bridge12 (Serial):
                     rx,freq = [self.tuning_curve_data['%gdBm_%s'%(10.0,j)] for j in ['rx','freq']]
                     rx_dBm = convert_to_power(rx)
                     rx_midpoint = (max(rx_dBm) + min(rx_dBm))/2.0
-                    #is the first rx higher than the midpoint (rx of dip/2)? If not this means we are not looking at a dip - ex. if the wg didn't switch on our rx would be a straight line and we would not have a dip
+                    # is the first rx higher than the midpoint (rx of
+                    # dip/2)? If not this means we are not looking at a
+                    # dip - ex. if the wg didn't switch on our rx would
+                    # be a straight line and we would not have a dip
+                    over_bool = rx_dBm > rx_midpoint # Contains False everywhere rx_dBm is under
+                    if not over_bool[0]:
+                        # if the dip doesn't look good,
+                        # flag an error so that we need
+                        # to try to reengage the wg.
+                        raise ValueError("Tuning Curve doesn't start over the midpoint, which doesn't make sense- check %gdBm_%s"%(10.0,'rx'))
                     wg_engaged = True
                 except:
                     result = input("Couldn't find the midpoint; maybe the wg didn't turn on completely. If you'd like me to try again type 'y', if not type 'n' or CTRL-C")
@@ -433,10 +442,10 @@ class Bridge12 (Serial):
             rx,freq = [self.tuning_curve_data['%gdBm_%s'%(10.0,j)] for j in ['rx','freq']]
             rx_dBm = convert_to_power(rx)
             rx_midpoint = (max(rx_dBm) + min(rx_dBm))/2.0
+            over_bool = rx_dBm > rx_midpoint # Contains False everywhere rx_dBm is under
+            if not over_bool[0]:
+                raise ValueError("Tuning Curve doesn't start over the midpoint, which doesn't make sense- check %gdBm_%s"%(10.0,'rx'))
         assert self.frq_sweep_10dBm_has_been_run, "I should have run the 10 dBm curve -- not sure what happened"
-        over_bool = rx_dBm > rx_midpoint # Contains False everywhere rx_dBm is under
-        if not over_bool[0]:
-            raise ValueError("Tuning Curve doesn't start over the midpoint, which doesn't make sense- check %gdBm_%s"%(10.0,'rx'))
         over_diff = r_[0,diff(int32(over_bool))]# should indicate whether this position has lifted over (+1) or dropped under (-1) the midpoint
         over_idx = r_[0:len(over_diff)]
         # store the indices at the start and stop of a dip
@@ -498,7 +507,12 @@ class Bridge12 (Serial):
         # }}}
         # {{{ use the parabola fit to determine the new "safe" bounds for the next sweep
         safe_rx = 7.0 # dBm, setting based off of values seeing in tests
-        a_new = a - (safe_rx-dBm_increment) # following the docstring above the (safe_rx-dBm_increment is the target rx
+        a_new = a - (safe_rx-dBm_increment) # following the
+        #                                     docstring
+        #                                     above the
+        #                                     (safe_rx-dBm_increment
+        #                                     is the target
+        #                                     rx
         safe_crossing = (-b+r_[-sqrt(b**2-4*a_new*c),sqrt(b**2-4*a_new*c)])/2/c
         safe_crossing.sort()
         start_f,stop_f = safe_crossing
@@ -520,7 +534,9 @@ class Bridge12 (Serial):
         min_f = freq[rx.argmin()]
         if abs(center - min_f)>0.2e6:
             center = min_f
-            print("WARNING: The center of the dip has moved from the previously measured value of %d. Now it's at %d"%(min_f,center))
+            print("WARNING: The center of the dip has moved "
+                  "from the previously measured value of %d. "
+                  "Now it's at %d"%(min_f,center))
         self.set_freq(center)
         return rx, tx, center
     def __enter__(self):
