@@ -428,8 +428,15 @@ class Bridge12 (Serial):
                         # if the dip doesn't look good,
                         # flag an error so that we need
                         # to try to reengage the wg.
-                        raise ValueError("Tuning Curve doesn't start over the midpoint, which doesn't make sense- check %gdBm_%s"%(10.0,'rx'))
-                    wg_engaged = True
+                        result = input("Couldn't fine the midpoint; maybe the wg didn't turn on completely, try again?")
+                        if result.lower().startswith("y"):
+                            wg_engaged = False
+                        else:
+                            self.set_rf(False)
+                            self.set_wg(False)
+                            raise ValueError("The reflection of the first point is the same or lower than the rx of the dip, which doesn't make sense -- check %gdBm_%s"%(10.0,'rx'))
+                    else:
+                        wg_engaged = True
                 except:
                     result = input("Couldn't find the midpoint; maybe the wg didn't turn on completely. If you'd like me to try again type 'y', if not type 'n' or CTRL-C")
                     if result.lower().startswith("y"):
