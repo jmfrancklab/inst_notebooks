@@ -20,19 +20,19 @@ import h5py
 from datetime import datetime
 
 date = datetime.now().strftime("%y%m%d")
-filename = date+'_'+"test_B12_log.h5"
+filename = date+'_'+"test_B12_loga.h5"
 target_directory = getDATADIR(exp_type="ODNP_NMR_comp/test_equipment")
 # {{{set phase cycling
 ph1_cyc = r_[0, 1, 2, 3]
 ph2_cyc = r_[0]
 #}}}
 #{{{ params for Bridge 12/power
-dB_settings = round(linspace(0,35,14)/0.5)*0.5
+dB_settings = np.round(linspace(0,35,14)/0.5)*0.5
 powers =1e-3*10**(dB_settings/10.)
 nPoints = 2048
 nEchoes = 1
 nScans = 1
-uw_dip_center_GHz = 9.82
+uw_dip_center_GHz = 9.819267
 uw_dip_width_GHz = 0.008
 short_delay = 0.5
 long_delay = 5
@@ -62,6 +62,7 @@ def run_scans(indirect_idx, indirect_len, indirect_fields = None, ret_data=None)
 #}}}
 power_settings_dBm = zeros_like(dB_settings)
 with power_control() as p:
+    DNP_data = None
     for j,this_dB in enumerate(dB_settings):
         print("I'm going to pretend to run",this_dB,"dBm")
         if j == 0:
@@ -79,20 +80,13 @@ with power_control() as p:
             retval = p.dip_lock(
                 uw_dip_center_GHz - uw_dip_width_GHz / 2,
                 uw_dip_center_GHz + uw_dip_width_GHz / 2,
-            ) #needed to set powers above 10 dBm - in future we plan on debugging so this is not needed
-            DNP_data = run_scans(
-                    indirect_idx=j,
-                    indirect_len=len(powers),
-                    indirect_fields=("start_times", "stop_times"),
-                    ret_data=None,
-                    )
-        else:
-            run_scans(
-                    indirect_idx=j,
-                    indirect_len=len(powers),
-                    indirect_fields=("start_times", "stop_times"),
-                    ret_data=DNP_data,
-                    )
+            ) #test the dip lock!
+        DNP_data = run_scans(
+                indirect_idx=j,
+                indirect_len=len(powers),
+                indirect_fields=("start_times", "stop_times"),
+                ret_data=DNP_data,
+                )
         DNP_done = time.time()
         if j == 0:
             time_axis_coords = DNP_data.getaxis("indirect")
