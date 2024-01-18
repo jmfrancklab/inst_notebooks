@@ -5,11 +5,9 @@
 # ``jmfranck-pi2.syr.edu`` (if on the internet) or ``192.168.1.20`` (if on local network)
 from serial.tools.list_ports import comports
 from serial import Serial
-from scipy.interpolate import interp1d
-from numpy import *
+from numpy import r_
+import numpy as np
 import time
-from .HP8672A import HP8672A
-from .gpib_eth import prologix_connection
 from .log_inst import logger
 def generate_beep(f,dur):
     # do nothing -- can be used to generate a beep, but platform-dependent
@@ -58,7 +56,7 @@ class Bridge12 (Serial):
         print("Power updated")  
         return
     def help(self):
-        self.write(b"help\r") #command for "help"
+        self.write(b"help\r") # command for "help"
         logger.info("after help:")
         entire_response = ''
         start = time.time()
@@ -178,7 +176,7 @@ class Bridge12 (Serial):
         conditions before proceeding."""
         setting = int(10*round(dBm*2)/2.+0.5)
         self.write(b'power %d\r'%setting)
-        retval = self.readline().decode()
+        _ = self.readline() # gobble the power updated statement
     def set_power(self,dBm):
         """set *and check* power.  On successful completion, set `self.cur_pwr_int` to 10*(power in dBm).
 
@@ -356,8 +354,8 @@ class Bridge12 (Serial):
             An array of floats, same length as freq, containing the transmitted power in dBm at each frequency.
         """    
         self.write(b"screen 2\r") # change to the screen that shows the reflection
-        rxvalues = zeros(len(freq))
-        txvalues = zeros(len(freq))
+        rxvalues = np.zeros(len(freq))
+        txvalues = np.zeros(len(freq))
         if not self.frq_sweep_10dBm_has_been_run:
             if self.cur_pwr_int != 100:
                 raise ValueError("You must run the frequency sweep for the first time at 10 dBm")
@@ -367,14 +365,14 @@ class Bridge12 (Serial):
             print(freq)
             print(freq[0])
             print("*** *** ***")
-            self.set_freq(freq[0])  #is this what I would put here (the 'f')?
+            self.set_freq(freq[0]) # is this what I would put here (the 'f')?
             time.sleep(10e-3) # allow synthesizer to settle
             _ = self.txpowerdbm_float()
             _ = self.rxpowerdbm_float() # 1/8/24: didn't know why this was here, probably for safety interlock
         self.reset_input_buffer()
         for j,f in enumerate(freq):
             generate_beep(500, 300)
-            self.set_freq(f)  #is this what I would put here (the 'f')?
+            self.set_freq(f) # is this what I would put here (the 'f')?
             rxvalues[j] = self.rxpowerdbm_float()
             txvalues[j] = self.txpowerdbm_float()
         if self.cur_pwr_int == 100:
@@ -446,7 +444,7 @@ class Bridge12 (Serial):
             if not over_bool[0]:
                 raise ValueError("Tuning Curve doesn't start over the midpoint, which doesn't make sense- check %gdBm_%s"%(10.0,'rx'))
         assert self.frq_sweep_10dBm_has_been_run, "I should have run the 10 dBm curve -- not sure what happened"
-        over_diff = r_[0,diff(int32(over_bool))]# should indicate whether this position has lifted over (+1) or dropped under (-1) the midpoint
+        over_diff = r_[0,np.diff(np.int32(over_bool))]# should indicate whether this position has lifted over (+1) or dropped under (-1) the midpoint
         over_idx = r_[0:len(over_diff)]
         # store the indices at the start and stop of a dip
         start_dip = over_idx[over_diff == -1] -1 # because this identified the point *after* the crossing
@@ -496,7 +494,7 @@ class Bridge12 (Serial):
         # {{{ fit the mV values
         # start by pulling the data from the last tuning curve
         rx, tx, freq = [self.tuning_curve_data[self.last_sweep_name + '_' + j] for j in ['rx','tx','freq']]
-        p = polyfit(freq,rx,2)
+        p = np.polyfit(freq,rx,2)
         c,b,a = p 
         # polynomial of form a+bx+cx^2
         self.fit_data[self.last_sweep_name + '_func'] = lambda x: a+b*x+c*x**2
@@ -514,7 +512,7 @@ class Bridge12 (Serial):
         #                                     is the target
         #                                     rx before stepping 
         #                                     up in power
-        safe_crossing = (-b+r_[-sqrt(b**2-4*a_new*c),sqrt(b**2-4*a_new*c)])/2/c
+        safe_crossing = (-b+r_[-np.sqrt(b**2-4*a_new*c),np.sqrt(b**2-4*a_new*c)])/2/c
         safe_crossing.sort()
         start_f,stop_f = safe_crossing
         info_str = 'dB value should be %g at %g and %g'%(safe_rx,start_f,stop_f)
@@ -527,7 +525,7 @@ class Bridge12 (Serial):
         logger.info(info_str)
         # }}}
         # {{{ run the frequency sweep with the new limits
-        freq = linspace(start_f,stop_f,n_freq_steps)
+        freq = np.linspace(start_f,stop_f,n_freq_steps)
         self.set_power(dBm_increment+self.cur_pwr_int/10.)
         # with the new time constant added for freq_sweep, should we eliminate fast_run?
         rx, tx = self.freq_sweep(freq, fast_run=True)
