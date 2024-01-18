@@ -203,8 +203,10 @@ class Bridge12 (Serial):
                 raise RuntimeError("Before you try to set the power above 10 dBm, you must first run a tuning curve at 10 dBm!!!")
             if not hasattr(self,'cur_pwr_int'):
                 raise RuntimeError("Before you try to set the power above 10 dBm, you must first set a lower power!!!")
-            if setting > 30+self.cur_pwr_int: 
-                raise RuntimeError("Once you are above 10 dBm, you must raise the power in MAX 3 dB increments.  The power is currently %g, and you tried to set it to %g -- this is not allowed!"%(self.cur_pwr_int/10.,setting/10.))
+            while setting > 30+self.cur_pwr_int: 
+                intermediate_power = (self.cur_pwr_int + 30)/10.
+                print("because you requested a step of greater than 3 dB, I'm first setting to",intermediate_power)
+                self.set_power(intermediate_power)
         self.write(b'power %d\r'%setting)
         self.read_until(b"Power updated\r\n")
         if setting > 0: self.rxpowerdbm_float() # doing this just for safety interlock
@@ -533,9 +535,9 @@ class Bridge12 (Serial):
         min_f = freq[rx.argmin()]
         if abs(center - min_f)>0.2e6:
             center = min_f
-            print("WARNING: The center of the dip has moved "
-                  "from the previously measured value of %d. "
-                  "Now it's at %d"%(min_f,center))
+            print("WARNING: The min Rx is measured at %d "
+                  "but the polynomial shows the center "
+                  "should be at %d "%(min_f,center))
         self.set_freq(center)
         return rx, tx, center
     def __enter__(self):

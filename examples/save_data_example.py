@@ -9,68 +9,61 @@ below. At each power the "data" records the start and stop times that
 will correspond to the times and powers inside the log allowing one to
 average over each power step in a later post processing step. 
 """
-from numpy import *
-from numpy.random import rand
-from pyspecdata import *
+from numpy import r_
+import numpy as np
+from pyspecdata import ndshape, getDATADIR
 from pyspecdata.file_saving.hdf_save_dict_to_group import (
     hdf_save_dict_to_group,
 )
-from Instruments import *
-import os, sys, time
-import random
-import h5py
+from Instruments import power_control
+import os, time, h5py
 from datetime import datetime
 
-date = datetime.now().strftime("%y%m%d")
-filename = date + "_" + "test_B12_loga.h5"
+filename = datetime.now().strftime("%y%m%d") + "_" + "test_B12_log.h5"
 target_directory = getDATADIR(exp_type="ODNP_NMR_comp/test_equipment")
-# {{{set phase cycling
-ph1_cyc = r_[0, 1, 2, 3]
-ph2_cyc = r_[0]
+# {{{ data properties
+nPoints = 2048
+nScans = 1
 # }}}
 # {{{ params for Bridge 12/power
-dB_settings = np.round(linspace(0, 35, 14) / 0.5) * 0.5
+dB_settings = np.unique(np.round(np.linspace(0, 35, 5) / 0.5) * 0.5)
 powers = 1e-3 * 10 ** (dB_settings / 10.0)
-nPoints = 2048
-nEchoes = 1
-nScans = 1
 uw_dip_center_GHz = 9.819267
 uw_dip_width_GHz = 0.008
+result = input("to keep this example minimal, it doesn't read from the config file!!\nThe dip frequency is currently set to %0.6f GHz\nIs that correct???"%uw_dip_center_GHz)
+if not result.lower().startswith('y'):
+    raise ValueError("Incorrect dip frequency")
+# }}}
+# {{{ delays used in test
 short_delay = 0.5
-long_delay = 5
-
-
+long_delay = 10 # this is the delay where it holds the same power
 # }}}
 # {{{ function that generates fake data with two indirect dimensions
-def run_scans(indirect_idx, indirect_len, indirect_fields=None, ret_data=None):
-    nPhaseSteps = len(ph1_cyc) * len(ph2_cyc)
-    data_length = 2 * nPoints * nEchoes * nPhaseSteps
+def run_scans(indirect_idx, indirect_len, nScans, indirect_fields=None, ret_data=None):
+    "this is a dummy replacement to run_scans that generates random data"
+    data_length = 2 * nPoints
     for nScans_idx in range(nScans):
-        raw_data = (
-            np.random.random(data_length) + np.random.random(data_length) * 1j
-        )
-        data_array = []
-        data_array[::] = complex128(raw_data[0::2] + 1j * raw_data[1::2])
-        dataPoints = float(shape(data_array)[0])
+        data_array = np.random.random(2*data_length).view(np.complex128) # enough random numbers for both real and imaginary, then use view to alternate real,imag
         if ret_data is None:
-            times_dtype = dtype(
-                [(indirect_fields[0], double), (indirect_fields[1], double)]
+            times_dtype = np.dtype(
+                [
+                    (indirect_fields[0], np.double),
+                    (indirect_fields[1], np.double),
+                ] # typically, the two columns/fields give start and stop times
             )
-            mytimes = zeros(indirect_len, dtype=times_dtype)
-            time_axis = r_[0:dataPoints] / (3.9 * 1e3)
+            mytimes = np.zeros(indirect_len, dtype=times_dtype)
+            direct_time_axis = r_[0:np.shape(data_array)[0]] / (3.9e3) # fake it like this is 3.9 kHz SW data
             ret_data = ndshape(
-                [indirect_len, nScans, len(time_axis)],
+                [indirect_len, nScans, len(direct_time_axis)],
                 ["indirect", "nScans", "t"],
-            ).alloc(dtype=complex128)
+            ).alloc(dtype=np.complex128)
             ret_data.setaxis("indirect", mytimes)
-            ret_data.setaxis("t", time_axis).set_units("t", "s")
+            ret_data.setaxis("t", direct_time_axis).set_units("t", "s")
             ret_data.setaxis("nScans", r_[0:nScans])
         ret_data["indirect", indirect_idx]["nScans", nScans_idx] = data_array
     return ret_data
-
-
 # }}}
-power_settings_dBm = zeros_like(dB_settings)
+power_settings_dBm = np.zeros_like(dB_settings)
 with power_control() as p:
     DNP_data = None
     for j, this_dB in enumerate(dB_settings):
@@ -78,6 +71,7 @@ with power_control() as p:
         if j == 0:
             time.sleep(short_delay)
             p.start_log()
+            time.sleep(short_delay)
         p.set_power(this_dB)
         for k in range(10):
             time.sleep(short_delay)
@@ -94,6 +88,7 @@ with power_control() as p:
         DNP_data = run_scans(
             indirect_idx=j,
             indirect_len=len(powers),
+            nScans=nScans,
             indirect_fields=("start_times", "stop_times"),
             ret_data=DNP_data,
         )
@@ -103,6 +98,7 @@ with power_control() as p:
         time_axis_coords[j]["start_times"] = DNP_ini_time
         time_axis_coords[j]["stop_times"] = DNP_done
     DNP_data.name("nodename_test")
+    DNP_data.set_prop("power_settings",power_settings_dBm)
     nodename = DNP_data.name()
     try:
         DNP_data.hdf5_write(filename, directory=target_directory)
