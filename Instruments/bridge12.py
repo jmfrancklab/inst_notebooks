@@ -298,6 +298,9 @@ class Bridge12 (Serial):
                            "frequency to change -- result is %d setting is %d"%(result,setting))
     def get_freq(self):
         return self.freq_int()*1e3
+    def freq_int(self):
+        "return the frequency, in kHz (since it's set as an integer kHz)"
+        return self.robust_int_response(b'freq?\r')
     def robust_int_response(self,cmd,numtries=10):
         """Sends the command/query to the B12 and asks for a response. Because
         there is a new "Power updated" that is periodically fed into the
@@ -331,9 +334,6 @@ class Bridge12 (Serial):
                 #                                 but I need to remember that it takes time after a write
                 #                                 command for stuff to move into the buffer
         raise ValueError("I tried running 10 times and couldn't get an integer!!!")
-    def freq_int(self):
-        "return the frequency, in kHz (since it's set as an integer kHz)"
-        return self.robust_int_response(b'freq?\r')
     def freq_sweep(self,freq,dummy_readings=1,fast_run=False):
         """Sweep over an array of frequencies.
         **Must** be run at 10 dBm the first time around; will fail otherwise.
