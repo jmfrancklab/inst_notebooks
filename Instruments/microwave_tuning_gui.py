@@ -82,9 +82,11 @@ class TuningWindow(QMainWindow):
         QMessageBox.about(self, "About the demo", msg.strip())
     
     def orig_zoom_limits(self):
-        #Typical tuning curve is centered on 9.8193 GHz with a width of 
-        #about 0.003 GHz and a minimum of -1.2 dBm. These limits produce
-        #a plot with the dip centered
+        # Typical tuning curve is centered on 9.8193 GHz with a width of 
+        # about 0.003 GHz and a minimum of -1.2 dBm. These limits produce
+        # a plot with the dip centered
+        #
+        # dip shown on slack (https://jmfrancklab.slack.com/archives/CLMMYDD98/p1705090019740609)
         for ini_val, w in [('9816000',self.textbox1),
                 ('9823000',self.textbox2)]:
             w.setText(ini_val)
@@ -138,15 +140,10 @@ class TuningWindow(QMainWindow):
                 self.slider_min.value(),
                 "slider max",
                 self.slider_max.value())
-        a = self.slider_min.value()
-        b = self.slider_max.value()
-        #Since we are only doing 15 points in the dip, zooming out further than 
-        #the initial limits will form a low resolution dip or might actually jump 
-        #over the dip completely
-        if hasattr(self.B12,'freq_bounds'):
-            a = a if a > np.ceil(self.B12.freq_bounds[0]/1e3) else np.ceil(self.B12.freq_bounds[0]/1e3)
-            b = b if b < np.floor(self.B12.freq_bounds[-1]/1e3) else np.floor(self.B12.freq_bounds[-1]/1e3)
-        self.x.append(np.r_[a:b:15j])
+        self.x.append(np.r_[
+                self.slider_min.value():
+                self.slider_max.value():
+                15j])
         temp, tx = self.B12.freq_sweep(self.x[-1]*1e3)
         self.line_data.append(temp)
         if hasattr(self,'interpdata'):

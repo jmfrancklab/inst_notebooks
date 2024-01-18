@@ -222,8 +222,10 @@ class Bridge12 (Serial):
             "keeps replying saying that it's set to %d/10"
             "dBm")%(setting,result))
     def rxpowerdbm_float(self):
-        """read the integer value for the Rx power. As a measure of safety
-        the method loops three times to check a consistent Rx is being read."""
+        """read the integer value for the Rx power -- loops three times to
+        check a consistent Rx is being read.
+
+        If all three tries are above safe_rx_level_int, triggers a safety interlock."""
         self.reset_input_buffer()
         def grab_consist_value():
             rx_try1 = self.robust_int_response(b'rxpowerdbm?\r')
@@ -284,13 +286,27 @@ class Bridge12 (Serial):
         "return the frequency, in kHz (since it's set as an integer kHz)"
         return self.robust_int_response(b'freq?\r')
     def robust_int_response(self,cmd,numtries=10):
-        """Flushes the buffer and sends the command/query to the 
-        B12 and asks for a response. 
+        """Flushes the buffer and sends the command/query to the B12 and looks
+        for a response that it can interpret as an integer.
 
         Importantly, it ensures that the returned message is an 
         integer and if not (implying there is junk left over in the 
         buffer), it resets the input buffer and asks again until an
-        integer value is received"""
+        integer value is received
+
+        Parameters
+        ----------
+        cmd: str
+            Query for the B12.  The routine handles encoding, so this is a
+            normal string.
+        numtries: int
+            How many times should I try to get a sane response?
+
+        Returns
+        -------
+        retval: int
+            The value that the B12 responded with.
+        """
         if self.in_waiting > 0:
             temp = self.read(self.in_waiting)
             print("WARNING, I found junk in the buffer:",temp)
