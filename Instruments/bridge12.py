@@ -14,25 +14,6 @@ from .log_inst import logger
 def generate_beep(f,dur):
     # do nothing -- can be used to generate a beep, but platform-dependent
     return
-def convert_to_mv(x, which_cal='Rx'):
-    "Go from dB values back to mV values"
-    y = r_[0.:600.:1000j]
-    func = interp1d(convert_to_power(y,which_cal=which_cal),y)
-    retval = func(x)
-    if retval.size == 1:
-        return retval.item()
-    else:
-        return retval
-def convert_to_power(x,which_cal='Rx'):
-    "Convert Rx mV values to powers (dBm)"
-    y = 0
-    if which_cal == 'Rx':
-        c = r_[2.78135,25.7302,5.48909]
-    elif which_cal == 'Tx':
-        c =r_[5.6378,38.2242,6.33419]
-    for j in range(len(c)):
-        y += c[j] * (x*1e-3)**(len(c)-j)
-    return log10(y)*10.0+2.2
 
 class Bridge12 (Serial):
     def __init__(self, *args, **kwargs):
@@ -241,7 +222,8 @@ class Bridge12 (Serial):
             "keeps replying saying that it's set to %d/10"
             "dBm")%(setting,result))
     def rxpowerdbm_float(self):
-        """read the integer value for the Rx power."""
+        """read the integer value for the Rx power. As a measure of safety
+        the method loops three times to check a consistent Rx is being read."""
         self.reset_input_buffer()
         def grab_consist_value():
             rx_try1 = self.robust_int_response(b'rxpowerdbm?\r')
@@ -302,11 +284,13 @@ class Bridge12 (Serial):
         "return the frequency, in kHz (since it's set as an integer kHz)"
         return self.robust_int_response(b'freq?\r')
     def robust_int_response(self,cmd,numtries=10):
-        """Sends the command/query to the B12 and asks for a response. Because
-        there is a new "Power updated" that is periodically fed into the
-        buffer by the B12, there is a check to see if the returned message is
-        an integer and if not (implying it is extra "Power updated" nonsense)
-        it resets the input buffer and moves to the desired integer value"""
+        """Flushes the buffer and sends the command/query to the 
+        B12 and asks for a response. 
+
+        Importantly, it ensures that the returned message is an 
+        integer and if not (implying there is junk left over in the 
+        buffer), it resets the input buffer and asks again until an
+        integer value is received"""
         if self.in_waiting > 0:
             temp = self.read(self.in_waiting)
             print("WARNING, I found junk in the buffer:",temp)
@@ -417,7 +401,7 @@ class Bridge12 (Serial):
                     self.set_power(10.0)
                     rx, tx = self.freq_sweep(freq)
                     rx,freq = [self.tuning_curve_data['%gdBm_%s'%(10.0,j)] for j in ['rx','freq']]
-                    rx_dBm = convert_to_power(rx)
+                    rx_dBm = rx
                     rx_midpoint = (max(rx_dBm) + min(rx_dBm))/2.0
                     # is the first rx higher than the midpoint (rx of
                     # dip/2)? If not this means we are not looking at a
@@ -440,7 +424,7 @@ class Bridge12 (Serial):
                         raise ValueError("The reflection of the first point is the same or lower than the rx of the dip, which doesn't make sense -- check %gdBm_%s"%(10.0,rx))
         else:
             rx,freq = [self.tuning_curve_data['%gdBm_%s'%(10.0,j)] for j in ['rx','freq']]
-            rx_dBm = convert_to_power(rx)
+            rx_dBm = rx
             rx_midpoint = (max(rx_dBm) + min(rx_dBm))/2.0
             over_bool = rx_dBm > rx_midpoint # Contains False everywhere rx_dBm is under
             if not over_bool[0]:
