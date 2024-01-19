@@ -30,29 +30,38 @@ dB_settings = np.unique(np.round(np.linspace(0, 35, 5) / 0.5) * 0.5)
 powers = 1e-3 * 10 ** (dB_settings / 10.0)
 uw_dip_center_GHz = 9.819267
 uw_dip_width_GHz = 0.008
-result = input("to keep this example minimal, it doesn't read from the config file!!\nThe dip frequency is currently set to %0.6f GHz\nIs that correct???"%uw_dip_center_GHz)
-if not result.lower().startswith('y'):
+result = input(
+    "to keep this example minimal, it doesn't read from the config file!!\nThe dip frequency is currently set to %0.6f GHz\nIs that correct???"
+    % uw_dip_center_GHz
+)
+if not result.lower().startswith("y"):
     raise ValueError("Incorrect dip frequency")
 # }}}
 # {{{ delays used in test
 short_delay = 0.5
-long_delay = 10 # this is the delay where it holds the same power
+long_delay = 10  # this is the delay where it holds the same power
+
+
 # }}}
 # {{{ function that generates fake data with two indirect dimensions
 def run_scans(indirect_idx, indirect_len, nScans, indirect_fields=None, ret_data=None):
     "this is a dummy replacement to run_scans that generates random data"
     data_length = 2 * nPoints
     for nScans_idx in range(nScans):
-        data_array = np.random.random(2*data_length).view(np.complex128) # enough random numbers for both real and imaginary, then use view to alternate real,imag
+        data_array = np.random.random(2 * data_length).view(
+            np.complex128
+        )  # enough random numbers for both real and imaginary, then use view to alternate real,imag
         if ret_data is None:
             times_dtype = np.dtype(
                 [
                     (indirect_fields[0], np.double),
                     (indirect_fields[1], np.double),
-                ] # typically, the two columns/fields give start and stop times
+                ]  # typically, the two columns/fields give start and stop times
             )
             mytimes = np.zeros(indirect_len, dtype=times_dtype)
-            direct_time_axis = r_[0:np.shape(data_array)[0]] / (3.9e3) # fake it like this is 3.9 kHz SW data
+            direct_time_axis = r_[0 : np.shape(data_array)[0]] / (
+                3.9e3
+            )  # fake it like this is 3.9 kHz SW data
             ret_data = ndshape(
                 [indirect_len, nScans, len(direct_time_axis)],
                 ["indirect", "nScans", "t"],
@@ -62,6 +71,8 @@ def run_scans(indirect_idx, indirect_len, nScans, indirect_fields=None, ret_data
             ret_data.setaxis("nScans", r_[0:nScans])
         ret_data["indirect", indirect_idx]["nScans", nScans_idx] = data_array
     return ret_data
+
+
 # }}}
 power_settings_dBm = np.zeros_like(dB_settings)
 with power_control() as p:
@@ -98,7 +109,7 @@ with power_control() as p:
         time_axis_coords[j]["start_times"] = DNP_ini_time
         time_axis_coords[j]["stop_times"] = DNP_done
     DNP_data.name("nodename_test")
-    DNP_data.set_prop("power_settings",power_settings_dBm)
+    DNP_data.set_prop("power_settings", power_settings_dBm)
     nodename = DNP_data.name()
     try:
         DNP_data.hdf5_write(filename, directory=target_directory)
@@ -112,8 +123,6 @@ with power_control() as p:
             os.remove("temp.h5")
             DNP_data.hdf5_write("temp.h5")
     this_log = p.stop_log()
-with h5py.File(
-    os.path.normpath(os.path.join(target_directory, filename)), "a"
-) as f:
+with h5py.File(os.path.normpath(os.path.join(target_directory, filename)), "a") as f:
     log_grp = f.create_group("log")
     hdf_save_dict_to_group(log_grp, this_log.__getstate__())
