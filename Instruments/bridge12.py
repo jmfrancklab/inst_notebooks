@@ -492,11 +492,11 @@ class Bridge12(Serial):
         """
         wg_engaged = False
         while not wg_engaged:
-            self.set_wg(True)  # If the dip fails wg_engaged will be False
-            # and it will loop back to here to try again
-            self.set_rf(True)
-            self.set_amp(True)
             if not self.frq_sweep_10dBm_has_been_run:
+                self.set_wg(True)  # If the dip fails wg_engaged will be False
+                # and it will loop back to here to try again
+                self.set_rf(True)
+                self.set_amp(True)
                 freq = r_[ini_range[0] : ini_range[1] : ini_step]
                 logger.info(
                     "ini range: " + str(ini_range) + "ini step: " + str(ini_step)
@@ -504,19 +504,20 @@ class Bridge12(Serial):
                 logger.info("Did not find previous 10 dBm run, running now")
                 self.set_power(10.0)
                 rx, tx = self.freq_sweep(freq)
-            rx, freq = [
+            rx_dBm, freq = [
                 self.tuning_curve_data["%gdBm_%s" % (10.0, j)] for j in ["rx", "freq"]
             ]
-            rx_dBm = rx
             rx_midpoint = (max(rx_dBm) + min(rx_dBm)) / 2.0
-            # is the first rx higher than the midpoint (rx of
+            # is the first rx_dBm higher than the midpoint (rx_dBm of
             # dip/2)? If not this means we are not looking at a
-            # dip - ex. if the wg didn't switch on our rx would
+            # dip - ex. if the wg didn't switch on our rx_dBm would
             # be a straight line and we would not have a dip
             over_bool = (
                 rx_dBm > rx_midpoint
             )  # Contains False everywhere rx_dBm is under
-            if not over_bool[0]:
+            if over_bool[0]:
+                wg_engaged = True
+            else:
                 # if the dip doesn't look good,
                 # flag an error so that we need
                 # to try to reengage the wg.
@@ -525,15 +526,14 @@ class Bridge12(Serial):
                 )
                 if result.lower().startswith("y"):
                     wg_engaged = False
+                    self.frq_sweep_10dBm_has_been_run = False # we don't trust the 10dBm guy that was run
                 else:
                     self.set_rf(False)
                     self.set_wg(False)
                     raise ValueError(
-                        "The reflection of the first point is the same or lower than the rx of the dip, which doesn't make sense -- check %gdBm_%s"
-                        % (10.0, rx)
+                        "The reflection of the first point is the same or lower than the rx_dBm of the dip, which doesn't make sense -- check %gdBm_%s"
+                        % (10.0, rx_dBm)
                     )
-            else:
-                wg_engaged = True
         assert (
             self.frq_sweep_10dBm_has_been_run
         ), "I should have run the 10 dBm curve -- not sure what happened"
@@ -568,7 +568,7 @@ class Bridge12(Serial):
         print("*** *** *** *** ***")
         print(freq_axis)
         print("*** *** *** *** ***")
-        rx, tx = self.freq_sweep(freq_axis, fast_run=True)
+        rx_dBm, tx = self.freq_sweep(freq_axis, fast_run=True)
         return self.zoom(dBm_increment=2, n_freq_steps=n_freq_steps)
 
     def zoom(self, dBm_increment=2, n_freq_steps=15):
