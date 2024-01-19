@@ -28,7 +28,7 @@ nScans = 1
 # {{{ params for Bridge 12/power
 dB_settings = np.unique(np.round(np.linspace(0, 35, 5) / 0.5) * 0.5)
 powers = 1e-3 * 10 ** (dB_settings / 10.0)
-uw_dip_center_GHz = 9.819267
+uw_dip_center_GHz = 9.818061
 uw_dip_width_GHz = 0.008
 result = input(
     "to keep this example minimal, it doesn't read from the config file!!\nThe dip frequency is currently set to %0.6f GHz\nIs that correct???"
