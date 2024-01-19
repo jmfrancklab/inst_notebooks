@@ -402,47 +402,39 @@ class Bridge12 (Serial):
         4.  Run a new frequency sweep over just the dip.
         5.  Call the zoom function to zoom in on the dip.
         """    
-        if not self.frq_sweep_10dBm_has_been_run:
-            freq = r_[ini_range[0]:ini_range[1]:ini_step]
-            logger.info("ini range: "+str(ini_range)+"ini step: "+str(ini_step))
-            wg_engaged = False
-            logger.info("Did not find previous 10 dBm run, running now")
-            while not wg_engaged:
-                try:
-                    self.set_wg(True)
-                    self.set_rf(True)
-                    self.set_amp(True)
-                    self.set_power(10.0)
-                    rx, tx = self.freq_sweep(freq)
-                    rx,freq = [self.tuning_curve_data['%gdBm_%s'%(10.0,j)] for j in ['rx','freq']]
-                    rx_dBm = rx
-                    rx_midpoint = (max(rx_dBm) + min(rx_dBm))/2.0
-                    # is the first rx higher than the midpoint (rx of
-                    # dip/2)? If not this means we are not looking at a
-                    # dip - ex. if the wg didn't switch on our rx would
-                    # be a straight line and we would not have a dip
-                    over_bool = rx_dBm > rx_midpoint # Contains False everywhere rx_dBm is under
-                    if not over_bool[0]:
-                        # if the dip doesn't look good,
-                        # flag an error so that we need
-                        # to try to reengage the wg.
-                        raise ValueError("Tuning Curve doesn't start over the midpoint, which doesn't make sense- check %gdBm_%s"%(10.0,'rx'))
-                    wg_engaged = True
-                except:
-                    result = input("Couldn't find the midpoint; maybe the wg didn't turn on completely. If you'd like me to try again type 'y', if not type 'n' or CTRL-C")
-                    if result.lower().startswith("y"):
-                        wg_engaged = False
-                    else:
-                        self.set_rf(False)
-                        self.set_wg(False)
-                        raise ValueError("The reflection of the first point is the same or lower than the rx of the dip, which doesn't make sense -- check %gdBm_%s"%(10.0,rx))
-        else:
+        wg_engaged = False
+        while not wg_engaged:
+            self.set_wg(True) # If the dip fails wg_engaged will be False 
+                              # and it will loop back to here to try again
+            self.set_rf(True)
+            self.set_amp(True)
+            if not self.frq_sweep_10dBm_has_been_run:
+                freq = r_[ini_range[0]:ini_range[1]:ini_step]
+                logger.info("ini range: "+str(ini_range)+"ini step: "+str(ini_step))
+                logger.info("Did not find previous 10 dBm run, running now")
+                self.set_power(10.0)
+                rx, tx = self.freq_sweep(freq)
             rx,freq = [self.tuning_curve_data['%gdBm_%s'%(10.0,j)] for j in ['rx','freq']]
             rx_dBm = rx
             rx_midpoint = (max(rx_dBm) + min(rx_dBm))/2.0
+            # is the first rx higher than the midpoint (rx of
+            # dip/2)? If not this means we are not looking at a
+            # dip - ex. if the wg didn't switch on our rx would
+            # be a straight line and we would not have a dip
             over_bool = rx_dBm > rx_midpoint # Contains False everywhere rx_dBm is under
             if not over_bool[0]:
-                raise ValueError("Tuning Curve doesn't start over the midpoint, which doesn't make sense- check %gdBm_%s"%(10.0,'rx'))
+                # if the dip doesn't look good,
+                # flag an error so that we need
+                # to try to reengage the wg.
+                result = input("Couldn't find the midpoint; maybe the wg didn't turn on completely. If you'd like me to try again type 'y', if not type 'n' or CTRL-C")
+                if result.lower().startswith("y"):
+                    wg_engaged = False
+                else:
+                    self.set_rf(False)
+                    self.set_wg(False)
+                    raise ValueError("The reflection of the first point is the same or lower than the rx of the dip, which doesn't make sense -- check %gdBm_%s"%(10.0,rx))
+            else:
+                wg_engaged = True
         assert self.frq_sweep_10dBm_has_been_run, "I should have run the 10 dBm curve -- not sure what happened"
         over_diff = r_[0,np.diff(np.int32(over_bool))]# should indicate whether this position has lifted over (+1) or dropped under (-1) the midpoint
         over_idx = r_[0:len(over_diff)]
